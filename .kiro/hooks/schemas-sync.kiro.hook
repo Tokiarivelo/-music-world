@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Regenerate schemas",
+  "description": "Keeps JSON Schema, TS types and zod validators in sync when a pydantic schema changes.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["apps/api/music_world/schemas/**/*.py"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A pydantic schema changed. Run `make schemas`, then run the TypeScript typecheck and the Python and TS schema tests. If the change is breaking, bump the schema version string (music-world.<name>.v<N>) and update the default templates and fixtures accordingly."
+  }
+}

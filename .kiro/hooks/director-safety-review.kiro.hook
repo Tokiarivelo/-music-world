@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Director safety review",
+  "description": "Reviews AI director and template store changes against the data-only and secrets rules.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["apps/api/music_world/director/**/*.py", "apps/api/music_world/templates/**/*.py"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Review the edited file against the rules in .kiro/steering/tech.md and ai-models.md: model output and templates are data only (no eval/exec, no interpolation into code, SQL, shell or HTML); every output is validated by pydantic with clamped values; fallback chain selected provider -> other provider -> mock is intact; no secret is logged or returned; full lyrics are not logged; no *-contributor model id is used with user data. Report violations and fix them."
+  }
+}

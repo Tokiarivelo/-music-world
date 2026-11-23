@@ -1,0 +1,15 @@
+{
+  "enabled": true,
+  "name": "Architecture check",
+  "description": "Runs the architecture validator (layer boundaries, pure engine, barrel imports, no secrets in web) when backend or web source files are saved.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["apps/api/music_world/**/*.py", "apps/web/src/**/*.ts", "apps/web/src/**/*.tsx"]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "bash scripts/agents/validate-architecture.sh",
+    "timeout": 20
+  }
+}

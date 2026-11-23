@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Write handoff",
+  "description": "Manual: verifies, archives the previous session and rewrites docs/handoff.md (same procedure as the handoff skill).",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Follow the `handoff` skill in .kiro/skills/handoff/SKILL.md: verify, tick tasks, archive section 2 to docs/handoff-archive/<YYYY-MM>.md, rewrite the 6 sections of docs/handoff.md (≤ 150 lines), append to KIRO_USAGE.md, and give the resume line."
+  }
+}

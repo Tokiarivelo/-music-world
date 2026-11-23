@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "After spec task: docs and handoff",
+  "description": "After a spec task is executed, checks docs per the documentation rule, ticks the task and refreshes the handoff task table.",
+  "version": "1",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A spec task just finished. 1) Confirm the tests of the touched area pass and `bash scripts/agents/validate-architecture.sh` passes; if not, fix before continuing. 2) Apply .kiro/steering/documentation.md: update every doc the change requires. 3) Make sure the task is ticked in its tasks.md. 4) Update sections 3 (Next actions) and 4 (Task ownership) of docs/handoff.md. Keep docs/handoff.md under 150 lines."
+  }
+}

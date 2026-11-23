@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Engine property tests on save",
+  "description": "Runs the world engine tests (including fast-check properties) when an engine file changes.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["apps/web/src/engine/**/*.ts"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "An engine file was edited. Run `pnpm --dir apps/web vitest run src/engine`. If a test fails, explain the cause and fix the code, not the test. Never weaken or delete a determinism, seek-equivalence, monotonicity or budget property test."
+  }
+}

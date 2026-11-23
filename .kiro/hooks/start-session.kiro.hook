@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Start session",
+  "description": "Manual: loads the handoff and starts the next action (same procedure as the start skill).",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Follow the `start` skill in .kiro/skills/start/SKILL.md: read docs/handoff.md and git status, claim the first available next action, read only the spec sections it cites, state the plan in 5 lines, then start."
+  }
+}

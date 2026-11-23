@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Frontend rules review",
+  "description": "Checks new or edited web pages and feature components against the feature-first rules.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["apps/web/src/app/**/*.tsx", "apps/web/src/features/**/*.tsx"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Check the edited file against .kiro/steering/frontend.md: pages are thin (compose barrel imports only, no fetching or hooks); one component per file; no magic strings or numbers outside consts/; cross-feature imports only through index.ts; no Three.js or IWSDK in React components; Tailwind mobile-first; controls labelled and keyboard accessible. Fix violations; reply 'ok' if none."
+  }
+}

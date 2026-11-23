@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Update Kiro usage log",
+  "description": "Manual hook: appends today's Kiro usage to KIRO_USAGE.md for the hackathon write-up.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Append a dated entry to KIRO_USAGE.md (English) describing what was done today with Kiro: specs and tasks completed, hooks that fired and what they caught, steering changes and why, MCP servers used, property-based tests that found bugs, and any spec-driven vs vibe-coding comparison. Keep it factual and short; use git log and the specs' tasks.md checkboxes as sources."
+  }
+}
