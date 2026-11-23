@@ -66,3 +66,5 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
   always the first zone, random column instead of pitch — the "monotonic x" property was vacuous because both notes
   shared one PRNG stream). Added a grid-cell property (column = pitch, jitter keeps the margin) and a "uses every
   zone" check; all 5 mutants now fail.
+- Task 2.1: `engine/spawn-plan.ts` + `engine/staff.ts`. Mutation check: a chord arc keyed on the *first* landing
+  instead of the last survived (the fixture's chord notes share one onset); added a random-analysis property.
