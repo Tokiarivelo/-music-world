@@ -1,9 +1,9 @@
 # Implementation Plan
 
-- [ ] 1. Engine primitives
+- [x] 1. Engine primitives
   - [x] 1.1 `prng.ts` (mulberry32 + string hash) with property tests.
   - [x] 1.2 `mapping.ts` evaluating template rules; tests for rule order and ranges.
-  - [ ] 1.3 `layout.ts` zones and placement; property test: targets within zone bounds.
+  - [x] 1.3 `layout.ts` zones and placement; property test: targets within zone bounds.
   - _Requirements: 1.2, 1.4_
 - [ ] 2. Spawn plan and world state
   - [ ] 2.1 `buildSpawnPlan` with chord groups and slot budget.

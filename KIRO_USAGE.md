@@ -61,3 +61,8 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
   before conversion. `engine/mapping.ts` with fast-check properties (first match wins, pitch threshold partition,
   AND semantics). Mutation check: 5 mutants (strict `>` → `>=`, `findIndex` → `findLastIndex`, inverted chord test,
   unordered `a-b` bounds, dropped velocity condition) all killed.
+- Task 1.3: `engine/layout.ts` (zones in normalized plate units, jittered grid, pitch → column). Mutation check
+  found weak properties: 3 of 5 mutants survived the first "target inside its zone" property (no cell margin,
+  always the first zone, random column instead of pitch — the "monotonic x" property was vacuous because both notes
+  shared one PRNG stream). Added a grid-cell property (column = pitch, jitter keeps the margin) and a "uses every
+  zone" check; all 5 mutants now fail.
