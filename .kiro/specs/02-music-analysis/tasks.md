@@ -2,7 +2,7 @@
 
 - [x] 1. Schemas: `Note`, `Chord`, `Section`, `LyricSegment`, `AnalysisResult` v1 + invariant validators; run `make schemas`.
   - _Requirements: 7.1, 7.2_
-- [ ] 2. Upload endpoint `POST /projects` (multipart audio + optional .lrc), limits, SHA-256 cache lookup, enqueue job.
+- [x] 2. Upload endpoint `POST /projects` (multipart audio + optional .lrc), limits, SHA-256 cache lookup, enqueue job.
   - _Requirements: 1.1, 1.2, 1.4, 1.5_
 - [ ] 3. `decode.py` with ffmpeg; duration check.
   - _Requirements: 1.2_

@@ -58,3 +58,17 @@ requirement 7.2; generated TS: `AnalysisSchema` / type `Analysis`.
 - Hypothesis: for random note lists, `group_chords` only groups overlapping notes; `filter_notes` keeps order;
   validator invariants of Requirement 7.2 hold for any pipeline output on random short noise + tones.
 - One end-to-end test on a 10 s royalty-free clip committed in `apps/api/tests/fixtures/`.
+
+## As built (Phase 3, 2026-11-23)
+
+- **Upload (task 2)** lives in the `projects` context: `Project` aggregate (`projects/domain/project.py`: content
+  sniffing by magic bytes, 25 MB / 180 s / 64 KB `.lrc` limits), `CreateProject` and `GetProject` use cases, router
+  `projects/interfaces/projects_http.py`. The project row is written before the `analyze_project` job is enqueued
+  (`jobs.subject_id` = project id). Audio key `audio/<sha256>.<ext>` (content-addressed, not guessable).
+- **Analysis cache**: finished results are rows of the `analyses` table (JSON, keyed by audio hash and schema id)
+  instead of S3 + row; read through the analysis use case `AnalysisCache`, injected into `projects`.
+- **Object storage**: `shared/object_store.py` — `S3ObjectStore` when the `S3_*` settings are complete, else
+  `LocalObjectStore(STORAGE_DIR)` (no OVHcloud bucket yet; same keys, so switching is configuration only).
+- The `.lrc` text is stored on the project and applied when the analysis is read (cached results stay
+  lyrics-independent).
+- Not yet: auth/ownership (accounts context does not exist) and per-IP upload rate limits.

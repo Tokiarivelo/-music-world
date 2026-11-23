@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "music-world.project-created.v1",
+  "$comment": "GENERATED — do not edit. Source: apps/api/music_world/schemas (run `make schemas`).",
+  "additionalProperties": false,
+  "description": "Body of `202 Accepted` after an upload. `jobId` is null when the analysis was already cached.",
+  "examples": [
+    {
+      "jobId": null,
+      "projectId": "0193f1a2-7c4e-7b1a-9f00-1234567890ab",
+      "status": "ready"
+    }
+  ],
+  "properties": {
+    "projectId": {
+      "title": "Projectid",
+      "type": "string"
+    },
+    "jobId": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Poll `GET /api/jobs/{jobId}`; null when the analysis is cached.",
+      "title": "Jobid"
+    },
+    "status": {
+      "enum": [
+        "analyzing",
+        "ready",
+        "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "projectId",
+    "jobId",
+    "status"
+  ],
+  "title": "ProjectCreated",
+  "type": "object"
+}

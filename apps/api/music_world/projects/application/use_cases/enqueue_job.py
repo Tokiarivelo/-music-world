@@ -11,10 +11,10 @@ class EnqueueJob:
     ) -> None:
         self._repo, self._queue, self._kinds, self._new_id, self._clock = repo, queue, kinds, new_id, clock
 
-    async def execute(self, kind: str) -> Job:
+    async def execute(self, kind: str, subject_id: str | None = None) -> Job:
         if kind not in self._kinds:
             raise UnknownJobKindError(f"unknown job kind: {kind}")
-        job = Job.queued(self._new_id(), kind, self._clock())
+        job = Job.queued(self._new_id(), kind, self._clock(), subject_id)
         await self._repo.add(job)  # persisted before enqueue so the worker always finds it
         await self._queue.enqueue(job.id)
         return job

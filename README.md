@@ -62,6 +62,14 @@ curl -k https://localhost/api/health  # {"status":"ok",…}
 ```
 
 `make help` lists every target. Production settings: copy `infra/.env.example` to `infra/.env`.
+Without `S3_*` settings, uploads and stems go to a local directory (`STORAGE_DIR`, a Docker volume in Compose).
+
+Upload a song for analysis (MP3, WAV or FLAC, ≤ 25 MB, ≤ 3 minutes; optional timed lyrics `.lrc`):
+
+```bash
+curl -k -F audio=@song.mp3 -F lyrics=@song.lrc https://localhost/api/projects   # 202 {"projectId","jobId",…}
+curl -k https://localhost/api/projects/<projectId>                               # status analyzing | ready | failed
+```
 
 ## License
 

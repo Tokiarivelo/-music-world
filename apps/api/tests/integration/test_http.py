@@ -3,26 +3,53 @@ from collections.abc import AsyncIterator
 import pytest
 from httpx import ASGITransport, AsyncClient
 
+from music_world.analysis.application.use_cases.analysis_cache import AnalysisCache
 from music_world.main import create_app
+from music_world.projects.application.use_cases.create_project import CreateProject
 from music_world.projects.application.use_cases.enqueue_job import EnqueueJob
 from music_world.projects.application.use_cases.get_job import GetJob
+from music_world.projects.application.use_cases.get_project import GetProject
 from music_world.projects.application.use_cases.run_job import RunJob
+from music_world.projects.domain.job_kinds import ANALYZE_PROJECT_JOB_KIND
 from music_world.shared.container import Container
 from music_world.shared.settings import Settings
 from music_world.system.application.use_cases.check_health import CheckHealth
-from tests.fakes import FakeClock, InMemoryJobRepository, RecordingQueue, SequentialIds, StaticProbe
+from tests.fakes import (
+    FakeAudioProbe,
+    FakeClock,
+    InMemoryAnalysisRepository,
+    InMemoryJobRepository,
+    InMemoryObjectStore,
+    InMemoryProjectRepository,
+    RecordingQueue,
+    SequentialIds,
+    StaticProbe,
+)
 
 SECRET = "super-secret-key-value"
 
 
-def make_container(settings: Settings, postgres: StaticProbe) -> Container:
-    repo, clock = InMemoryJobRepository(), FakeClock()
+def make_container(
+    settings: Settings,
+    postgres: StaticProbe,
+    probe: FakeAudioProbe | None = None,
+    analyses: AnalysisCache | None = None,
+) -> Container:
+    repo, clock, ids = InMemoryJobRepository(), FakeClock(), SequentialIds()
+    projects = InMemoryProjectRepository()
+    cache = analyses or AnalysisCache(InMemoryAnalysisRepository())
+    enqueue = EnqueueJob(repo, RecordingQueue(), {"demo", ANALYZE_PROJECT_JOB_KIND}, ids, clock)
     return Container(
         settings=settings,
-        enqueue_job=EnqueueJob(repo, RecordingQueue(), {"demo"}, SequentialIds(), clock),
+        enqueue_job=enqueue,
         get_job=GetJob(repo),
         run_job=RunJob(repo, {}, clock),
         check_health=CheckHealth(settings.app_version, postgres, StaticProbe("ok"), StaticProbe("not_configured")),
+        create_project=CreateProject(
+            projects, InMemoryObjectStore(), probe or FakeAudioProbe(), cache, enqueue, ids, clock
+        ),
+        get_project=GetProject(projects, repo, cache),
+        analysis_cache=cache,
     )
 
 

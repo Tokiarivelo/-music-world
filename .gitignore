@@ -41,3 +41,6 @@ weights/
 # OS / editors
 .DS_Store
 *.log
+
+# Local object storage and analysis work dirs (development)
+.data/
