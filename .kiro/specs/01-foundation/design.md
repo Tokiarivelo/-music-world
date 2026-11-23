@@ -22,24 +22,23 @@ OVHcloud Object Storage (S3) ◄── api, worker
 
 - Next.js App Router, TypeScript strict, `output: 'standalone'` for a small Docker image.
 - `src/xr/world-host.ts`, mounted by `src/features/world-view/components/WorldCanvas.tsx` (client component, loaded
-  with `dynamic(..., { ssr: false })`):
+  by `WorldView` with `dynamic(..., { ssr: false })`). Implemented against IWSDK 1.1.0 (checked in the installed
+  typings, not from memory):
 
 ```ts
-export async function createMusicWorld(container: HTMLDivElement): Promise<WorldHandle> {
-  if (process.env.NODE_ENV === 'development') {
-    const { XRDevice, metaQuest3 } = await import('iwer');
-    new XRDevice(metaQuest3).installRuntime();       // must run before World.create
-  }
-  const { World, SessionMode, ReferenceSpaceType } = await import('@iwsdk/core');
-  const world = await World.create(container, {
-    xr: { sessionMode: SessionMode.ImmersiveVR, referenceSpace: ReferenceSpaceType.LocalFloor, offer: 'none' },
-  });
-  return { world, enterVR: () => world.launchXR(), exitVR: () => world.exitXR(), dispose: () => { /* see below */ } };
-}
+export function createMusicWorld(container: HTMLDivElement, deps = defaultDeps): Promise<WorldHandle>
+// 1. dev only: if native navigator.xr does not support immersive-vr, install IWER (metaQuest3) with
+//    { forceInstall: true } — desktop Chrome exposes an empty native navigator.xr; a real Quest keeps its runtime.
+// 2. World.create(container, { xr: { sessionMode: ImmersiveVR, referenceSpace: LocalFloor, offer: 'none' } })
+// 3. handle: enterVR = world.launchXR(), exitVR = world.exitXR(), isVRSupported(), dispose()
 ```
 
-- Dispose: exit XR if active, stop systems, `renderer.dispose()`, `renderer.forceContextLoss()`, remove the canvas.
-  Verify the exact IWSDK teardown API in the docs; add a property-free smoke test that mounts/unmounts 5 times.
+- Creations are **serialized** in a module queue: two concurrent `World.create` calls leave one pending forever
+  (React StrictMode double mount), leaking a canvas.
+- Dispose: exit XR if a session is active, `world.destroy()` (systems + render loop + resize listener),
+  `renderer.dispose()`, `renderer.forceContextLoss()`, remove the canvas. Idempotent. `src/xr/world-host.test.ts`
+  mounts/unmounts 5 times with a fake world.
+- `three` is aliased to `npm:super-three@0.185.0`, the build IWSDK 1.1.0 depends on, so only one three is bundled.
 - `src/features/player/lib/audio-player.ts` (exported from the `player` barrel):
 
 ```ts

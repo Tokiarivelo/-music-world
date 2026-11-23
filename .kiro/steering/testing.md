@@ -26,6 +26,6 @@ fileMatchPattern: ["**/*.test.ts", "**/*.test.tsx", "**/tests/**", "**/__tests__
 
 ## Commands
 
-- Web: `pnpm --dir apps/web vitest run <path>` · typecheck `pnpm --dir apps/web typecheck`
+- Web: `pnpm -C apps/web exec vitest run <path>` · typecheck `pnpm -C apps/web typecheck`
 - API: `cd apps/api && uv run pytest <path> -m "not slow"` · types `uv run mypy music_world`
 - All: `make test`, `make check` (lint + types + tests + architecture check)

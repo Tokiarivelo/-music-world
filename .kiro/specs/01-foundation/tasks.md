@@ -4,14 +4,15 @@
   - Create `apps/web`, `apps/api`, `packages/schemas`, `infra`, root `Makefile` (targets listed in `infrastructure.md` steering, `make check` runs `scripts/agents/validate-architecture.sh`), MIT `LICENSE`, `.gitignore` (without `.kiro`).
   - _Requirements: 1.1, 1.2_
 
-- [ ] 2. Next.js app
-  - [ ] 2.1 Scaffold Next.js (App Router, TS strict, ESLint, `output: 'standalone'`), Vitest and fast-check.
-  - [ ] 2.2 Add `@iwsdk/core`, `three`, `iwer`; create `src/xr/world-host.tsx` and `/play/demo` showing one glowing cube.
+- [x] 2. Next.js app
+  - [x] 2.1 Scaffold Next.js (App Router, TS strict, ESLint, `output: 'standalone'`), Vitest and fast-check.
+  - [x] 2.2 Add `@iwsdk/core`, `three`, `iwer`; create `src/xr/world-host.tsx` and `/play/demo` showing one glowing cube.
     - Verify current IWSDK API names in the official docs before writing code.
     - _Requirements: 2.1, 2.2, 2.3_
-  - [ ] 2.3 Implement dispose and a mount/unmount smoke test.
+  - [x] 2.3 Implement dispose and a mount/unmount smoke test.
     - _Requirements: 2.4_
-  - [ ] 2.4 Checkpoint: cube visible on desktop, Enter VR works in IWER. If not, apply the Vite fallback and log it.
+  - [x] 2.4 Checkpoint: cube visible on desktop, Enter VR works in IWER. If not, apply the Vite fallback and log it.
+    - Done in Next.js (no fallback needed); real Quest check stays in 6.3.
     - _Requirements: 2.5_
 
 - [ ] 3. Audio clock

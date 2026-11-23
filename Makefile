@@ -14,11 +14,11 @@ dev: ## Start web, api, worker, postgres and redis locally
 
 test: ## Run API and web tests (no slow tests)
 	cd $(API) && uv run pytest -q -m "not slow"
-	@if [ -f $(WEB)/package.json ]; then pnpm --dir $(WEB) vitest run; else echo "[test] apps/web not scaffolded yet, skipped"; fi
+	@if [ -f $(WEB)/package.json ]; then pnpm -C $(WEB) test; else echo "[test] apps/web not scaffolded yet, skipped"; fi
 
 check: schemas-check test ## Lint + types + tests + architecture check
 	cd $(API) && uv run ruff check . && uv run ruff format --check . && uv run mypy
-	@if [ -f $(WEB)/package.json ]; then pnpm --dir $(WEB) lint && pnpm --dir $(WEB) typecheck; fi
+	@if [ -f $(WEB)/package.json ]; then pnpm -C $(WEB) lint && pnpm -C $(WEB) typecheck; fi
 	bash scripts/agents/validate-architecture.sh
 
 schemas: ## pydantic -> packages/schemas/*.schema.json -> apps/web/src/templates/generated (TS + zod)

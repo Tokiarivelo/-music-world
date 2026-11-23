@@ -27,4 +27,4 @@ Rules: `.kiro/steering/frontend.md`, `coding-standards.md`.
 6. **UI**: Tailwind mobile-first; palette CSS variables (`--mw-*`); keyboard access; check 375 / 768 / 1280 px.
 7. **Tests**: Vitest + Testing Library for hooks and interactive components (`__tests__/` next to the code).
 8. **Docs**: `README.md` if the feature is user-visible; spec task ticked; handoff updated.
-9. Run `pnpm --dir apps/web vitest run src/features/<feature>` and `pnpm --dir apps/web typecheck`.
+9. Run `pnpm -C apps/web exec vitest run src/features/<feature>` and `pnpm -C apps/web typecheck`.

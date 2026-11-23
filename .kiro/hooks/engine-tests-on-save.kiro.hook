@@ -9,6 +9,6 @@
   },
   "then": {
     "type": "askAgent",
-    "prompt": "An engine file was edited. Run `pnpm --dir apps/web vitest run src/engine`. If a test fails, explain the cause and fix the code, not the test. Never weaken or delete a determinism, seek-equivalence, monotonicity or budget property test."
+    "prompt": "An engine file was edited. Run `pnpm -C apps/web exec vitest run src/engine`. If a test fails, explain the cause and fix the code, not the test. Never weaken or delete a determinism, seek-equivalence, monotonicity or budget property test."
   }
 }

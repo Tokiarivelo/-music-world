@@ -1,0 +1,15 @@
+@import 'tailwindcss';
+
+/* Palette tokens of the default template (see PROJECT.md §2). */
+:root {
+  --mw-bg: #05060f;
+  --mw-primary: #3fd8ff;
+  --mw-accent: #ff4fd8;
+  --mw-secondary: #7a5cff;
+}
+
+html,
+body {
+  background: var(--mw-bg);
+  color: #e8ecff;
+}
