@@ -12,8 +12,8 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 1. Repository state
 
-- Branch `main`, one commit per task (`722de54` … `a133fd7` + this handoff). **Not pushed**: the agent has no
-  GitHub credentials for HTTPS; the user pushes with `git push origin main`.
+- Branch `main`, one commit per task (`722de54` … `a133fd7` + handoff), pushed to `origin/main`.
+  Push with gh credentials: `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin main`.
 - Working tree clean after the handoff commit.
 - `make check` green: API pytest 28 passed · web vitest 14 passed · ruff, mypy strict, eslint, tsc clean ·
   schema drift check ok · architecture check ok.
@@ -45,7 +45,7 @@ Read docs/handoff.md and continue with the next actions.
 
 Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 
-1. **Human** — `git push origin main` (7+ local commits). Roadmap Phase 0: Kiro credits request (before
+1. **Human** — roadmap Phase 0: Kiro credits request (before
    **2026-12-01 12:00 PT**), OVHcloud instance, keys, demo song.
 2. **Human + agent** — roadmap 1.6 / `01-foundation` task 7: Muse Voice on a 30 s sung vocal, Bedrock access
    (needs `META_API_KEY`, AWS credentials).
@@ -59,7 +59,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 
 | Task | Owner | Status | Note |
 |---|---|---|---|
-| 01-foundation 1–5, 6.1 | Claude Code | done | committed, not pushed |
+| 01-foundation 1–5, 6.1 | Claude Code | done | pushed |
 | 01-foundation 6.2, 6.3 | — | todo | needs OVHcloud instance + bucket |
 | 01-foundation 7 | — | blocked | needs API keys (human) |
 | 02-music-analysis 1–10 | audio-analyst | todo | can start now (01 task 4 done) |
