@@ -78,3 +78,8 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
   View tests in jsdom: triangle budgets, cracks pulse on kicks, structure slots match the state after any seek,
   particles depend on song time only, draw calls < 40. Deviations recorded in `design.md` (procedural glyphs
   instead of Bravura SDF; no post-processing bloom in WebXR).
+- Task 5: `useSongPlayer` + `PlayerBar` (keyboard: space, arrows ±5 s) and `WorldHandle.load(scene)`; the demo
+  analysis is synthesized to audio in the browser so `/play/demo` runs on the real audio clock. Verified in headless
+  Chromium (SwiftShader) on a production build: the world renders, pause freezes the clock, arrows seek ±5 s and
+  the world jumps to the matching state. A full parallel `vitest run` hit the 5 s default timeout on property tests:
+  raised `testTimeout` (no property weakened).

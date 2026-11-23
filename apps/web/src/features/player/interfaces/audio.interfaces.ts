@@ -14,7 +14,8 @@ export interface AudioParamLike {
 export interface AudioBufferSourceNodeLike {
   buffer: AudioBufferLike | null;
   readonly playbackRate: AudioParamLike;
-  onended: (() => void) | null;
+  // Web Audio passes `(this: node, ev: Event)`; the player only clears it.
+  onended: ((...args: never[]) => unknown) | null;
   connect(destination: unknown): unknown;
   start(when?: number, offset?: number): void;
   stop(when?: number): void;

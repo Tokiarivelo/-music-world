@@ -18,7 +18,7 @@
   - [x] 4.3 `StructureSystem` (buildings, spikes, ridges) with InstancedMesh and growth.
   - [x] 4.4 `FxSystem` (arcs, particles, bloom).
   - _Requirements: 3.1–3.5, 4.1, 4.2, 5.1_
-- [ ] 5. Wire `AudioClock` into a shared `ClockComponent`; play the demo fixture on `/play/demo`.
+- [x] 5. Wire `AudioClock` into a shared `ClockComponent`; play the demo fixture on `/play/demo`.
   - _Requirements: 5.2_
 - [ ] 6. Checkpoint: side-by-side screenshot with the reference image; adjust camera, palette and layout.
   - _Requirements: 4.1_

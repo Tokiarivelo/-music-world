@@ -3,22 +3,39 @@
  * the returned {@link WorldHandle} (see frontend.md: "3D stays out of React").
  *
  * IWSDK 1.1.0 API checked against the installed typings: `World.create`, `launchXR`, `exitXR`, `destroy`
- * (stops systems + render loop; does not dispose the renderer, so we do it here).
+ * (stops systems + render loop and runs system cleanups, which dispose the views; does not dispose the renderer, so
+ * we do it here).
  */
 import type * as IWSDK from '@iwsdk/core';
-import { createDemoCube } from './demo-cube';
+import { buildSpawnPlan } from '@/engine/spawn-plan';
+import type { EngineAnalysis, WorldTemplate } from '@/engine/types';
+import {
+  DESKTOP_CAMERA_DIRECTION,
+  DESKTOP_CAMERA_DISTANCE_M,
+  DESKTOP_CAMERA_FOV_DEG,
+  DIORAMA_POSITION,
+} from './constants';
+import type { MusicScene, WorldClock } from './systems/world-systems';
 
-const DESKTOP_CAMERA = { position: [0, 1.6, 0.6] as const };
+/** What the world shows: built once into a spawn plan, then rendered from `clock.now()` every frame. */
+export interface WorldScene {
+  analysis: EngineAnalysis;
+  template: WorldTemplate;
+  seed: number;
+  clock: WorldClock;
+}
 
 export interface WorldHandle {
+  /** Replaces the song, template, seed or clock (typed command API, frontend.md). */
+  load(scene: WorldScene): void;
   enterVR(): void;
   exitVR(): void;
   isVRSupported(): Promise<boolean>;
   dispose(): void;
 }
 
-type WorldLike = Pick<IWSDK.World, 'launchXR' | 'exitXR' | 'destroy' | 'createTransformEntity'> & {
-  camera: Pick<IWSDK.World['camera'], 'position' | 'lookAt'>;
+type WorldLike = Pick<IWSDK.World, 'launchXR' | 'exitXR' | 'destroy'> & {
+  camera: Pick<IWSDK.World['camera'], 'position' | 'lookAt' | 'fov' | 'updateProjectionMatrix'>;
   renderer: Pick<IWSDK.World['renderer'], 'dispose' | 'forceContextLoss' | 'domElement'>;
   session: XRSession | undefined;
 };
@@ -26,6 +43,8 @@ type WorldLike = Pick<IWSDK.World, 'launchXR' | 'exitXR' | 'destroy' | 'createTr
 export interface WorldHostDeps {
   installEmulator(): Promise<void>;
   createWorld(container: HTMLElement): Promise<WorldLike>;
+  /** Registers the music systems on the world (`installMusicSystems`). */
+  installScene(world: WorldLike): Promise<Pick<MusicScene, 'setScene'>>;
   xr(): Pick<XRSystem, 'isSessionSupported'> | undefined;
 }
 
@@ -51,13 +70,14 @@ const defaultDeps: WorldHostDeps = {
       xr: { sessionMode: SessionMode.ImmersiveVR, referenceSpace: ReferenceSpaceType.LocalFloor, offer: 'none' },
     });
   },
+  async installScene(world) {
+    const { installMusicSystems } = await import('./systems/world-systems');
+    return installMusicSystems(world as IWSDK.World);
+  },
   xr: () => (typeof navigator === 'undefined' ? undefined : navigator.xr),
 };
 
-export function createMusicWorld(
-  container: HTMLDivElement,
-  deps: WorldHostDeps = defaultDeps,
-): Promise<WorldHandle> {
+export function createMusicWorld(container: HTMLDivElement, deps: WorldHostDeps = defaultDeps): Promise<WorldHandle> {
   const run = creationQueue.then(() => buildWorld(container, deps));
   creationQueue = run.catch(() => undefined);
   return run;
@@ -66,14 +86,22 @@ export function createMusicWorld(
 async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promise<WorldHandle> {
   await deps.installEmulator();
   const world = await deps.createWorld(container);
-  const cube = createDemoCube();
-  world.createTransformEntity(cube.mesh);
-  // Desktop view only; in XR the headset pose drives the camera (restored on exit by IWSDK).
-  world.camera.position.set(...DESKTOP_CAMERA.position);
-  world.camera.lookAt(cube.mesh.position);
+  const scene = await deps.installScene(world);
+  // Desktop isometric view of the diorama; in XR the headset pose drives the camera (restored on exit by IWSDK).
+  const d = DESKTOP_CAMERA_DIRECTION;
+  const norm = Math.hypot(d.x, d.y, d.z);
+  const k = DESKTOP_CAMERA_DISTANCE_M / norm;
+  world.camera.fov = DESKTOP_CAMERA_FOV_DEG;
+  world.camera.updateProjectionMatrix();
+  world.camera.position.set(DIORAMA_POSITION.x + d.x * k, DIORAMA_POSITION.y + d.y * k, DIORAMA_POSITION.z + d.z * k);
+  world.camera.lookAt(DIORAMA_POSITION.x, DIORAMA_POSITION.y, DIORAMA_POSITION.z);
   let disposed = false;
 
   return {
+    load({ analysis, template, seed, clock }) {
+      if (disposed) return;
+      scene.setScene(buildSpawnPlan(analysis, template, seed), clock);
+    },
     enterVR: () => world.launchXR(),
     exitVR: () => world.exitXR(),
     async isVRSupported() {
@@ -85,7 +113,6 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
       disposed = true;
       if (world.session) world.exitXR();
       world.destroy();
-      cube.dispose();
       world.renderer.dispose();
       world.renderer.forceContextLoss();
       world.renderer.domElement.remove();
