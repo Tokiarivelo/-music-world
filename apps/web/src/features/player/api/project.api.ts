@@ -12,10 +12,13 @@ export async function getProjectAnalysis(projectId: string): Promise<Analysis> {
   return AnalysisSchema.parse(await response.json());
 }
 
-/** Downloads and decodes the uploaded song (AudioBuffers can be played by any AudioContext). */
-export async function loadProjectAudio(projectId: string): Promise<AudioBuffer> {
-  const response = await fetch(projectAudioUrl(projectId));
+/** Downloads and decodes a song (AudioBuffers can be played by any AudioContext). */
+export async function loadAudioUrl(url: string): Promise<AudioBuffer> {
+  const response = await fetch(url);
   if (!response.ok) throw await apiErrorFrom(response);
   const data = await response.arrayBuffer();
   return new OfflineAudioContext(1, 1, 44_100).decodeAudioData(data);
 }
+
+/** The uploaded song of a project. */
+export const loadProjectAudio = (projectId: string): Promise<AudioBuffer> => loadAudioUrl(projectAudioUrl(projectId));

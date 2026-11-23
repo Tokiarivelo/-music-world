@@ -20,4 +20,4 @@
   - _Requirements: 1.3, 7.1_
 - [x] 9. Web: upload page with progress bar per stage; on done, redirect to `/play/[projectId]`.
   - _Requirements: 1.3_
-- [ ] 10. Pre-analyse the royalty-free demo song and ship its `AnalysisResult` as a fixture for the judges' demo.
+- [x] 10. Pre-analyse the royalty-free demo song and ship its `AnalysisResult` as a fixture for the judges' demo.

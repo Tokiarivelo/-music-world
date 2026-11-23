@@ -36,6 +36,7 @@ __pycache__/
 !apps/api/tests/fixtures/*.wav
 !apps/api/tests/fixtures/*.mp3
 !apps/api/tests/fixtures/*.flac
+!apps/web/public/demo/*.mp3
 models/
 weights/
 

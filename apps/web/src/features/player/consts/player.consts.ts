@@ -3,7 +3,7 @@ export const PLAYER_TEXT = {
   pause: 'Pause',
   seek: 'Song position',
   loading: 'Preparing the demo song…',
-  synthNote: 'Demo song synthesized from its own notes',
+  demoNote: (title: string): string => `Demo song “${title}”, composed for Music World`,
   loadingProject: 'Loading the world of your song…',
 } as const;
 

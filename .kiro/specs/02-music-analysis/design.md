@@ -120,3 +120,9 @@ requirement 7.2; generated TS: `AnalysisSchema` / type `Analysis`.
   generated `AnalysisSchema`, audio from `/api/projects/{id}/audio`, seed from the audio hash). Verified live
   (headless Chromium, API + arq worker + redis, SQLite, local storage): upload of the 10 s fixture → stages shown →
   redirect after 44 s → the world plays the uploaded audio; upload page at 375 px has no horizontal scroll.
+- **Demo fixture (task 10)**: no human-picked demo song yet (roadmap Phase 0), so the demo is "Neon Nocturne",
+  self-composed with `scripts/synth_song.py --demo` (intro / verse / chorus / outro, 57.6 s, royalty-free by
+  construction): `apps/web/public/demo/neon-nocturne.mp3` (128 kbps, 0.9 MB) analysed by the real pipeline
+  (`scripts/analyze_file.py`, 124.6 s wall / 235.9 s CPU) → `features/player/demo/neon-nocturne.analysis.json`
+  (535 notes, 39 chords, C major, 99 BPM). `/play/demo` loads both statically (no backend). `test_demo_fixture.py`
+  fails if the MP3 changes without re-analysis. Weakness: structure finds only 2 sections, both `chorus`.
