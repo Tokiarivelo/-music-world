@@ -93,3 +93,16 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
   allowing zero-length sections) → two mutations added, all 8 now killed. The Hypothesis strategy itself had a bug
   (sorted by duration before midi), caught on its first run. The engine's `EngineAnalysis` is now a `Pick` of the
   generated `Analysis` type; the fixture is parsed with the generated zod schema.
+- Tasks 2–3: upload (`projects` context) with content sniffing by magic bytes (Hypothesis: any 12 bytes either map
+  to mp3/wav/flac or are rejected, never crash), 25 MB / 180 s / 64 KB `.lrc` limits, SHA-256 cache; ffmpeg decode.
+- Task 5: Hypothesis caught a real bug in `merge_stems`: exact duplicates kept the *last* copy, so a loud note
+  could be replaced by a silent duplicate and then lost when the note cap kept "the loudest" (shrunk example: two
+  notes at t = 1.0, velocities 1.0 and 0.0, cap 1). Duplicates now keep the loudest. A real-model test showed Basic
+  Pitch splitting one held C4 into two touching notes → new pure `join_fragments` step with its own properties.
+- Task 7: mutation check on `harmony.py` (7 mutants) and `structure.py` (3): 9 killed; the survivor (dropping the
+  "already used" check in `group_chords`) is equivalent — a later anchor can never reach a note already grouped,
+  because group members always precede any rejected note in onset order.
+- Task 8: the property "any stage output assembles into a valid `AnalysisResult`" (200 random note sets, beats,
+  sections, lyrics) caught a silent data loss: `start + (end - start)` rounding (3.5234000000000005 > 3.5234)
+  dropped the last note of a song; assembly now uses the validator's 1e-6 tolerance. The slow end-to-end test
+  checks determinism (same audio analysed twice from scratch → identical result; Demucs runs with `shifts=0`).
