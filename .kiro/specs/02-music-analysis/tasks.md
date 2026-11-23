@@ -14,7 +14,7 @@
   - [ ] 6.1 Verify the current Muse Voice Transcribe request format in Meta's docs.
   - [ ] 6.2 Implement `transcribe_lyrics` and `parse_lrc`; fallback to `none`; no full-text logging.
   - _Requirements: 6.1–6.3_
-- [ ] 7. `rhythm.py`, `harmony.py`, `structure.py` with unit tests on synthetic audio.
+- [x] 7. `rhythm.py`, `harmony.py`, `structure.py` with unit tests on synthetic audio.
   - _Requirements: 4.1–4.5, 5.1, 5.2_
 - [ ] 8. `pipeline.py`: stage orchestration, progress reporting, result storage; `GET /projects/{id}/analysis`.
   - _Requirements: 1.3, 7.1_

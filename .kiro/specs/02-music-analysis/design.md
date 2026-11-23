@@ -87,3 +87,12 @@ requirement 7.2; generated TS: `AnalysisSchema` / type `Analysis`.
   velocity ≥ `ANALYSIS_MIN_VELOCITY`), `fit_to_song`, then `merge_stems` (sorted by time, midi; exact duplicates
   keep the loudest; capped at 20 000 keeping the loudest). Times are rounded to 0.1 ms before sorting and chord
   grouping so stored values are the ones checked.
+- **Rhythm, harmony, structure (task 7)**: `librosa_rhythm.py` (beat_track on the mix at 22.05 kHz; kicks =
+  onsets of the < 150 Hz mel band of the drums stem; RMS at 10 Hz), `librosa_structure.py` (chroma_cqt profile;
+  agglomerative segmentation of beat-synchronous chroma + MFCC, ~1 segment per 20 s, 2–10; segments with cosine
+  similarity ≥ 0.95 share a repetition cluster). Pure: `domain/harmony.py` (`group_chords`, `label_chord` by
+  interval templates with the bass as tie-break, `estimate_key` Krumhansl–Schmuckler) and `domain/structure.py`
+  (`build_segments` merges < 4 s sections, `label_sections`: most-repeated cluster = chorus, next = verse,
+  short unrepeated edges = intro/outro, first other unrepeated = bridge). Known limit: on the synthetic fixture
+  librosa locks onto eighth-note hats (200 BPM for a 100 BPM song); beats stay on the grid, the engine pulse
+  simply runs at double speed.
