@@ -55,3 +55,45 @@ async def test_demucs_splits_the_fixture_into_four_full_length_stems(tmp_path: P
     drums, _ = sf.read(str(stems["drums"]))
     bass, _ = sf.read(str(stems["bass"]))
     assert np.abs(drums).max() > 0.05 and np.abs(bass).max() > 0.05
+
+
+async def test_full_pipeline_on_the_fixture_gives_a_valid_musical_analysis(tmp_path: Path) -> None:
+    """End to end (design.md § Testing): decode → Demucs → Basic Pitch → librosa → validated result."""
+    import hashlib
+
+    from music_world.analysis.application.use_cases.analyze_audio import AnalyzeAudio, AnalyzeAudioInput, stem_key
+    from music_world.analysis.infrastructure.librosa_rhythm import LibrosaRhythmAnalyzer
+    from music_world.analysis.infrastructure.librosa_structure import LibrosaStructureAnalyzer
+    from music_world.analysis.infrastructure.null_lyrics import NoLyricsTranscriber
+    from music_world.shared.object_store import LocalObjectStore
+    from tests.fakes import InMemoryAnalysisRepository
+
+    digest = "sha256:" + hashlib.sha256(FIXTURE.read_bytes()).hexdigest()
+    store, repo = LocalObjectStore(tmp_path / "store"), InMemoryAnalysisRepository()
+    await store.put_file("audio/fixture.flac", FIXTURE, "audio/flac")
+    use_case = AnalyzeAudio(
+        repo, store, FfmpegDecoder(), DemucsSeparator(), BasicPitchTranscriber(), LibrosaRhythmAnalyzer(),
+        LibrosaStructureAnalyzer(), NoLyricsTranscriber(), min_velocity=0.25,
+    )  # fmt: skip
+    stages: list[str | None] = []
+
+    async def report(progress: float, stage: str | None = None) -> None:
+        stages.append(stage)
+
+    result = await use_case.execute(AnalyzeAudioInput(digest, "audio/fixture.flac"), report)
+    assert await repo.get(digest) == result and len(stages) == 8
+    assert all([await store.exists(stem_key(digest, s)) for s in STEMS])
+    assert result.key in ("A minor", "C major") and abs(result.duration_sec - 10.0) < 0.01
+    assert len(result.notes) >= 20 and result.beats and result.kicks
+    # Bass notes follow the progression roots A, F, C, G.
+    bass = [n.midi % 12 for n in result.notes if n.stem == "bass"]
+    assert bass and sum(pc in (9, 5, 0, 7) for pc in bass) >= 0.8 * len(bass)
+    # Determinism: the same audio analysed again from scratch (fresh store, no checkpoints) gives the same result.
+    fresh = LocalObjectStore(tmp_path / "store2")
+    await fresh.put_file("audio/fixture.flac", FIXTURE, "audio/flac")
+    repo.results.clear()
+    again = await AnalyzeAudio(
+        repo, fresh, FfmpegDecoder(), DemucsSeparator(), BasicPitchTranscriber(), LibrosaRhythmAnalyzer(),
+        LibrosaStructureAnalyzer(), NoLyricsTranscriber(), min_velocity=0.25,
+    ).execute(AnalyzeAudioInput(digest, "audio/fixture.flac"), report)  # fmt: skip
+    assert again == result

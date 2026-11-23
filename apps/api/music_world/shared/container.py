@@ -6,12 +6,15 @@ from arq.connections import ArqRedis
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from music_world.analysis.application.use_cases.analysis_cache import AnalysisCache
+from music_world.analysis.application.use_cases.get_project_analysis import GetProjectAnalysis
+from music_world.analysis.infrastructure.project_audio_source import ProjectsAudioSource
 from music_world.analysis.infrastructure.sqlalchemy_analysis_repository import SqlAlchemyAnalysisRepository
 from music_world.projects.application.ports import JobHandler
 from music_world.projects.application.use_cases.create_project import CreateProject
 from music_world.projects.application.use_cases.enqueue_job import EnqueueJob
 from music_world.projects.application.use_cases.get_job import GetJob
 from music_world.projects.application.use_cases.get_project import GetProject
+from music_world.projects.application.use_cases.get_project_audio import GetProjectAudio
 from music_world.projects.application.use_cases.run_job import RunJob
 from music_world.projects.domain.job_kinds import ANALYZE_PROJECT_JOB_KIND, DEMO_JOB_KIND
 from music_world.projects.infrastructure.arq_job_queue import ArqJobQueue
@@ -22,7 +25,7 @@ from music_world.projects.infrastructure.sqlalchemy_project_repository import Sq
 from music_world.shared.clock import utc_now
 from music_world.shared.db import create_engine, create_session_factory
 from music_world.shared.ids import uuid7
-from music_world.shared.object_store import build_object_store
+from music_world.shared.object_store import ObjectStoreAdapter, build_object_store
 from music_world.shared.settings import Settings
 from music_world.system.application.use_cases.check_health import CheckHealth
 from music_world.system.infrastructure.probes import PostgresProbe, RedisProbe, S3Probe
@@ -38,6 +41,8 @@ class Container:
     create_project: CreateProject
     get_project: GetProject
     analysis_cache: AnalysisCache
+    get_project_analysis: GetProjectAnalysis
+    get_project_audio: GetProjectAudio
     engine: AsyncEngine | None = None
     redis: ArqRedis | None = None
     handlers: dict[str, JobHandler] = field(default_factory=dict)
@@ -49,18 +54,52 @@ class Container:
             await self.engine.dispose()
 
 
-def build_container(settings: Settings) -> Container:
+def _analysis_handler(
+    settings: Settings, store: ObjectStoreAdapter, repo: SqlAlchemyAnalysisRepository, projects: ProjectsAudioSource
+) -> JobHandler:
+    """The analysis pipeline with its real stages. Imported lazily: torch / librosa load only in the worker."""
+    from music_world.analysis.application.use_cases.analyze_audio import AnalyzeAudio
+    from music_world.analysis.infrastructure.basic_pitch_transcriber import BasicPitchTranscriber
+    from music_world.analysis.infrastructure.demucs_separator import DemucsSeparator
+    from music_world.analysis.infrastructure.ffmpeg_decoder import FfmpegDecoder
+    from music_world.analysis.infrastructure.librosa_rhythm import LibrosaRhythmAnalyzer
+    from music_world.analysis.infrastructure.librosa_structure import LibrosaStructureAnalyzer
+    from music_world.analysis.infrastructure.null_lyrics import NoLyricsTranscriber
+    from music_world.analysis.interfaces.jobs import AnalyzeProjectJobHandler
+
+    # LYRICS_PROVIDER=muse needs Muse Voice (02-music-analysis task 6.1, not implemented yet): no transcription for
+    # now; a user `.lrc` still applies when the analysis is read.
+    analyze = AnalyzeAudio(
+        repo,
+        store,
+        FfmpegDecoder(),
+        DemucsSeparator(settings.demucs_model),
+        BasicPitchTranscriber(),
+        LibrosaRhythmAnalyzer(),
+        LibrosaStructureAnalyzer(),
+        NoLyricsTranscriber(),
+        min_velocity=settings.analysis_min_velocity,
+    )
+    return AnalyzeProjectJobHandler(projects, analyze)
+
+
+def build_container(settings: Settings, *, with_analysis: bool = False) -> Container:
     """Builds adapters lazily: no connection is opened until first use, so the API starts even if a
-    dependency is down (and /api/health reports it)."""
+    dependency is down (and /api/health reports it). `with_analysis` (worker only) registers the analysis job."""
     engine = create_engine(settings.database_url)
     sessions = create_session_factory(engine)
     redis = ArqRedis.from_url(settings.redis_url)
     repo = SqlAlchemyJobRepository(sessions)
     projects = SqlAlchemyProjectRepository(sessions)
     store = build_object_store(settings)
-    analysis_cache = AnalysisCache(SqlAlchemyAnalysisRepository(sessions))
+    analyses = SqlAlchemyAnalysisRepository(sessions)
+    analysis_cache = AnalysisCache(analyses)
     handlers: dict[str, JobHandler] = {DEMO_JOB_KIND: DemoJobHandler()}
     enqueue_job = EnqueueJob(repo, ArqJobQueue(redis), [*handlers.keys(), ANALYZE_PROJECT_JOB_KIND], uuid7, utc_now)
+    get_project = GetProject(projects, repo, analysis_cache)
+    project_audio = ProjectsAudioSource(get_project)
+    if with_analysis:
+        handlers[ANALYZE_PROJECT_JOB_KIND] = _analysis_handler(settings, store, analyses, project_audio)
     return Container(
         settings=settings,
         enqueue_job=enqueue_job,
@@ -68,8 +107,10 @@ def build_container(settings: Settings) -> Container:
         run_job=RunJob(repo, handlers, utc_now),
         check_health=CheckHealth(settings.app_version, PostgresProbe(engine), RedisProbe(redis), S3Probe(settings)),
         create_project=CreateProject(projects, store, FfprobeAudioProbe(), analysis_cache, enqueue_job, uuid7, utc_now),
-        get_project=GetProject(projects, repo, analysis_cache),
+        get_project=get_project,
         analysis_cache=analysis_cache,
+        get_project_analysis=GetProjectAnalysis(project_audio, analyses),
+        get_project_audio=GetProjectAudio(projects, store),
         engine=engine,
         redis=redis,
         handlers=handlers,

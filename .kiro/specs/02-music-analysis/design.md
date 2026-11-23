@@ -102,3 +102,15 @@ requirement 7.2; generated TS: `AnalysisSchema` / type `Analysis`.
   audio-keyed cache stays valid for every upload of the same song. `transcribe_lyrics` with Muse Voice (6.1) is not
   implemented (needs a `META_API_KEY` and a format check): the worker uses `NoLyricsTranscriber`, so without an
   `.lrc` `lyricsSource` is `none` (requirement 6.2 fallback).
+- **Pipeline (task 8)**: `analysis/application/use_cases/analyze_audio.py` (`AnalyzeAudio`), run by the
+  `analyze_project` job (`analysis/interfaces/jobs.py`, registered only in the worker container). Stages and
+  progress weights = measured wall-time shares: decode 0.01, separate 0.86, transcribe 0.09, rhythm 0.02,
+  structure 0.01, harmony 0.005, lyrics 0.003, store 0.002. Checkpoints: `stems/<sha256>/*.flac`,
+  `work/<sha256>/{notes,rhythm,structure}.json` (raw notes before filtering, so a new `ANALYSIS_MIN_VELOCITY`
+  needs no re-transcription). Result validated by the pydantic model (a violation is a pipeline bug →
+  `ANALYSIS_INVALID`), then stored. Worker `max_jobs` = cores / 4 (each job already uses every core, ~2 GB RAM).
+  `GET /api/projects/{id}/analysis` (409 `ANALYSIS_NOT_READY` while running) and `GET /api/projects/{id}/audio`
+  (playback).
+  **Measured** full pipeline, 3-minute synthesized track, same laptop: **392.7 s wall / 748.5 s CPU** — separate
+  351.0 s, transcribe 32.6 s, rhythm 5.0 s, structure 3.6 s, others < 1 s (10 s fixture: 29.6 s wall). Under the
+  10-minute budget; to re-measure: `uv run python scripts/analyze_file.py <song> <out.json>`.

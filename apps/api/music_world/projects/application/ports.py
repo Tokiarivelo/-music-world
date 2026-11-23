@@ -46,6 +46,7 @@ class AudioProbe(Protocol):
 
 class AudioStore(Protocol):
     async def put_file(self, key: str, path: Path, content_type: str) -> None: ...
+    async def get_bytes(self, key: str) -> bytes | None: ...
 
 
 class AnalysisLookup(Protocol):

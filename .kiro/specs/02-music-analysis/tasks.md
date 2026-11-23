@@ -16,7 +16,7 @@
   - _Requirements: 6.1–6.3_
 - [x] 7. `rhythm.py`, `harmony.py`, `structure.py` with unit tests on synthetic audio.
   - _Requirements: 4.1–4.5, 5.1, 5.2_
-- [ ] 8. `pipeline.py`: stage orchestration, progress reporting, result storage; `GET /projects/{id}/analysis`.
+- [x] 8. `pipeline.py`: stage orchestration, progress reporting, result storage; `GET /projects/{id}/analysis`.
   - _Requirements: 1.3, 7.1_
 - [ ] 9. Web: upload page with progress bar per stage; on done, redirect to `/play/[projectId]`.
   - _Requirements: 1.3_

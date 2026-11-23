@@ -73,6 +73,19 @@ class ObjectStore(Protocol):
     async def exists(self, key: str) -> bool: ...
 
 
+@dataclass(frozen=True)
+class ProjectAudio:
+    audio_hash: str
+    audio_key: str
+    lrc_text: str | None
+
+
+class ProjectAudioSource(Protocol):
+    """Implemented over the projects context; raises its `PROJECT_NOT_FOUND` error for unknown ids."""
+
+    async def get(self, project_id: str) -> ProjectAudio: ...
+
+
 class AnalysisRepository(Protocol):
     """Finished analyses, keyed by audio hash (the cache of requirement 1.4)."""
 

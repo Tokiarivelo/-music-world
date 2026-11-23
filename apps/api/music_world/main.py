@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from music_world.analysis.interfaces import http as analysis_http
 from music_world.projects.interfaces import http as jobs_http
 from music_world.projects.interfaces import projects_http
 from music_world.shared.container import Container, build_container
@@ -41,6 +42,7 @@ def create_app(
     app.include_router(system_http.router)
     app.include_router(jobs_http.router)
     app.include_router(projects_http.router)
+    app.include_router(analysis_http.router)
     if settings.app_env == "development":
         app.include_router(jobs_http.demo_router)
     return app

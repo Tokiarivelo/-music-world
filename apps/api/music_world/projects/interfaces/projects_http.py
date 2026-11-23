@@ -7,11 +7,12 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, Request, Response, UploadFile, status
 from fastapi import Path as PathParam
 
 from music_world.projects.application.use_cases.create_project import CreateProject
 from music_world.projects.application.use_cases.get_project import GetProject
+from music_world.projects.application.use_cases.get_project_audio import GetProjectAudio
 from music_world.projects.domain.errors import AudioTooLargeError, LyricsFileInvalidError, ProjectNotFoundError
 from music_world.projects.domain.project import MAX_AUDIO_BYTES, MAX_LRC_BYTES
 from music_world.projects.interfaces.mappers import project_to_contract
@@ -26,6 +27,11 @@ _CHUNK = 1024 * 1024
 
 def _create_project(request: Request) -> CreateProject:
     use_case: CreateProject = request.app.state.container.create_project
+    return use_case
+
+
+def _get_project_audio(request: Request) -> GetProjectAudio:
+    use_case: GetProjectAudio = request.app.state.container.get_project_audio
     return use_case
 
 
@@ -92,3 +98,20 @@ async def get_project(
     if not re.match(UUID_PATTERN, project_id):
         raise ProjectNotFoundError(f"project {project_id} not found")
     return project_to_contract(await use_case.execute(project_id))
+
+
+@router.get(
+    "/{project_id}/audio",
+    response_class=Response,
+    summary="Download the uploaded audio of a project (for playback)",
+    responses={200: {"content": {"audio/mpeg": {}, "audio/wav": {}, "audio/flac": {}}}, 404: ERROR_RESPONSES[404]},
+)
+async def get_project_audio(
+    project_id: Annotated[str, PathParam(max_length=64)],
+    use_case: Annotated[GetProjectAudio, Depends(_get_project_audio)],
+) -> Response:
+    if not re.match(UUID_PATTERN, project_id):
+        raise ProjectNotFoundError(f"project {project_id} not found")
+    audio = await use_case.execute(project_id)
+    # Content-addressed audio never changes: cache it for a day in the browser.
+    return Response(audio.data, media_type=audio.content_type, headers={"Cache-Control": "private, max-age=86400"})

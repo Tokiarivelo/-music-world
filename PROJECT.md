@@ -312,7 +312,9 @@ Source de vérité : modèles pydantic dans `apps/api/music_world/schemas/`, enr
 
 `POST /api/projects` (multipart `audio` + `lyrics` .lrc optionnel) répond `202` avec `ProjectCreated`
 (`projectId`, `jobId` nul si l'analyse du même SHA-256 est déjà en cache, `status`). `GET /api/projects/{id}` renvoie
-`Project` (`status` : `analyzing | ready | failed`, job d'analyse).
+`Project` (`status` : `analyzing | ready | failed`, job d'analyse). `GET /api/projects/{id}/analysis` renvoie l'`AnalysisResult`
+(409 `ANALYSIS_NOT_READY` pendant l'analyse ; le `.lrc` de l'utilisateur remplace les paroles transcrites) et
+`GET /api/projects/{id}/audio` le fichier audio pour la lecture.
 
 ### NoteEvent
 

@@ -78,3 +78,13 @@ async def test_unknown_or_malformed_project_id_is_404(client: AsyncClient) -> No
     for pid in ("00000000-0000-7000-8000-000000000999", "not-a-uuid"):
         response = await client.get(f"/api/projects/{pid}")
         assert (response.status_code, response.json()["error"]["code"]) == (404, "PROJECT_NOT_FOUND")
+
+
+async def test_uploaded_audio_is_served_back_for_playback(client: AsyncClient) -> None:
+    audio = wav_bytes()
+    created = (await client.post("/api/projects", files={"audio": ("a.mp3", audio, "audio/mpeg")})).json()
+    response = await client.get(f"/api/projects/{created['projectId']}/audio")
+    assert response.status_code == 200 and response.content == audio
+    assert response.headers["content-type"] == "audio/wav"  # by content, not by the client's name or MIME
+    missing = await client.get("/api/projects/00000000-0000-7000-8000-000000000999/audio")
+    assert missing.status_code == 404

@@ -1,0 +1,219 @@
+"""`AnalyzeAudio` with fake stage ports: stage order, progress, caching, resume, and the requirement 7.2 property
+that any stage output assembles into a valid `AnalysisResult`."""
+
+from pathlib import Path
+
+import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
+
+from music_world.analysis.application.ports import Rhythm, Structure
+from music_world.analysis.application.use_cases.analyze_audio import (
+    STAGE_NAMES,
+    STAGES,
+    AnalyzeAudio,
+    AnalyzeAudioInput,
+    _rounded,
+    assemble_result,
+    stem_key,
+)
+from music_world.analysis.domain.audio import STEMS, DecodedAudio
+from music_world.analysis.domain.errors import AudioMissingError, SeparationError
+from music_world.analysis.domain.harmony import group_chords
+from music_world.analysis.domain.lyrics import LyricLine
+from music_world.analysis.domain.notes import RawNote, merge_stems
+from tests.fakes import InMemoryAnalysisRepository, InMemoryObjectStore
+
+HASH = "sha256:" + "cd" * 32
+DURATION = 12.0
+
+
+class FakeDecoder:
+    async def decode(self, source: Path, target: Path) -> DecodedAudio:
+        target.write_bytes(source.read_bytes())
+        return DecodedAudio(target, 44100, 2, DURATION)
+
+
+class FakeSeparator:
+    def __init__(self, fail: bool = False) -> None:
+        self.calls, self.fail = 0, fail
+
+    async def separate(self, mix: DecodedAudio, out_dir: Path) -> dict[str, Path]:
+        self.calls += 1
+        if self.fail:
+            raise SeparationError("boom")
+        out = {}
+        for stem in STEMS:
+            out[stem] = out_dir / f"{stem}.flac"
+            out[stem].write_bytes(stem.encode())
+        return out
+
+
+class FakeTranscriber:
+    """C major triad on `other`, a bass note, a quiet vocal note (dropped by the velocity filter)."""
+
+    def __init__(self) -> None:
+        self.calls: list[str] = []
+
+    async def transcribe(self, stem_path: Path, stem: str) -> list[RawNote]:
+        assert stem_path.read_bytes() == stem.encode()
+        self.calls.append(stem)
+        return {
+            "other": [
+                RawNote(1.0, 1.0, 60, 0.8, stem),
+                RawNote(1.01, 1.0, 64, 0.8, stem),
+                RawNote(1.02, 1.0, 67, 0.8, stem),
+            ],
+            "bass": [RawNote(1.0, 2.0, 36, 0.9, stem), RawNote(11.9, 1.0, 40, 0.9, stem)],  # second one is clamped
+            "vocals": [RawNote(5.0, 0.5, 72, 0.1, stem)],
+        }[stem]
+
+
+class FakeRhythm:
+    calls = 0
+
+    async def analyze(self, mix: Path, drums: Path | None) -> Rhythm:
+        FakeRhythm.calls += 1
+        assert drums is not None and drums.name == "drums.flac"
+        return Rhythm(120.0, (0.5, 1.0, 1.5), (0.5, 1.5), tuple(0.1 * (i % 10) for i in range(121)))
+
+
+class FakeStructure:
+    async def analyze(self, mix: Path) -> Structure:
+        chroma = [0.1] * 12
+        chroma[0], chroma[4], chroma[7] = 1.0, 0.8, 0.9
+        return Structure(tuple(chroma), (6.0,), (0, 1))
+
+
+class NoLyrics:
+    async def transcribe(self, vocals: Path, duration_sec: float) -> list[LyricLine]:
+        return []
+
+
+class Recorder:
+    def __init__(self) -> None:
+        self.calls: list[tuple[float, str | None]] = []
+
+    async def __call__(self, progress: float, stage: str | None = None) -> None:
+        self.calls.append((progress, stage))
+
+
+def make(
+    separator: FakeSeparator | None = None,
+) -> tuple[AnalyzeAudio, InMemoryAnalysisRepository, InMemoryObjectStore]:
+    repo, store = InMemoryAnalysisRepository(), InMemoryObjectStore()
+    store.objects["audio/x.wav"] = b"RIFF fake"
+    use_case = AnalyzeAudio(
+        repo, store, FakeDecoder(), separator or FakeSeparator(), FakeTranscriber(), FakeRhythm(), FakeStructure(),
+        NoLyrics(), min_velocity=0.25,
+    )  # fmt: skip
+    return use_case, repo, store
+
+
+INPUT = AnalyzeAudioInput(HASH, "audio/x.wav")
+
+
+def test_stage_weights_sum_to_one() -> None:
+    assert abs(sum(w for _, w in STAGES) - 1.0) < 1e-9 and len(set(STAGE_NAMES)) == len(STAGES)
+
+
+async def test_pipeline_runs_every_stage_in_order_and_stores_a_valid_result() -> None:
+    use_case, repo, store = make()
+    progress = Recorder()
+    result = await use_case.execute(INPUT, progress)
+    assert [s for _, s in progress.calls] == list(STAGE_NAMES)
+    values = [p for p, _ in progress.calls]
+    assert values == sorted(values) and all(0 <= v < 1 for v in values)
+    assert await repo.get(HASH) == result
+    assert all(stem_key(HASH, s) in store.objects for s in STEMS)  # requirement 2.2
+    assert result.key == "C major" and result.tempo_bpm == 120
+    assert [(n.midi, n.stem) for n in result.notes] == [(36, "bass"), (60, "other"), (64, "other"), (67, "other"),
+                                                       (40, "bass")]  # fmt: skip
+    assert result.notes[-1].time + result.notes[-1].duration == DURATION  # clamped to the song
+    assert [c.label for c in result.chords] == ["C"] and len(result.chords[0].note_ids) == 4
+    assert [s.label for s in result.sections] and result.sections[-1].end == DURATION
+    assert result.lyrics == [] and result.lyrics_source == "none"
+
+
+async def test_a_cached_hash_returns_without_any_stage() -> None:
+    use_case, repo, _ = make()
+    first = await use_case.execute(INPUT, Recorder())
+    progress = Recorder()
+    assert await use_case.execute(INPUT, progress) == first and progress.calls == []
+
+
+async def test_a_rerun_after_a_crash_reuses_stems_and_stage_checkpoints() -> None:
+    separator = FakeSeparator()
+    use_case, repo, store = make(separator)
+    await use_case.execute(INPUT, Recorder())
+    repo.results.clear()  # the result was lost, the checkpoints were not
+    transcriber = FakeTranscriber()
+    use_case._transcriber = transcriber
+    before = FakeRhythm.calls
+    again = await use_case.execute(INPUT, Recorder())
+    assert separator.calls == 1 and transcriber.calls == [] and FakeRhythm.calls == before
+    assert again == await repo.get(HASH)
+
+
+async def test_missing_audio_and_stage_errors_propagate_without_a_result() -> None:
+    use_case, repo, store = make(FakeSeparator(fail=True))
+    with pytest.raises(SeparationError):
+        await use_case.execute(INPUT, Recorder())
+    assert repo.results == {}
+    store.objects.clear()
+    with pytest.raises(AudioMissingError):
+        await use_case.execute(INPUT, Recorder())
+
+
+raw_notes = st.lists(
+    st.builds(
+        RawNote,
+        time=st.floats(min_value=0, max_value=30, allow_nan=False),
+        duration=st.floats(min_value=0.001, max_value=5, allow_nan=False),
+        midi=st.integers(0, 127),
+        velocity=st.floats(min_value=0, max_value=1),
+        stem=st.sampled_from(("other", "bass", "vocals")),
+    ),
+    max_size=80,
+)
+times = st.lists(st.floats(min_value=-5, max_value=40, allow_nan=False), max_size=30)
+
+
+@settings(max_examples=200, deadline=None)
+@given(
+    raw_notes,
+    st.floats(min_value=0.5, max_value=30),
+    times,
+    times,
+    st.lists(st.floats(min_value=0, max_value=1), max_size=400),
+    st.lists(st.floats(min_value=0, max_value=1), min_size=12, max_size=12),
+    times,
+    st.lists(st.integers(0, 3), max_size=30),
+    st.lists(st.tuples(st.floats(min_value=-2, max_value=40), st.floats(0, 10), st.text(max_size=20)), max_size=8),
+    st.floats(min_value=-10, max_value=500),
+)
+def test_any_stage_output_assembles_into_a_valid_analysis(
+    notes: list[RawNote],
+    duration: float,
+    beats: list[float],
+    kicks: list[float],
+    rms: list[float],
+    chroma: list[float],
+    boundaries: list[float],
+    clusters: list[int],
+    lyric_raw: list[tuple[float, float, str]],
+    tempo: float,
+) -> None:
+    from music_world.analysis.domain.harmony import estimate_key
+    from music_world.analysis.domain.notes import fit_to_song
+
+    duration = round(duration, 4)
+    merged = merge_stems([_rounded(fit_to_song(notes, duration))])
+    lyrics = [LyricLine(s, s + d, t) for s, d, t in lyric_raw]
+    result = assemble_result(
+        HASH, duration, merged, group_chords(merged), estimate_key(chroma),
+        Rhythm(tempo, tuple(beats), tuple(kicks), tuple(rms)), Structure(tuple(chroma), tuple(boundaries),
+        tuple(clusters)), lyrics,
+    )  # fmt: skip
+    assert result.duration_sec == duration  # (the model validator already enforced requirement 7.2)
+    assert len(result.notes) == len(merged)
