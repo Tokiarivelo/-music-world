@@ -46,3 +46,10 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
   job progress, end-to-end run on real postgres + redis containers.
 - Task 6.1: Dockerfiles, Compose, Caddyfile, `.env.example`. Roadmap 1.7: hand-made `AnalysisResult` fixture.
 - Steering/skill/hook fixes: `pnpm --dir apps/web vitest` does not work with pnpm 10 → `pnpm -C apps/web exec vitest`.
+
+### 2026-11-23 — 03-world-engine-core task 1.1 (Claude Code)
+
+- `engine/prng.ts` (FNV-1a + mulberry32, per-note streams) with 12 fast-check tests.
+- Mutation check found a weak property: hashing only the low byte of each UTF-16 code unit survived the random-pair
+  property (pairs rarely differ only in the high byte). Replaced by a targeted property that flips bits in either
+  byte of the last code unit; all 3 mutants now fail. No hooks fired (outside Kiro IDE).

@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-23 · **Last updated by:** Claude Code (roadmap phase 1: 01-foundation 1–6.1 + engine fixture)
+> **Date:** 2026-11-23 · **Last updated by:** Claude Code (03-world-engine-core 1.1 prng)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -14,7 +14,11 @@ Read docs/handoff.md and continue with the next actions.
 
 - Branch `main`, one commit per task (`722de54` … `a133fd7` + handoff), pushed to `origin/main`.
   Push with gh credentials: `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin main`.
-- Working tree clean after the handoff commit.
+- Last commit `02bbf0e docs: handoff push state`. Uncommitted: `apps/web/src/engine/prng{,.test}.ts`,
+  `03-world-engine-core/tasks.md` (1.1 ticked), `docs/handoff.md`, archive, `KIRO_USAGE.md` — commit when asked as
+  `03-world-engine-core: 1.1 prng with property tests`.
+- This session: `pnpm -C apps/web exec vitest run src/engine` 16 passed · `tsc` and eslint clean ·
+  `scripts/agents/validate-architecture.sh` ok. Full `make check` last run green before this session.
 - `make check` green: API pytest 28 passed · web vitest 14 passed · ruff, mypy strict, eslint, tsc clean ·
   schema drift check ok · architecture check ok.
 - Verified live: `make dev` stack (caddy, web, api, worker, postgres, redis) all healthy; `https://localhost/api/health`
@@ -22,24 +26,15 @@ Read docs/handoff.md and continue with the next actions.
   (prod build). Stack stopped afterwards (`docker compose down`, volumes kept). No services running.
 - Another project's postgres (`angaly_postgres`) holds host port 5432 — leave it alone; our stack publishes only 80/443.
 
-## 2. Last session (2026-11-23, Claude Code)
+## 2. Last session (2026-11-23, Claude Code as `world-builder`)
 
-- Task 2: Next.js 16.4 + `@iwsdk/core` 1.1.0 + IWER 2.8 in `apps/web`; `three` aliased to `npm:super-three@0.185.0`
-  (IWSDK's build). `src/xr/world-host.ts` + `features/world-view`. Checked headless: cube visible, Enter VR in IWER.
-  Deviations recorded in `01-foundation/design.md` § Web: IWER installed with `forceInstall` only when no native
-  immersive-vr; world creation serialized (concurrent `World.create` hangs); dispose = exitXR + destroy + renderer
-  dispose + context loss + canvas removal.
-- Task 3: `features/player` `AudioPlayer`/`AudioClock` + fast-check reference-model property (mutation-checked).
-- Task 4: FastAPI app factory, `projects` context (Job aggregate, Enqueue/Get/RunJob, SQLAlchemy repo, arq queue),
-  `system` context (health probes), uniform error body, Alembic `0001_jobs`, arq worker. Contracts
-  `music-world.job.v1`, `job-accepted.v1`; `health.v1` now has `checks`. `POST /api/jobs/demo` is development only.
-- Task 6.1: `infra/docker-compose.yml`, `infra/docker/{api,web}.Dockerfile`, `infra/Caddyfile`, `infra/.env.example`,
-  root `.dockerignore`. The api container runs migrations before uvicorn.
-- Roadmap 1.7: `apps/web/src/engine/__fixtures__/demo-analysis.json` (57 notes, 8 chords, 92 BPM, A minor, no lyrics)
-  + invariant test. Committed as `03-world-engine-core` work.
-- Tooling: `schemas-check` now hashes generated files before/after `make schemas` (catches untracked drift);
-  `pnpm -C apps/web …` replaces `pnpm --dir apps/web vitest` (broken with pnpm 10) in Makefile, testing.md, skill, hook.
-- Rule added (user request): no Claude/AI attribution in commits, PRs or comments.
+- `03-world-engine-core` task 1.1 done: `apps/web/src/engine/prng.ts` — `hashString` (FNV-1a 32-bit),
+  `hashSeed(seed, key)` (FNV + MurmurHash3 finalizer), `mulberry32`, `noteStream(seed, noteId)`, `uniform`.
+- `prng.test.ts`: 12 tests (fast-check) — FNV reference values, pinned mulberry32 outputs, determinism, [0,1) range,
+  uniformity, order independence of per-note streams (req 1.4), no collisions over 20 000 note ids.
+- Mutation check: 3 mutants (drop `>>> 0`, ignore the seed, truncate code units to 8 bits) all killed; the third
+  survived at first and led to a targeted bit-flip property (logged in `KIRO_USAGE.md`).
+- No spec deviation.
 
 ## 3. Next actions
 
@@ -49,8 +44,9 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
    **2026-12-01 12:00 PT**), OVHcloud instance, keys, demo song.
 2. **Human + agent** — roadmap 1.6 / `01-foundation` task 7: Muse Voice on a 30 s sung vocal, Bedrock access
    (needs `META_API_KEY`, AWS credentials).
-3. Roadmap 2 (`world-builder`) — `03-world-engine-core` task 1.1 — `design.md` § Engine. Fixture ready at
-   `apps/web/src/engine/__fixtures__/demo-analysis.json`.
+3. Roadmap 2 (`world-builder`) — `03-world-engine-core` task 1.2 `mapping.ts` (needs the `WorldTemplate` mapping
+   rule shape: check `PROJECT.md` §8 / generated template types first) — `design.md` § Engine; then 1.3 `layout.ts`
+   using `noteStream` + `uniform` from `engine/prng.ts`.
 4. Roadmap 3 (`audio-analyst`) — `02-music-analysis` task 1 (schemas) — `design.md` § Data model; then switch the
    fixture test to the generated `AnalysisResultSchema` (TODO in the test).
 5. Later: `01-foundation` 6.2 (S3 smoke test) and 6.3 (deploy + Quest check) once OVHcloud credentials exist.
@@ -63,7 +59,8 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 | 01-foundation 6.2, 6.3 | — | todo | needs OVHcloud instance + bucket |
 | 01-foundation 7 | — | blocked | needs API keys (human) |
 | 02-music-analysis 1–10 | audio-analyst | todo | can start now (01 task 4 done) |
-| 03-world-engine-core 1–7 | world-builder | todo | can start now; fixture ready |
+| 03-world-engine-core 1.1 | Claude Code (world-builder) | done | prng.ts, uncommitted |
+| 03-world-engine-core 1.2–7 | world-builder | todo | fixture ready |
 | 05-ai-world-director | ai-director | todo | generate design.md + tasks.md with Kiro first |
 
 ## 5. Active pitfalls
@@ -85,6 +82,6 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 |---|---|---|---|
 | 01-foundation | 1–5, 6.1 done | 6.2 / 7 (blocked on credentials) | design.md § Infra |
 | 02-music-analysis | not started | 1 | design.md § Data model |
-| 03-world-engine-core | fixture ready | 1.1 | design.md § Engine |
+| 03-world-engine-core | 1.1 done | 1.2 | design.md § Engine |
 | 05-ai-world-director | requirements only | create design + tasks | requirements.md |
 | 04-default-template, 06-template-store, 07-xr-mode | to create with Kiro | — | PROJECT.md §2, §8, §7 |
