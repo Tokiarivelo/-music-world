@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Matrix4, Vector3, type InstancedMesh, type Object3D } from 'three';
-import demo from '@/engine/__fixtures__/demo-analysis.json';
+import { DEMO_ANALYSIS as demo } from '@/engine/__fixtures__/demo-analysis';
 import { buildSpawnPlan } from '@/engine/spawn-plan';
 import { worldStateAt } from '@/engine/world-state';
 import { DEFAULT_TEMPLATE } from '@/templates/default';

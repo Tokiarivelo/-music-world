@@ -68,8 +68,9 @@ function worldStateAt(plan: SpawnPlan, t: number): WorldState;
   `min < max`. Unmatched notes use `building`.
 - Diorama: plate centre at (0, 0.85, -1.3) m, scaled to 1.5 m; the desktop camera looks at it from an isometric angle,
   so desktop and VR share one scene. Draw calls for the demo: ≈ 17 (test bound: < 40).
-- `/play/demo` plays the demo analysis synthesized to audio in the browser (OfflineAudioContext), until the analysed
-  demo song exists (roadmap 3.6).
+- `/play/demo` plays the pre-analysed demo song (`features/player/demo/`, 02-music-analysis task 10); the
+  hand-made `engine/__fixtures__/demo-analysis.json` stays the engine test fixture. If the MP3 cannot load, the
+  demo falls back to synthesizing the analysed notes in the browser (OfflineAudioContext).
 
 ## Testing (fast-check)
 

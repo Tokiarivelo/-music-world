@@ -7,16 +7,31 @@ and generates TS types + zod validators in `apps/web/src/templates/generated`.
 
 from pydantic import BaseModel
 
-from music_world.schemas import health, job, template
+from music_world.schemas import analysis, health, job, project, template
+from music_world.schemas.analysis import AnalysisResult
 from music_world.schemas.health import DependencyChecks, Health
 from music_world.schemas.job import Job, JobAccepted
+from music_world.schemas.project import Project, ProjectCreated
 from music_world.schemas.template import WorldTemplate
 
 EXPORTED: dict[str, type[BaseModel]] = {
+    analysis.SCHEMA_ID: AnalysisResult,
     health.SCHEMA_ID: Health,
     job.SCHEMA_ID: Job,
     job.ACCEPTED_SCHEMA_ID: JobAccepted,
+    project.SCHEMA_ID: Project,
+    project.CREATED_SCHEMA_ID: ProjectCreated,
     template.SCHEMA_ID: WorldTemplate,
 }
 
-__all__ = ["EXPORTED", "DependencyChecks", "Health", "Job", "JobAccepted", "WorldTemplate"]
+__all__ = [
+    "EXPORTED",
+    "AnalysisResult",
+    "DependencyChecks",
+    "Health",
+    "Job",
+    "JobAccepted",
+    "Project",
+    "ProjectCreated",
+    "WorldTemplate",
+]

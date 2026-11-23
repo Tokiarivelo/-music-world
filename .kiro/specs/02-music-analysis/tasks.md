@@ -1,23 +1,23 @@
 # Implementation Plan
 
-- [ ] 1. Schemas: `Note`, `Chord`, `Section`, `LyricSegment`, `AnalysisResult` v1 + invariant validators; run `make schemas`.
+- [x] 1. Schemas: `Note`, `Chord`, `Section`, `LyricSegment`, `AnalysisResult` v1 + invariant validators; run `make schemas`.
   - _Requirements: 7.1, 7.2_
-- [ ] 2. Upload endpoint `POST /projects` (multipart audio + optional .lrc), limits, SHA-256 cache lookup, enqueue job.
+- [x] 2. Upload endpoint `POST /projects` (multipart audio + optional .lrc), limits, SHA-256 cache lookup, enqueue job.
   - _Requirements: 1.1, 1.2, 1.4, 1.5_
-- [ ] 3. `decode.py` with ffmpeg; duration check.
+- [x] 3. `decode.py` with ffmpeg; duration check.
   - _Requirements: 1.2_
-- [ ] 4. `separate.py` with Demucs; store stems in S3; measure CPU time on a 3-minute song and record it.
+- [x] 4. `separate.py` with Demucs; store stems in S3; measure CPU time on a 3-minute song and record it.
   - _Requirements: 2.1, 2.2_
-- [ ] 5. `notes.py` with Basic Pitch; merge and filter; Hypothesis tests.
+- [x] 5. `notes.py` with Basic Pitch; merge and filter; Hypothesis tests.
   - _Requirements: 3.1–3.4_
 - [ ] 6. Lyrics
   - [ ] 6.1 Verify the current Muse Voice Transcribe request format in Meta's docs.
-  - [ ] 6.2 Implement `transcribe_lyrics` and `parse_lrc`; fallback to `none`; no full-text logging.
+  - [x] 6.2 Implement `transcribe_lyrics` and `parse_lrc`; fallback to `none`; no full-text logging.
   - _Requirements: 6.1–6.3_
-- [ ] 7. `rhythm.py`, `harmony.py`, `structure.py` with unit tests on synthetic audio.
+- [x] 7. `rhythm.py`, `harmony.py`, `structure.py` with unit tests on synthetic audio.
   - _Requirements: 4.1–4.5, 5.1, 5.2_
-- [ ] 8. `pipeline.py`: stage orchestration, progress reporting, result storage; `GET /projects/{id}/analysis`.
+- [x] 8. `pipeline.py`: stage orchestration, progress reporting, result storage; `GET /projects/{id}/analysis`.
   - _Requirements: 1.3, 7.1_
-- [ ] 9. Web: upload page with progress bar per stage; on done, redirect to `/play/[projectId]`.
+- [x] 9. Web: upload page with progress bar per stage; on done, redirect to `/play/[projectId]`.
   - _Requirements: 1.3_
-- [ ] 10. Pre-analyse the royalty-free demo song and ship its `AnalysisResult` as a fixture for the judges' demo.
+- [x] 10. Pre-analyse the royalty-free demo song and ship its `AnalysisResult` as a fixture for the judges' demo.

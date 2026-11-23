@@ -26,11 +26,21 @@ class ErrorBody(BaseModel):
 ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     404: {"model": ErrorBody, "description": "Not found"},
     409: {"model": ErrorBody, "description": "Conflict"},
+    413: {"model": ErrorBody, "description": "Payload too large"},
+    415: {"model": ErrorBody, "description": "Unsupported media type"},
     422: {"model": ErrorBody, "description": "Invalid request"},
 }
 
 # Domain error codes that are not 409 by default.
-_STATUS_BY_CODE: dict[str, int] = {"JOB_KIND_UNKNOWN": 422, "JOB_INVALID_PROGRESS": 422}
+_STATUS_BY_CODE: dict[str, int] = {
+    "JOB_KIND_UNKNOWN": 422,
+    "JOB_INVALID_PROGRESS": 422,
+    "AUDIO_TOO_LARGE": 413,
+    "AUDIO_FORMAT_UNSUPPORTED": 415,
+    "AUDIO_TOO_LONG": 422,
+    "AUDIO_UNREADABLE": 422,
+    "LRC_INVALID": 422,
+}
 
 
 def _body(code: str, message: str, details: list[dict[str, Any]] | None = None) -> dict[str, Any]:

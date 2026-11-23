@@ -16,7 +16,7 @@ JOB_TIMEOUT_SECONDS = 15 * 60
 async def startup(ctx: dict[str, Any]) -> None:
     settings = get_settings()
     configure_logging(settings.log_level)
-    ctx["container"] = build_container(settings)
+    ctx["container"] = build_container(settings, with_analysis=True)
 
 
 async def shutdown(ctx: dict[str, Any]) -> None:
@@ -29,5 +29,7 @@ class WorkerSettings:
     on_shutdown = shutdown
     redis_settings = RedisSettings.from_dsn(get_settings().redis_url)
     job_timeout = JOB_TIMEOUT_SECONDS
-    max_jobs = os.cpu_count() or 1  # one CPU-heavy analysis job per core
+    # Demucs and Basic Pitch already use every core (torch / onnxruntime threads) and ~2 GB RAM per job:
+    # one analysis job per 4 cores.
+    max_jobs = max(1, (os.cpu_count() or 1) // 4)
     max_tries = 3

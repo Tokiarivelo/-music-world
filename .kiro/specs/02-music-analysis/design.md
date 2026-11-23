@@ -47,8 +47,10 @@ stem split on silences, and maps segment times back to song time.
 
 ## Data model
 
-Pydantic models in `schemas/analysis.py`: `Note`, `Chord`, `Beat`, `EnergyPoint`, `Section`, `LyricSegment`,
-`AnalysisResult` (see `PROJECT.md` §9).
+Pydantic models in `schemas/analysis.py`: `Note`, `Chord`, `EnergyPoint`, `Section`, `LyricSegment`,
+`AnalysisResult` (see `PROJECT.md` §9). Beats and kicks are plain ascending `float` lists (`beats`, `kicks`; `kicks`
+added for requirement 4.5, defaults to `[]`). The model validator `analysis_invariant_errors` enforces
+requirement 7.2; generated TS: `AnalysisSchema` / type `Analysis`.
 
 ## Testing
 
@@ -56,3 +58,71 @@ Pydantic models in `schemas/analysis.py`: `Note`, `Chord`, `Beat`, `EnergyPoint`
 - Hypothesis: for random note lists, `group_chords` only groups overlapping notes; `filter_notes` keeps order;
   validator invariants of Requirement 7.2 hold for any pipeline output on random short noise + tones.
 - One end-to-end test on a 10 s royalty-free clip committed in `apps/api/tests/fixtures/`.
+
+## As built (Phase 3, 2026-11-23)
+
+- **Upload (task 2)** lives in the `projects` context: `Project` aggregate (`projects/domain/project.py`: content
+  sniffing by magic bytes, 25 MB / 180 s / 64 KB `.lrc` limits), `CreateProject` and `GetProject` use cases, router
+  `projects/interfaces/projects_http.py`. The project row is written before the `analyze_project` job is enqueued
+  (`jobs.subject_id` = project id). Audio key `audio/<sha256>.<ext>` (content-addressed, not guessable).
+- **Analysis cache**: finished results are rows of the `analyses` table (JSON, keyed by audio hash and schema id)
+  instead of S3 + row; read through the analysis use case `AnalysisCache`, injected into `projects`.
+- **Object storage**: `shared/object_store.py` — `S3ObjectStore` when the `S3_*` settings are complete, else
+  `LocalObjectStore(STORAGE_DIR)` (no OVHcloud bucket yet; same keys, so switching is configuration only).
+- The `.lrc` text is stored on the project and applied when the analysis is read (cached results stay
+  lyrics-independent).
+- Not yet: auth/ownership (accounts context does not exist) and per-IP upload rate limits.
+- **Decode (task 3)**: `analysis/infrastructure/ffmpeg_decoder.py` writes a 44.1 kHz stereo 16-bit WAV (decoding
+  1 s past the limit, so a file longer than 180 s raises `AUDIO_TOO_LONG` instead of being truncated). Upload
+  already rejects long files with ffprobe; decode re-checks the real decoded length.
+- **Separate (task 4)**: `analysis/infrastructure/demucs_separator.py` (htdemucs, `shifts=0` for determinism,
+  `overlap=0.25`), stems written as 44.1 kHz stereo 16-bit FLAC and stored under `stems/<sha256>/<stem>.flac` by
+  `AnalyzeAudio` before transcription starts. Dependency choices: `docs/decisions/001-analysis-ml-stack.md`.
+  **Measured** on a 3-minute synthesized track (`scripts/synth_song.py`, 4-core i7-4750HQ, torch 2.15 CPU,
+  4 threads): separation **325.7 s wall / 652 s CPU**, peak RSS **2.0 GB**; model load 79 s on first use (download
+  included). Separation is ~60 % of the whole pipeline and alone takes half of the 10-minute budget on this laptop.
+- **Notes (task 5)**: `analysis/infrastructure/basic_pitch_transcriber.py` runs the ONNX model on `other`, `bass`
+  (30–400 Hz) and `vocals` (80–1200 Hz). Pure cleaning in `domain/notes.py`: `join_fragments` (Basic Pitch splits
+  some held notes into touching pieces: same stem + pitch, gap < 30 ms → one note), `filter_notes` (≥ 50 ms,
+  velocity ≥ `ANALYSIS_MIN_VELOCITY`), `fit_to_song`, then `merge_stems` (sorted by time, midi; exact duplicates
+  keep the loudest; capped at 20 000 keeping the loudest). Times are rounded to 0.1 ms before sorting and chord
+  grouping so stored values are the ones checked.
+- **Rhythm, harmony, structure (task 7)**: `librosa_rhythm.py` (beat_track on the mix at 22.05 kHz; kicks =
+  onsets of the < 150 Hz mel band of the drums stem; RMS at 10 Hz), `librosa_structure.py` (chroma_cqt profile;
+  agglomerative segmentation of beat-synchronous chroma + MFCC, ~1 segment per 20 s, 2–10; segments with cosine
+  similarity ≥ 0.95 share a repetition cluster). Pure: `domain/harmony.py` (`group_chords`, `label_chord` by
+  interval templates with the bass as tie-break, `estimate_key` Krumhansl–Schmuckler) and `domain/structure.py`
+  (`build_segments` merges < 4 s sections, `label_sections`: most-repeated cluster = chorus, next = verse,
+  short unrepeated edges = intro/outro, first other unrepeated = bridge). Known limit: on the synthetic fixture
+  librosa locks onto eighth-note hats (200 BPM for a 100 BPM song); beats stay on the grid, the engine pulse
+  simply runs at double speed.
+- **Lyrics (task 6.2)**: `domain/lyrics.py` `parse_lrc` (multiple time tags per line, `[offset:±ms]`, enhanced
+  `<mm:ss.xx>` word tags stripped, metadata ignored, a line ends at the next timed line, the last lasts 5 s) and
+  `fit_lyrics`. The `.lrc` is applied when the analysis is read (`GetProjectAnalysis`), so it always wins and the
+  audio-keyed cache stays valid for every upload of the same song. `transcribe_lyrics` with Muse Voice (6.1) is not
+  implemented (needs a `META_API_KEY` and a format check): the worker uses `NoLyricsTranscriber`, so without an
+  `.lrc` `lyricsSource` is `none` (requirement 6.2 fallback).
+- **Pipeline (task 8)**: `analysis/application/use_cases/analyze_audio.py` (`AnalyzeAudio`), run by the
+  `analyze_project` job (`analysis/interfaces/jobs.py`, registered only in the worker container). Stages and
+  progress weights = measured wall-time shares: decode 0.01, separate 0.86, transcribe 0.09, rhythm 0.02,
+  structure 0.01, harmony 0.005, lyrics 0.003, store 0.002. Checkpoints: `stems/<sha256>/*.flac`,
+  `work/<sha256>/{notes,rhythm,structure}.json` (raw notes before filtering, so a new `ANALYSIS_MIN_VELOCITY`
+  needs no re-transcription). Result validated by the pydantic model (a violation is a pipeline bug →
+  `ANALYSIS_INVALID`), then stored. Worker `max_jobs` = cores / 4 (each job already uses every core, ~2 GB RAM).
+  `GET /api/projects/{id}/analysis` (409 `ANALYSIS_NOT_READY` while running) and `GET /api/projects/{id}/audio`
+  (playback).
+  **Measured** full pipeline, 3-minute synthesized track, same laptop: **392.7 s wall / 748.5 s CPU** — separate
+  351.0 s, transcribe 32.6 s, rhythm 5.0 s, structure 3.6 s, others < 1 s (10 s fixture: 29.6 s wall). Under the
+  10-minute budget; to re-measure: `uv run python scripts/analyze_file.py <song> <out.json>`.
+- **Web (task 9)**: feature `features/upload` (`UploadForm`, `AnalysisProgress`, `useUpload` polling
+  `GET /api/jobs/{id}` every 1.5 s, stage list in `consts/upload.consts.ts` checked against the API `STAGES` by a
+  pytest) and page `/upload`; `/play/[projectId]` (`features/player` `ProjectPlayback`: analysis parsed with the
+  generated `AnalysisSchema`, audio from `/api/projects/{id}/audio`, seed from the audio hash). Verified live
+  (headless Chromium, API + arq worker + redis, SQLite, local storage): upload of the 10 s fixture → stages shown →
+  redirect after 44 s → the world plays the uploaded audio; upload page at 375 px has no horizontal scroll.
+- **Demo fixture (task 10)**: no human-picked demo song yet (roadmap Phase 0), so the demo is "Neon Nocturne",
+  self-composed with `scripts/synth_song.py --demo` (intro / verse / chorus / outro, 57.6 s, royalty-free by
+  construction): `apps/web/public/demo/neon-nocturne.mp3` (128 kbps, 0.9 MB) analysed by the real pipeline
+  (`scripts/analyze_file.py`, 124.6 s wall / 235.9 s CPU) → `features/player/demo/neon-nocturne.analysis.json`
+  (535 notes, 39 chords, C major, 99 BPM). `/play/demo` loads both statically (no backend). `test_demo_fixture.py`
+  fails if the MP3 changes without re-analysis. Weakness: structure finds only 2 sections, both `chorus`.

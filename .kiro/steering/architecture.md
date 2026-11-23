@@ -54,4 +54,5 @@ Checked by `scripts/agents/validate-architecture.sh` (hook "Architecture check")
 
 - Jobs are idempotent: keyed by `(project_id, audio_hash, stage)`; rerunning skips finished stages.
 - Each stage persists its output before the next starts, so a crash resumes from the last finished stage.
-- Hard limits: audio ≤ 180 s, job timeout 15 min, one analysis job per CPU core.
+- Hard limits: audio ≤ 180 s, job timeout 15 min, one analysis job per 4 CPU cores (Demucs and Basic Pitch
+  already use every core and ~2 GB RAM per job).

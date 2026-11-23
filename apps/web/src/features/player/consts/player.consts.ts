@@ -3,8 +3,17 @@ export const PLAYER_TEXT = {
   pause: 'Pause',
   seek: 'Song position',
   loading: 'Preparing the demo song…',
-  synthNote: 'Demo song synthesized from its own notes',
+  demoNote: (title: string): string => `Demo song “${title}”, composed for Music World`,
+  loadingProject: 'Loading the world of your song…',
 } as const;
+
+/** Message keys (API error codes) → user-facing text on `/play/<projectId>`. */
+export const PLAYER_ERRORS: Record<string, string> = {
+  PROJECT_NOT_FOUND: 'This song does not exist.',
+  ANALYSIS_NOT_READY: 'This song is still being analysed. Come back in a minute.',
+  NETWORK: 'The server could not be reached. Try again.',
+  UNKNOWN: 'This world could not be loaded.',
+};
 
 /** Keyboard seek step (frontend.md: arrows = seek ±5 s). */
 export const SEEK_STEP_SEC = 5;

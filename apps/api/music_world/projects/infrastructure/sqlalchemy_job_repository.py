@@ -19,6 +19,7 @@ class JobRow(Base):
     error: Mapped[str | None] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    subject_id: Mapped[str | None] = mapped_column(Uuid(as_uuid=False))
 
 
 def _utc(value: datetime) -> datetime:
@@ -35,12 +36,14 @@ def _to_domain(row: JobRow) -> Job:
         error=row.error,
         created_at=_utc(row.created_at),
         updated_at=_utc(row.updated_at),
+        subject_id=str(row.subject_id) if row.subject_id else None,
     )
 
 
 def _apply(row: JobRow, job: Job) -> None:
     row.kind, row.status, row.stage = job.kind, job.status.value, job.stage
     row.progress, row.error, row.created_at, row.updated_at = job.progress, job.error, job.created_at, job.updated_at
+    row.subject_id = job.subject_id
 
 
 class SqlAlchemyJobRepository:

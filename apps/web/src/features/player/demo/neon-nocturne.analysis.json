@@ -1,0 +1,7857 @@
+{
+ "schema": "music-world.analysis.v1",
+ "audioHash": "sha256:a771ebfe4b7fa91b6475cba428142f6143af10153e7f13a65b655a58b7e3a221",
+ "durationSec": 57.6,
+ "tempoBpm": 99.38,
+ "beats": [
+  10.6812,
+  11.4242,
+  12.0279,
+  12.6317,
+  13.2354,
+  13.8391,
+  14.4428,
+  15.0233,
+  15.627,
+  16.2307,
+  16.8345,
+  17.4382,
+  18.0419,
+  18.6224,
+  19.2261,
+  19.8298,
+  20.4336,
+  21.0373,
+  21.641,
+  22.2215,
+  22.8484,
+  23.4289,
+  24.0327,
+  24.6364,
+  25.2401,
+  25.8206,
+  26.4243,
+  27.028,
+  27.6317,
+  28.2355,
+  28.8392,
+  29.4197,
+  30.0466,
+  30.6271,
+  31.2308,
+  31.8346,
+  32.4383,
+  33.0188,
+  33.6225,
+  34.2262,
+  34.8299,
+  35.4337,
+  36.0374,
+  36.6179,
+  37.2448,
+  37.8253,
+  38.429,
+  39.0327,
+  39.6365,
+  40.217,
+  40.8207,
+  41.4244,
+  42.0281,
+  42.6318,
+  43.2356,
+  43.8161,
+  44.443,
+  45.0235,
+  45.6272,
+  46.2309,
+  46.8346,
+  47.4151
+ ],
+ "kicks": [
+  2.4613,
+  6.339,
+  7.5465,
+  9.6131,
+  9.9381,
+  10.2168,
+  10.5419,
+  10.8205,
+  11.4242,
+  11.7261,
+  12.0047,
+  12.3298,
+  12.6317,
+  12.9335,
+  13.2122,
+  13.8391,
+  14.1177,
+  14.4196,
+  14.7447,
+  15.0233,
+  15.3252,
+  15.6038,
+  15.9289,
+  16.2307,
+  16.5326,
+  16.8112,
+  17.1363,
+  17.415,
+  17.7168,
+  18.0187,
+  18.3438,
+  18.6224,
+  18.9243,
+  19.2261,
+  19.528,
+  19.8298,
+  20.1317,
+  20.4103,
+  21.0141,
+  21.3391,
+  21.6178,
+  21.9196,
+  22.2215,
+  22.5234,
+  22.8252,
+  23.4289,
+  23.7308,
+  24.0094,
+  24.6364,
+  24.9382,
+  25.2169,
+  25.542,
+  25.8206,
+  26.1224,
+  26.4243,
+  26.7262,
+  27.028,
+  27.3299,
+  27.6085,
+  27.9336,
+  28.2122,
+  28.5373,
+  28.816,
+  29.141,
+  29.4197,
+  29.7448,
+  30.0234,
+  30.6271,
+  30.929,
+  31.2076,
+  31.5327,
+  31.8346,
+  32.1364,
+  32.4151,
+  33.0188,
+  33.3206,
+  33.6225,
+  33.9244,
+  34.2262,
+  34.5281,
+  34.8067,
+  35.4104,
+  35.7355,
+  36.0141,
+  36.316,
+  36.6179,
+  36.9429,
+  37.2216,
+  37.5234,
+  37.8253,
+  38.1504,
+  38.4058,
+  38.7309,
+  39.0327,
+  39.3346,
+  39.6132,
+  39.9383,
+  40.217,
+  40.542,
+  40.8207,
+  41.1225,
+  41.4244,
+  41.7263,
+  42.0049,
+  42.3532,
+  42.6318,
+  42.9337,
+  43.2123,
+  43.5374,
+  43.8161,
+  44.1411,
+  44.4198,
+  45.0235,
+  45.3254,
+  45.604,
+  45.9291,
+  46.2309,
+  46.5328,
+  46.8114,
+  47.1365,
+  47.4151,
+  47.7402
+ ],
+ "key": "C major",
+ "notes": [
+  {
+   "id": "n_0000",
+   "time": 0.0116,
+   "duration": 2.3117,
+   "midi": 45,
+   "velocity": 0.715,
+   "stem": "bass",
+   "chordId": "c_0"
+  },
+  {
+   "id": "n_0001",
+   "time": 0.0116,
+   "duration": 0.0929,
+   "midi": 57,
+   "velocity": 0.405,
+   "stem": "bass",
+   "chordId": "c_0"
+  },
+  {
+   "id": "n_0002",
+   "time": 0.0116,
+   "duration": 4.6814,
+   "midi": 57,
+   "velocity": 0.75,
+   "stem": "other",
+   "chordId": "c_0"
+  },
+  {
+   "id": "n_0003",
+   "time": 0.0116,
+   "duration": 7.1092,
+   "midi": 60,
+   "velocity": 0.765,
+   "stem": "other",
+   "chordId": "c_0"
+  },
+  {
+   "id": "n_0004",
+   "time": 0.0116,
+   "duration": 2.2768,
+   "midi": 64,
+   "velocity": 0.704,
+   "stem": "other",
+   "chordId": "c_0"
+  },
+  {
+   "id": "n_0005",
+   "time": 0.0116,
+   "duration": 2.2072,
+   "midi": 69,
+   "velocity": 0.431,
+   "stem": "other",
+   "chordId": "c_0"
+  },
+  {
+   "id": "n_0006",
+   "time": 0.0232,
+   "duration": 0.9753000000000001,
+   "midi": 45,
+   "velocity": 0.428,
+   "stem": "other",
+   "chordId": "c_0"
+  },
+  {
+   "id": "n_0007",
+   "time": 0.0348,
+   "duration": 2.242,
+   "midi": 60,
+   "velocity": 0.598,
+   "stem": "vocals",
+   "chordId": "c_0"
+  },
+  {
+   "id": "n_0008",
+   "time": 0.0464,
+   "duration": 2.242,
+   "midi": 45,
+   "velocity": 0.498,
+   "stem": "vocals",
+   "chordId": "c_0"
+  },
+  {
+   "id": "n_0009",
+   "time": 0.0929,
+   "duration": 0.3483,
+   "midi": 57,
+   "velocity": 0.432,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0010",
+   "time": 0.6037,
+   "duration": 0.06969999999999998,
+   "midi": 57,
+   "velocity": 0.336,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0011",
+   "time": 0.6966,
+   "duration": 1.5221999999999998,
+   "midi": 57,
+   "velocity": 0.415,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0012",
+   "time": 1.161,
+   "duration": 1.0112999999999999,
+   "midi": 45,
+   "velocity": 0.379,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0013",
+   "time": 1.2074,
+   "duration": 0.09289999999999998,
+   "midi": 57,
+   "velocity": 0.346,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0014",
+   "time": 1.8112,
+   "duration": 0.0928,
+   "midi": 57,
+   "velocity": 0.366,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0015",
+   "time": 2.3929,
+   "duration": 2.3349,
+   "midi": 41,
+   "velocity": 0.731,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0016",
+   "time": 2.4045,
+   "duration": 0.09289999999999976,
+   "midi": 53,
+   "velocity": 0.304,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0017",
+   "time": 2.4045,
+   "duration": 2.3001,
+   "midi": 53,
+   "velocity": 0.704,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0018",
+   "time": 2.4045,
+   "duration": 2.3001,
+   "midi": 57,
+   "velocity": 0.644,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0019",
+   "time": 2.4045,
+   "duration": 1.5558,
+   "midi": 65,
+   "velocity": 0.346,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0020",
+   "time": 2.4278,
+   "duration": 0.06959999999999988,
+   "midi": 53,
+   "velocity": 0.427,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0021",
+   "time": 2.4394,
+   "duration": 0.32509999999999994,
+   "midi": 41,
+   "velocity": 0.518,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0022",
+   "time": 2.4742,
+   "duration": 0.8358999999999996,
+   "midi": 41,
+   "velocity": 0.388,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0023",
+   "time": 2.5903,
+   "duration": 2.1026999999999996,
+   "midi": 60,
+   "velocity": 0.525,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0024",
+   "time": 2.7877,
+   "duration": 0.12769999999999992,
+   "midi": 53,
+   "velocity": 0.427,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0025",
+   "time": 3.0199,
+   "duration": 0.058000000000000274,
+   "midi": 69,
+   "velocity": 0.323,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0026",
+   "time": 3.0431,
+   "duration": 0.34830000000000005,
+   "midi": 41,
+   "velocity": 0.453,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0027",
+   "time": 3.6004,
+   "duration": 0.10449999999999982,
+   "midi": 53,
+   "velocity": 0.318,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0028",
+   "time": 3.67,
+   "duration": 0.1394000000000002,
+   "midi": 53,
+   "velocity": 0.386,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0029",
+   "time": 3.6933,
+   "duration": 0.8254999999999999,
+   "midi": 41,
+   "velocity": 0.411,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0030",
+   "time": 3.8094,
+   "duration": 0.16379999999999972,
+   "midi": 41,
+   "velocity": 0.348,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0031",
+   "time": 4.0777,
+   "duration": 0.12769999999999992,
+   "midi": 48,
+   "velocity": 0.34,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0032",
+   "time": 4.1473,
+   "duration": 0.1509999999999998,
+   "midi": 65,
+   "velocity": 0.372,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0033",
+   "time": 4.2286,
+   "duration": 0.11609999999999943,
+   "midi": 53,
+   "velocity": 0.367,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0034",
+   "time": 4.4724,
+   "duration": 0.06969999999999921,
+   "midi": 65,
+   "velocity": 0.308,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0035",
+   "time": 4.7975,
+   "duration": 2.3232999999999997,
+   "midi": 48,
+   "velocity": 0.733,
+   "stem": "bass",
+   "chordId": "c_1"
+  },
+  {
+   "id": "n_0036",
+   "time": 4.7975,
+   "duration": 4.7162,
+   "midi": 55,
+   "velocity": 0.681,
+   "stem": "other",
+   "chordId": "c_1"
+  },
+  {
+   "id": "n_0037",
+   "time": 4.7975,
+   "duration": 0.33669999999999956,
+   "midi": 60,
+   "velocity": 0.315,
+   "stem": "bass",
+   "chordId": "c_1"
+  },
+  {
+   "id": "n_0038",
+   "time": 4.7975,
+   "duration": 2.3117,
+   "midi": 64,
+   "velocity": 0.714,
+   "stem": "other",
+   "chordId": "c_1"
+  },
+  {
+   "id": "n_0039",
+   "time": 4.8091,
+   "duration": 0.45279999999999987,
+   "midi": 48,
+   "velocity": 0.517,
+   "stem": "vocals",
+   "chordId": "c_1"
+  },
+  {
+   "id": "n_0040",
+   "time": 4.8091,
+   "duration": 1.9749999999999996,
+   "midi": 76,
+   "velocity": 0.365,
+   "stem": "other",
+   "chordId": "c_1"
+  },
+  {
+   "id": "n_0041",
+   "time": 4.8671,
+   "duration": 2.2188,
+   "midi": 60,
+   "velocity": 0.537,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0042",
+   "time": 5.4012,
+   "duration": 0.12769999999999992,
+   "midi": 60,
+   "velocity": 0.388,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0043",
+   "time": 5.436,
+   "duration": 0.42959999999999976,
+   "midi": 48,
+   "velocity": 0.479,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0044",
+   "time": 5.9946,
+   "duration": 0.0929000000000002,
+   "midi": 60,
+   "velocity": 0.411,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0045",
+   "time": 6.0178,
+   "duration": 0.9635999999999996,
+   "midi": 48,
+   "velocity": 0.456,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0046",
+   "time": 6.1339,
+   "duration": 0.058100000000000485,
+   "midi": 36,
+   "velocity": 0.328,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0047",
+   "time": 6.5867,
+   "duration": 0.09289999999999932,
+   "midi": 55,
+   "velocity": 0.429,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0048",
+   "time": 6.6099,
+   "duration": 0.1045000000000007,
+   "midi": 60,
+   "velocity": 0.382,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0049",
+   "time": 6.8189,
+   "duration": 0.058099999999999596,
+   "midi": 36,
+   "velocity": 0.317,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0050",
+   "time": 7.1904,
+   "duration": 2.3348999999999993,
+   "midi": 43,
+   "velocity": 0.768,
+   "stem": "bass",
+   "chordId": "c_2"
+  },
+  {
+   "id": "n_0051",
+   "time": 7.202,
+   "duration": 2.3117,
+   "midi": 59,
+   "velocity": 0.722,
+   "stem": "other",
+   "chordId": "c_2"
+  },
+  {
+   "id": "n_0052",
+   "time": 7.202,
+   "duration": 2.3001000000000005,
+   "midi": 62,
+   "velocity": 0.584,
+   "stem": "other",
+   "chordId": "c_2"
+  },
+  {
+   "id": "n_0053",
+   "time": 7.202,
+   "duration": 1.3132000000000001,
+   "midi": 67,
+   "velocity": 0.353,
+   "stem": "other",
+   "chordId": "c_2"
+  },
+  {
+   "id": "n_0054",
+   "time": 7.202,
+   "duration": 0.1741999999999999,
+   "midi": 74,
+   "velocity": 0.308,
+   "stem": "other",
+   "chordId": "c_2"
+  },
+  {
+   "id": "n_0055",
+   "time": 7.2369,
+   "duration": 0.33669999999999956,
+   "midi": 43,
+   "velocity": 0.378,
+   "stem": "vocals",
+   "chordId": "c_2"
+  },
+  {
+   "id": "n_0056",
+   "time": 7.2717,
+   "duration": 0.11610000000000031,
+   "midi": 43,
+   "velocity": 0.353,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0057",
+   "time": 7.7709,
+   "duration": 0.23350000000000026,
+   "midi": 43,
+   "velocity": 0.346,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0058",
+   "time": 7.8058,
+   "duration": 0.05800000000000072,
+   "midi": 55,
+   "velocity": 0.35,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0059",
+   "time": 7.829,
+   "duration": 0.3030999999999997,
+   "midi": 43,
+   "velocity": 0.394,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0060",
+   "time": 8.3179,
+   "duration": 0.32510000000000083,
+   "midi": 43,
+   "velocity": 0.371,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0061",
+   "time": 8.3759,
+   "duration": 0.41800000000000104,
+   "midi": 43,
+   "velocity": 0.471,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0062",
+   "time": 8.4108,
+   "duration": 0.08120000000000083,
+   "midi": 55,
+   "velocity": 0.327,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0063",
+   "time": 8.6662,
+   "duration": 0.7314000000000007,
+   "midi": 67,
+   "velocity": 0.371,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0064",
+   "time": 9.0029,
+   "duration": 0.09280000000000044,
+   "midi": 55,
+   "velocity": 0.347,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0065",
+   "time": 9.0261,
+   "duration": 0.4062999999999999,
+   "midi": 43,
+   "velocity": 0.492,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0066",
+   "time": 9.0841,
+   "duration": 0.0929000000000002,
+   "midi": 43,
+   "velocity": 0.326,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0067",
+   "time": 9.1538,
+   "duration": 0.06969999999999921,
+   "midi": 55,
+   "velocity": 0.358,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0068",
+   "time": 9.595,
+   "duration": 2.3362,
+   "midi": 45,
+   "velocity": 0.741,
+   "stem": "bass",
+   "chordId": "c_3"
+  },
+  {
+   "id": "n_0069",
+   "time": 9.595,
+   "duration": 0.45399999999999885,
+   "midi": 76,
+   "velocity": 0.624,
+   "stem": "other",
+   "chordId": "c_3"
+  },
+  {
+   "id": "n_0070",
+   "time": 9.595,
+   "duration": 0.20899999999999963,
+   "midi": 83,
+   "velocity": 0.288,
+   "stem": "other",
+   "chordId": "c_3"
+  },
+  {
+   "id": "n_0071",
+   "time": 9.6066,
+   "duration": 0.4541000000000004,
+   "midi": 45,
+   "velocity": 0.526,
+   "stem": "vocals",
+   "chordId": "c_3"
+  },
+  {
+   "id": "n_0072",
+   "time": 9.6066,
+   "duration": 0.11609999999999943,
+   "midi": 57,
+   "velocity": 0.379,
+   "stem": "bass",
+   "chordId": "c_3"
+  },
+  {
+   "id": "n_0073",
+   "time": 9.6066,
+   "duration": 4.6943,
+   "midi": 57,
+   "velocity": 0.757,
+   "stem": "other",
+   "chordId": "c_3"
+  },
+  {
+   "id": "n_0074",
+   "time": 9.6066,
+   "duration": 7.1103999999999985,
+   "midi": 60,
+   "velocity": 0.725,
+   "stem": "other",
+   "chordId": "c_3"
+  },
+  {
+   "id": "n_0075",
+   "time": 9.6066,
+   "duration": 2.3117,
+   "midi": 64,
+   "velocity": 0.629,
+   "stem": "other",
+   "chordId": "c_3"
+  },
+  {
+   "id": "n_0076",
+   "time": 9.6414,
+   "duration": 0.5120999999999984,
+   "midi": 60,
+   "velocity": 0.545,
+   "stem": "vocals",
+   "chordId": "c_3"
+  },
+  {
+   "id": "n_0077",
+   "time": 9.653,
+   "duration": 0.4772999999999996,
+   "midi": 57,
+   "velocity": 0.414,
+   "stem": "vocals",
+   "chordId": "c_3"
+  },
+  {
+   "id": "n_0078",
+   "time": 9.6762,
+   "duration": 0.8255999999999997,
+   "midi": 45,
+   "velocity": 0.369,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0079",
+   "time": 9.991,
+   "duration": 0.7895000000000003,
+   "midi": 69,
+   "velocity": 0.441,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0080",
+   "time": 10.2,
+   "duration": 0.4295000000000009,
+   "midi": 74,
+   "velocity": 0.699,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0081",
+   "time": 10.2232,
+   "duration": 0.05799999999999983,
+   "midi": 57,
+   "velocity": 0.355,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0082",
+   "time": 10.2464,
+   "duration": 0.34830000000000005,
+   "midi": 45,
+   "velocity": 0.53,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0083",
+   "time": 10.3045,
+   "duration": 1.6020999999999983,
+   "midi": 60,
+   "velocity": 0.602,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0084",
+   "time": 10.3625,
+   "duration": 0.9984999999999999,
+   "midi": 57,
+   "velocity": 0.49,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0085",
+   "time": 10.4902,
+   "duration": 0.058099999999999596,
+   "midi": 81,
+   "velocity": 0.336,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0086",
+   "time": 10.676,
+   "duration": 0.9055999999999997,
+   "midi": 45,
+   "velocity": 0.338,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0087",
+   "time": 10.7921,
+   "duration": 0.45279999999999987,
+   "midi": 72,
+   "velocity": 0.628,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0088",
+   "time": 10.8501,
+   "duration": 0.33670000000000044,
+   "midi": 45,
+   "velocity": 0.404,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0089",
+   "time": 11.1868,
+   "duration": 0.6617999999999995,
+   "midi": 69,
+   "velocity": 0.442,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0090",
+   "time": 11.3958,
+   "duration": 0.4876000000000005,
+   "midi": 45,
+   "velocity": 0.516,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0091",
+   "time": 11.3958,
+   "duration": 0.45279999999999987,
+   "midi": 74,
+   "velocity": 0.704,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0092",
+   "time": 11.3958,
+   "duration": 0.13930000000000042,
+   "midi": 81,
+   "velocity": 0.304,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0093",
+   "time": 11.5467,
+   "duration": 0.267100000000001,
+   "midi": 57,
+   "velocity": 0.348,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0094",
+   "time": 11.9892,
+   "duration": 2.3348999999999993,
+   "midi": 41,
+   "velocity": 0.753,
+   "stem": "bass",
+   "chordId": "c_4"
+  },
+  {
+   "id": "n_0095",
+   "time": 12.0008,
+   "duration": 2.3001000000000005,
+   "midi": 53,
+   "velocity": 0.695,
+   "stem": "other",
+   "chordId": "c_4"
+  },
+  {
+   "id": "n_0096",
+   "time": 12.0008,
+   "duration": 0.42960000000000065,
+   "midi": 76,
+   "velocity": 0.644,
+   "stem": "other",
+   "chordId": "c_4"
+  },
+  {
+   "id": "n_0097",
+   "time": 12.0356,
+   "duration": 1.0797999999999988,
+   "midi": 57,
+   "velocity": 0.504,
+   "stem": "vocals",
+   "chordId": "c_4"
+  },
+  {
+   "id": "n_0098",
+   "time": 12.0589,
+   "duration": 0.23220000000000063,
+   "midi": 41,
+   "velocity": 0.475,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0099",
+   "time": 12.0589,
+   "duration": 1.6950000000000003,
+   "midi": 60,
+   "velocity": 0.456,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0100",
+   "time": 12.1517,
+   "duration": 0.2670999999999992,
+   "midi": 41,
+   "velocity": 0.348,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0101",
+   "time": 12.4188,
+   "duration": 0.27860000000000085,
+   "midi": 65,
+   "velocity": 0.379,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0102",
+   "time": 12.5813,
+   "duration": 0.3830999999999989,
+   "midi": 41,
+   "velocity": 0.424,
+   "stem": "vocals",
+   "chordId": "c_5"
+  },
+  {
+   "id": "n_0103",
+   "time": 12.5929,
+   "duration": 0.12769999999999904,
+   "midi": 69,
+   "velocity": 0.329,
+   "stem": "other",
+   "chordId": "c_5"
+  },
+  {
+   "id": "n_0104",
+   "time": 12.5929,
+   "duration": 0.44120000000000026,
+   "midi": 76,
+   "velocity": 0.649,
+   "stem": "other",
+   "chordId": "c_5"
+  },
+  {
+   "id": "n_0105",
+   "time": 12.651,
+   "duration": 0.26699999999999946,
+   "midi": 41,
+   "velocity": 0.377,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0106",
+   "time": 13.1966,
+   "duration": 0.42960000000000065,
+   "midi": 76,
+   "velocity": 0.618,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0107",
+   "time": 13.2663,
+   "duration": 0.26700000000000124,
+   "midi": 41,
+   "velocity": 0.384,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0108",
+   "time": 13.2663,
+   "duration": 0.3947000000000003,
+   "midi": 57,
+   "velocity": 0.458,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0109",
+   "time": 13.2895,
+   "duration": 0.25539999999999985,
+   "midi": 41,
+   "velocity": 0.399,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0110",
+   "time": 13.8004,
+   "duration": 0.4307999999999996,
+   "midi": 72,
+   "velocity": 0.572,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0111",
+   "time": 13.8004,
+   "duration": 0.4192,
+   "midi": 79,
+   "velocity": 0.335,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0112",
+   "time": 13.8816,
+   "duration": 0.23349999999999937,
+   "midi": 41,
+   "velocity": 0.398,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0113",
+   "time": 13.8932,
+   "duration": 0.11739999999999995,
+   "midi": 60,
+   "velocity": 0.448,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0114",
+   "time": 14.1267,
+   "duration": 0.1161000000000012,
+   "midi": 57,
+   "velocity": 0.402,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0115",
+   "time": 14.3937,
+   "duration": 2.3348999999999993,
+   "midi": 48,
+   "velocity": 0.688,
+   "stem": "bass",
+   "chordId": "c_6"
+  },
+  {
+   "id": "n_0116",
+   "time": 14.3937,
+   "duration": 4.716299999999999,
+   "midi": 55,
+   "velocity": 0.73,
+   "stem": "other",
+   "chordId": "c_6"
+  },
+  {
+   "id": "n_0117",
+   "time": 14.3937,
+   "duration": 2.323299999999998,
+   "midi": 64,
+   "velocity": 0.708,
+   "stem": "other",
+   "chordId": "c_6"
+  },
+  {
+   "id": "n_0118",
+   "time": 14.3937,
+   "duration": 0.41799999999999926,
+   "midi": 74,
+   "velocity": 0.545,
+   "stem": "other",
+   "chordId": "c_6"
+  },
+  {
+   "id": "n_0119",
+   "time": 14.4054,
+   "duration": 0.4876000000000005,
+   "midi": 48,
+   "velocity": 0.382,
+   "stem": "other",
+   "chordId": "c_6"
+  },
+  {
+   "id": "n_0120",
+   "time": 14.4866,
+   "duration": 0.41800000000000104,
+   "midi": 48,
+   "velocity": 0.407,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0121",
+   "time": 14.4866,
+   "duration": 0.2090000000000014,
+   "midi": 60,
+   "velocity": 0.553,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0122",
+   "time": 14.8117,
+   "duration": 0.12769999999999904,
+   "midi": 76,
+   "velocity": 0.411,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0123",
+   "time": 14.8465,
+   "duration": 1.3015999999999988,
+   "midi": 60,
+   "velocity": 0.415,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0124",
+   "time": 14.9975,
+   "duration": 0.4294999999999991,
+   "midi": 74,
+   "velocity": 0.56,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0125",
+   "time": 15.0323,
+   "duration": 0.35990000000000144,
+   "midi": 48,
+   "velocity": 0.38,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0126",
+   "time": 15.0555,
+   "duration": 0.3830999999999989,
+   "midi": 48,
+   "velocity": 0.374,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0127",
+   "time": 15.1484,
+   "duration": 0.2901999999999987,
+   "midi": 36,
+   "velocity": 0.421,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0128",
+   "time": 15.3922,
+   "duration": 0.16249999999999964,
+   "midi": 76,
+   "velocity": 0.393,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0129",
+   "time": 15.6012,
+   "duration": 0.41919999999999824,
+   "midi": 48,
+   "velocity": 0.42,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0130",
+   "time": 15.6012,
+   "duration": 0.395999999999999,
+   "midi": 74,
+   "velocity": 0.548,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0131",
+   "time": 15.6825,
+   "duration": 0.1161000000000012,
+   "midi": 48,
+   "velocity": 0.405,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0132",
+   "time": 16.0088,
+   "duration": 0.10449999999999804,
+   "midi": 76,
+   "velocity": 0.371,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0133",
+   "time": 16.032,
+   "duration": 0.058099999999999596,
+   "midi": 48,
+   "velocity": 0.353,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0134",
+   "time": 16.1946,
+   "duration": 0.05799999999999983,
+   "midi": 55,
+   "velocity": 0.33,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0135",
+   "time": 16.1946,
+   "duration": 0.45279999999999987,
+   "midi": 79,
+   "velocity": 0.675,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0136",
+   "time": 16.2875,
+   "duration": 0.19729999999999848,
+   "midi": 48,
+   "velocity": 0.44,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0137",
+   "time": 16.3223,
+   "duration": 0.24380000000000024,
+   "midi": 48,
+   "velocity": 0.309,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0138",
+   "time": 16.3571,
+   "duration": 0.17420000000000258,
+   "midi": 60,
+   "velocity": 0.551,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0139",
+   "time": 16.7983,
+   "duration": 0.4411999999999985,
+   "midi": 76,
+   "velocity": 0.778,
+   "stem": "other",
+   "chordId": "c_7"
+  },
+  {
+   "id": "n_0140",
+   "time": 16.8099,
+   "duration": 2.311700000000002,
+   "midi": 43,
+   "velocity": 0.741,
+   "stem": "bass",
+   "chordId": "c_7"
+  },
+  {
+   "id": "n_0141",
+   "time": 16.8099,
+   "duration": 2.3001000000000005,
+   "midi": 59,
+   "velocity": 0.665,
+   "stem": "other",
+   "chordId": "c_7"
+  },
+  {
+   "id": "n_0142",
+   "time": 16.8099,
+   "duration": 2.3001000000000005,
+   "midi": 62,
+   "velocity": 0.653,
+   "stem": "other",
+   "chordId": "c_7"
+  },
+  {
+   "id": "n_0143",
+   "time": 16.8099,
+   "duration": 1.2784000000000013,
+   "midi": 67,
+   "velocity": 0.408,
+   "stem": "other",
+   "chordId": "c_7"
+  },
+  {
+   "id": "n_0144",
+   "time": 16.8331,
+   "duration": 0.39480000000000004,
+   "midi": 83,
+   "velocity": 0.378,
+   "stem": "other",
+   "chordId": "c_7"
+  },
+  {
+   "id": "n_0145",
+   "time": 16.868,
+   "duration": 0.32500000000000284,
+   "midi": 43,
+   "velocity": 0.411,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0146",
+   "time": 16.8912,
+   "duration": 0.8475000000000001,
+   "midi": 43,
+   "velocity": 0.379,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0147",
+   "time": 17.135,
+   "duration": 0.0929000000000002,
+   "midi": 71,
+   "velocity": 0.349,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0148",
+   "time": 17.402,
+   "duration": 0.42960000000000065,
+   "midi": 72,
+   "velocity": 0.68,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0149",
+   "time": 17.4601,
+   "duration": 0.3133999999999979,
+   "midi": 79,
+   "velocity": 0.288,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0150",
+   "time": 17.4717,
+   "duration": 0.31340000000000146,
+   "midi": 43,
+   "velocity": 0.39,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0151",
+   "time": 17.8316,
+   "duration": 0.6397999999999975,
+   "midi": 71,
+   "velocity": 0.621,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0152",
+   "time": 18.007,
+   "duration": 0.41799999999999926,
+   "midi": 43,
+   "velocity": 0.427,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0153",
+   "time": 18.0418,
+   "duration": 0.39480000000000004,
+   "midi": 43,
+   "velocity": 0.517,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0154",
+   "time": 18.0418,
+   "duration": 0.05810000000000315,
+   "midi": 55,
+   "velocity": 0.398,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0155",
+   "time": 18.2276,
+   "duration": 0.290300000000002,
+   "midi": 67,
+   "velocity": 0.354,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0156",
+   "time": 18.274,
+   "duration": 0.11609999999999943,
+   "midi": 78,
+   "velocity": 0.344,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0157",
+   "time": 18.3669,
+   "duration": 0.10449999999999804,
+   "midi": 55,
+   "velocity": 0.362,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0158",
+   "time": 18.5875,
+   "duration": 0.4180000000000028,
+   "midi": 50,
+   "velocity": 0.428,
+   "stem": "other",
+   "chordId": "c_8"
+  },
+  {
+   "id": "n_0159",
+   "time": 18.5991,
+   "duration": 0.08129999999999882,
+   "midi": 62,
+   "velocity": 0.396,
+   "stem": "vocals",
+   "chordId": "c_8"
+  },
+  {
+   "id": "n_0160",
+   "time": 18.5991,
+   "duration": 0.4064000000000014,
+   "midi": 69,
+   "velocity": 0.522,
+   "stem": "other",
+   "chordId": "c_8"
+  },
+  {
+   "id": "n_0161",
+   "time": 18.6107,
+   "duration": 0.4759999999999991,
+   "midi": 43,
+   "velocity": 0.443,
+   "stem": "vocals",
+   "chordId": "c_8"
+  },
+  {
+   "id": "n_0162",
+   "time": 18.6107,
+   "duration": 0.06969999999999743,
+   "midi": 55,
+   "velocity": 0.281,
+   "stem": "bass",
+   "chordId": "c_8"
+  },
+  {
+   "id": "n_0163",
+   "time": 18.7036,
+   "duration": 0.20899999999999963,
+   "midi": 43,
+   "velocity": 0.343,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0164",
+   "time": 19.1912,
+   "duration": 0.47600000000000264,
+   "midi": 76,
+   "velocity": 0.645,
+   "stem": "other",
+   "chordId": "c_9"
+  },
+  {
+   "id": "n_0165",
+   "time": 19.2028,
+   "duration": 2.334900000000001,
+   "midi": 45,
+   "velocity": 0.718,
+   "stem": "bass",
+   "chordId": "c_9"
+  },
+  {
+   "id": "n_0166",
+   "time": 19.2028,
+   "duration": 0.11609999999999943,
+   "midi": 57,
+   "velocity": 0.319,
+   "stem": "bass",
+   "chordId": "c_9"
+  },
+  {
+   "id": "n_0167",
+   "time": 19.2028,
+   "duration": 4.694299999999998,
+   "midi": 57,
+   "velocity": 0.753,
+   "stem": "other",
+   "chordId": "c_9"
+  },
+  {
+   "id": "n_0168",
+   "time": 19.2028,
+   "duration": 7.1221,
+   "midi": 60,
+   "velocity": 0.724,
+   "stem": "other",
+   "chordId": "c_9"
+  },
+  {
+   "id": "n_0169",
+   "time": 19.2028,
+   "duration": 2.311700000000002,
+   "midi": 64,
+   "velocity": 0.643,
+   "stem": "other",
+   "chordId": "c_9"
+  },
+  {
+   "id": "n_0170",
+   "time": 19.2145,
+   "duration": 0.4643999999999977,
+   "midi": 45,
+   "velocity": 0.571,
+   "stem": "vocals",
+   "chordId": "c_9"
+  },
+  {
+   "id": "n_0171",
+   "time": 19.2377,
+   "duration": 4.449200000000001,
+   "midi": 60,
+   "velocity": 0.632,
+   "stem": "vocals",
+   "chordId": "c_9"
+  },
+  {
+   "id": "n_0172",
+   "time": 19.2377,
+   "duration": 0.1277000000000008,
+   "midi": 83,
+   "velocity": 0.332,
+   "stem": "other",
+   "chordId": "c_9"
+  },
+  {
+   "id": "n_0173",
+   "time": 19.2493,
+   "duration": 2.125899999999998,
+   "midi": 45,
+   "velocity": 0.431,
+   "stem": "other",
+   "chordId": "c_9"
+  },
+  {
+   "id": "n_0174",
+   "time": 19.2609,
+   "duration": 0.45279999999999987,
+   "midi": 57,
+   "velocity": 0.504,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0175",
+   "time": 19.5976,
+   "duration": 0.7790999999999997,
+   "midi": 69,
+   "velocity": 0.434,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0176",
+   "time": 19.8066,
+   "duration": 0.4308000000000014,
+   "midi": 74,
+   "velocity": 0.694,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0177",
+   "time": 19.8182,
+   "duration": 0.07089999999999819,
+   "midi": 57,
+   "velocity": 0.344,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0178",
+   "time": 19.853,
+   "duration": 0.39599999999999724,
+   "midi": 45,
+   "velocity": 0.564,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0179",
+   "time": 19.9588,
+   "duration": 1.0681000000000012,
+   "midi": 57,
+   "velocity": 0.507,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0180",
+   "time": 20.0865,
+   "duration": 0.06959999999999766,
+   "midi": 81,
+   "velocity": 0.352,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0181",
+   "time": 20.2374,
+   "duration": 0.0929000000000002,
+   "midi": 76,
+   "velocity": 0.334,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0182",
+   "time": 20.3883,
+   "duration": 0.16259999999999764,
+   "midi": 79,
+   "velocity": 0.276,
+   "stem": "other",
+   "chordId": "c_10"
+  },
+  {
+   "id": "n_0183",
+   "time": 20.4,
+   "duration": 0.09280000000000044,
+   "midi": 57,
+   "velocity": 0.322,
+   "stem": "bass",
+   "chordId": "c_10"
+  },
+  {
+   "id": "n_0184",
+   "time": 20.4,
+   "duration": 0.44110000000000227,
+   "midi": 72,
+   "velocity": 0.615,
+   "stem": "other",
+   "chordId": "c_10"
+  },
+  {
+   "id": "n_0185",
+   "time": 20.5044,
+   "duration": 0.2439,
+   "midi": 45,
+   "velocity": 0.347,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0186",
+   "time": 20.7947,
+   "duration": 0.6502000000000017,
+   "midi": 69,
+   "velocity": 0.425,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0187",
+   "time": 21.0037,
+   "duration": 0.0929000000000002,
+   "midi": 57,
+   "velocity": 0.347,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0188",
+   "time": 21.0037,
+   "duration": 0.44120000000000203,
+   "midi": 74,
+   "velocity": 0.711,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0189",
+   "time": 21.1198,
+   "duration": 0.35989999999999966,
+   "midi": 45,
+   "velocity": 0.499,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0190",
+   "time": 21.2591,
+   "duration": 0.22060000000000102,
+   "midi": 57,
+   "velocity": 0.442,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0191",
+   "time": 21.5958,
+   "duration": 2.312899999999999,
+   "midi": 41,
+   "velocity": 0.781,
+   "stem": "bass",
+   "chordId": "c_11"
+  },
+  {
+   "id": "n_0192",
+   "time": 21.6074,
+   "duration": 2.3013000000000012,
+   "midi": 53,
+   "velocity": 0.704,
+   "stem": "other",
+   "chordId": "c_11"
+  },
+  {
+   "id": "n_0193",
+   "time": 21.6074,
+   "duration": 0.4192,
+   "midi": 76,
+   "velocity": 0.651,
+   "stem": "other",
+   "chordId": "c_11"
+  },
+  {
+   "id": "n_0194",
+   "time": 21.6306,
+   "duration": 2.266499999999997,
+   "midi": 57,
+   "velocity": 0.596,
+   "stem": "vocals",
+   "chordId": "c_11"
+  },
+  {
+   "id": "n_0195",
+   "time": 21.6771,
+   "duration": 0.24510000000000076,
+   "midi": 41,
+   "velocity": 0.511,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0196",
+   "time": 21.7235,
+   "duration": 0.08129999999999882,
+   "midi": 53,
+   "velocity": 0.346,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0197",
+   "time": 22.2008,
+   "duration": 0.42960000000000065,
+   "midi": 76,
+   "velocity": 0.643,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0198",
+   "time": 22.224,
+   "duration": 0.26699999999999946,
+   "midi": 41,
+   "velocity": 0.385,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0199",
+   "time": 22.2704,
+   "duration": 0.2439,
+   "midi": 41,
+   "velocity": 0.505,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0200",
+   "time": 22.5955,
+   "duration": 0.31349999999999767,
+   "midi": 53,
+   "velocity": 0.366,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0201",
+   "time": 22.6652,
+   "duration": 0.05799999999999983,
+   "midi": 65,
+   "velocity": 0.324,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0202",
+   "time": 22.7929,
+   "duration": 0.44120000000000203,
+   "midi": 76,
+   "velocity": 0.63,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0203",
+   "time": 22.8045,
+   "duration": 0.3830999999999989,
+   "midi": 41,
+   "velocity": 0.41,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0204",
+   "time": 22.8858,
+   "duration": 0.2554000000000016,
+   "midi": 41,
+   "velocity": 0.519,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0205",
+   "time": 23.3966,
+   "duration": 0.442499999999999,
+   "midi": 72,
+   "velocity": 0.557,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0206",
+   "time": 23.4082,
+   "duration": 0.11609999999999943,
+   "midi": 53,
+   "velocity": 0.266,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0207",
+   "time": 23.4663,
+   "duration": 0.2553999999999981,
+   "midi": 41,
+   "velocity": 0.369,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0208",
+   "time": 23.4895,
+   "duration": 0.23219999999999885,
+   "midi": 41,
+   "velocity": 0.39,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0209",
+   "time": 23.4895,
+   "duration": 0.05799999999999983,
+   "midi": 53,
+   "velocity": 0.344,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0210",
+   "time": 23.5592,
+   "duration": 0.2553999999999981,
+   "midi": 79,
+   "velocity": 0.362,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0211",
+   "time": 23.9784,
+   "duration": 2.346499999999999,
+   "midi": 48,
+   "velocity": 0.7,
+   "stem": "bass",
+   "chordId": "c_12"
+  },
+  {
+   "id": "n_0212",
+   "time": 23.99,
+   "duration": 4.716200000000001,
+   "midi": 55,
+   "velocity": 0.73,
+   "stem": "other",
+   "chordId": "c_12"
+  },
+  {
+   "id": "n_0213",
+   "time": 23.99,
+   "duration": 0.4180000000000028,
+   "midi": 74,
+   "velocity": 0.537,
+   "stem": "other",
+   "chordId": "c_12"
+  },
+  {
+   "id": "n_0214",
+   "time": 24.0016,
+   "duration": 0.4759999999999991,
+   "midi": 48,
+   "velocity": 0.379,
+   "stem": "other",
+   "chordId": "c_12"
+  },
+  {
+   "id": "n_0215",
+   "time": 24.0016,
+   "duration": 2.311700000000002,
+   "midi": 64,
+   "velocity": 0.682,
+   "stem": "other",
+   "chordId": "c_12"
+  },
+  {
+   "id": "n_0216",
+   "time": 24.0364,
+   "duration": 1.8356999999999992,
+   "midi": 60,
+   "velocity": 0.606,
+   "stem": "vocals",
+   "chordId": "c_12"
+  },
+  {
+   "id": "n_0217",
+   "time": 24.0945,
+   "duration": 0.3830999999999989,
+   "midi": 48,
+   "velocity": 0.449,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0218",
+   "time": 24.2454,
+   "duration": 0.1626000000000012,
+   "midi": 64,
+   "velocity": 0.418,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0219",
+   "time": 24.3964,
+   "duration": 0.1277000000000008,
+   "midi": 76,
+   "velocity": 0.374,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0220",
+   "time": 24.5937,
+   "duration": 0.08130000000000237,
+   "midi": 55,
+   "velocity": 0.278,
+   "stem": "vocals",
+   "chordId": "c_13"
+  },
+  {
+   "id": "n_0221",
+   "time": 24.5937,
+   "duration": 0.42960000000000065,
+   "midi": 74,
+   "velocity": 0.55,
+   "stem": "other",
+   "chordId": "c_13"
+  },
+  {
+   "id": "n_0222",
+   "time": 24.6402,
+   "duration": 0.35989999999999966,
+   "midi": 48,
+   "velocity": 0.384,
+   "stem": "other",
+   "chordId": "c_13"
+  },
+  {
+   "id": "n_0223",
+   "time": 24.6634,
+   "duration": 0.37150000000000105,
+   "midi": 48,
+   "velocity": 0.452,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0224",
+   "time": 24.675,
+   "duration": 0.31349999999999767,
+   "midi": 36,
+   "velocity": 0.402,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0225",
+   "time": 25.0001,
+   "duration": 0.17409999999999926,
+   "midi": 76,
+   "velocity": 0.417,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0226",
+   "time": 25.1858,
+   "duration": 0.4759999999999991,
+   "midi": 48,
+   "velocity": 0.458,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0227",
+   "time": 25.1974,
+   "duration": 0.4180000000000028,
+   "midi": 74,
+   "velocity": 0.532,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0228",
+   "time": 25.2555,
+   "duration": 0.0929000000000002,
+   "midi": 64,
+   "velocity": 0.364,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0229",
+   "time": 25.6154,
+   "duration": 0.11609999999999943,
+   "midi": 76,
+   "velocity": 0.39,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0230",
+   "time": 25.7779,
+   "duration": 0.0710000000000015,
+   "midi": 55,
+   "velocity": 0.393,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0231",
+   "time": 25.8012,
+   "duration": 0.4539999999999971,
+   "midi": 79,
+   "velocity": 0.655,
+   "stem": "other",
+   "chordId": "c_14"
+  },
+  {
+   "id": "n_0232",
+   "time": 25.8373,
+   "duration": 0.34830000000000183,
+   "midi": 48,
+   "velocity": 0.406,
+   "stem": "vocals",
+   "chordId": "c_14"
+  },
+  {
+   "id": "n_0233",
+   "time": 25.8605,
+   "duration": 0.3135000000000012,
+   "midi": 48,
+   "velocity": 0.379,
+   "stem": "other",
+   "chordId": "c_14"
+  },
+  {
+   "id": "n_0234",
+   "time": 25.8605,
+   "duration": 0.06970000000000098,
+   "midi": 64,
+   "velocity": 0.356,
+   "stem": "vocals",
+   "chordId": "c_14"
+  },
+  {
+   "id": "n_0235",
+   "time": 26.0114,
+   "duration": 0.22060000000000102,
+   "midi": 60,
+   "velocity": 0.532,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0236",
+   "time": 26.2436,
+   "duration": 2.4857999999999976,
+   "midi": 43,
+   "velocity": 0.789,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0237",
+   "time": 26.3946,
+   "duration": 0.4410999999999987,
+   "midi": 76,
+   "velocity": 0.793,
+   "stem": "other",
+   "chordId": "c_15"
+  },
+  {
+   "id": "n_0238",
+   "time": 26.4062,
+   "duration": 2.3000000000000007,
+   "midi": 59,
+   "velocity": 0.645,
+   "stem": "other",
+   "chordId": "c_15"
+  },
+  {
+   "id": "n_0239",
+   "time": 26.4062,
+   "duration": 2.3000000000000007,
+   "midi": 62,
+   "velocity": 0.65,
+   "stem": "other",
+   "chordId": "c_15"
+  },
+  {
+   "id": "n_0240",
+   "time": 26.4062,
+   "duration": 1.2538000000000018,
+   "midi": 67,
+   "velocity": 0.416,
+   "stem": "other",
+   "chordId": "c_15"
+  },
+  {
+   "id": "n_0241",
+   "time": 26.4062,
+   "duration": 0.4295000000000009,
+   "midi": 83,
+   "velocity": 0.421,
+   "stem": "other",
+   "chordId": "c_15"
+  },
+  {
+   "id": "n_0242",
+   "time": 26.4642,
+   "duration": 0.9635999999999996,
+   "midi": 43,
+   "velocity": 0.416,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0243",
+   "time": 26.5455,
+   "duration": 0.05799999999999983,
+   "midi": 43,
+   "velocity": 0.335,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0244",
+   "time": 26.9983,
+   "duration": 0.06960000000000122,
+   "midi": 62,
+   "velocity": 0.388,
+   "stem": "vocals",
+   "chordId": "c_16"
+  },
+  {
+   "id": "n_0245",
+   "time": 26.9983,
+   "duration": 0.4295000000000009,
+   "midi": 72,
+   "velocity": 0.698,
+   "stem": "other",
+   "chordId": "c_16"
+  },
+  {
+   "id": "n_0246",
+   "time": 27.0099,
+   "duration": 0.08130000000000237,
+   "midi": 55,
+   "velocity": 0.304,
+   "stem": "bass",
+   "chordId": "c_16"
+  },
+  {
+   "id": "n_0247",
+   "time": 27.0563,
+   "duration": 0.30189999999999984,
+   "midi": 43,
+   "velocity": 0.44,
+   "stem": "vocals",
+   "chordId": "c_16"
+  },
+  {
+   "id": "n_0248",
+   "time": 27.1956,
+   "duration": 0.13940000000000197,
+   "midi": 79,
+   "velocity": 0.323,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0249",
+   "time": 27.2537,
+   "duration": 0.10450000000000159,
+   "midi": 50,
+   "velocity": 0.344,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0250",
+   "time": 27.4278,
+   "duration": 0.6398999999999972,
+   "midi": 71,
+   "velocity": 0.587,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0251",
+   "time": 27.6252,
+   "duration": 0.4541000000000004,
+   "midi": 43,
+   "velocity": 0.463,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0252",
+   "time": 27.7297,
+   "duration": 0.2914999999999992,
+   "midi": 43,
+   "velocity": 0.369,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0253",
+   "time": 27.8819,
+   "duration": 0.2553999999999981,
+   "midi": 67,
+   "velocity": 0.36,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0254",
+   "time": 27.94,
+   "duration": 0.05799999999999983,
+   "midi": 78,
+   "velocity": 0.324,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0255",
+   "time": 28.1838,
+   "duration": 0.4062999999999981,
+   "midi": 50,
+   "velocity": 0.394,
+   "stem": "other",
+   "chordId": "c_17"
+  },
+  {
+   "id": "n_0256",
+   "time": 28.1954,
+   "duration": 0.40630000000000166,
+   "midi": 69,
+   "velocity": 0.542,
+   "stem": "other",
+   "chordId": "c_17"
+  },
+  {
+   "id": "n_0257",
+   "time": 28.2302,
+   "duration": 0.37150000000000105,
+   "midi": 43,
+   "velocity": 0.409,
+   "stem": "other",
+   "chordId": "c_17"
+  },
+  {
+   "id": "n_0258",
+   "time": 28.2883,
+   "duration": 0.16250000000000142,
+   "midi": 43,
+   "velocity": 0.32,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0259",
+   "time": 28.7759,
+   "duration": 2.346499999999999,
+   "midi": 41,
+   "velocity": 0.749,
+   "stem": "bass",
+   "chordId": "c_18"
+  },
+  {
+   "id": "n_0260",
+   "time": 28.7991,
+   "duration": 2.311700000000002,
+   "midi": 53,
+   "velocity": 0.714,
+   "stem": "other",
+   "chordId": "c_18"
+  },
+  {
+   "id": "n_0261",
+   "time": 28.7991,
+   "duration": 2.3001000000000005,
+   "midi": 57,
+   "velocity": 0.775,
+   "stem": "other",
+   "chordId": "c_18"
+  },
+  {
+   "id": "n_0262",
+   "time": 28.7991,
+   "duration": 4.716200000000004,
+   "midi": 60,
+   "velocity": 0.753,
+   "stem": "other",
+   "chordId": "c_18"
+  },
+  {
+   "id": "n_0263",
+   "time": 28.7991,
+   "duration": 0.5225000000000009,
+   "midi": 65,
+   "velocity": 0.412,
+   "stem": "other",
+   "chordId": "c_18"
+  },
+  {
+   "id": "n_0264",
+   "time": 28.7991,
+   "duration": 0.08130000000000237,
+   "midi": 69,
+   "velocity": 0.335,
+   "stem": "other",
+   "chordId": "c_18"
+  },
+  {
+   "id": "n_0265",
+   "time": 28.7991,
+   "duration": 0.06970000000000098,
+   "midi": 72,
+   "velocity": 0.309,
+   "stem": "other",
+   "chordId": "c_18"
+  },
+  {
+   "id": "n_0266",
+   "time": 28.7991,
+   "duration": 0.46440000000000126,
+   "midi": 81,
+   "velocity": 0.78,
+   "stem": "other",
+   "chordId": "c_18"
+  },
+  {
+   "id": "n_0267",
+   "time": 28.8572,
+   "duration": 0.1741000000000028,
+   "midi": 41,
+   "velocity": 0.39,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0268",
+   "time": 28.9036,
+   "duration": 0.06969999999999743,
+   "midi": 81,
+   "velocity": 0.469,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0269",
+   "time": 28.95,
+   "duration": 2.184000000000001,
+   "midi": 57,
+   "velocity": 0.648,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0270",
+   "time": 28.9616,
+   "duration": 0.2787000000000006,
+   "midi": 41,
+   "velocity": 0.318,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0271",
+   "time": 29.0545,
+   "duration": 2.044699999999999,
+   "midi": 60,
+   "velocity": 0.661,
+   "stem": "vocals",
+   "chordId": "c_19"
+  },
+  {
+   "id": "n_0272",
+   "time": 29.0661,
+   "duration": 0.17420000000000258,
+   "midi": 69,
+   "velocity": 0.372,
+   "stem": "other",
+   "chordId": "c_19"
+  },
+  {
+   "id": "n_0273",
+   "time": 29.0777,
+   "duration": 0.0929000000000002,
+   "midi": 72,
+   "velocity": 0.346,
+   "stem": "other",
+   "chordId": "c_19"
+  },
+  {
+   "id": "n_0274",
+   "time": 29.101,
+   "duration": 0.27860000000000085,
+   "midi": 53,
+   "velocity": 0.544,
+   "stem": "vocals",
+   "chordId": "c_19"
+  },
+  {
+   "id": "n_0275",
+   "time": 29.1126,
+   "duration": 0.06960000000000122,
+   "midi": 81,
+   "velocity": 0.381,
+   "stem": "vocals",
+   "chordId": "c_19"
+  },
+  {
+   "id": "n_0276",
+   "time": 29.3912,
+   "duration": 0.4772999999999996,
+   "midi": 79,
+   "velocity": 0.677,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0277",
+   "time": 29.4144,
+   "duration": 0.442499999999999,
+   "midi": 41,
+   "velocity": 0.439,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0278",
+   "time": 29.4377,
+   "duration": 0.9765000000000015,
+   "midi": 41,
+   "velocity": 0.549,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0279",
+   "time": 29.577,
+   "duration": 0.08119999999999905,
+   "midi": 79,
+   "velocity": 0.407,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0280",
+   "time": 29.786,
+   "duration": 0.08249999999999957,
+   "midi": 48,
+   "velocity": 0.35,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0281",
+   "time": 29.8337,
+   "duration": 0.5920999999999985,
+   "midi": 53,
+   "velocity": 0.407,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0282",
+   "time": 29.9614,
+   "duration": 0.4062999999999981,
+   "midi": 77,
+   "velocity": 0.382,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0283",
+   "time": 29.9846,
+   "duration": 0.42960000000000065,
+   "midi": 65,
+   "velocity": 0.375,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0284",
+   "time": 29.9962,
+   "duration": 0.45279999999999987,
+   "midi": 77,
+   "velocity": 0.822,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0285",
+   "time": 30.0775,
+   "duration": 0.30180000000000007,
+   "midi": 41,
+   "velocity": 0.409,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0286",
+   "time": 30.5535,
+   "duration": 0.4759999999999991,
+   "midi": 53,
+   "velocity": 0.311,
+   "stem": "vocals",
+   "chordId": "c_20"
+  },
+  {
+   "id": "n_0287",
+   "time": 30.5999,
+   "duration": 0.08129999999999882,
+   "midi": 69,
+   "velocity": 0.282,
+   "stem": "other",
+   "chordId": "c_20"
+  },
+  {
+   "id": "n_0288",
+   "time": 30.5999,
+   "duration": 0.4295999999999971,
+   "midi": 76,
+   "velocity": 0.673,
+   "stem": "other",
+   "chordId": "c_20"
+  },
+  {
+   "id": "n_0289",
+   "time": 30.6812,
+   "duration": 0.29029999999999845,
+   "midi": 41,
+   "velocity": 0.489,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0290",
+   "time": 30.7276,
+   "duration": 0.0929000000000002,
+   "midi": 41,
+   "velocity": 0.332,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0291",
+   "time": 31.192,
+   "duration": 2.3348999999999975,
+   "midi": 48,
+   "velocity": 0.691,
+   "stem": "bass",
+   "chordId": "c_21"
+  },
+  {
+   "id": "n_0292",
+   "time": 31.2037,
+   "duration": 4.694199999999999,
+   "midi": 55,
+   "velocity": 0.699,
+   "stem": "other",
+   "chordId": "c_21"
+  },
+  {
+   "id": "n_0293",
+   "time": 31.2037,
+   "duration": 0.08119999999999905,
+   "midi": 60,
+   "velocity": 0.304,
+   "stem": "bass",
+   "chordId": "c_21"
+  },
+  {
+   "id": "n_0294",
+   "time": 31.2037,
+   "duration": 2.311600000000002,
+   "midi": 64,
+   "velocity": 0.744,
+   "stem": "other",
+   "chordId": "c_21"
+  },
+  {
+   "id": "n_0295",
+   "time": 31.2037,
+   "duration": 1.0577000000000005,
+   "midi": 79,
+   "velocity": 0.674,
+   "stem": "other",
+   "chordId": "c_21"
+  },
+  {
+   "id": "n_0296",
+   "time": 31.2269,
+   "duration": 0.4643999999999977,
+   "midi": 48,
+   "velocity": 0.48,
+   "stem": "vocals",
+   "chordId": "c_21"
+  },
+  {
+   "id": "n_0297",
+   "time": 31.3662,
+   "duration": 0.41799999999999926,
+   "midi": 60,
+   "velocity": 0.414,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0298",
+   "time": 31.6448,
+   "duration": 0.06970000000000098,
+   "midi": 76,
+   "velocity": 0.368,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0299",
+   "time": 31.7971,
+   "duration": 0.06960000000000122,
+   "midi": 60,
+   "velocity": 0.299,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0300",
+   "time": 31.8667,
+   "duration": 0.3830999999999989,
+   "midi": 48,
+   "velocity": 0.492,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0301",
+   "time": 31.948,
+   "duration": 0.11610000000000298,
+   "midi": 36,
+   "velocity": 0.35,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0302",
+   "time": 31.9712,
+   "duration": 0.8011000000000017,
+   "midi": 60,
+   "velocity": 0.429,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0303",
+   "time": 32.215,
+   "duration": 0.8010999999999981,
+   "midi": 76,
+   "velocity": 0.682,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0304",
+   "time": 32.3079,
+   "duration": 0.16250000000000142,
+   "midi": 55,
+   "velocity": 0.42,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0305",
+   "time": 32.424,
+   "duration": 0.30180000000000007,
+   "midi": 48,
+   "velocity": 0.356,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0306",
+   "time": 32.424,
+   "duration": 0.08129999999999882,
+   "midi": 64,
+   "velocity": 0.368,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0307",
+   "time": 32.4472,
+   "duration": 0.4643999999999977,
+   "midi": 48,
+   "velocity": 0.458,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0308",
+   "time": 32.958,
+   "duration": 0.15100000000000335,
+   "midi": 55,
+   "velocity": 0.388,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0309",
+   "time": 33.0045,
+   "duration": 0.0929000000000002,
+   "midi": 60,
+   "velocity": 0.325,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0310",
+   "time": 33.0045,
+   "duration": 0.42960000000000065,
+   "midi": 72,
+   "velocity": 0.698,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0311",
+   "time": 33.0625,
+   "duration": 0.32509999999999906,
+   "midi": 48,
+   "velocity": 0.464,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0312",
+   "time": 33.1438,
+   "duration": 0.267000000000003,
+   "midi": 60,
+   "velocity": 0.573,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0313",
+   "time": 33.585,
+   "duration": 0.4656999999999982,
+   "midi": 79,
+   "velocity": 0.822,
+   "stem": "other",
+   "chordId": "c_22"
+  },
+  {
+   "id": "n_0314",
+   "time": 33.5966,
+   "duration": 2.3245999999999967,
+   "midi": 43,
+   "velocity": 0.733,
+   "stem": "bass",
+   "chordId": "c_22"
+  },
+  {
+   "id": "n_0315",
+   "time": 33.6082,
+   "duration": 0.0929000000000002,
+   "midi": 55,
+   "velocity": 0.29,
+   "stem": "bass",
+   "chordId": "c_22"
+  },
+  {
+   "id": "n_0316",
+   "time": 33.6082,
+   "duration": 2.2897000000000034,
+   "midi": 59,
+   "velocity": 0.691,
+   "stem": "other",
+   "chordId": "c_22"
+  },
+  {
+   "id": "n_0317",
+   "time": 33.6082,
+   "duration": 2.2897000000000034,
+   "midi": 62,
+   "velocity": 0.634,
+   "stem": "other",
+   "chordId": "c_22"
+  },
+  {
+   "id": "n_0318",
+   "time": 33.6082,
+   "duration": 0.5353000000000065,
+   "midi": 67,
+   "velocity": 0.403,
+   "stem": "other",
+   "chordId": "c_22"
+  },
+  {
+   "id": "n_0319",
+   "time": 33.6895,
+   "duration": 0.3843999999999994,
+   "midi": 43,
+   "velocity": 0.408,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0320",
+   "time": 34.19,
+   "duration": 0.0929000000000002,
+   "midi": 62,
+   "velocity": 0.366,
+   "stem": "vocals",
+   "chordId": "c_23"
+  },
+  {
+   "id": "n_0321",
+   "time": 34.19,
+   "duration": 0.4644000000000048,
+   "midi": 81,
+   "velocity": 0.7,
+   "stem": "other",
+   "chordId": "c_23"
+  },
+  {
+   "id": "n_0322",
+   "time": 34.2016,
+   "duration": 0.06969999999999743,
+   "midi": 55,
+   "velocity": 0.335,
+   "stem": "bass",
+   "chordId": "c_23"
+  },
+  {
+   "id": "n_0323",
+   "time": 34.2364,
+   "duration": 0.3831999999999951,
+   "midi": 43,
+   "velocity": 0.435,
+   "stem": "other",
+   "chordId": "c_23"
+  },
+  {
+   "id": "n_0324",
+   "time": 34.248,
+   "duration": 0.34830000000000183,
+   "midi": 43,
+   "velocity": 0.413,
+   "stem": "vocals",
+   "chordId": "c_23"
+  },
+  {
+   "id": "n_0325",
+   "time": 34.3757,
+   "duration": 0.12780000000000058,
+   "midi": 81,
+   "velocity": 0.458,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0326",
+   "time": 34.4454,
+   "duration": 0.267000000000003,
+   "midi": 62,
+   "velocity": 0.407,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0327",
+   "time": 34.5151,
+   "duration": 0.11610000000000298,
+   "midi": 55,
+   "velocity": 0.383,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0328",
+   "time": 34.5383,
+   "duration": 0.08129999999999882,
+   "midi": 74,
+   "velocity": 0.348,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0329",
+   "time": 34.6428,
+   "duration": 0.6734000000000009,
+   "midi": 67,
+   "velocity": 0.416,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0330",
+   "time": 34.7705,
+   "duration": 0.05799999999999983,
+   "midi": 58,
+   "velocity": 0.313,
+   "stem": "vocals",
+   "chordId": "c_24"
+  },
+  {
+   "id": "n_0331",
+   "time": 34.7937,
+   "duration": 0.41799999999999926,
+   "midi": 71,
+   "velocity": 0.324,
+   "stem": "other",
+   "chordId": "c_24"
+  },
+  {
+   "id": "n_0332",
+   "time": 34.7937,
+   "duration": 0.42960000000000065,
+   "midi": 74,
+   "velocity": 0.366,
+   "stem": "other",
+   "chordId": "c_24"
+  },
+  {
+   "id": "n_0333",
+   "time": 34.7937,
+   "duration": 0.4759999999999991,
+   "midi": 83,
+   "velocity": 0.792,
+   "stem": "other",
+   "chordId": "c_24"
+  },
+  {
+   "id": "n_0334",
+   "time": 34.7937,
+   "duration": 0.4063999999999979,
+   "midi": 83,
+   "velocity": 0.664,
+   "stem": "vocals",
+   "chordId": "c_24"
+  },
+  {
+   "id": "n_0335",
+   "time": 34.8053,
+   "duration": 0.42960000000000065,
+   "midi": 55,
+   "velocity": 0.584,
+   "stem": "vocals",
+   "chordId": "c_24"
+  },
+  {
+   "id": "n_0336",
+   "time": 34.8285,
+   "duration": 0.05810000000000315,
+   "midi": 55,
+   "velocity": 0.331,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0337",
+   "time": 34.8401,
+   "duration": 0.41799999999999926,
+   "midi": 43,
+   "velocity": 0.402,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0338",
+   "time": 34.8866,
+   "duration": 0.0929000000000002,
+   "midi": 71,
+   "velocity": 0.363,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0339",
+   "time": 34.8982,
+   "duration": 0.3482999999999947,
+   "midi": 43,
+   "velocity": 0.459,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0340",
+   "time": 35.3974,
+   "duration": 0.44250000000000256,
+   "midi": 67,
+   "velocity": 0.418,
+   "stem": "other",
+   "chordId": "c_25"
+  },
+  {
+   "id": "n_0341",
+   "time": 35.3974,
+   "duration": 0.44250000000000256,
+   "midi": 79,
+   "velocity": 0.827,
+   "stem": "other",
+   "chordId": "c_25"
+  },
+  {
+   "id": "n_0342",
+   "time": 35.409,
+   "duration": 0.12770000000000437,
+   "midi": 62,
+   "velocity": 0.423,
+   "stem": "vocals",
+   "chordId": "c_25"
+  },
+  {
+   "id": "n_0343",
+   "time": 35.4206,
+   "duration": 0.4889999999999972,
+   "midi": 43,
+   "velocity": 0.687,
+   "stem": "vocals",
+   "chordId": "c_25"
+  },
+  {
+   "id": "n_0344",
+   "time": 35.4206,
+   "duration": 0.33670000000000044,
+   "midi": 55,
+   "velocity": 0.341,
+   "stem": "vocals",
+   "chordId": "c_25"
+  },
+  {
+   "id": "n_0345",
+   "time": 35.4439,
+   "duration": 0.24380000000000024,
+   "midi": 43,
+   "velocity": 0.339,
+   "stem": "other",
+   "chordId": "c_25"
+  },
+  {
+   "id": "n_0346",
+   "time": 35.4439,
+   "duration": 0.33789999999999765,
+   "midi": 59,
+   "velocity": 0.334,
+   "stem": "vocals",
+   "chordId": "c_25"
+  },
+  {
+   "id": "n_0347",
+   "time": 35.9328,
+   "duration": 0.15090000000000003,
+   "midi": 76,
+   "velocity": 0.439,
+   "stem": "vocals",
+   "chordId": "c_26"
+  },
+  {
+   "id": "n_0348",
+   "time": 35.9908,
+   "duration": 2.3348999999999975,
+   "midi": 45,
+   "velocity": 0.716,
+   "stem": "bass",
+   "chordId": "c_26"
+  },
+  {
+   "id": "n_0349",
+   "time": 35.9908,
+   "duration": 0.4876000000000005,
+   "midi": 45,
+   "velocity": 0.497,
+   "stem": "vocals",
+   "chordId": "c_26"
+  },
+  {
+   "id": "n_0350",
+   "time": 35.9908,
+   "duration": 0.12769999999999726,
+   "midi": 57,
+   "velocity": 0.305,
+   "stem": "bass",
+   "chordId": "c_26"
+  },
+  {
+   "id": "n_0351",
+   "time": 35.9908,
+   "duration": 4.716200000000001,
+   "midi": 57,
+   "velocity": 0.766,
+   "stem": "other",
+   "chordId": "c_26"
+  },
+  {
+   "id": "n_0352",
+   "time": 35.9908,
+   "duration": 7.132399999999997,
+   "midi": 60,
+   "velocity": 0.747,
+   "stem": "other",
+   "chordId": "c_26"
+  },
+  {
+   "id": "n_0353",
+   "time": 35.9908,
+   "duration": 2.311700000000002,
+   "midi": 64,
+   "velocity": 0.654,
+   "stem": "other",
+   "chordId": "c_26"
+  },
+  {
+   "id": "n_0354",
+   "time": 35.9908,
+   "duration": 0.4643999999999977,
+   "midi": 76,
+   "velocity": 0.674,
+   "stem": "other",
+   "chordId": "c_26"
+  },
+  {
+   "id": "n_0355",
+   "time": 36.0489,
+   "duration": 2.149099999999997,
+   "midi": 45,
+   "velocity": 0.393,
+   "stem": "other",
+   "chordId": "c_27"
+  },
+  {
+   "id": "n_0356",
+   "time": 36.0489,
+   "duration": 2.2419999999999973,
+   "midi": 60,
+   "velocity": 0.555,
+   "stem": "vocals",
+   "chordId": "c_27"
+  },
+  {
+   "id": "n_0357",
+   "time": 36.0837,
+   "duration": 0.13929999999999865,
+   "midi": 83,
+   "velocity": 0.324,
+   "stem": "other",
+   "chordId": "c_27"
+  },
+  {
+   "id": "n_0358",
+   "time": 36.2695,
+   "duration": 0.2901999999999987,
+   "midi": 57,
+   "velocity": 0.513,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0359",
+   "time": 36.3972,
+   "duration": 0.7894000000000005,
+   "midi": 69,
+   "velocity": 0.467,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0360",
+   "time": 36.5481,
+   "duration": 0.4876000000000005,
+   "midi": 45,
+   "velocity": 0.441,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0361",
+   "time": 36.6061,
+   "duration": 0.10450000000000159,
+   "midi": 57,
+   "velocity": 0.355,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0362",
+   "time": 36.6061,
+   "duration": 0.42960000000000065,
+   "midi": 74,
+   "velocity": 0.712,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0363",
+   "time": 36.8964,
+   "duration": 0.05799999999999983,
+   "midi": 81,
+   "velocity": 0.335,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0364",
+   "time": 36.9428,
+   "duration": 0.41799999999999926,
+   "midi": 57,
+   "velocity": 0.414,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0365",
+   "time": 37.1983,
+   "duration": 0.10439999999999827,
+   "midi": 57,
+   "velocity": 0.306,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0366",
+   "time": 37.1983,
+   "duration": 0.4643999999999977,
+   "midi": 72,
+   "velocity": 0.623,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0367",
+   "time": 37.2331,
+   "duration": 0.3947000000000003,
+   "midi": 45,
+   "velocity": 0.411,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0368",
+   "time": 37.4885,
+   "duration": 0.7907999999999973,
+   "midi": 57,
+   "velocity": 0.466,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0369",
+   "time": 37.5117,
+   "duration": 0.06970000000000454,
+   "midi": 79,
+   "velocity": 0.311,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0370",
+   "time": 37.6046,
+   "duration": 0.15220000000000056,
+   "midi": 69,
+   "velocity": 0.461,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0371",
+   "time": 37.7917,
+   "duration": 0.4527000000000001,
+   "midi": 76,
+   "velocity": 0.659,
+   "stem": "other",
+   "chordId": "c_28"
+  },
+  {
+   "id": "n_0372",
+   "time": 37.8033,
+   "duration": 0.11610000000000298,
+   "midi": 57,
+   "velocity": 0.365,
+   "stem": "bass",
+   "chordId": "c_28"
+  },
+  {
+   "id": "n_0373",
+   "time": 37.8033,
+   "duration": 0.16250000000000142,
+   "midi": 64,
+   "velocity": 0.318,
+   "stem": "vocals",
+   "chordId": "c_28"
+  },
+  {
+   "id": "n_0374",
+   "time": 37.8497,
+   "duration": 0.41799999999999926,
+   "midi": 45,
+   "velocity": 0.509,
+   "stem": "vocals",
+   "chordId": "c_28"
+  },
+  {
+   "id": "n_0375",
+   "time": 37.8497,
+   "duration": 0.34830000000000183,
+   "midi": 83,
+   "velocity": 0.329,
+   "stem": "other",
+   "chordId": "c_28"
+  },
+  {
+   "id": "n_0376",
+   "time": 38.3838,
+   "duration": 2.3348000000000013,
+   "midi": 41,
+   "velocity": 0.744,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0377",
+   "time": 38.3954,
+   "duration": 2.3115999999999985,
+   "midi": 53,
+   "velocity": 0.716,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0378",
+   "time": 38.3954,
+   "duration": 0.4410999999999987,
+   "midi": 69,
+   "velocity": 0.337,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0379",
+   "time": 38.3954,
+   "duration": 0.4643999999999977,
+   "midi": 81,
+   "velocity": 0.777,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0380",
+   "time": 38.407,
+   "duration": 0.5224000000000046,
+   "midi": 65,
+   "velocity": 0.421,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0381",
+   "time": 38.4302,
+   "duration": 0.2554000000000016,
+   "midi": 41,
+   "velocity": 0.383,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0382",
+   "time": 38.4534,
+   "duration": 0.15090000000000003,
+   "midi": 53,
+   "velocity": 0.467,
+   "stem": "vocals",
+   "chordId": "c_29"
+  },
+  {
+   "id": "n_0383",
+   "time": 38.4534,
+   "duration": 1.0681000000000012,
+   "midi": 57,
+   "velocity": 0.457,
+   "stem": "vocals",
+   "chordId": "c_29"
+  },
+  {
+   "id": "n_0384",
+   "time": 38.465,
+   "duration": 0.12769999999999726,
+   "midi": 81,
+   "velocity": 0.361,
+   "stem": "vocals",
+   "chordId": "c_29"
+  },
+  {
+   "id": "n_0385",
+   "time": 38.5115,
+   "duration": 1.1144999999999996,
+   "midi": 60,
+   "velocity": 0.487,
+   "stem": "vocals",
+   "chordId": "c_29"
+  },
+  {
+   "id": "n_0386",
+   "time": 38.5463,
+   "duration": 0.31349999999999767,
+   "midi": 41,
+   "velocity": 0.35,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0387",
+   "time": 38.6624,
+   "duration": 0.0929000000000002,
+   "midi": 72,
+   "velocity": 0.338,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0388",
+   "time": 38.9991,
+   "duration": 0.4644000000000048,
+   "midi": 79,
+   "velocity": 0.707,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0389",
+   "time": 39.0107,
+   "duration": 0.34830000000000183,
+   "midi": 41,
+   "velocity": 0.545,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0390",
+   "time": 39.0223,
+   "duration": 0.31349999999999767,
+   "midi": 41,
+   "velocity": 0.421,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0391",
+   "time": 39.4403,
+   "duration": 0.6281999999999996,
+   "midi": 65,
+   "velocity": 0.378,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0392",
+   "time": 39.6028,
+   "duration": 0.44249999999999545,
+   "midi": 77,
+   "velocity": 0.813,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0393",
+   "time": 39.6376,
+   "duration": 0.26839999999999975,
+   "midi": 41,
+   "velocity": 0.524,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0394",
+   "time": 39.6609,
+   "duration": 0.05799999999999983,
+   "midi": 53,
+   "velocity": 0.343,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0395",
+   "time": 39.6609,
+   "duration": 1.0112999999999985,
+   "midi": 57,
+   "velocity": 0.489,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0396",
+   "time": 39.6957,
+   "duration": 0.3146999999999949,
+   "midi": 41,
+   "velocity": 0.403,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0397",
+   "time": 39.7434,
+   "duration": 0.16259999999999764,
+   "midi": 60,
+   "velocity": 0.342,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0398",
+   "time": 40.0569,
+   "duration": 0.4528000000000034,
+   "midi": 60,
+   "velocity": 0.409,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0399",
+   "time": 40.1962,
+   "duration": 0.42960000000000065,
+   "midi": 76,
+   "velocity": 0.679,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0400",
+   "time": 40.2891,
+   "duration": 0.23219999999999885,
+   "midi": 41,
+   "velocity": 0.344,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0401",
+   "time": 40.382,
+   "duration": 0.09280000000000399,
+   "midi": 41,
+   "velocity": 0.366,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0402",
+   "time": 40.7883,
+   "duration": 2.3348999999999975,
+   "midi": 48,
+   "velocity": 0.684,
+   "stem": "bass",
+   "chordId": "c_30"
+  },
+  {
+   "id": "n_0403",
+   "time": 40.7883,
+   "duration": 2.2188000000000017,
+   "midi": 48,
+   "velocity": 0.461,
+   "stem": "vocals",
+   "chordId": "c_30"
+  },
+  {
+   "id": "n_0404",
+   "time": 40.7883,
+   "duration": 1.0694000000000017,
+   "midi": 79,
+   "velocity": 0.681,
+   "stem": "other",
+   "chordId": "c_30"
+  },
+  {
+   "id": "n_0405",
+   "time": 40.7999,
+   "duration": 4.704599999999999,
+   "midi": 55,
+   "velocity": 0.71,
+   "stem": "other",
+   "chordId": "c_30"
+  },
+  {
+   "id": "n_0406",
+   "time": 40.7999,
+   "duration": 2.311700000000002,
+   "midi": 64,
+   "velocity": 0.745,
+   "stem": "other",
+   "chordId": "c_30"
+  },
+  {
+   "id": "n_0407",
+   "time": 40.9044,
+   "duration": 2.149099999999997,
+   "midi": 60,
+   "velocity": 0.506,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0408",
+   "time": 41.2411,
+   "duration": 0.0929000000000002,
+   "midi": 76,
+   "velocity": 0.388,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0409",
+   "time": 41.4036,
+   "duration": 0.12770000000000437,
+   "midi": 60,
+   "velocity": 0.358,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0410",
+   "time": 41.5778,
+   "duration": 0.06959999999999411,
+   "midi": 36,
+   "velocity": 0.329,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0411",
+   "time": 41.8229,
+   "duration": 0.7895000000000039,
+   "midi": 76,
+   "velocity": 0.672,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0412",
+   "time": 41.9158,
+   "duration": 0.12770000000000437,
+   "midi": 55,
+   "velocity": 0.326,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0413",
+   "time": 41.997,
+   "duration": 0.08129999999999882,
+   "midi": 60,
+   "velocity": 0.357,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0414",
+   "time": 42.0319,
+   "duration": 0.09279999999999688,
+   "midi": 48,
+   "velocity": 0.342,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0415",
+   "time": 42.2641,
+   "duration": 0.09280000000000399,
+   "midi": 36,
+   "velocity": 0.339,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0416",
+   "time": 42.5891,
+   "duration": 0.4527999999999963,
+   "midi": 72,
+   "velocity": 0.696,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0417",
+   "time": 42.6007,
+   "duration": 0.12779999999999347,
+   "midi": 60,
+   "velocity": 0.402,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0418",
+   "time": 42.9026,
+   "duration": 0.06969999999999743,
+   "midi": 79,
+   "velocity": 0.31,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0419",
+   "time": 43.1929,
+   "duration": 2.3232,
+   "midi": 43,
+   "velocity": 0.751,
+   "stem": "bass",
+   "chordId": "c_31"
+  },
+  {
+   "id": "n_0420",
+   "time": 43.2045,
+   "duration": 0.2669999999999959,
+   "midi": 55,
+   "velocity": 0.369,
+   "stem": "bass",
+   "chordId": "c_31"
+  },
+  {
+   "id": "n_0421",
+   "time": 43.2045,
+   "duration": 2.299999999999997,
+   "midi": 59,
+   "velocity": 0.716,
+   "stem": "other",
+   "chordId": "c_31"
+  },
+  {
+   "id": "n_0422",
+   "time": 43.2045,
+   "duration": 2.299999999999997,
+   "midi": 62,
+   "velocity": 0.662,
+   "stem": "other",
+   "chordId": "c_31"
+  },
+  {
+   "id": "n_0423",
+   "time": 43.2045,
+   "duration": 0.5004999999999953,
+   "midi": 67,
+   "velocity": 0.395,
+   "stem": "other",
+   "chordId": "c_31"
+  },
+  {
+   "id": "n_0424",
+   "time": 43.2045,
+   "duration": 0.4527999999999963,
+   "midi": 79,
+   "velocity": 0.878,
+   "stem": "other",
+   "chordId": "c_31"
+  },
+  {
+   "id": "n_0425",
+   "time": 43.2625,
+   "duration": 0.11609999999999587,
+   "midi": 43,
+   "velocity": 0.422,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0426",
+   "time": 43.309,
+   "duration": 0.09280000000000399,
+   "midi": 43,
+   "velocity": 0.31,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0427",
+   "time": 43.7979,
+   "duration": 0.12770000000000437,
+   "midi": 55,
+   "velocity": 0.402,
+   "stem": "bass",
+   "chordId": "c_32"
+  },
+  {
+   "id": "n_0428",
+   "time": 43.7979,
+   "duration": 0.4527000000000001,
+   "midi": 81,
+   "velocity": 0.694,
+   "stem": "other",
+   "chordId": "c_32"
+  },
+  {
+   "id": "n_0429",
+   "time": 43.8095,
+   "duration": 0.267000000000003,
+   "midi": 43,
+   "velocity": 0.436,
+   "stem": "vocals",
+   "chordId": "c_32"
+  },
+  {
+   "id": "n_0430",
+   "time": 43.8327,
+   "duration": 0.0929000000000002,
+   "midi": 62,
+   "velocity": 0.355,
+   "stem": "vocals",
+   "chordId": "c_32"
+  },
+  {
+   "id": "n_0431",
+   "time": 43.9836,
+   "duration": 0.08129999999999882,
+   "midi": 81,
+   "velocity": 0.402,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0432",
+   "time": 44.2274,
+   "duration": 1.2306999999999988,
+   "midi": 67,
+   "velocity": 0.418,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0433",
+   "time": 44.3784,
+   "duration": 0.41790000000000305,
+   "midi": 55,
+   "velocity": 0.482,
+   "stem": "vocals",
+   "chordId": "c_33"
+  },
+  {
+   "id": "n_0434",
+   "time": 44.39,
+   "duration": 0.4527999999999963,
+   "midi": 74,
+   "velocity": 0.378,
+   "stem": "other",
+   "chordId": "c_33"
+  },
+  {
+   "id": "n_0435",
+   "time": 44.39,
+   "duration": 0.40630000000000166,
+   "midi": 83,
+   "velocity": 0.539,
+   "stem": "vocals",
+   "chordId": "c_33"
+  },
+  {
+   "id": "n_0436",
+   "time": 44.4016,
+   "duration": 0.42949999999999733,
+   "midi": 71,
+   "velocity": 0.378,
+   "stem": "other",
+   "chordId": "c_33"
+  },
+  {
+   "id": "n_0437",
+   "time": 44.4016,
+   "duration": 0.4643999999999977,
+   "midi": 83,
+   "velocity": 0.8,
+   "stem": "other",
+   "chordId": "c_33"
+  },
+  {
+   "id": "n_0438",
+   "time": 44.5061,
+   "duration": 0.19729999999999848,
+   "midi": 43,
+   "velocity": 0.413,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0439",
+   "time": 44.8079,
+   "duration": 0.08130000000000592,
+   "midi": 59,
+   "velocity": 0.389,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0440",
+   "time": 44.924,
+   "duration": 0.290300000000002,
+   "midi": 43,
+   "velocity": 0.339,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0441",
+   "time": 44.9821,
+   "duration": 0.4643999999999977,
+   "midi": 43,
+   "velocity": 0.498,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0442",
+   "time": 44.9937,
+   "duration": 0.4528000000000034,
+   "midi": 79,
+   "velocity": 0.824,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0443",
+   "time": 45.0517,
+   "duration": 0.05810000000000315,
+   "midi": 55,
+   "velocity": 0.348,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0444",
+   "time": 45.5974,
+   "duration": 0.44250000000000256,
+   "midi": 76,
+   "velocity": 0.673,
+   "stem": "other",
+   "chordId": "c_34"
+  },
+  {
+   "id": "n_0445",
+   "time": 45.609,
+   "duration": 4.717500000000001,
+   "midi": 45,
+   "velocity": 0.751,
+   "stem": "bass",
+   "chordId": "c_34"
+  },
+  {
+   "id": "n_0446",
+   "time": 45.609,
+   "duration": 1.0578000000000003,
+   "midi": 45,
+   "velocity": 0.588,
+   "stem": "vocals",
+   "chordId": "c_34"
+  },
+  {
+   "id": "n_0447",
+   "time": 45.609,
+   "duration": 0.1173999999999964,
+   "midi": 57,
+   "velocity": 0.354,
+   "stem": "bass",
+   "chordId": "c_34"
+  },
+  {
+   "id": "n_0448",
+   "time": 45.609,
+   "duration": 7.110499999999995,
+   "midi": 57,
+   "velocity": 0.763,
+   "stem": "other",
+   "chordId": "c_34"
+  },
+  {
+   "id": "n_0449",
+   "time": 45.609,
+   "duration": 9.5034,
+   "midi": 60,
+   "velocity": 0.773,
+   "stem": "other",
+   "chordId": "c_34"
+  },
+  {
+   "id": "n_0450",
+   "time": 45.609,
+   "duration": 4.694299999999998,
+   "midi": 64,
+   "velocity": 0.702,
+   "stem": "other",
+   "chordId": "c_34"
+  },
+  {
+   "id": "n_0451",
+   "time": 45.6438,
+   "duration": 0.8605000000000018,
+   "midi": 45,
+   "velocity": 0.379,
+   "stem": "other",
+   "chordId": "c_34"
+  },
+  {
+   "id": "n_0452",
+   "time": 45.6555,
+   "duration": 0.11729999999999308,
+   "midi": 57,
+   "velocity": 0.346,
+   "stem": "vocals",
+   "chordId": "c_34"
+  },
+  {
+   "id": "n_0453",
+   "time": 45.6671,
+   "duration": 2.185200000000002,
+   "midi": 60,
+   "velocity": 0.55,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0454",
+   "time": 45.9818,
+   "duration": 0.0929000000000002,
+   "midi": 57,
+   "velocity": 0.394,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0455",
+   "time": 45.9934,
+   "duration": 0.7894999999999968,
+   "midi": 69,
+   "velocity": 0.424,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0456",
+   "time": 46.2024,
+   "duration": 0.10450000000000159,
+   "midi": 57,
+   "velocity": 0.43,
+   "stem": "bass",
+   "chordId": "c_35"
+  },
+  {
+   "id": "n_0457",
+   "time": 46.2024,
+   "duration": 0.42960000000000065,
+   "midi": 74,
+   "velocity": 0.71,
+   "stem": "other",
+   "chordId": "c_35"
+  },
+  {
+   "id": "n_0458",
+   "time": 46.2372,
+   "duration": 0.11609999999999587,
+   "midi": 64,
+   "velocity": 0.404,
+   "stem": "vocals",
+   "chordId": "c_35"
+  },
+  {
+   "id": "n_0459",
+   "time": 46.3533,
+   "duration": 0.9984999999999999,
+   "midi": 57,
+   "velocity": 0.436,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0460",
+   "time": 46.481,
+   "duration": 0.06969999999999743,
+   "midi": 81,
+   "velocity": 0.332,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0461",
+   "time": 46.7945,
+   "duration": 0.4528000000000034,
+   "midi": 72,
+   "velocity": 0.636,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0462",
+   "time": 46.8061,
+   "duration": 0.20899999999999608,
+   "midi": 57,
+   "velocity": 0.334,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0463",
+   "time": 46.8642,
+   "duration": 0.11610000000000298,
+   "midi": 64,
+   "velocity": 0.348,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0464",
+   "time": 46.8758,
+   "duration": 0.34830000000000183,
+   "midi": 45,
+   "velocity": 0.406,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0465",
+   "time": 47.1893,
+   "duration": 0.3830999999999989,
+   "midi": 64,
+   "velocity": 0.455,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0466",
+   "time": 47.2125,
+   "duration": 0.12770000000000437,
+   "midi": 69,
+   "velocity": 0.442,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0467",
+   "time": 47.3982,
+   "duration": 0.372799999999998,
+   "midi": 45,
+   "velocity": 0.45,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0468",
+   "time": 47.3982,
+   "duration": 0.3263999999999996,
+   "midi": 57,
+   "velocity": 0.374,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0469",
+   "time": 47.3982,
+   "duration": 0.45409999999999684,
+   "midi": 76,
+   "velocity": 0.645,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0470",
+   "time": 47.4447,
+   "duration": 0.4076000000000022,
+   "midi": 45,
+   "velocity": 0.435,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0471",
+   "time": 47.5143,
+   "duration": 0.3032000000000039,
+   "midi": 57,
+   "velocity": 0.495,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0472",
+   "time": 47.5608,
+   "duration": 0.24510000000000076,
+   "midi": 83,
+   "velocity": 0.365,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0473",
+   "time": 48.0032,
+   "duration": 2.2072000000000003,
+   "midi": 45,
+   "velocity": 0.435,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0474",
+   "time": 48.0032,
+   "duration": 0.4759999999999991,
+   "midi": 45,
+   "velocity": 0.508,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0475",
+   "time": 48.0032,
+   "duration": 0.12769999999999726,
+   "midi": 57,
+   "velocity": 0.365,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0476",
+   "time": 48.0032,
+   "duration": 2.2188000000000017,
+   "midi": 69,
+   "velocity": 0.441,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0477",
+   "time": 48.0265,
+   "duration": 2.2420000000000044,
+   "midi": 60,
+   "velocity": 0.606,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0478",
+   "time": 48.3167,
+   "duration": 0.32510000000000616,
+   "midi": 57,
+   "velocity": 0.409,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0479",
+   "time": 48.6418,
+   "duration": 0.31349999999999767,
+   "midi": 45,
+   "velocity": 0.405,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0480",
+   "time": 48.8392,
+   "duration": 1.3828000000000031,
+   "midi": 57,
+   "velocity": 0.717,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0481",
+   "time": 49.1991,
+   "duration": 0.3947000000000003,
+   "midi": 45,
+   "velocity": 0.435,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0482",
+   "time": 49.1991,
+   "duration": 0.06960000000000122,
+   "midi": 57,
+   "velocity": 0.32,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0483",
+   "time": 49.7925,
+   "duration": 0.09280000000000399,
+   "midi": 57,
+   "velocity": 0.395,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0484",
+   "time": 49.8389,
+   "duration": 0.3598999999999961,
+   "midi": 45,
+   "velocity": 0.519,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0485",
+   "time": 50.3962,
+   "duration": 2.3348999999999975,
+   "midi": 41,
+   "velocity": 0.78,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0486",
+   "time": 50.3962,
+   "duration": 0.12769999999999726,
+   "midi": 53,
+   "velocity": 0.383,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0487",
+   "time": 50.3962,
+   "duration": 2.323299999999996,
+   "midi": 53,
+   "velocity": 0.712,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0488",
+   "time": 50.3962,
+   "duration": 0.0812000000000026,
+   "midi": 65,
+   "velocity": 0.344,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0489",
+   "time": 50.431,
+   "duration": 2.2768000000000015,
+   "midi": 57,
+   "velocity": 0.687,
+   "stem": "vocals",
+   "chordId": "c_36"
+  },
+  {
+   "id": "n_0490",
+   "time": 50.4658,
+   "duration": 0.32509999999999906,
+   "midi": 41,
+   "velocity": 0.404,
+   "stem": "other",
+   "chordId": "c_36"
+  },
+  {
+   "id": "n_0491",
+   "time": 50.4774,
+   "duration": 2.195599999999999,
+   "midi": 60,
+   "velocity": 0.555,
+   "stem": "vocals",
+   "chordId": "c_36"
+  },
+  {
+   "id": "n_0492",
+   "time": 50.5355,
+   "duration": 1.4292999999999978,
+   "midi": 41,
+   "velocity": 0.464,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0493",
+   "time": 50.7329,
+   "duration": 0.8823000000000008,
+   "midi": 65,
+   "velocity": 0.364,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0494",
+   "time": 50.8257,
+   "duration": 0.10450000000000159,
+   "midi": 53,
+   "velocity": 0.371,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0495",
+   "time": 50.849,
+   "duration": 0.9533000000000058,
+   "midi": 41,
+   "velocity": 0.359,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0496",
+   "time": 51.0463,
+   "duration": 0.16259999999999764,
+   "midi": 48,
+   "velocity": 0.353,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0497",
+   "time": 51.3482,
+   "duration": 0.05799999999999983,
+   "midi": 69,
+   "velocity": 0.327,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0498",
+   "time": 51.4527,
+   "duration": 0.08129999999999882,
+   "midi": 53,
+   "velocity": 0.435,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0499",
+   "time": 51.6152,
+   "duration": 0.09420000000000073,
+   "midi": 53,
+   "velocity": 0.327,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0500",
+   "time": 52.0461,
+   "duration": 0.16249999999999432,
+   "midi": 65,
+   "velocity": 0.347,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0501",
+   "time": 52.2086,
+   "duration": 0.16260000000000474,
+   "midi": 53,
+   "velocity": 0.416,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0502",
+   "time": 52.2202,
+   "duration": 0.06970000000000454,
+   "midi": 53,
+   "velocity": 0.34,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0503",
+   "time": 52.2899,
+   "duration": 0.2553999999999945,
+   "midi": 41,
+   "velocity": 0.337,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0504",
+   "time": 52.4292,
+   "duration": 0.12769999999999726,
+   "midi": 65,
+   "velocity": 0.375,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0505",
+   "time": 52.8007,
+   "duration": 2.3348999999999975,
+   "midi": 48,
+   "velocity": 0.731,
+   "stem": "bass",
+   "chordId": "c_37"
+  },
+  {
+   "id": "n_0506",
+   "time": 52.8007,
+   "duration": 4.402799999999999,
+   "midi": 55,
+   "velocity": 0.723,
+   "stem": "other",
+   "chordId": "c_37"
+  },
+  {
+   "id": "n_0507",
+   "time": 52.8007,
+   "duration": 2.311700000000002,
+   "midi": 64,
+   "velocity": 0.721,
+   "stem": "other",
+   "chordId": "c_37"
+  },
+  {
+   "id": "n_0508",
+   "time": 52.8007,
+   "duration": 2.195599999999999,
+   "midi": 76,
+   "velocity": 0.397,
+   "stem": "other",
+   "chordId": "c_37"
+  },
+  {
+   "id": "n_0509",
+   "time": 52.8356,
+   "duration": 1.0461000000000027,
+   "midi": 48,
+   "velocity": 0.511,
+   "stem": "vocals",
+   "chordId": "c_37"
+  },
+  {
+   "id": "n_0510",
+   "time": 52.8472,
+   "duration": 2.1955000000000027,
+   "midi": 60,
+   "velocity": 0.563,
+   "stem": "vocals",
+   "chordId": "c_37"
+  },
+  {
+   "id": "n_0511",
+   "time": 53.4044,
+   "duration": 0.12780000000000058,
+   "midi": 55,
+   "velocity": 0.409,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0512",
+   "time": 53.5554,
+   "duration": 0.18700000000000472,
+   "midi": 36,
+   "velocity": 0.395,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0513",
+   "time": 53.9978,
+   "duration": 0.10450000000000159,
+   "midi": 60,
+   "velocity": 0.332,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0514",
+   "time": 54.0211,
+   "duration": 0.4527000000000001,
+   "midi": 48,
+   "velocity": 0.413,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0515",
+   "time": 54.1255,
+   "duration": 0.12780000000000058,
+   "midi": 36,
+   "velocity": 0.313,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0516",
+   "time": 54.5203,
+   "duration": 0.11610000000000298,
+   "midi": 55,
+   "velocity": 0.416,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0517",
+   "time": 54.6016,
+   "duration": 0.05799999999999983,
+   "midi": 60,
+   "velocity": 0.334,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0518",
+   "time": 54.6712,
+   "duration": 0.13929999999999865,
+   "midi": 36,
+   "velocity": 0.299,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0519",
+   "time": 54.8221,
+   "duration": 0.10450000000000159,
+   "midi": 48,
+   "velocity": 0.341,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0520",
+   "time": 55.2053,
+   "duration": 1.998199999999997,
+   "midi": 43,
+   "velocity": 0.809,
+   "stem": "bass",
+   "chordId": "c_38"
+  },
+  {
+   "id": "n_0521",
+   "time": 55.2053,
+   "duration": 1.998199999999997,
+   "midi": 59,
+   "velocity": 0.739,
+   "stem": "other",
+   "chordId": "c_38"
+  },
+  {
+   "id": "n_0522",
+   "time": 55.2053,
+   "duration": 1.998199999999997,
+   "midi": 62,
+   "velocity": 0.601,
+   "stem": "other",
+   "chordId": "c_38"
+  },
+  {
+   "id": "n_0523",
+   "time": 55.2633,
+   "duration": 0.3018999999999963,
+   "midi": 43,
+   "velocity": 0.359,
+   "stem": "other",
+   "chordId": "c_38"
+  },
+  {
+   "id": "n_0524",
+   "time": 55.3214,
+   "duration": 0.23220000000000596,
+   "midi": 55,
+   "velocity": 0.347,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0525",
+   "time": 55.6361,
+   "duration": 0.7663000000000011,
+   "midi": 67,
+   "velocity": 0.339,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0526",
+   "time": 55.7638,
+   "duration": 1.4396999999999949,
+   "midi": 55,
+   "velocity": 0.575,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0527",
+   "time": 55.8103,
+   "duration": 0.33670000000000044,
+   "midi": 43,
+   "velocity": 0.339,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0528",
+   "time": 56.2747,
+   "duration": 0.06959999999999411,
+   "midi": 62,
+   "velocity": 0.389,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0529",
+   "time": 56.3443,
+   "duration": 0.406400000000005,
+   "midi": 43,
+   "velocity": 0.407,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0530",
+   "time": 56.4024,
+   "duration": 0.08129999999999882,
+   "midi": 55,
+   "velocity": 0.353,
+   "stem": "bass",
+   "chordId": null
+  },
+  {
+   "id": "n_0531",
+   "time": 56.4256,
+   "duration": 0.22059999999999746,
+   "midi": 43,
+   "velocity": 0.479,
+   "stem": "vocals",
+   "chordId": null
+  },
+  {
+   "id": "n_0532",
+   "time": 56.832,
+   "duration": 0.3714999999999975,
+   "midi": 67,
+   "velocity": 0.315,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0533",
+   "time": 57.0061,
+   "duration": 0.17419999999999902,
+   "midi": 43,
+   "velocity": 0.38,
+   "stem": "other",
+   "chordId": null
+  },
+  {
+   "id": "n_0534",
+   "time": 57.0061,
+   "duration": 0.08129999999999882,
+   "midi": 55,
+   "velocity": 0.298,
+   "stem": "bass",
+   "chordId": null
+  }
+ ],
+ "chords": [
+  {
+   "id": "c_0",
+   "time": 0.0116,
+   "duration": 7.1092,
+   "label": "Am",
+   "noteIds": [
+    "n_0000",
+    "n_0001",
+    "n_0002",
+    "n_0003",
+    "n_0004",
+    "n_0005",
+    "n_0006",
+    "n_0007",
+    "n_0008"
+   ]
+  },
+  {
+   "id": "c_1",
+   "time": 4.7975,
+   "duration": 4.7162,
+   "label": "C",
+   "noteIds": [
+    "n_0035",
+    "n_0036",
+    "n_0037",
+    "n_0038",
+    "n_0039",
+    "n_0040"
+   ]
+  },
+  {
+   "id": "c_2",
+   "time": 7.1904,
+   "duration": 2.3349,
+   "label": "G",
+   "noteIds": [
+    "n_0050",
+    "n_0051",
+    "n_0052",
+    "n_0053",
+    "n_0054",
+    "n_0055"
+   ]
+  },
+  {
+   "id": "c_3",
+   "time": 9.595,
+   "duration": 7.122,
+   "label": "Am",
+   "noteIds": [
+    "n_0068",
+    "n_0069",
+    "n_0070",
+    "n_0071",
+    "n_0072",
+    "n_0073",
+    "n_0074",
+    "n_0075",
+    "n_0076",
+    "n_0077"
+   ]
+  },
+  {
+   "id": "c_4",
+   "time": 11.9892,
+   "duration": 2.3349,
+   "label": "N.C.",
+   "noteIds": [
+    "n_0094",
+    "n_0095",
+    "n_0096",
+    "n_0097"
+   ]
+  },
+  {
+   "id": "c_5",
+   "time": 12.5813,
+   "duration": 0.4528,
+   "label": "N.C.",
+   "noteIds": [
+    "n_0102",
+    "n_0103",
+    "n_0104"
+   ]
+  },
+  {
+   "id": "c_6",
+   "time": 14.3937,
+   "duration": 4.7163,
+   "label": "C",
+   "noteIds": [
+    "n_0115",
+    "n_0116",
+    "n_0117",
+    "n_0118",
+    "n_0119"
+   ]
+  },
+  {
+   "id": "c_7",
+   "time": 16.7983,
+   "duration": 2.3233,
+   "label": "G6",
+   "noteIds": [
+    "n_0139",
+    "n_0140",
+    "n_0141",
+    "n_0142",
+    "n_0143",
+    "n_0144"
+   ]
+  },
+  {
+   "id": "c_8",
+   "time": 18.5875,
+   "duration": 0.4992,
+   "label": "Gsus2",
+   "noteIds": [
+    "n_0158",
+    "n_0159",
+    "n_0160",
+    "n_0161",
+    "n_0162"
+   ]
+  },
+  {
+   "id": "c_9",
+   "time": 19.1912,
+   "duration": 7.1337,
+   "label": "Am",
+   "noteIds": [
+    "n_0164",
+    "n_0165",
+    "n_0166",
+    "n_0167",
+    "n_0168",
+    "n_0169",
+    "n_0170",
+    "n_0171",
+    "n_0172",
+    "n_0173"
+   ]
+  },
+  {
+   "id": "c_10",
+   "time": 20.3883,
+   "duration": 0.4528,
+   "label": "N.C.",
+   "noteIds": [
+    "n_0182",
+    "n_0183",
+    "n_0184"
+   ]
+  },
+  {
+   "id": "c_11",
+   "time": 21.5958,
+   "duration": 2.3129,
+   "label": "N.C.",
+   "noteIds": [
+    "n_0191",
+    "n_0192",
+    "n_0193",
+    "n_0194"
+   ]
+  },
+  {
+   "id": "c_12",
+   "time": 23.9784,
+   "duration": 4.7278,
+   "label": "C",
+   "noteIds": [
+    "n_0211",
+    "n_0212",
+    "n_0213",
+    "n_0214",
+    "n_0215",
+    "n_0216"
+   ]
+  },
+  {
+   "id": "c_13",
+   "time": 24.5937,
+   "duration": 0.4296,
+   "label": "Csus2",
+   "noteIds": [
+    "n_0220",
+    "n_0221",
+    "n_0222"
+   ]
+  },
+  {
+   "id": "c_14",
+   "time": 25.8012,
+   "duration": 0.454,
+   "label": "C",
+   "noteIds": [
+    "n_0231",
+    "n_0232",
+    "n_0233",
+    "n_0234"
+   ]
+  },
+  {
+   "id": "c_15",
+   "time": 26.3946,
+   "duration": 2.3116,
+   "label": "Em7",
+   "noteIds": [
+    "n_0237",
+    "n_0238",
+    "n_0239",
+    "n_0240",
+    "n_0241"
+   ]
+  },
+  {
+   "id": "c_16",
+   "time": 26.9983,
+   "duration": 0.4295,
+   "label": "Gsus4",
+   "noteIds": [
+    "n_0244",
+    "n_0245",
+    "n_0246",
+    "n_0247"
+   ]
+  },
+  {
+   "id": "c_17",
+   "time": 28.1838,
+   "duration": 0.4179,
+   "label": "Gsus2",
+   "noteIds": [
+    "n_0255",
+    "n_0256",
+    "n_0257"
+   ]
+  },
+  {
+   "id": "c_18",
+   "time": 28.7759,
+   "duration": 4.7394,
+   "label": "F",
+   "noteIds": [
+    "n_0259",
+    "n_0260",
+    "n_0261",
+    "n_0262",
+    "n_0263",
+    "n_0264",
+    "n_0265",
+    "n_0266"
+   ]
+  },
+  {
+   "id": "c_19",
+   "time": 29.0545,
+   "duration": 2.0447,
+   "label": "F",
+   "noteIds": [
+    "n_0271",
+    "n_0272",
+    "n_0273",
+    "n_0274",
+    "n_0275"
+   ]
+  },
+  {
+   "id": "c_20",
+   "time": 30.5535,
+   "duration": 0.476,
+   "label": "N.C.",
+   "noteIds": [
+    "n_0286",
+    "n_0287",
+    "n_0288"
+   ]
+  },
+  {
+   "id": "c_21",
+   "time": 31.192,
+   "duration": 4.7059,
+   "label": "C",
+   "noteIds": [
+    "n_0291",
+    "n_0292",
+    "n_0293",
+    "n_0294",
+    "n_0295",
+    "n_0296"
+   ]
+  },
+  {
+   "id": "c_22",
+   "time": 33.585,
+   "duration": 2.3362,
+   "label": "G",
+   "noteIds": [
+    "n_0313",
+    "n_0314",
+    "n_0315",
+    "n_0316",
+    "n_0317",
+    "n_0318"
+   ]
+  },
+  {
+   "id": "c_23",
+   "time": 34.19,
+   "duration": 0.4644,
+   "label": "Gsus2",
+   "noteIds": [
+    "n_0320",
+    "n_0321",
+    "n_0322",
+    "n_0323",
+    "n_0324"
+   ]
+  },
+  {
+   "id": "c_24",
+   "time": 34.7705,
+   "duration": 0.4992,
+   "label": "G",
+   "noteIds": [
+    "n_0330",
+    "n_0331",
+    "n_0332",
+    "n_0333",
+    "n_0334",
+    "n_0335"
+   ]
+  },
+  {
+   "id": "c_25",
+   "time": 35.3974,
+   "duration": 0.5122,
+   "label": "G",
+   "noteIds": [
+    "n_0340",
+    "n_0341",
+    "n_0342",
+    "n_0343",
+    "n_0344",
+    "n_0345",
+    "n_0346"
+   ]
+  },
+  {
+   "id": "c_26",
+   "time": 35.9328,
+   "duration": 7.1904,
+   "label": "Am",
+   "noteIds": [
+    "n_0347",
+    "n_0348",
+    "n_0349",
+    "n_0350",
+    "n_0351",
+    "n_0352",
+    "n_0353",
+    "n_0354"
+   ]
+  },
+  {
+   "id": "c_27",
+   "time": 36.0489,
+   "duration": 2.242,
+   "label": "N.C.",
+   "noteIds": [
+    "n_0355",
+    "n_0356",
+    "n_0357"
+   ]
+  },
+  {
+   "id": "c_28",
+   "time": 37.7917,
+   "duration": 0.476,
+   "label": "Asus2",
+   "noteIds": [
+    "n_0371",
+    "n_0372",
+    "n_0373",
+    "n_0374",
+    "n_0375"
+   ]
+  },
+  {
+   "id": "c_29",
+   "time": 38.4534,
+   "duration": 1.1726,
+   "label": "F",
+   "noteIds": [
+    "n_0382",
+    "n_0383",
+    "n_0384",
+    "n_0385"
+   ]
+  },
+  {
+   "id": "c_30",
+   "time": 40.7883,
+   "duration": 4.7162,
+   "label": "C",
+   "noteIds": [
+    "n_0402",
+    "n_0403",
+    "n_0404",
+    "n_0405",
+    "n_0406"
+   ]
+  },
+  {
+   "id": "c_31",
+   "time": 43.1929,
+   "duration": 2.3232,
+   "label": "G",
+   "noteIds": [
+    "n_0419",
+    "n_0420",
+    "n_0421",
+    "n_0422",
+    "n_0423",
+    "n_0424"
+   ]
+  },
+  {
+   "id": "c_32",
+   "time": 43.7979,
+   "duration": 0.4527,
+   "label": "Gsus2",
+   "noteIds": [
+    "n_0427",
+    "n_0428",
+    "n_0429",
+    "n_0430"
+   ]
+  },
+  {
+   "id": "c_33",
+   "time": 44.3784,
+   "duration": 0.4876,
+   "label": "G",
+   "noteIds": [
+    "n_0433",
+    "n_0434",
+    "n_0435",
+    "n_0436",
+    "n_0437"
+   ]
+  },
+  {
+   "id": "c_34",
+   "time": 45.5974,
+   "duration": 9.515,
+   "label": "Am",
+   "noteIds": [
+    "n_0444",
+    "n_0445",
+    "n_0446",
+    "n_0447",
+    "n_0448",
+    "n_0449",
+    "n_0450",
+    "n_0451",
+    "n_0452"
+   ]
+  },
+  {
+   "id": "c_35",
+   "time": 46.2024,
+   "duration": 0.4296,
+   "label": "Asus4",
+   "noteIds": [
+    "n_0456",
+    "n_0457",
+    "n_0458"
+   ]
+  },
+  {
+   "id": "c_36",
+   "time": 50.431,
+   "duration": 2.2768,
+   "label": "F",
+   "noteIds": [
+    "n_0489",
+    "n_0490",
+    "n_0491"
+   ]
+  },
+  {
+   "id": "c_37",
+   "time": 52.8007,
+   "duration": 4.4028,
+   "label": "C",
+   "noteIds": [
+    "n_0505",
+    "n_0506",
+    "n_0507",
+    "n_0508",
+    "n_0509",
+    "n_0510"
+   ]
+  },
+  {
+   "id": "c_38",
+   "time": 55.2053,
+   "duration": 1.9982,
+   "label": "G",
+   "noteIds": [
+    "n_0520",
+    "n_0521",
+    "n_0522",
+    "n_0523"
+   ]
+  }
+ ],
+ "energy": [
+  {
+   "time": 0.0,
+   "value": 0.4975
+  },
+  {
+   "time": 0.1,
+   "value": 0.7157
+  },
+  {
+   "time": 0.2,
+   "value": 0.726
+  },
+  {
+   "time": 0.3,
+   "value": 0.7231
+  },
+  {
+   "time": 0.4,
+   "value": 0.6469
+  },
+  {
+   "time": 0.5,
+   "value": 0.4668
+  },
+  {
+   "time": 0.6,
+   "value": 0.5558
+  },
+  {
+   "time": 0.7,
+   "value": 0.7149
+  },
+  {
+   "time": 0.8,
+   "value": 0.7223
+  },
+  {
+   "time": 0.9,
+   "value": 0.7201
+  },
+  {
+   "time": 1.0,
+   "value": 0.6469
+  },
+  {
+   "time": 1.1,
+   "value": 0.4729
+  },
+  {
+   "time": 1.2,
+   "value": 0.5645
+  },
+  {
+   "time": 1.3,
+   "value": 0.7221
+  },
+  {
+   "time": 1.4,
+   "value": 0.7276
+  },
+  {
+   "time": 1.5,
+   "value": 0.7235
+  },
+  {
+   "time": 1.6,
+   "value": 0.6481
+  },
+  {
+   "time": 1.7,
+   "value": 0.4701
+  },
+  {
+   "time": 1.8,
+   "value": 0.5593
+  },
+  {
+   "time": 1.9,
+   "value": 0.716
+  },
+  {
+   "time": 2.0,
+   "value": 0.721
+  },
+  {
+   "time": 2.1,
+   "value": 0.7189
+  },
+  {
+   "time": 2.2,
+   "value": 0.6178
+  },
+  {
+   "time": 2.3,
+   "value": 0.3506
+  },
+  {
+   "time": 2.4,
+   "value": 0.4929
+  },
+  {
+   "time": 2.5,
+   "value": 0.7169
+  },
+  {
+   "time": 2.6,
+   "value": 0.7309
+  },
+  {
+   "time": 2.7,
+   "value": 0.7253
+  },
+  {
+   "time": 2.8,
+   "value": 0.6459
+  },
+  {
+   "time": 2.9,
+   "value": 0.4679
+  },
+  {
+   "time": 3.0,
+   "value": 0.5279
+  },
+  {
+   "time": 3.1,
+   "value": 0.6701
+  },
+  {
+   "time": 3.2,
+   "value": 0.6768
+  },
+  {
+   "time": 3.3,
+   "value": 0.6738
+  },
+  {
+   "time": 3.4,
+   "value": 0.6064
+  },
+  {
+   "time": 3.5,
+   "value": 0.4466
+  },
+  {
+   "time": 3.6,
+   "value": 0.4977
+  },
+  {
+   "time": 3.7,
+   "value": 0.613
+  },
+  {
+   "time": 3.8,
+   "value": 0.6175
+  },
+  {
+   "time": 3.9,
+   "value": 0.6225
+  },
+  {
+   "time": 4.0,
+   "value": 0.5632
+  },
+  {
+   "time": 4.1,
+   "value": 0.4265
+  },
+  {
+   "time": 4.2,
+   "value": 0.523
+  },
+  {
+   "time": 4.3,
+   "value": 0.6529
+  },
+  {
+   "time": 4.4,
+   "value": 0.6574
+  },
+  {
+   "time": 4.5,
+   "value": 0.6589
+  },
+  {
+   "time": 4.6,
+   "value": 0.5609
+  },
+  {
+   "time": 4.7,
+   "value": 0.3136
+  },
+  {
+   "time": 4.8,
+   "value": 0.4923
+  },
+  {
+   "time": 4.9,
+   "value": 0.7137
+  },
+  {
+   "time": 5.0,
+   "value": 0.7285
+  },
+  {
+   "time": 5.1,
+   "value": 0.7288
+  },
+  {
+   "time": 5.2,
+   "value": 0.6459
+  },
+  {
+   "time": 5.3,
+   "value": 0.4597
+  },
+  {
+   "time": 5.4,
+   "value": 0.5565
+  },
+  {
+   "time": 5.5,
+   "value": 0.7149
+  },
+  {
+   "time": 5.6,
+   "value": 0.7309
+  },
+  {
+   "time": 5.7,
+   "value": 0.7244
+  },
+  {
+   "time": 5.8,
+   "value": 0.6418
+  },
+  {
+   "time": 5.9,
+   "value": 0.4689
+  },
+  {
+   "time": 6.0,
+   "value": 0.5583
+  },
+  {
+   "time": 6.1,
+   "value": 0.7195
+  },
+  {
+   "time": 6.2,
+   "value": 0.7236
+  },
+  {
+   "time": 6.3,
+   "value": 0.7235
+  },
+  {
+   "time": 6.4,
+   "value": 0.6481
+  },
+  {
+   "time": 6.5,
+   "value": 0.4633
+  },
+  {
+   "time": 6.6,
+   "value": 0.5541
+  },
+  {
+   "time": 6.7,
+   "value": 0.7089
+  },
+  {
+   "time": 6.8,
+   "value": 0.7206
+  },
+  {
+   "time": 6.9,
+   "value": 0.7225
+  },
+  {
+   "time": 7.0,
+   "value": 0.6163
+  },
+  {
+   "time": 7.1,
+   "value": 0.3461
+  },
+  {
+   "time": 7.2,
+   "value": 0.4905
+  },
+  {
+   "time": 7.3,
+   "value": 0.7151
+  },
+  {
+   "time": 7.4,
+   "value": 0.7344
+  },
+  {
+   "time": 7.5,
+   "value": 0.7307
+  },
+  {
+   "time": 7.6,
+   "value": 0.6473
+  },
+  {
+   "time": 7.7,
+   "value": 0.4609
+  },
+  {
+   "time": 7.8,
+   "value": 0.4934
+  },
+  {
+   "time": 7.9,
+   "value": 0.6182
+  },
+  {
+   "time": 8.0,
+   "value": 0.6287
+  },
+  {
+   "time": 8.1,
+   "value": 0.6241
+  },
+  {
+   "time": 8.2,
+   "value": 0.565
+  },
+  {
+   "time": 8.3,
+   "value": 0.436
+  },
+  {
+   "time": 8.4,
+   "value": 0.5388
+  },
+  {
+   "time": 8.5,
+   "value": 0.6819
+  },
+  {
+   "time": 8.6,
+   "value": 0.6943
+  },
+  {
+   "time": 8.7,
+   "value": 0.696
+  },
+  {
+   "time": 8.8,
+   "value": 0.6229
+  },
+  {
+   "time": 8.9,
+   "value": 0.4573
+  },
+  {
+   "time": 9.0,
+   "value": 0.5355
+  },
+  {
+   "time": 9.1,
+   "value": 0.6828
+  },
+  {
+   "time": 9.2,
+   "value": 0.6941
+  },
+  {
+   "time": 9.3,
+   "value": 0.6877
+  },
+  {
+   "time": 9.4,
+   "value": 0.5858
+  },
+  {
+   "time": 9.5,
+   "value": 0.3339
+  },
+  {
+   "time": 9.6,
+   "value": 0.7046
+  },
+  {
+   "time": 9.7,
+   "value": 0.9123
+  },
+  {
+   "time": 9.8,
+   "value": 0.8099
+  },
+  {
+   "time": 9.9,
+   "value": 0.7934
+  },
+  {
+   "time": 10.0,
+   "value": 0.6845
+  },
+  {
+   "time": 10.1,
+   "value": 0.468
+  },
+  {
+   "time": 10.2,
+   "value": 0.5946
+  },
+  {
+   "time": 10.3,
+   "value": 0.7688
+  },
+  {
+   "time": 10.4,
+   "value": 0.7713
+  },
+  {
+   "time": 10.5,
+   "value": 0.7677
+  },
+  {
+   "time": 10.6,
+   "value": 0.672
+  },
+  {
+   "time": 10.7,
+   "value": 0.4731
+  },
+  {
+   "time": 10.8,
+   "value": 0.7483
+  },
+  {
+   "time": 10.9,
+   "value": 0.9057
+  },
+  {
+   "time": 11.0,
+   "value": 0.7972
+  },
+  {
+   "time": 11.1,
+   "value": 0.7848
+  },
+  {
+   "time": 11.2,
+   "value": 0.6818
+  },
+  {
+   "time": 11.3,
+   "value": 0.4701
+  },
+  {
+   "time": 11.4,
+   "value": 0.6031
+  },
+  {
+   "time": 11.5,
+   "value": 0.7761
+  },
+  {
+   "time": 11.6,
+   "value": 0.7713
+  },
+  {
+   "time": 11.7,
+   "value": 0.7641
+  },
+  {
+   "time": 11.8,
+   "value": 0.6421
+  },
+  {
+   "time": 11.9,
+   "value": 0.3515
+  },
+  {
+   "time": 12.0,
+   "value": 0.6654
+  },
+  {
+   "time": 12.1,
+   "value": 0.8731
+  },
+  {
+   "time": 12.2,
+   "value": 0.7891
+  },
+  {
+   "time": 12.3,
+   "value": 0.7712
+  },
+  {
+   "time": 12.4,
+   "value": 0.6681
+  },
+  {
+   "time": 12.5,
+   "value": 0.4685
+  },
+  {
+   "time": 12.6,
+   "value": 0.578
+  },
+  {
+   "time": 12.7,
+   "value": 0.7398
+  },
+  {
+   "time": 12.8,
+   "value": 0.7349
+  },
+  {
+   "time": 12.9,
+   "value": 0.7242
+  },
+  {
+   "time": 13.0,
+   "value": 0.6322
+  },
+  {
+   "time": 13.1,
+   "value": 0.4472
+  },
+  {
+   "time": 13.2,
+   "value": 0.6713
+  },
+  {
+   "time": 13.3,
+   "value": 0.7931
+  },
+  {
+   "time": 13.4,
+   "value": 0.6854
+  },
+  {
+   "time": 13.5,
+   "value": 0.6757
+  },
+  {
+   "time": 13.6,
+   "value": 0.5905
+  },
+  {
+   "time": 13.7,
+   "value": 0.4272
+  },
+  {
+   "time": 13.8,
+   "value": 0.5786
+  },
+  {
+   "time": 13.9,
+   "value": 0.736
+  },
+  {
+   "time": 14.0,
+   "value": 0.7328
+  },
+  {
+   "time": 14.1,
+   "value": 0.7299
+  },
+  {
+   "time": 14.2,
+   "value": 0.6025
+  },
+  {
+   "time": 14.3,
+   "value": 0.3144
+  },
+  {
+   "time": 14.4,
+   "value": 0.7244
+  },
+  {
+   "time": 14.5,
+   "value": 0.9182
+  },
+  {
+   "time": 14.6,
+   "value": 0.788
+  },
+  {
+   "time": 14.7,
+   "value": 0.7778
+  },
+  {
+   "time": 14.8,
+   "value": 0.6728
+  },
+  {
+   "time": 14.9,
+   "value": 0.4603
+  },
+  {
+   "time": 15.0,
+   "value": 0.6038
+  },
+  {
+   "time": 15.1,
+   "value": 0.781
+  },
+  {
+   "time": 15.2,
+   "value": 0.7893
+  },
+  {
+   "time": 15.3,
+   "value": 0.7798
+  },
+  {
+   "time": 15.4,
+   "value": 0.6717
+  },
+  {
+   "time": 15.5,
+   "value": 0.4697
+  },
+  {
+   "time": 15.6,
+   "value": 0.7611
+  },
+  {
+   "time": 15.7,
+   "value": 0.909
+  },
+  {
+   "time": 15.8,
+   "value": 0.774
+  },
+  {
+   "time": 15.9,
+   "value": 0.7674
+  },
+  {
+   "time": 16.0,
+   "value": 0.6722
+  },
+  {
+   "time": 16.1,
+   "value": 0.4642
+  },
+  {
+   "time": 16.2,
+   "value": 0.6045
+  },
+  {
+   "time": 16.3,
+   "value": 0.7795
+  },
+  {
+   "time": 16.4,
+   "value": 0.7822
+  },
+  {
+   "time": 16.5,
+   "value": 0.7808
+  },
+  {
+   "time": 16.6,
+   "value": 0.6496
+  },
+  {
+   "time": 16.7,
+   "value": 0.3468
+  },
+  {
+   "time": 16.8,
+   "value": 0.579
+  },
+  {
+   "time": 16.9,
+   "value": 0.8052
+  },
+  {
+   "time": 17.0,
+   "value": 0.7844
+  },
+  {
+   "time": 17.1,
+   "value": 0.7753
+  },
+  {
+   "time": 17.2,
+   "value": 0.673
+  },
+  {
+   "time": 17.3,
+   "value": 0.4614
+  },
+  {
+   "time": 17.4,
+   "value": 0.5446
+  },
+  {
+   "time": 17.5,
+   "value": 0.6872
+  },
+  {
+   "time": 17.6,
+   "value": 0.6836
+  },
+  {
+   "time": 17.7,
+   "value": 0.6764
+  },
+  {
+   "time": 17.8,
+   "value": 0.5932
+  },
+  {
+   "time": 17.9,
+   "value": 0.436
+  },
+  {
+   "time": 18.0,
+   "value": 0.6057
+  },
+  {
+   "time": 18.1,
+   "value": 0.7599
+  },
+  {
+   "time": 18.2,
+   "value": 0.7365
+  },
+  {
+   "time": 18.3,
+   "value": 0.731
+  },
+  {
+   "time": 18.4,
+   "value": 0.6427
+  },
+  {
+   "time": 18.5,
+   "value": 0.4569
+  },
+  {
+   "time": 18.6,
+   "value": 0.584
+  },
+  {
+   "time": 18.7,
+   "value": 0.7455
+  },
+  {
+   "time": 18.8,
+   "value": 0.7456
+  },
+  {
+   "time": 18.9,
+   "value": 0.7365
+  },
+  {
+   "time": 19.0,
+   "value": 0.6126
+  },
+  {
+   "time": 19.1,
+   "value": 0.3361
+  },
+  {
+   "time": 19.2,
+   "value": 0.7046
+  },
+  {
+   "time": 19.3,
+   "value": 0.9123
+  },
+  {
+   "time": 19.4,
+   "value": 0.8097
+  },
+  {
+   "time": 19.5,
+   "value": 0.7958
+  },
+  {
+   "time": 19.6,
+   "value": 0.6875
+  },
+  {
+   "time": 19.7,
+   "value": 0.4681
+  },
+  {
+   "time": 19.8,
+   "value": 0.5975
+  },
+  {
+   "time": 19.9,
+   "value": 0.7714
+  },
+  {
+   "time": 20.0,
+   "value": 0.7712
+  },
+  {
+   "time": 20.1,
+   "value": 0.7642
+  },
+  {
+   "time": 20.2,
+   "value": 0.6687
+  },
+  {
+   "time": 20.3,
+   "value": 0.4732
+  },
+  {
+   "time": 20.4,
+   "value": 0.7482
+  },
+  {
+   "time": 20.5,
+   "value": 0.9057
+  },
+  {
+   "time": 20.6,
+   "value": 0.7972
+  },
+  {
+   "time": 20.7,
+   "value": 0.785
+  },
+  {
+   "time": 20.8,
+   "value": 0.6819
+  },
+  {
+   "time": 20.9,
+   "value": 0.4701
+  },
+  {
+   "time": 21.0,
+   "value": 0.6029
+  },
+  {
+   "time": 21.1,
+   "value": 0.7755
+  },
+  {
+   "time": 21.2,
+   "value": 0.7702
+  },
+  {
+   "time": 21.3,
+   "value": 0.7634
+  },
+  {
+   "time": 21.4,
+   "value": 0.642
+  },
+  {
+   "time": 21.5,
+   "value": 0.3516
+  },
+  {
+   "time": 21.6,
+   "value": 0.6654
+  },
+  {
+   "time": 21.7,
+   "value": 0.8732
+  },
+  {
+   "time": 21.8,
+   "value": 0.7874
+  },
+  {
+   "time": 21.9,
+   "value": 0.7703
+  },
+  {
+   "time": 22.0,
+   "value": 0.669
+  },
+  {
+   "time": 22.1,
+   "value": 0.4684
+  },
+  {
+   "time": 22.2,
+   "value": 0.5786
+  },
+  {
+   "time": 22.3,
+   "value": 0.7401
+  },
+  {
+   "time": 22.4,
+   "value": 0.735
+  },
+  {
+   "time": 22.5,
+   "value": 0.7241
+  },
+  {
+   "time": 22.6,
+   "value": 0.6322
+  },
+  {
+   "time": 22.7,
+   "value": 0.4476
+  },
+  {
+   "time": 22.8,
+   "value": 0.6713
+  },
+  {
+   "time": 22.9,
+   "value": 0.7931
+  },
+  {
+   "time": 23.0,
+   "value": 0.6855
+  },
+  {
+   "time": 23.1,
+   "value": 0.6756
+  },
+  {
+   "time": 23.2,
+   "value": 0.5904
+  },
+  {
+   "time": 23.3,
+   "value": 0.4265
+  },
+  {
+   "time": 23.4,
+   "value": 0.577
+  },
+  {
+   "time": 23.5,
+   "value": 0.7351
+  },
+  {
+   "time": 23.6,
+   "value": 0.7326
+  },
+  {
+   "time": 23.7,
+   "value": 0.7291
+  },
+  {
+   "time": 23.8,
+   "value": 0.6017
+  },
+  {
+   "time": 23.9,
+   "value": 0.3143
+  },
+  {
+   "time": 24.0,
+   "value": 0.7244
+  },
+  {
+   "time": 24.1,
+   "value": 0.9182
+  },
+  {
+   "time": 24.2,
+   "value": 0.7878
+  },
+  {
+   "time": 24.3,
+   "value": 0.778
+  },
+  {
+   "time": 24.4,
+   "value": 0.6731
+  },
+  {
+   "time": 24.5,
+   "value": 0.4602
+  },
+  {
+   "time": 24.6,
+   "value": 0.6042
+  },
+  {
+   "time": 24.7,
+   "value": 0.7808
+  },
+  {
+   "time": 24.8,
+   "value": 0.7894
+  },
+  {
+   "time": 24.9,
+   "value": 0.7821
+  },
+  {
+   "time": 25.0,
+   "value": 0.6738
+  },
+  {
+   "time": 25.1,
+   "value": 0.4697
+  },
+  {
+   "time": 25.2,
+   "value": 0.7612
+  },
+  {
+   "time": 25.3,
+   "value": 0.909
+  },
+  {
+   "time": 25.4,
+   "value": 0.7735
+  },
+  {
+   "time": 25.5,
+   "value": 0.7672
+  },
+  {
+   "time": 25.6,
+   "value": 0.6725
+  },
+  {
+   "time": 25.7,
+   "value": 0.4644
+  },
+  {
+   "time": 25.8,
+   "value": 0.6052
+  },
+  {
+   "time": 25.9,
+   "value": 0.7785
+  },
+  {
+   "time": 26.0,
+   "value": 0.7812
+  },
+  {
+   "time": 26.1,
+   "value": 0.7816
+  },
+  {
+   "time": 26.2,
+   "value": 0.6499
+  },
+  {
+   "time": 26.3,
+   "value": 0.3466
+  },
+  {
+   "time": 26.4,
+   "value": 0.5791
+  },
+  {
+   "time": 26.5,
+   "value": 0.8053
+  },
+  {
+   "time": 26.6,
+   "value": 0.7845
+  },
+  {
+   "time": 26.7,
+   "value": 0.7756
+  },
+  {
+   "time": 26.8,
+   "value": 0.6731
+  },
+  {
+   "time": 26.9,
+   "value": 0.4614
+  },
+  {
+   "time": 27.0,
+   "value": 0.5434
+  },
+  {
+   "time": 27.1,
+   "value": 0.6862
+  },
+  {
+   "time": 27.2,
+   "value": 0.6836
+  },
+  {
+   "time": 27.3,
+   "value": 0.6754
+  },
+  {
+   "time": 27.4,
+   "value": 0.592
+  },
+  {
+   "time": 27.5,
+   "value": 0.436
+  },
+  {
+   "time": 27.6,
+   "value": 0.6057
+  },
+  {
+   "time": 27.7,
+   "value": 0.7599
+  },
+  {
+   "time": 27.8,
+   "value": 0.7365
+  },
+  {
+   "time": 27.9,
+   "value": 0.7313
+  },
+  {
+   "time": 28.0,
+   "value": 0.6429
+  },
+  {
+   "time": 28.1,
+   "value": 0.4569
+  },
+  {
+   "time": 28.2,
+   "value": 0.5843
+  },
+  {
+   "time": 28.3,
+   "value": 0.7456
+  },
+  {
+   "time": 28.4,
+   "value": 0.7455
+  },
+  {
+   "time": 28.5,
+   "value": 0.7355
+  },
+  {
+   "time": 28.6,
+   "value": 0.6115
+  },
+  {
+   "time": 28.7,
+   "value": 0.3361
+  },
+  {
+   "time": 28.8,
+   "value": 0.7326
+  },
+  {
+   "time": 28.9,
+   "value": 0.9377
+  },
+  {
+   "time": 29.0,
+   "value": 0.8173
+  },
+  {
+   "time": 29.1,
+   "value": 0.7993
+  },
+  {
+   "time": 29.2,
+   "value": 0.6843
+  },
+  {
+   "time": 29.3,
+   "value": 0.4685
+  },
+  {
+   "time": 29.4,
+   "value": 0.6043
+  },
+  {
+   "time": 29.5,
+   "value": 0.7757
+  },
+  {
+   "time": 29.6,
+   "value": 0.766
+  },
+  {
+   "time": 29.7,
+   "value": 0.7526
+  },
+  {
+   "time": 29.8,
+   "value": 0.6473
+  },
+  {
+   "time": 29.9,
+   "value": 0.4478
+  },
+  {
+   "time": 30.0,
+   "value": 0.7352
+  },
+  {
+   "time": 30.1,
+   "value": 0.8604
+  },
+  {
+   "time": 30.2,
+   "value": 0.7165
+  },
+  {
+   "time": 30.3,
+   "value": 0.7087
+  },
+  {
+   "time": 30.4,
+   "value": 0.6102
+  },
+  {
+   "time": 30.5,
+   "value": 0.4273
+  },
+  {
+   "time": 30.6,
+   "value": 0.5944
+  },
+  {
+   "time": 30.7,
+   "value": 0.7542
+  },
+  {
+   "time": 30.8,
+   "value": 0.7429
+  },
+  {
+   "time": 30.9,
+   "value": 0.7325
+  },
+  {
+   "time": 31.0,
+   "value": 0.5998
+  },
+  {
+   "time": 31.1,
+   "value": 0.3134
+  },
+  {
+   "time": 31.2,
+   "value": 0.8031
+  },
+  {
+   "time": 31.3,
+   "value": 0.9957
+  },
+  {
+   "time": 31.4,
+   "value": 0.8209
+  },
+  {
+   "time": 31.5,
+   "value": 0.8065
+  },
+  {
+   "time": 31.6,
+   "value": 0.6881
+  },
+  {
+   "time": 31.7,
+   "value": 0.4602
+  },
+  {
+   "time": 31.8,
+   "value": 0.6266
+  },
+  {
+   "time": 31.9,
+   "value": 0.809
+  },
+  {
+   "time": 32.0,
+   "value": 0.8075
+  },
+  {
+   "time": 32.1,
+   "value": 0.7917
+  },
+  {
+   "time": 32.2,
+   "value": 0.6758
+  },
+  {
+   "time": 32.3,
+   "value": 0.4691
+  },
+  {
+   "time": 32.4,
+   "value": 0.843
+  },
+  {
+   "time": 32.5,
+   "value": 1.0
+  },
+  {
+   "time": 32.6,
+   "value": 0.8238
+  },
+  {
+   "time": 32.7,
+   "value": 0.8116
+  },
+  {
+   "time": 32.8,
+   "value": 0.6962
+  },
+  {
+   "time": 32.9,
+   "value": 0.4648
+  },
+  {
+   "time": 33.0,
+   "value": 0.6327
+  },
+  {
+   "time": 33.1,
+   "value": 0.8148
+  },
+  {
+   "time": 33.2,
+   "value": 0.8074
+  },
+  {
+   "time": 33.3,
+   "value": 0.8046
+  },
+  {
+   "time": 33.4,
+   "value": 0.6646
+  },
+  {
+   "time": 33.5,
+   "value": 0.3472
+  },
+  {
+   "time": 33.6,
+   "value": 0.6441
+  },
+  {
+   "time": 33.7,
+   "value": 0.8713
+  },
+  {
+   "time": 33.8,
+   "value": 0.823
+  },
+  {
+   "time": 33.9,
+   "value": 0.8099
+  },
+  {
+   "time": 34.0,
+   "value": 0.6905
+  },
+  {
+   "time": 34.1,
+   "value": 0.4616
+  },
+  {
+   "time": 34.2,
+   "value": 0.5618
+  },
+  {
+   "time": 34.3,
+   "value": 0.7151
+  },
+  {
+   "time": 34.4,
+   "value": 0.7158
+  },
+  {
+   "time": 34.5,
+   "value": 0.7117
+  },
+  {
+   "time": 34.6,
+   "value": 0.6142
+  },
+  {
+   "time": 34.7,
+   "value": 0.4375
+  },
+  {
+   "time": 34.8,
+   "value": 0.6689
+  },
+  {
+   "time": 34.9,
+   "value": 0.8289
+  },
+  {
+   "time": 35.0,
+   "value": 0.774
+  },
+  {
+   "time": 35.1,
+   "value": 0.7642
+  },
+  {
+   "time": 35.2,
+   "value": 0.6605
+  },
+  {
+   "time": 35.3,
+   "value": 0.4583
+  },
+  {
+   "time": 35.4,
+   "value": 0.6032
+  },
+  {
+   "time": 35.5,
+   "value": 0.7762
+  },
+  {
+   "time": 35.6,
+   "value": 0.7729
+  },
+  {
+   "time": 35.7,
+   "value": 0.763
+  },
+  {
+   "time": 35.8,
+   "value": 0.6295
+  },
+  {
+   "time": 35.9,
+   "value": 0.3342
+  },
+  {
+   "time": 36.0,
+   "value": 0.7761
+  },
+  {
+   "time": 36.1,
+   "value": 0.9839
+  },
+  {
+   "time": 36.2,
+   "value": 0.8465
+  },
+  {
+   "time": 36.3,
+   "value": 0.8282
+  },
+  {
+   "time": 36.4,
+   "value": 0.7033
+  },
+  {
+   "time": 36.5,
+   "value": 0.4689
+  },
+  {
+   "time": 36.6,
+   "value": 0.618
+  },
+  {
+   "time": 36.7,
+   "value": 0.8003
+  },
+  {
+   "time": 36.8,
+   "value": 0.7979
+  },
+  {
+   "time": 36.9,
+   "value": 0.7918
+  },
+  {
+   "time": 37.0,
+   "value": 0.685
+  },
+  {
+   "time": 37.1,
+   "value": 0.4733
+  },
+  {
+   "time": 37.2,
+   "value": 0.8162
+  },
+  {
+   "time": 37.3,
+   "value": 0.9769
+  },
+  {
+   "time": 37.4,
+   "value": 0.8297
+  },
+  {
+   "time": 37.5,
+   "value": 0.8152
+  },
+  {
+   "time": 37.6,
+   "value": 0.6989
+  },
+  {
+   "time": 37.7,
+   "value": 0.4713
+  },
+  {
+   "time": 37.8,
+   "value": 0.6185
+  },
+  {
+   "time": 37.9,
+   "value": 0.7967
+  },
+  {
+   "time": 38.0,
+   "value": 0.7877
+  },
+  {
+   "time": 38.1,
+   "value": 0.7772
+  },
+  {
+   "time": 38.2,
+   "value": 0.6487
+  },
+  {
+   "time": 38.3,
+   "value": 0.3508
+  },
+  {
+   "time": 38.4,
+   "value": 0.7325
+  },
+  {
+   "time": 38.5,
+   "value": 0.9377
+  },
+  {
+   "time": 38.6,
+   "value": 0.8178
+  },
+  {
+   "time": 38.7,
+   "value": 0.8014
+  },
+  {
+   "time": 38.8,
+   "value": 0.6862
+  },
+  {
+   "time": 38.9,
+   "value": 0.4685
+  },
+  {
+   "time": 39.0,
+   "value": 0.6063
+  },
+  {
+   "time": 39.1,
+   "value": 0.7782
+  },
+  {
+   "time": 39.2,
+   "value": 0.7672
+  },
+  {
+   "time": 39.3,
+   "value": 0.7531
+  },
+  {
+   "time": 39.4,
+   "value": 0.6473
+  },
+  {
+   "time": 39.5,
+   "value": 0.4474
+  },
+  {
+   "time": 39.6,
+   "value": 0.7352
+  },
+  {
+   "time": 39.7,
+   "value": 0.8604
+  },
+  {
+   "time": 39.8,
+   "value": 0.7165
+  },
+  {
+   "time": 39.9,
+   "value": 0.7084
+  },
+  {
+   "time": 40.0,
+   "value": 0.6099
+  },
+  {
+   "time": 40.1,
+   "value": 0.4274
+  },
+  {
+   "time": 40.2,
+   "value": 0.5967
+  },
+  {
+   "time": 40.3,
+   "value": 0.7566
+  },
+  {
+   "time": 40.4,
+   "value": 0.7467
+  },
+  {
+   "time": 40.5,
+   "value": 0.7381
+  },
+  {
+   "time": 40.6,
+   "value": 0.6036
+  },
+  {
+   "time": 40.7,
+   "value": 0.3148
+  },
+  {
+   "time": 40.8,
+   "value": 0.8032
+  },
+  {
+   "time": 40.9,
+   "value": 0.9957
+  },
+  {
+   "time": 41.0,
+   "value": 0.8197
+  },
+  {
+   "time": 41.1,
+   "value": 0.8038
+  },
+  {
+   "time": 41.2,
+   "value": 0.6863
+  },
+  {
+   "time": 41.3,
+   "value": 0.4605
+  },
+  {
+   "time": 41.4,
+   "value": 0.6267
+  },
+  {
+   "time": 41.5,
+   "value": 0.8081
+  },
+  {
+   "time": 41.6,
+   "value": 0.806
+  },
+  {
+   "time": 41.7,
+   "value": 0.7895
+  },
+  {
+   "time": 41.8,
+   "value": 0.674
+  },
+  {
+   "time": 41.9,
+   "value": 0.4692
+  },
+  {
+   "time": 42.0,
+   "value": 0.8423
+  },
+  {
+   "time": 42.1,
+   "value": 0.9988
+  },
+  {
+   "time": 42.2,
+   "value": 0.8224
+  },
+  {
+   "time": 42.3,
+   "value": 0.8081
+  },
+  {
+   "time": 42.4,
+   "value": 0.6931
+  },
+  {
+   "time": 42.5,
+   "value": 0.4648
+  },
+  {
+   "time": 42.6,
+   "value": 0.633
+  },
+  {
+   "time": 42.7,
+   "value": 0.8145
+  },
+  {
+   "time": 42.8,
+   "value": 0.8065
+  },
+  {
+   "time": 42.9,
+   "value": 0.8033
+  },
+  {
+   "time": 43.0,
+   "value": 0.6632
+  },
+  {
+   "time": 43.1,
+   "value": 0.347
+  },
+  {
+   "time": 43.2,
+   "value": 0.6441
+  },
+  {
+   "time": 43.3,
+   "value": 0.8713
+  },
+  {
+   "time": 43.4,
+   "value": 0.8236
+  },
+  {
+   "time": 43.5,
+   "value": 0.8108
+  },
+  {
+   "time": 43.6,
+   "value": 0.6909
+  },
+  {
+   "time": 43.7,
+   "value": 0.4616
+  },
+  {
+   "time": 43.8,
+   "value": 0.5654
+  },
+  {
+   "time": 43.9,
+   "value": 0.7173
+  },
+  {
+   "time": 44.0,
+   "value": 0.7156
+  },
+  {
+   "time": 44.1,
+   "value": 0.713
+  },
+  {
+   "time": 44.2,
+   "value": 0.6153
+  },
+  {
+   "time": 44.3,
+   "value": 0.4375
+  },
+  {
+   "time": 44.4,
+   "value": 0.6677
+  },
+  {
+   "time": 44.5,
+   "value": 0.8267
+  },
+  {
+   "time": 44.6,
+   "value": 0.7717
+  },
+  {
+   "time": 44.7,
+   "value": 0.7617
+  },
+  {
+   "time": 44.8,
+   "value": 0.6584
+  },
+  {
+   "time": 44.9,
+   "value": 0.4576
+  },
+  {
+   "time": 45.0,
+   "value": 0.6004
+  },
+  {
+   "time": 45.1,
+   "value": 0.7742
+  },
+  {
+   "time": 45.2,
+   "value": 0.7738
+  },
+  {
+   "time": 45.3,
+   "value": 0.7624
+  },
+  {
+   "time": 45.4,
+   "value": 0.6277
+  },
+  {
+   "time": 45.5,
+   "value": 0.3338
+  },
+  {
+   "time": 45.6,
+   "value": 0.7766
+  },
+  {
+   "time": 45.7,
+   "value": 0.9843
+  },
+  {
+   "time": 45.8,
+   "value": 0.8447
+  },
+  {
+   "time": 45.9,
+   "value": 0.8247
+  },
+  {
+   "time": 46.0,
+   "value": 0.7013
+  },
+  {
+   "time": 46.1,
+   "value": 0.4689
+  },
+  {
+   "time": 46.2,
+   "value": 0.6168
+  },
+  {
+   "time": 46.3,
+   "value": 0.7991
+  },
+  {
+   "time": 46.4,
+   "value": 0.7976
+  },
+  {
+   "time": 46.5,
+   "value": 0.7917
+  },
+  {
+   "time": 46.6,
+   "value": 0.6849
+  },
+  {
+   "time": 46.7,
+   "value": 0.4733
+  },
+  {
+   "time": 46.8,
+   "value": 0.8159
+  },
+  {
+   "time": 46.9,
+   "value": 0.9766
+  },
+  {
+   "time": 47.0,
+   "value": 0.8297
+  },
+  {
+   "time": 47.1,
+   "value": 0.8152
+  },
+  {
+   "time": 47.2,
+   "value": 0.699
+  },
+  {
+   "time": 47.3,
+   "value": 0.4713
+  },
+  {
+   "time": 47.4,
+   "value": 0.623
+  },
+  {
+   "time": 47.5,
+   "value": 0.8002
+  },
+  {
+   "time": 47.6,
+   "value": 0.7876
+  },
+  {
+   "time": 47.7,
+   "value": 0.7776
+  },
+  {
+   "time": 47.8,
+   "value": 0.6491
+  },
+  {
+   "time": 47.9,
+   "value": 0.3508
+  },
+  {
+   "time": 48.0,
+   "value": 0.4975
+  },
+  {
+   "time": 48.1,
+   "value": 0.7157
+  },
+  {
+   "time": 48.2,
+   "value": 0.726
+  },
+  {
+   "time": 48.3,
+   "value": 0.7231
+  },
+  {
+   "time": 48.4,
+   "value": 0.6469
+  },
+  {
+   "time": 48.5,
+   "value": 0.4668
+  },
+  {
+   "time": 48.6,
+   "value": 0.5558
+  },
+  {
+   "time": 48.7,
+   "value": 0.7149
+  },
+  {
+   "time": 48.8,
+   "value": 0.7223
+  },
+  {
+   "time": 48.9,
+   "value": 0.7201
+  },
+  {
+   "time": 49.0,
+   "value": 0.6469
+  },
+  {
+   "time": 49.1,
+   "value": 0.4729
+  },
+  {
+   "time": 49.2,
+   "value": 0.5645
+  },
+  {
+   "time": 49.3,
+   "value": 0.7221
+  },
+  {
+   "time": 49.4,
+   "value": 0.7276
+  },
+  {
+   "time": 49.5,
+   "value": 0.7235
+  },
+  {
+   "time": 49.6,
+   "value": 0.6481
+  },
+  {
+   "time": 49.7,
+   "value": 0.4701
+  },
+  {
+   "time": 49.8,
+   "value": 0.5593
+  },
+  {
+   "time": 49.9,
+   "value": 0.716
+  },
+  {
+   "time": 50.0,
+   "value": 0.7209
+  },
+  {
+   "time": 50.1,
+   "value": 0.7189
+  },
+  {
+   "time": 50.2,
+   "value": 0.6178
+  },
+  {
+   "time": 50.3,
+   "value": 0.3507
+  },
+  {
+   "time": 50.4,
+   "value": 0.3697
+  },
+  {
+   "time": 50.5,
+   "value": 0.5377
+  },
+  {
+   "time": 50.6,
+   "value": 0.5481
+  },
+  {
+   "time": 50.7,
+   "value": 0.544
+  },
+  {
+   "time": 50.8,
+   "value": 0.4844
+  },
+  {
+   "time": 50.9,
+   "value": 0.3509
+  },
+  {
+   "time": 51.0,
+   "value": 0.3959
+  },
+  {
+   "time": 51.1,
+   "value": 0.5026
+  },
+  {
+   "time": 51.2,
+   "value": 0.5076
+  },
+  {
+   "time": 51.3,
+   "value": 0.5054
+  },
+  {
+   "time": 51.4,
+   "value": 0.4548
+  },
+  {
+   "time": 51.5,
+   "value": 0.3349
+  },
+  {
+   "time": 51.6,
+   "value": 0.3733
+  },
+  {
+   "time": 51.7,
+   "value": 0.46
+  },
+  {
+   "time": 51.8,
+   "value": 0.4634
+  },
+  {
+   "time": 51.9,
+   "value": 0.4671
+  },
+  {
+   "time": 52.0,
+   "value": 0.4227
+  },
+  {
+   "time": 52.1,
+   "value": 0.32
+  },
+  {
+   "time": 52.2,
+   "value": 0.3916
+  },
+  {
+   "time": 52.3,
+   "value": 0.4887
+  },
+  {
+   "time": 52.4,
+   "value": 0.4921
+  },
+  {
+   "time": 52.5,
+   "value": 0.4932
+  },
+  {
+   "time": 52.6,
+   "value": 0.4199
+  },
+  {
+   "time": 52.7,
+   "value": 0.2348
+  },
+  {
+   "time": 52.8,
+   "value": 0.2462
+  },
+  {
+   "time": 52.9,
+   "value": 0.3568
+  },
+  {
+   "time": 53.0,
+   "value": 0.364
+  },
+  {
+   "time": 53.1,
+   "value": 0.3648
+  },
+  {
+   "time": 53.2,
+   "value": 0.3237
+  },
+  {
+   "time": 53.3,
+   "value": 0.2299
+  },
+  {
+   "time": 53.4,
+   "value": 0.2783
+  },
+  {
+   "time": 53.5,
+   "value": 0.3575
+  },
+  {
+   "time": 53.6,
+   "value": 0.3656
+  },
+  {
+   "time": 53.7,
+   "value": 0.3623
+  },
+  {
+   "time": 53.8,
+   "value": 0.3209
+  },
+  {
+   "time": 53.9,
+   "value": 0.2345
+  },
+  {
+   "time": 54.0,
+   "value": 0.2791
+  },
+  {
+   "time": 54.1,
+   "value": 0.3598
+  },
+  {
+   "time": 54.2,
+   "value": 0.3617
+  },
+  {
+   "time": 54.3,
+   "value": 0.3605
+  },
+  {
+   "time": 54.4,
+   "value": 0.3228
+  },
+  {
+   "time": 54.5,
+   "value": 0.2316
+  },
+  {
+   "time": 54.6,
+   "value": 0.2768
+  },
+  {
+   "time": 54.7,
+   "value": 0.3541
+  },
+  {
+   "time": 54.8,
+   "value": 0.36
+  },
+  {
+   "time": 54.9,
+   "value": 0.3607
+  },
+  {
+   "time": 55.0,
+   "value": 0.3076
+  },
+  {
+   "time": 55.1,
+   "value": 0.1728
+  },
+  {
+   "time": 55.2,
+   "value": 0.1226
+  },
+  {
+   "time": 55.3,
+   "value": 0.1788
+  },
+  {
+   "time": 55.4,
+   "value": 0.1836
+  },
+  {
+   "time": 55.5,
+   "value": 0.1824
+  },
+  {
+   "time": 55.6,
+   "value": 0.1616
+  },
+  {
+   "time": 55.7,
+   "value": 0.1152
+  },
+  {
+   "time": 55.8,
+   "value": 0.1233
+  },
+  {
+   "time": 55.9,
+   "value": 0.1546
+  },
+  {
+   "time": 56.0,
+   "value": 0.1571
+  },
+  {
+   "time": 56.1,
+   "value": 0.1558
+  },
+  {
+   "time": 56.2,
+   "value": 0.1411
+  },
+  {
+   "time": 56.3,
+   "value": 0.109
+  },
+  {
+   "time": 56.4,
+   "value": 0.1347
+  },
+  {
+   "time": 56.5,
+   "value": 0.1705
+  },
+  {
+   "time": 56.6,
+   "value": 0.1736
+  },
+  {
+   "time": 56.7,
+   "value": 0.1739
+  },
+  {
+   "time": 56.8,
+   "value": 0.1556
+  },
+  {
+   "time": 56.9,
+   "value": 0.1143
+  },
+  {
+   "time": 57.0,
+   "value": 0.1335
+  },
+  {
+   "time": 57.1,
+   "value": 0.17
+  },
+  {
+   "time": 57.2,
+   "value": 0.1728
+  },
+  {
+   "time": 57.3,
+   "value": 0.1711
+  },
+  {
+   "time": 57.4,
+   "value": 0.1458
+  },
+  {
+   "time": 57.5,
+   "value": 0.0832
+  },
+  {
+   "time": 57.6,
+   "value": 0.0
+  }
+ ],
+ "sections": [
+  {
+   "start": 0.0,
+   "end": 31.2308,
+   "label": "chorus"
+  },
+  {
+   "start": 31.2308,
+   "end": 57.6,
+   "label": "chorus"
+  }
+ ],
+ "lyrics": [],
+ "lyricsSource": "none"
+}

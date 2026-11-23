@@ -1,12 +1,20 @@
 // Hand-made AnalysisResult used by the engine before the real pipeline exists (roadmap 1.7).
 // Checks the invariants of 02-music-analysis requirements 3.2, 3.4, 5.1, 5.2 and 7.2.
-// TODO(02-music-analysis task 1): also parse with the generated AnalysisResult zod schema.
+// The contract itself (types, ranges, enums) is checked by the generated zod schema; the cross-field invariants below
+// are enforced by the pydantic validator on the API side and re-checked here (zod ignores pydantic validators).
 import { describe, expect, it } from 'vitest';
+import { AnalysisSchema } from '@/templates/generated';
 import demo from './demo-analysis.json';
 
 const inSong = (t: number) => t >= 0 && t <= demo.durationSec;
 
 describe('demo-analysis fixture', () => {
+  it('parses with the generated music-world.analysis.v1 zod schema', () => {
+    const parsed = AnalysisSchema.safeParse(demo);
+    expect(parsed.success).toBe(true);
+    expect(AnalysisSchema.safeParse({ ...demo, notes: [{ ...demo.notes[0], stem: 'piano' }] }).success).toBe(false);
+  });
+
   it('declares the v1 contract and the expected size', () => {
     expect(demo.schema).toBe('music-world.analysis.v1');
     expect(demo.notes.length).toBeGreaterThanOrEqual(50);

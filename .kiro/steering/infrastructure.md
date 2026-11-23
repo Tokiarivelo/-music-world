@@ -23,7 +23,9 @@ fileMatchPattern: ["infra/**", "**/Dockerfile*", "Makefile"]
 - Healthchecks on every service; `depends_on` with `condition: service_healthy`.
 - Secrets come from `infra/.env` on the server (never committed); `infra/.env.example` lists every variable.
 - Object storage: OVHcloud Object Storage (S3 API), configured by `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`,
-  `S3_ACCESS_KEY`, `S3_SECRET_KEY`. Buckets are private; the API serves presigned URLs.
+  `S3_ACCESS_KEY`, `S3_SECRET_KEY`. Buckets are private; the API serves presigned URLs. While these are incomplete,
+  api and worker share the `storage` volume at `STORAGE_DIR=/data/storage` (local object store, same keys).
+- The api image includes ffmpeg/ffprobe (upload duration check, worker decode stage).
 - The worker image pre-downloads Demucs and Basic Pitch weights at build time (no download at first job).
 - Caddy blocks `/api/docs` in production unless `API_DOCS=true`.
 - The `api` container runs `alembic upgrade head` before uvicorn; `worker` waits for `api` to be healthy.

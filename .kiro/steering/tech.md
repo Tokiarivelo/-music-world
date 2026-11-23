@@ -48,6 +48,11 @@ Do **not** add: React Three Fiber / Drei (conflicts with IWSDK's renderer), Esse
 | `DATABASE_URL` | `postgresql+asyncpg://music_world:music_world@localhost:5432/music_world` | Postgres (asyncpg driver) |
 | `REDIS_URL` | `redis://localhost:6379/0` | arq queue |
 | `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | — | OVHcloud Object Storage; health reports `not_configured` while unset |
+| `STORAGE_DIR` | `.data/storage` | Local object store (uploads, stems, stage checkpoints) used while the `S3_*` settings are incomplete |
+| `ANALYSIS_MIN_VELOCITY` | `0.25` | Notes below this velocity (0–1) are dropped (requirement 3.3) |
+| `DEMUCS_MODEL` | `htdemucs` | Demucs pretrained model name used by the worker |
+| `LYRICS_PROVIDER` | `muse` | `muse` (Muse Voice on the vocal stem, skipped without `META_API_KEY`), `lrc` (user file only), `none` |
+| `DEV_API_URL` | `http://localhost:8000` | Web dev server only (`pnpm dev` without Caddy): where `/api/*` is proxied |
 | `DOMAIN` | `localhost` | Compose/Caddy only: public domain (Let's Encrypt), `localhost` = Caddy local CA |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | `music_world` | Compose only: postgres credentials, used to build `DATABASE_URL` |
 

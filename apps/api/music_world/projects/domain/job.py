@@ -25,10 +25,11 @@ class Job:
     error: str | None
     created_at: datetime
     updated_at: datetime
+    subject_id: str | None = None  # what the job works on (e.g. the project of an analysis job)
 
     @classmethod
-    def queued(cls, job_id: str, kind: str, now: datetime) -> "Job":
-        return cls(job_id, kind, JobStatus.QUEUED, 0.0, None, None, now, now)
+    def queued(cls, job_id: str, kind: str, now: datetime, subject_id: str | None = None) -> "Job":
+        return cls(job_id, kind, JobStatus.QUEUED, 0.0, None, None, now, now, subject_id)
 
     @property
     def is_finished(self) -> bool:

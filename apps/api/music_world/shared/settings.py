@@ -25,6 +25,13 @@ class Settings(BaseSettings):
     s3_bucket: str | None = None
     s3_access_key: SecretStr | None = None
     s3_secret_key: SecretStr | None = None
+    # Local object storage used while the S3 settings are incomplete (development, tests).
+    storage_dir: str = ".data/storage"
+
+    # Analysis worker (02-music-analysis).
+    analysis_min_velocity: float = 0.25
+    demucs_model: str = "htdemucs"
+    lyrics_provider: Literal["muse", "lrc", "none"] = "muse"
 
     @property
     def storage_configured(self) -> bool:
