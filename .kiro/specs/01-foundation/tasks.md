@@ -20,9 +20,9 @@
   - [x] 3.2 Property test: random play/pause/seek/rate/advance sequences match a reference model.
   - _Requirements: 3.1–3.5_
 
-- [ ] 4. FastAPI and worker
-  - [ ] 4.1 Scaffold `music_world` package (uv or poetry), settings, `/health`.
-  - [ ] 4.2 arq worker, `jobs` table, `GET /jobs/{id}`, fake job + tests.
+- [x] 4. FastAPI and worker
+  - [x] 4.1 Scaffold `music_world` package (uv or poetry), settings, `/health`.
+  - [x] 4.2 arq worker, `jobs` table, `GET /jobs/{id}`, fake job + tests.
   - _Requirements: 4.1–4.3_
 
 - [x] 5. Schema pipeline

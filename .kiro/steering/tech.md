@@ -37,6 +37,18 @@ Do **not** add: React Three Fiber / Drei (conflicts with IWSDK's renderer), Esse
 6. **Templates are data.** No JS, no external URLs. 3D assets are `ShapeRecipe`s (closed op list) or validated GLB.
 7. **Secrets stay on the server.** `META_API_KEY` is read only by the Python API. Never prefix it with `NEXT_PUBLIC_`.
 
+## Core environment variables (`music_world.shared.settings`)
+
+| Env var | Default | Use |
+|---|---|---|
+| `APP_ENV` | `development` | `development` enables `/api/docs` and `POST /api/jobs/demo`; `production` disables both |
+| `APP_VERSION` | package version | Reported by `/api/health` |
+| `LOG_LEVEL` | `INFO` | structlog JSON level |
+| `API_DOCS` | `false` | Force `/api/docs` on outside development |
+| `DATABASE_URL` | `postgresql+asyncpg://music_world:music_world@localhost:5432/music_world` | Postgres (asyncpg driver) |
+| `REDIS_URL` | `redis://localhost:6379/0` | arq queue |
+| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | — | OVHcloud Object Storage; health reports `not_configured` while unset |
+
 ## LLM providers (switchable)
 
 The director talks to an `LLMProvider` interface (`complete_json(system, user, schema) -> dict`). The provider is

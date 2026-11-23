@@ -25,9 +25,11 @@ schemas: ## pydantic -> packages/schemas/*.schema.json -> apps/web/src/templates
 	cd $(API) && uv run python scripts/export_schemas.py ../../packages/schemas
 	pnpm --filter @music-world/schemas generate
 
-schemas-check: schemas ## Fail if generated schemas differ from the committed ones
-	@git diff --exit-code --stat -- packages/schemas $(WEB)/src/templates/generated \
-	  || { echo "Generated schemas are out of date: commit the output of make schemas"; exit 1; }
+GENERATED_HASH = cat packages/schemas/*.schema.json $(WEB)/src/templates/generated/*.ts 2>/dev/null | sha256sum
+
+schemas-check: ## Fail if the generated schemas do not match the pydantic source
+	@before=$$($(GENERATED_HASH)); $(MAKE) -s schemas >/dev/null; after=$$($(GENERATED_HASH)); \
+	  [ "$$before" = "$$after" ] || { echo "Generated schemas were out of date: review and commit the regenerated files"; exit 1; }
 
 build: ## Build Docker images
 	@test -f $(COMPOSE) || { echo "make build: $(COMPOSE) not created yet (01-foundation task 6.1)"; exit 1; }

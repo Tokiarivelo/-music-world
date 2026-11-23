@@ -5,7 +5,16 @@ description = "Music World API, analysis worker and shared schemas"
 requires-python = ">=3.12"
 license = "MIT"
 dependencies = [
+  "alembic>=1.14",
+  "arq>=0.26",
+  "asyncpg>=0.30",
+  "boto3>=1.35",
+  "fastapi>=0.115",
   "pydantic>=2.9,<3",
+  "pydantic-settings>=2.6",
+  "sqlalchemy[asyncio]>=2.0.36",
+  "structlog>=24.4",
+  "uvicorn[standard]>=0.32",
 ]
 
 [dependency-groups]
@@ -14,6 +23,10 @@ dev = [
   "hypothesis>=6",
   "ruff>=0.7",
   "mypy>=1.13",
+  "pytest-asyncio>=0.24",
+  "httpx>=0.28",
+  "aiosqlite>=0.20",
+  "boto3-stubs[s3]>=1.35",
 ]
 
 [build-system]
@@ -25,6 +38,8 @@ packages = ["music_world"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 markers = ["slow: uses real models or long audio"]
 
 [tool.ruff]

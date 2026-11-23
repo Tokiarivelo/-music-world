@@ -301,7 +301,7 @@ Chaque utilisateur peut publier des templates que les autres utilisent pendant l
 
 Source de vérité : modèles pydantic dans `apps/api/music_world/schemas/`, enregistrés dans `EXPORTED`.
 `make schemas` produit `packages/schemas/*.schema.json` puis les types TS + validateurs zod dans
-`apps/web/src/templates/generated/`. Schémas exportés : `music-world.health.v1`.
+`apps/web/src/templates/generated/`. Schémas exportés : `music-world.health.v1`, `music-world.job.v1`, `music-world.job-accepted.v1`.
 
 ### NoteEvent
 

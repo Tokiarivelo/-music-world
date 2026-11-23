@@ -60,7 +60,15 @@ class AudioPlayer implements AudioClock {
   `music_world/shared/container.py` (composition root), `music_world/worker.py` (arq), `music_world/projects/`
   context with the `jobs` aggregate (Clean Architecture layers, see `architecture.md` steering).
 - Tables (SQLAlchemy + Alembic): `jobs(id, kind, status, progress, error, created_at, updated_at)`.
-- `GET /health`, `GET /jobs/{id}`.
+- Routes live under `/api` (Caddy does not strip the prefix): `GET /api/health` (always 200, `status` ok|degraded,
+  `checks` for postgres/redis/storage with 2 s probe timeouts), `GET /api/ready` (503 when degraded),
+  `GET /api/jobs/{id}`, and `POST /api/jobs/demo` (202, **development only**) which enqueues the fake `demo` job.
+- Health lives in a small `system` context (probe port + `CheckHealth` use case); jobs live in `projects`.
+- `RunJob` is idempotent (finished job → no-op); expected `MusicWorldError`s fail the job with their code;
+  unexpected errors fail it with `INTERNAL_ERROR` and re-raise so arq logs and retries (max 3 tries, 15 min timeout).
+- The arq job id equals our job id, so enqueuing twice is a no-op. Adapters connect lazily: the API starts even if
+  postgres/redis are down and `/api/health` reports it.
+- Migrations: `apps/api/migrations` (Alembic, async), `0001_jobs`. `uv run alembic upgrade head`.
 
 ### Schemas
 

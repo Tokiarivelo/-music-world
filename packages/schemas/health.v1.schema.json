@@ -2,11 +2,64 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "music-world.health.v1",
   "$comment": "GENERATED — do not edit. Source: apps/api/music_world/schemas (run `make schemas`).",
+  "$defs": {
+    "DependencyChecks": {
+      "additionalProperties": false,
+      "properties": {
+        "postgres": {
+          "enum": [
+            "ok",
+            "error",
+            "not_configured"
+          ],
+          "title": "Postgres",
+          "type": "string"
+        },
+        "redis": {
+          "enum": [
+            "ok",
+            "error",
+            "not_configured"
+          ],
+          "title": "Redis",
+          "type": "string"
+        },
+        "storage": {
+          "description": "S3-compatible object storage (OVHcloud).",
+          "enum": [
+            "ok",
+            "error",
+            "not_configured"
+          ],
+          "title": "Storage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "postgres",
+        "redis",
+        "storage"
+      ],
+      "title": "DependencyChecks",
+      "type": "object"
+    }
+  },
   "additionalProperties": false,
-  "description": "Liveness status of the API.",
+  "description": "Liveness status of the API and of its dependencies.",
+  "examples": [
+    {
+      "checks": {
+        "postgres": "ok",
+        "redis": "ok",
+        "storage": "ok"
+      },
+      "status": "ok",
+      "version": "0.1.0"
+    }
+  ],
   "properties": {
     "status": {
-      "description": "Overall service status.",
+      "description": "`degraded` when a configured dependency fails.",
       "enum": [
         "ok",
         "degraded"
@@ -19,11 +72,15 @@
       "minLength": 1,
       "title": "Version",
       "type": "string"
+    },
+    "checks": {
+      "$ref": "#/$defs/DependencyChecks"
     }
   },
   "required": [
     "status",
-    "version"
+    "version",
+    "checks"
   ],
   "title": "Health",
   "type": "object"

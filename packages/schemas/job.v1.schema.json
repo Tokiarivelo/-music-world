@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "music-world.job.v1",
+  "$comment": "GENERATED — do not edit. Source: apps/api/music_world/schemas (run `make schemas`).",
+  "additionalProperties": false,
+  "description": "Status and progress of a background job.",
+  "examples": [
+    {
+      "createdAt": "2026-11-23T10:00:00Z",
+      "error": null,
+      "id": "0193f1a2-7c4e-7b1a-9f00-1234567890ab",
+      "kind": "demo",
+      "progress": 0.5,
+      "stage": "step-2",
+      "status": "running",
+      "updatedAt": "2026-11-23T10:00:05Z"
+    }
+  ],
+  "properties": {
+    "id": {
+      "description": "UUIDv7.",
+      "title": "Id",
+      "type": "string"
+    },
+    "kind": {
+      "minLength": 1,
+      "title": "Kind",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "queued",
+        "running",
+        "done",
+        "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "stage": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Current stage name, if the job reports stages.",
+      "title": "Stage"
+    },
+    "progress": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Progress",
+      "type": "number"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Error code when status is `failed`.",
+      "title": "Error"
+    },
+    "createdAt": {
+      "format": "date-time",
+      "title": "Createdat",
+      "type": "string"
+    },
+    "updatedAt": {
+      "format": "date-time",
+      "title": "Updatedat",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "status",
+    "progress",
+    "createdAt",
+    "updatedAt"
+  ],
+  "title": "Job",
+  "type": "object"
+}
