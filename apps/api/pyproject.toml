@@ -16,6 +16,14 @@ dependencies = [
   "sqlalchemy[asyncio]>=2.0.36",
   "structlog>=24.4",
   "uvicorn[standard]>=0.32",
+  # Analysis worker (02-music-analysis). CPU-only torch from the PyTorch CPU index (see [tool.uv.sources]).
+  "basic-pitch[onnx]>=0.4",
+  "demucs>=4.1",
+  "librosa>=0.11",
+  "numpy>=2",
+  "soundfile>=0.12",
+  "torch>=2.5",
+  "torchaudio>=2.5",
 ]
 
 [dependency-groups]
@@ -29,6 +37,28 @@ dev = [
   "aiosqlite>=0.20",
   "boto3-stubs[s3]>=1.35",
 ]
+
+[tool.uv]
+environments = ["sys_platform == 'linux'"]
+# basic-pitch 0.4.0 hard-requires TensorFlow < 2.15.1 (no Python 3.12 wheels): the worker runs its bundled ONNX
+# model with onnxruntime instead, so the TensorFlow / CoreML / TFLite backends are removed. resampy < 0.4.3 imports
+# the removed `pkg_resources`.
+override-dependencies = [
+  "tensorflow; sys_platform == 'never'",
+  "tensorflow-macos; sys_platform == 'never'",
+  "coremltools; sys_platform == 'never'",
+  "tflite-runtime; sys_platform == 'never'",
+  "resampy>=0.4.3",
+]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+torchaudio = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 [build-system]
 requires = ["hatchling"]

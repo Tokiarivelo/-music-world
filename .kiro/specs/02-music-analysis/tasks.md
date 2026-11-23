@@ -4,7 +4,7 @@
   - _Requirements: 7.1, 7.2_
 - [x] 2. Upload endpoint `POST /projects` (multipart audio + optional .lrc), limits, SHA-256 cache lookup, enqueue job.
   - _Requirements: 1.1, 1.2, 1.4, 1.5_
-- [ ] 3. `decode.py` with ffmpeg; duration check.
+- [x] 3. `decode.py` with ffmpeg; duration check.
   - _Requirements: 1.2_
 - [ ] 4. `separate.py` with Demucs; store stems in S3; measure CPU time on a 3-minute song and record it.
   - _Requirements: 2.1, 2.2_

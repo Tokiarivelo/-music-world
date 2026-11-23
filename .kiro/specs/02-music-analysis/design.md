@@ -72,3 +72,6 @@ requirement 7.2; generated TS: `AnalysisSchema` / type `Analysis`.
 - The `.lrc` text is stored on the project and applied when the analysis is read (cached results stay
   lyrics-independent).
 - Not yet: auth/ownership (accounts context does not exist) and per-IP upload rate limits.
+- **Decode (task 3)**: `analysis/infrastructure/ffmpeg_decoder.py` writes a 44.1 kHz stereo 16-bit WAV (decoding
+  1 s past the limit, so a file longer than 180 s raises `AUDIO_TOO_LONG` instead of being truncated). Upload
+  already rejects long files with ffprobe; decode re-checks the real decoded length.
