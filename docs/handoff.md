@@ -72,6 +72,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 | 03-world-engine-core 1–6 | Claude Code (world-builder) | done | task 6 with Phase 4 PR |
 | 03-world-engine-core 7 | — | blocked | needs a Quest 3 (human); IWER first check possible |
 | 04-default-template 1–5 | Claude Code (world-builder) | done | merged with Phase 4 PR |
+| 07-xr-mode 2–6 | Claude Code (world-builder) | in progress | branch `phase-7-xr-mode` |
 | 05-ai-world-director | ai-director | todo | generate design.md + tasks.md with Kiro first; contracts exist |
 
 ## 5. Active pitfalls
@@ -113,4 +114,5 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 | 03-world-engine-core | 1–6 done | 7 (Quest) | design.md § Rendering "As built" |
 | 04-default-template | 1–5 done | — (polish P2) | design.md § As built (Phase 4) |
 | 05-ai-world-director | requirements only | create design + tasks | requirements.md |
-| 06-template-store, 07-xr-mode | to create with Kiro | — | PROJECT.md §8, §7 |
+| 06-template-store | to create with Kiro | — | PROJECT.md §8 |
+| 07-xr-mode | 1 done | 2 (Enter VR + placement) | design.md § Session, § Placement |
