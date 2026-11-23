@@ -51,6 +51,7 @@ pnpm install                          # web app + schema generator
 make schemas                          # pydantic -> JSON Schema -> TS + zod
 make check                            # lint + types + tests + architecture check
 pnpm -C apps/web dev                  # http://localhost:3000/play/demo (IWER emulates a Quest 3 in dev)
+                                      # demo: space = play/pause, arrows = seek ±5 s
 ```
 
 Full stack in Docker (Caddy, web, api, worker, postgres, redis):

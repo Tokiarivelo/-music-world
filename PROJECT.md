@@ -268,22 +268,28 @@ Chaque utilisateur peut publier des templates que les autres utilisent pendant l
 ### Contenu d'un template
 
 ```jsonc
+// Contrat `music-world.template.v1` — source : apps/api/music_world/schemas/template.py
 {
   "schema": "music-world.template.v1",
   "id": "neon-nocturne", "name": "Neon Nocturne", "license": "CC-BY-4.0",
   "palette": { "background": "#07051a", "terrain": "#1a1533", "primary": "#b04cff", "accent": "#ff4fd8", "secondary": "#22d3ee", "staff": "#e8f7ff" },
-  "terrain": { "style": "cracked_plate", "mountains": "edges" },
-  "staff":   { "style": "glowing_lines", "path": "diagonal_curve", "clef": "treble", "glow": 1.2, "lookahead": 4.0 },
-  "shapes":  { "building": "builtin:building", "spike": "builtin:eq_spike", "crystal": "recipe:crystal_tower" },
-  "mappings": [
+  "terrain": { "style": "cracked_plate", "mountains": "edges", "size": 12 },
+  "staff":   { "style": "glowing_lines", "path": "diagonal_curve", "clef": "treble", "glow": 1.2, "lookahead": 4.0, "fallDuration": 0.35 },
+  "mappings": [                                   // évaluées dans l'ordre, la première qui correspond gagne
     { "when": { "pitch": "<48" },   "spawn": "terrain_ridge" },
     { "when": { "pitch": "48-72" }, "spawn": "building", "heightFrom": "velocity" },
     { "when": { "pitch": ">72" },   "spawn": "spike" },
-    { "when": { "chord": true },    "spawn": "cluster", "link": "light_arc" }
+    { "when": {},                   "spawn": "building" }   // filet de sécurité
   ],
-  "fx": { "particles": "arcs", "bloom": 0.8, "beatPulse": true }
+  "zones": [ { "kind": "building", "xMin": -0.95, "xMax": -0.1, "zMin": -0.95, "zMax": 0.3 } ],  // plaque normalisée [-1, 1]
+  "budget": { "instancesPerKind": 2000 },
+  "fx": { "particles": "arcs", "bloom": 0.8, "beatPulse": true, "chordLinks": "light_arc" }
 }
 ```
+
+- Conditions `when` (toutes optionnelles, combinées en ET) : `pitch` et `velocity` (`<a`, `>a` stricts, `a-b` inclusif),
+  `chord` (booléen), `stem`. `spawn` : `terrain_ridge | building | spike | crystal | cluster | recipe:<nom>`.
+- Les accords sont toujours reliés par un arc lumineux (`fx.chordLinks`), indépendamment des mappings.
 
 ### Règles
 
@@ -301,7 +307,8 @@ Chaque utilisateur peut publier des templates que les autres utilisent pendant l
 
 Source de vérité : modèles pydantic dans `apps/api/music_world/schemas/`, enregistrés dans `EXPORTED`.
 `make schemas` produit `packages/schemas/*.schema.json` puis les types TS + validateurs zod dans
-`apps/web/src/templates/generated/`. Schémas exportés : `music-world.health.v1`, `music-world.job.v1`, `music-world.job-accepted.v1`.
+`apps/web/src/templates/generated/`. Schémas exportés : `music-world.health.v1`, `music-world.job.v1`, `music-world.job-accepted.v1`,
+`music-world.template.v1`.
 
 ### NoteEvent
 

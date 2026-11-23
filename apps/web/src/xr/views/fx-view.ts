@@ -1,0 +1,178 @@
+/**
+ * FxSystem view (task 4.4, requirements 1.3, 4.1): chord light arcs (one InstancedMesh of a unit arc), decorative
+ * curved arcs around the staff, floating particles (one Points), and the glow level.
+ *
+ * Deviation (recorded in design.md): no post-processing bloom pass. An EffectComposer does not run inside a WebXR
+ * session without a custom XR render path and costs a full-screen pass per eye on Quest. "Bloom" is the template's
+ * `fx.bloom` glow factor applied to additive, unlit materials and modulated by the song energy.
+ */
+import {
+  AdditiveBlending,
+  BufferGeometry,
+  Color,
+  EllipseCurve,
+  Float32BufferAttribute,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshBasicMaterial,
+  Points,
+  PointsMaterial,
+  Quaternion,
+  TubeGeometry,
+  Vector3,
+  CatmullRomCurve3,
+} from 'three';
+import { mulberry32, uniform } from '@/engine/prng';
+import type { SpawnPlan } from '@/engine/spawn-plan';
+import type { WorldState } from '@/engine/world-state';
+import {
+  ARC_CAPACITY_MAX,
+  ARC_HEIGHT_RATIO,
+  DECOR_ARC_COUNT,
+  PARTICLE_COUNT,
+  PARTICLE_HEIGHT,
+  PARTICLE_SPIN,
+} from '../constants';
+import type { WorldView } from './world-view';
+
+const FX_SEED_KEY = 0x2b7f19;
+
+/** Half circle from (0,0,0) to (1,0,0) with apex height 1, as a thin tube. Instances stretch it between targets. */
+export function buildUnitArcGeometry(): BufferGeometry {
+  const points = Array.from({ length: 17 }, (_, i) => {
+    const a = (i / 16) * Math.PI;
+    return new Vector3((1 - Math.cos(a)) / 2, Math.sin(a), 0);
+  });
+  return new TubeGeometry(new CatmullRomCurve3(points), 24, 0.012, 4, false);
+}
+
+/** Matrix mapping the unit arc onto from → to with a height proportional to the distance. */
+export function arcMatrix(from: Vector3, to: Vector3, target = new Matrix4()): Matrix4 {
+  const dir = to.clone().sub(from);
+  const length = Math.max(1e-4, dir.length());
+  const heading = Math.atan2(-dir.z, dir.x);
+  const q = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), heading);
+  // Thickness (z) stays in world units; x stretches the span, y the apex.
+  return target.compose(from, q, new Vector3(length, Math.max(0.3, length * ARC_HEIGHT_RATIO), 1));
+}
+
+export class FxView implements WorldView {
+  readonly object = new Group();
+  private readonly arcs: InstancedMesh;
+  private readonly arcMaterial: MeshBasicMaterial;
+  private readonly decorMaterial: MeshBasicMaterial;
+  private readonly particles: Points;
+  private readonly particleMaterial: PointsMaterial;
+  private readonly arcColor: Color;
+  private readonly disposables: Array<{ dispose(): void }> = [];
+  private readonly from = new Vector3();
+  private readonly to = new Vector3();
+  private readonly m = new Matrix4();
+  private readonly bloom: number;
+
+  constructor(plan: SpawnPlan) {
+    const { palette, fx, terrain } = plan.template;
+    this.object.name = 'fx';
+    this.bloom = fx.bloom;
+
+    const capacity = Math.min(
+      ARC_CAPACITY_MAX,
+      Math.max(
+        1,
+        plan.groups.reduce((n, g) => n + Math.max(0, g.recordIndices.length - 1), 0),
+      ),
+    );
+    const arcGeometry = buildUnitArcGeometry();
+    this.arcColor = new Color(palette.secondary);
+    this.arcMaterial = new MeshBasicMaterial({
+      color: this.arcColor.clone(),
+      transparent: true,
+      blending: AdditiveBlending,
+      depthWrite: false,
+    });
+    this.arcs = new InstancedMesh(arcGeometry, this.arcMaterial, capacity);
+    this.arcs.count = 0;
+    this.arcs.frustumCulled = false;
+    this.object.add(this.arcs);
+    this.disposables.push(arcGeometry, this.arcMaterial);
+
+    // Decorative light arcs around the staff (static geometry, glow follows the energy).
+    this.decorMaterial = new MeshBasicMaterial({
+      color: new Color(palette.accent),
+      transparent: true,
+      opacity: 0.5,
+      blending: AdditiveBlending,
+      depthWrite: false,
+    });
+    const half = terrain.size / 2;
+    const rng = mulberry32(plan.seed ^ FX_SEED_KEY);
+    for (let i = 0; i < DECOR_ARC_COUNT; i++) {
+      const rx = half * uniform(rng, 0.45, 0.85);
+      const rz = half * uniform(rng, 0.2, 0.4);
+      const start = uniform(rng, 0, Math.PI);
+      const ellipse = new EllipseCurve(0, 0, rx, rz, start, start + uniform(rng, 1.2, 2.2), false, 0);
+      const pts = ellipse.getPoints(48).map((p) => new Vector3(p.x, 0.05 + 0.02 * i, p.y));
+      const geometry = new TubeGeometry(new CatmullRomCurve3(pts), 48, 0.01, 4, false).rotateY(-Math.PI / 4);
+      this.object.add(new Mesh(geometry, this.decorMaterial));
+      this.disposables.push(geometry);
+    }
+    this.disposables.push(this.decorMaterial);
+
+    const positions = new Float32Array(PARTICLE_COUNT * 3);
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      positions[i * 3] = uniform(rng, -half, half);
+      positions[i * 3 + 1] = uniform(rng, 0.1, PARTICLE_HEIGHT);
+      positions[i * 3 + 2] = uniform(rng, -half, half);
+    }
+    const particleGeometry = new BufferGeometry();
+    particleGeometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
+    this.particleMaterial = new PointsMaterial({
+      color: new Color(palette.staff),
+      size: 0.025,
+      transparent: true,
+      opacity: 0.7,
+      blending: AdditiveBlending,
+      depthWrite: false,
+    });
+    this.particles = new Points(particleGeometry, this.particleMaterial);
+    this.particles.visible = fx.particles !== 'none';
+    this.object.add(this.particles);
+    this.disposables.push(particleGeometry, this.particleMaterial);
+  }
+
+  /** Glow factor at a given energy: the template bloom, brighter in loud sections. */
+  glow(energy: number): number {
+    return this.bloom * (0.6 + 0.8 * energy);
+  }
+
+  update(state: WorldState): void {
+    const glow = this.glow(state.pulses.energy);
+    let n = 0;
+    let intensity = 0;
+    for (const arc of state.arcs) {
+      if (n >= this.arcs.instanceMatrix.count) break;
+      this.from.set(arc.from.x, arc.from.y, arc.from.z);
+      this.to.set(arc.to.x, arc.to.y, arc.to.z);
+      this.arcs.setMatrixAt(n++, arcMatrix(this.from, this.to, this.m));
+      intensity = Math.max(intensity, arc.intensity);
+    }
+    this.arcs.count = n;
+    this.arcs.instanceMatrix.needsUpdate = true;
+    this.arcMaterial.opacity = Math.min(1, intensity);
+    this.arcMaterial.color.copy(this.arcColor).multiplyScalar(glow);
+    this.decorMaterial.opacity = Math.min(1, 0.25 + 0.4 * glow + 0.3 * state.pulses.beat);
+    this.particleMaterial.opacity = Math.min(1, 0.35 + 0.4 * glow);
+    // Particles drift with song time (seek-exact), never with frame deltas.
+    this.particles.rotation.y = state.t * PARTICLE_SPIN;
+  }
+
+  visibleArcs(): number {
+    return this.arcs.count;
+  }
+
+  dispose(): void {
+    for (const d of this.disposables) d.dispose();
+  }
+}

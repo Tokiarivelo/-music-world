@@ -11,6 +11,21 @@ const outDir = join(here, '../../../apps/web/src/templates/generated');
 const HEADER =
   '// GENERATED — do not edit. Source: apps/api/music_world/schemas (run `make schemas`).\n';
 
+// json-schema-to-zod 2.x turns `$ref` into `z.any()`: inline the pydantic `$defs` (never recursive here) first.
+function inlineRefs(node, defs) {
+  if (Array.isArray(node)) return node.map((item) => inlineRefs(item, defs));
+  if (node === null || typeof node !== 'object') return node;
+  if (typeof node.$ref === 'string') {
+    const name = node.$ref.replace('#/$defs/', '');
+    if (!(name in defs)) throw new Error(`unresolved $ref ${node.$ref}`);
+    const { $ref, ...rest } = node;
+    return inlineRefs({ ...defs[name], ...rest }, defs);
+  }
+  const out = {};
+  for (const [key, value] of Object.entries(node)) if (key !== '$defs') out[key] = inlineRefs(value, defs);
+  return out;
+}
+
 const pascal = (s) => s.replace(/(^|[-_.])(\w)/g, (_, __, c) => c.toUpperCase());
 
 rmSync(outDir, { recursive: true, force: true });
@@ -19,7 +34,8 @@ mkdirSync(outDir, { recursive: true });
 const files = readdirSync(schemasDir).filter((f) => f.endsWith('.schema.json')).sort();
 const index = [];
 for (const file of files) {
-  const schema = JSON.parse(readFileSync(join(schemasDir, file), 'utf8'));
+  const raw = JSON.parse(readFileSync(join(schemasDir, file), 'utf8'));
+  const schema = inlineRefs(raw, raw.$defs ?? {});
   const base = file.replace(/\.schema\.json$/, ''); // e.g. health.v1
   const typeName = pascal(base.replace(/\.v\d+$/, '')); // Health
   const code = jsonSchemaToZod(schema, { name: `${typeName}Schema`, module: 'esm', type: typeName });

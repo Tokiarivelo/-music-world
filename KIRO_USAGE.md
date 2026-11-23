@@ -46,3 +46,40 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
   job progress, end-to-end run on real postgres + redis containers.
 - Task 6.1: Dockerfiles, Compose, Caddyfile, `.env.example`. Roadmap 1.7: hand-made `AnalysisResult` fixture.
 - Steering/skill/hook fixes: `pnpm --dir apps/web vitest` does not work with pnpm 10 → `pnpm -C apps/web exec vitest`.
+
+### 2026-11-23 — 03-world-engine-core task 1.1 (Claude Code)
+
+- `engine/prng.ts` (FNV-1a + mulberry32, per-note streams) with 12 fast-check tests.
+- Mutation check found a weak property: hashing only the low byte of each UTF-16 code unit survived the random-pair
+  property (pairs rarely differ only in the high byte). Replaced by a targeted property that flips bits in either
+  byte of the last code unit; all 3 mutants now fail. No hooks fired (outside Kiro IDE).
+
+### 2026-11-23 — 03-world-engine-core phase 2 tasks 1.2–5 (Claude Code as `world-builder`)
+
+- Task 1.2: new contract `music-world.template.v1` (pydantic → JSON Schema → zod). Found that the generator turned
+  every nested `$ref` into `z.any()` (the `Health.checks` object was unvalidated in TS): `$defs` are now inlined
+  before conversion. `engine/mapping.ts` with fast-check properties (first match wins, pitch threshold partition,
+  AND semantics). Mutation check: 5 mutants (strict `>` → `>=`, `findIndex` → `findLastIndex`, inverted chord test,
+  unordered `a-b` bounds, dropped velocity condition) all killed.
+- Task 1.3: `engine/layout.ts` (zones in normalized plate units, jittered grid, pitch → column). Mutation check
+  found weak properties: 3 of 5 mutants survived the first "target inside its zone" property (no cell margin,
+  always the first zone, random column instead of pitch — the "monotonic x" property was vacuous because both notes
+  shared one PRNG stream). Added a grid-cell property (column = pitch, jitter keeps the margin) and a "uses every
+  zone" check; all 5 mutants now fail.
+- Task 2.1: `engine/spawn-plan.ts` + `engine/staff.ts`. Mutation check: a chord arc keyed on the *first* landing
+  instead of the last survived (the fixture's chord notes share one onset); added a random-analysis property.
+- Tasks 2.2–2.3: `engine/world-state.ts` + `world-state.property.test.ts` (determinism incl. input order, purity
+  and seek equivalence after random call histories, frame-by-frame play == direct seek, monotonic spawn count,
+  exact phase partition, budget with distinct slots, 20 000-note budget check). Mutation check: 3 of 4 mutants
+  killed; the survivor (wider falling window) is equivalent because of the `landAt <= t` guard. A first version of
+  the 20 000-note test drew its data through `fc.filter` and never finished — replaced by a seeded generator.
+- Task 4: rendering views (`xr/views/`) + IWSDK systems (`xr/systems/world-systems.ts`), IWSDK 1.1.0 API checked
+  in the installed typings (`createComponent`, `createSystem`, `Types.Object`, `registerSystem` priority order).
+  View tests in jsdom: triangle budgets, cracks pulse on kicks, structure slots match the state after any seek,
+  particles depend on song time only, draw calls < 40. Deviations recorded in `design.md` (procedural glyphs
+  instead of Bravura SDF; no post-processing bloom in WebXR).
+- Task 5: `useSongPlayer` + `PlayerBar` (keyboard: space, arrows ±5 s) and `WorldHandle.load(scene)`; the demo
+  analysis is synthesized to audio in the browser so `/play/demo` runs on the real audio clock. Verified in headless
+  Chromium (SwiftShader) on a production build: the world renders, pause freezes the clock, arrows seek ±5 s and
+  the world jumps to the matching state. A full parallel `vitest run` hit the 5 s default timeout on property tests:
+  raised `testTimeout` (no property weakened).

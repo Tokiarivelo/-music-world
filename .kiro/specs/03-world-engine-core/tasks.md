@@ -1,24 +1,24 @@
 # Implementation Plan
 
-- [ ] 1. Engine primitives
-  - [ ] 1.1 `prng.ts` (mulberry32 + string hash) with property tests.
-  - [ ] 1.2 `mapping.ts` evaluating template rules; tests for rule order and ranges.
-  - [ ] 1.3 `layout.ts` zones and placement; property test: targets within zone bounds.
+- [x] 1. Engine primitives
+  - [x] 1.1 `prng.ts` (mulberry32 + string hash) with property tests.
+  - [x] 1.2 `mapping.ts` evaluating template rules; tests for rule order and ranges.
+  - [x] 1.3 `layout.ts` zones and placement; property test: targets within zone bounds.
   - _Requirements: 1.2, 1.4_
-- [ ] 2. Spawn plan and world state
-  - [ ] 2.1 `buildSpawnPlan` with chord groups and slot budget.
-  - [ ] 2.2 `worldStateAt` with phases (onStaff, falling, growing, alive).
-  - [ ] 2.3 Property tests: determinism, seek equivalence, monotonicity, budget.
+- [x] 2. Spawn plan and world state
+  - [x] 2.1 `buildSpawnPlan` with chord groups and slot budget.
+  - [x] 2.2 `worldStateAt` with phases (onStaff, falling, growing, alive).
+  - [x] 2.3 Property tests: determinism, seek equivalence, monotonicity, budget.
   - _Requirements: 1.1–1.5, 2.1–2.4_
-- [ ] 3. Default template `neon-nocturne` as JSON in `apps/web/src/templates/default/` (palette, zones, mappings).
+- [x] 3. Default template `neon-nocturne` as JSON in `apps/web/src/templates/default/` (palette, zones, mappings).
   - _Requirements: 4.1_
-- [ ] 4. Rendering systems
-  - [ ] 4.1 `TerrainSystem` (cracked plate, edge mountains, kick pulse).
-  - [ ] 4.2 `StaffSystem` (diagonal curved staff, clefs) and `NoteSystem` (Bravura SDF glyphs, slide and fall).
-  - [ ] 4.3 `StructureSystem` (buildings, spikes, ridges) with InstancedMesh and growth.
-  - [ ] 4.4 `FxSystem` (arcs, particles, bloom).
+- [x] 4. Rendering systems
+  - [x] 4.1 `TerrainSystem` (cracked plate, edge mountains, kick pulse).
+  - [x] 4.2 `StaffSystem` (diagonal curved staff, clefs) and `NoteSystem` (Bravura SDF glyphs, slide and fall).
+  - [x] 4.3 `StructureSystem` (buildings, spikes, ridges) with InstancedMesh and growth.
+  - [x] 4.4 `FxSystem` (arcs, particles, bloom).
   - _Requirements: 3.1–3.5, 4.1, 4.2, 5.1_
-- [ ] 5. Wire `AudioClock` into a shared `ClockComponent`; play the demo fixture on `/play/demo`.
+- [x] 5. Wire `AudioClock` into a shared `ClockComponent`; play the demo fixture on `/play/demo`.
   - _Requirements: 5.2_
 - [ ] 6. Checkpoint: side-by-side screenshot with the reference image; adjust camera, palette and layout.
   - _Requirements: 4.1_

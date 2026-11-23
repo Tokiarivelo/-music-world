@@ -2,10 +2,10 @@
 
 /* Palette tokens of the default template (see PROJECT.md §2). */
 :root {
-  --mw-bg: #05060f;
-  --mw-primary: #3fd8ff;
+  --mw-bg: #07051a;
+  --mw-primary: #b04cff;
   --mw-accent: #ff4fd8;
-  --mw-secondary: #7a5cff;
+  --mw-secondary: #22d3ee;
 }
 
 html,
