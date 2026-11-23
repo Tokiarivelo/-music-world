@@ -67,7 +67,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 | 01-foundation 1–5, 6.1 | Claude Code | done | merged |
 | 01-foundation 6.2, 6.3 | — | todo | needs OVHcloud instance + bucket |
 | 01-foundation 7 | — | blocked | needs API keys (human) |
-| 02-music-analysis 1–10 | audio-analyst | todo | can start now |
+| 02-music-analysis 1–10 | Claude Code (audio-analyst) | in progress | roadmap Phase 3, branch `phase-3-music-analysis` |
 | 03-world-engine-core 1–5 | Claude Code (world-builder) | done | merged with Phase 2 PR |
 | 03-world-engine-core 6 | world-builder | todo | Phase 4 (default look checkpoint) |
 | 03-world-engine-core 7 | — | blocked | needs a Quest 3 (human); IWER first check possible |

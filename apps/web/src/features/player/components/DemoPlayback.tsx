@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import demo from '@/engine/__fixtures__/demo-analysis.json';
+import { DEMO_ANALYSIS as demo } from '@/engine/__fixtures__/demo-analysis';
 import { WorldView } from '@/features/world-view';
 import { DEFAULT_TEMPLATE } from '@/templates/default';
 import { DEMO_SEED, PLAYER_TEXT } from '../consts/player.consts';

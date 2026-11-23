@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import demo from './__fixtures__/demo-analysis.json';
+import { DEMO_ANALYSIS as demo } from './__fixtures__/demo-analysis';
 import { analysisArb } from './__fixtures__/analyses';
 import { makeTemplate, templateArb } from './__fixtures__/templates';
 import { zonesFor } from './layout';

@@ -1,0 +1,328 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "music-world.analysis.v1",
+  "$comment": "GENERATED — do not edit. Source: apps/api/music_world/schemas (run `make schemas`).",
+  "$defs": {
+    "Chord": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^c_\\d+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "time": {
+          "maximum": 181.0,
+          "minimum": 0,
+          "title": "Time",
+          "type": "number"
+        },
+        "duration": {
+          "exclusiveMinimum": 0,
+          "maximum": 180.0,
+          "title": "Duration",
+          "type": "number"
+        },
+        "label": {
+          "description": "`C`, `Am`, `G7`, … or `N.C.` when unknown.",
+          "pattern": "^([A-G][#b]?(m|7|maj7|m7|dim|dim7|m7b5|aug|sus2|sus4|6|m6)?|N\\.C\\.)$",
+          "title": "Label",
+          "type": "string"
+        },
+        "noteIds": {
+          "description": "Notes of the chord (≥ 3 distinct pitch classes).",
+          "items": {
+            "pattern": "^n_\\d{4,}$",
+            "type": "string"
+          },
+          "minItems": 3,
+          "title": "Noteids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "time",
+        "duration",
+        "label",
+        "noteIds"
+      ],
+      "title": "Chord",
+      "type": "object"
+    },
+    "EnergyPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "time": {
+          "maximum": 181.0,
+          "minimum": 0,
+          "title": "Time",
+          "type": "number"
+        },
+        "value": {
+          "description": "RMS energy normalised to 0–1, sampled at 10 Hz.",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "time",
+        "value"
+      ],
+      "title": "EnergyPoint",
+      "type": "object"
+    },
+    "LyricSegment": {
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "maximum": 181.0,
+          "minimum": 0,
+          "title": "Start",
+          "type": "number"
+        },
+        "end": {
+          "maximum": 181.0,
+          "minimum": 0,
+          "title": "End",
+          "type": "number"
+        },
+        "text": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "text"
+      ],
+      "title": "LyricSegment",
+      "type": "object"
+    },
+    "Note": {
+      "additionalProperties": false,
+      "description": "One detected note (`NoteEvent`).",
+      "properties": {
+        "id": {
+          "pattern": "^n_\\d{4,}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "time": {
+          "description": "Onset, seconds from song start.",
+          "maximum": 181.0,
+          "minimum": 0,
+          "title": "Time",
+          "type": "number"
+        },
+        "duration": {
+          "description": "Seconds; always > 0.",
+          "exclusiveMinimum": 0,
+          "maximum": 180.0,
+          "title": "Duration",
+          "type": "number"
+        },
+        "midi": {
+          "maximum": 127,
+          "minimum": 0,
+          "title": "Midi",
+          "type": "integer"
+        },
+        "velocity": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Velocity",
+          "type": "number"
+        },
+        "stem": {
+          "enum": [
+            "vocals",
+            "drums",
+            "bass",
+            "other"
+          ],
+          "title": "Stem",
+          "type": "string"
+        },
+        "chordId": {
+          "anyOf": [
+            {
+              "pattern": "^c_\\d+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Chord this note belongs to, if any.",
+          "title": "Chordid"
+        }
+      },
+      "required": [
+        "id",
+        "time",
+        "duration",
+        "midi",
+        "velocity",
+        "stem"
+      ],
+      "title": "Note",
+      "type": "object"
+    },
+    "Section": {
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "maximum": 181.0,
+          "minimum": 0,
+          "title": "Start",
+          "type": "number"
+        },
+        "end": {
+          "maximum": 181.0,
+          "minimum": 0,
+          "title": "End",
+          "type": "number"
+        },
+        "label": {
+          "pattern": "^(intro|verse|chorus|bridge|outro|section_\\d+)$",
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "label"
+      ],
+      "title": "Section",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Timed notes, chords, tempo and beats, key, energy curve, sections and lyrics of one song.",
+  "properties": {
+    "schema": {
+      "const": "music-world.analysis.v1",
+      "title": "Schema",
+      "type": "string"
+    },
+    "audioHash": {
+      "description": "SHA-256 of the uploaded file.",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Audiohash",
+      "type": "string"
+    },
+    "durationSec": {
+      "exclusiveMinimum": 0,
+      "maximum": 180.0,
+      "title": "Durationsec",
+      "type": "number"
+    },
+    "tempoBpm": {
+      "description": "0 when no beat was found.",
+      "maximum": 400,
+      "minimum": 0,
+      "title": "Tempobpm",
+      "type": "number"
+    },
+    "beats": {
+      "description": "Beat times, ascending.",
+      "items": {
+        "maximum": 181.0,
+        "minimum": 0,
+        "type": "number"
+      },
+      "title": "Beats",
+      "type": "array"
+    },
+    "kicks": {
+      "default": [],
+      "description": "Kick onsets on the drums stem, ascending.",
+      "items": {
+        "maximum": 181.0,
+        "minimum": 0,
+        "type": "number"
+      },
+      "title": "Kicks",
+      "type": "array"
+    },
+    "key": {
+      "pattern": "^([A-G][#b]? (major|minor)|unknown)$",
+      "title": "Key",
+      "type": "string"
+    },
+    "notes": {
+      "description": "Sorted by time, then midi.",
+      "items": {
+        "$ref": "#/$defs/Note"
+      },
+      "maxItems": 20000,
+      "title": "Notes",
+      "type": "array"
+    },
+    "chords": {
+      "items": {
+        "$ref": "#/$defs/Chord"
+      },
+      "maxItems": 5000,
+      "title": "Chords",
+      "type": "array"
+    },
+    "energy": {
+      "description": "Ascending time, 10 Hz.",
+      "items": {
+        "$ref": "#/$defs/EnergyPoint"
+      },
+      "title": "Energy",
+      "type": "array"
+    },
+    "sections": {
+      "description": "Contiguous, covering [0, durationSec].",
+      "items": {
+        "$ref": "#/$defs/Section"
+      },
+      "minItems": 1,
+      "title": "Sections",
+      "type": "array"
+    },
+    "lyrics": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/LyricSegment"
+      },
+      "title": "Lyrics",
+      "type": "array"
+    },
+    "lyricsSource": {
+      "default": "none",
+      "enum": [
+        "muse-voice",
+        "lrc",
+        "none"
+      ],
+      "title": "Lyricssource",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "audioHash",
+    "durationSec",
+    "tempoBpm",
+    "beats",
+    "key",
+    "notes",
+    "chords",
+    "energy",
+    "sections"
+  ],
+  "title": "AnalysisResult",
+  "type": "object"
+}

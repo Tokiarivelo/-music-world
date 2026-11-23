@@ -1,16 +1,16 @@
 /**
  * Engine input and output types. The engine is framework-free (no three, React, IWSDK, DOM).
  *
- * `EngineAnalysis` is the subset of `music-world.analysis.v1` the engine reads; the generated `AnalysisResult` type
- * (02-music-analysis task 1) is structurally compatible with it.
+ * `EngineAnalysis` is the subset of the generated `music-world.analysis.v1` type (`Analysis`) the engine reads, so a
+ * full analysis from the API can be passed as is.
  */
-import type { Template } from '@/templates/generated';
+import type { Analysis, Template } from '@/templates/generated';
 
 export type WorldTemplate = Template;
 export type MappingRule = WorldTemplate['mappings'][number];
 export type ShapeKind = MappingRule['spawn'];
 export type ColorRole = NonNullable<MappingRule['colorRole']>;
-export type Stem = 'vocals' | 'drums' | 'bass' | 'other';
+export type Stem = Analysis['notes'][number]['stem'];
 export type GlyphKind = 'quarter' | 'eighth' | 'sixteenth';
 
 export interface Vec3 {
@@ -19,29 +19,11 @@ export interface Vec3 {
   readonly z: number;
 }
 
-export interface NoteEvent {
-  readonly id: string;
-  readonly time: number;
-  readonly duration: number;
-  readonly midi: number;
-  readonly velocity: number;
-  readonly stem: string;
-  readonly chordId: string | null;
-}
+/** A detected note (`NoteEvent` in PROJECT.md §9), as produced by the analysis worker. */
+export type NoteEvent = Readonly<Analysis['notes'][number]>;
 
-export interface ChordEvent {
-  readonly id: string;
-  readonly time: number;
-  readonly duration: number;
-  readonly label: string;
-  readonly noteIds: readonly string[];
-}
+export type ChordEvent = Readonly<Analysis['chords'][number]>;
 
-export interface EngineAnalysis {
-  readonly durationSec: number;
-  readonly tempoBpm: number;
-  readonly beats: readonly number[];
-  readonly notes: readonly NoteEvent[];
-  readonly chords: readonly ChordEvent[];
-  readonly energy: readonly { readonly time: number; readonly value: number }[];
-}
+export type EngineAnalysis = Readonly<
+  Pick<Analysis, 'durationSec' | 'tempoBpm' | 'beats' | 'notes' | 'chords' | 'energy'>
+>;

@@ -83,3 +83,13 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
   Chromium (SwiftShader) on a production build: the world renders, pause freezes the clock, arrows seek ±5 s and
   the world jumps to the matching state. A full parallel `vitest run` hit the 5 s default timeout on property tests:
   raised `testTimeout` (no property weakened).
+
+### 2026-11-23 — 02-music-analysis (Claude Code as `audio-analyst`)
+
+- Task 1: contract `music-world.analysis.v1` (`schemas/analysis.py`) with a model validator for the requirement 7.2
+  invariants. Hypothesis builds random well-formed results (must validate and round-trip through JSON); 21
+  hand-written mutations of a valid result (unsorted notes, unknown chord ids, gaps between sections, …) must each be
+  rejected. Mutation check on the validator: 8 mutants, 2 survived at first (dropping the "chord notes overlap" check,
+  allowing zero-length sections) → two mutations added, all 8 now killed. The Hypothesis strategy itself had a bug
+  (sorted by duration before midi), caught on its first run. The engine's `EngineAnalysis` is now a `Pick` of the
+  generated `Analysis` type; the fixture is parsed with the generated zod schema.

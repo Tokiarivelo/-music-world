@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import demo from '@/engine/__fixtures__/demo-analysis.json';
+import { DEMO_ANALYSIS as demo } from '@/engine/__fixtures__/demo-analysis';
 import { buildSpawnPlan } from '@/engine/spawn-plan';
 import { TemplateSchema } from '@/templates/generated';
 import { DEFAULT_TEMPLATE } from '.';

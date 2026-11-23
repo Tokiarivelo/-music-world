@@ -47,8 +47,10 @@ stem split on silences, and maps segment times back to song time.
 
 ## Data model
 
-Pydantic models in `schemas/analysis.py`: `Note`, `Chord`, `Beat`, `EnergyPoint`, `Section`, `LyricSegment`,
-`AnalysisResult` (see `PROJECT.md` §9).
+Pydantic models in `schemas/analysis.py`: `Note`, `Chord`, `EnergyPoint`, `Section`, `LyricSegment`,
+`AnalysisResult` (see `PROJECT.md` §9). Beats and kicks are plain ascending `float` lists (`beats`, `kicks`; `kicks`
+added for requirement 4.5, defaults to `[]`). The model validator `analysis_invariant_errors` enforces
+requirement 7.2; generated TS: `AnalysisSchema` / type `Analysis`.
 
 ## Testing
 

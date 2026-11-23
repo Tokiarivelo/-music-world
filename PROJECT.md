@@ -307,8 +307,8 @@ Chaque utilisateur peut publier des templates que les autres utilisent pendant l
 
 Source de vérité : modèles pydantic dans `apps/api/music_world/schemas/`, enregistrés dans `EXPORTED`.
 `make schemas` produit `packages/schemas/*.schema.json` puis les types TS + validateurs zod dans
-`apps/web/src/templates/generated/`. Schémas exportés : `music-world.health.v1`, `music-world.job.v1`, `music-world.job-accepted.v1`,
-`music-world.template.v1`.
+`apps/web/src/templates/generated/`. Schémas exportés : `music-world.analysis.v1`, `music-world.health.v1`, `music-world.job.v1`,
+`music-world.job-accepted.v1`, `music-world.template.v1`.
 
 ### NoteEvent
 
@@ -322,7 +322,7 @@ Source de vérité : modèles pydantic dans `apps/api/music_world/schemas/`, enr
 {
   "schema": "music-world.analysis.v1",
   "audioHash": "sha256:…", "durationSec": 182.4,
-  "tempoBpm": 92, "beats": [0.41, 1.06, …], "key": "A minor",
+  "tempoBpm": 92, "beats": [0.41, 1.06, …], "kicks": [0.41, …], "key": "A minor",
   "notes": [ /* NoteEvent[] */ ],
   "chords": [ { "id": "c_031", "time": 12.45, "duration": 2.6, "label": "Am", "noteIds": ["n_0142", "n_0143", "n_0144"] } ],
   "energy": [ { "time": 0, "value": 0.12 }, … ],
@@ -331,6 +331,11 @@ Source de vérité : modèles pydantic dans `apps/api/music_world/schemas/`, enr
   "lyricsSource": "muse-voice | lrc | none"
 }
 ```
+
+Invariants vérifiés par le validateur pydantic (exigence 7.2 de `02-music-analysis`) : notes triées par (time, midi),
+ids uniques, `noteIds` des accords existants (notes qui démarrent à ±60 ms et se chevauchent), tous les temps dans
+`[0, durationSec]`, beats/kicks/énergie croissants, sections contiguës couvrant le morceau, `lyrics` vide si
+`lyricsSource = none`. Le zod généré (`AnalysisSchema`, type `Analysis`) ne revérifie pas ces invariants.
 
 Les schémas sont versionnés. Les modèles pydantic sont la source de vérité : ils sont exportés en JSON Schema, puis convertis en types TypeScript et en zod.
 

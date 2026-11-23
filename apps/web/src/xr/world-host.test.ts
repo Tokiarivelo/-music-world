@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import demo from '@/engine/__fixtures__/demo-analysis.json';
+import { DEMO_ANALYSIS as demo } from '@/engine/__fixtures__/demo-analysis';
 import { buildSpawnPlan } from '@/engine/spawn-plan';
 import { DEFAULT_TEMPLATE } from '@/templates/default';
 import { createMusicWorld, type WorldHostDeps } from './world-host';
