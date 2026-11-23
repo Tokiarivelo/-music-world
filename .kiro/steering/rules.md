@@ -51,6 +51,8 @@ for the area they touch.
 
 ## Workflow (every task)
 
+Master plan and priorities (P0/P1/P2, cut line, token rules): `docs/roadmap.md` — read only the current phase.
+
 1. **Start**: run the `start` skill (read `docs/handoff.md`, `git status --short`, take the first next action).
 2. **One spec task at a time**: tasks come from `.kiro/specs/<spec>/tasks.md`. Read only the requirement and design
    sections the task cites.
@@ -67,4 +69,6 @@ for the area they touch.
 - Secrets stay server-side. Never commit `.env`. Never log full lyrics.
 - No GPL/AGPL dependency (repo is MIT). `.kiro/` is never git-ignored.
 - All repository text (code, comments, docs for judges, commit messages) is in **English**. `PROJECT.md` stays French.
+- Commits, PRs, issues and review comments never mention Claude, Claude Code or any AI agent: no
+  `Co-Authored-By` trailer, no "Generated with" line, no agent attribution of any kind.
 - Read large files by search + range, never whole. Do not open `docs/handoff-archive/` unless a task needs history.
