@@ -84,6 +84,18 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
   the world jumps to the matching state. A full parallel `vitest run` hit the 5 s default timeout on property tests:
   raised `testTimeout` (no property weakened).
 
+### 2026-11-24 — 04-default-template (Claude Code as `world-builder`)
+
+- Task 1: spec `04-default-template` written from `PROJECT.md` §2 and the `world-template` skill checklist (EARS
+  requirements, design with a reference-image breakdown table, 5 tasks).
+- Tasks 2–4: camera fitted to reference landmarks (the fit pointed to a near-orthographic camera), pure terrain height
+  field and crack network with determinism / zone-avoidance tests, Bravura outlines extracted by a script (font and
+  OFL license shipped) and rendered as instanced geometry, window shader and equalizer needle clusters for the city,
+  staff-aligned arcs and round particles. Tests cover glyph triangle budgets and notehead centring, G clef holes,
+  shader-chunk injection, needle fade, arc bounds and chord-arc height cap.
+- Task 5: three side-by-side passes against the reference on a production build (Playwright + SwiftShader);
+  draw calls 15–16 logged with `?perf=1`; remaining mismatches recorded in the spec design.
+
 ### 2026-11-23 — 02-music-analysis (Claude Code as `audio-analyst`)
 
 - Task 1: contract `music-world.analysis.v1` (`schemas/analysis.py`) with a model validator for the requirement 7.2
