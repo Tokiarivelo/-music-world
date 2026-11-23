@@ -73,3 +73,8 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
   exact phase partition, budget with distinct slots, 20 000-note budget check). Mutation check: 3 of 4 mutants
   killed; the survivor (wider falling window) is equivalent because of the `landAt <= t` guard. A first version of
   the 20 000-note test drew its data through `fc.filter` and never finished — replaced by a seeded generator.
+- Task 4: rendering views (`xr/views/`) + IWSDK systems (`xr/systems/world-systems.ts`), IWSDK 1.1.0 API checked
+  in the installed typings (`createComponent`, `createSystem`, `Types.Object`, `registerSystem` priority order).
+  View tests in jsdom: triangle budgets, cracks pulse on kicks, structure slots match the state after any seek,
+  particles depend on song time only, draw calls < 40. Deviations recorded in `design.md` (procedural glyphs
+  instead of Bravura SDF; no post-processing bloom in WebXR).

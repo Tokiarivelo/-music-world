@@ -49,6 +49,28 @@ function worldStateAt(plan: SpawnPlan, t: number): WorldState;
 - `TerrainSystem`: plate mesh with crack texture/emissive mask and edge mountains (noise heightfield, built once).
 - All systems read `t = clock.now()` once per frame from a shared `ClockComponent`.
 
+### As built (phase 2, 2026-11-23)
+
+- Layout: `xr/views/*-view.ts` are plain Three.js classes (`object`, `update(state)`, `dispose()`), unit-tested in
+  jsdom; `xr/systems/world-systems.ts` wraps them in IWSDK systems. `ClockSystem` (priority -100) reads
+  `clock.now()` once and stores `worldStateAt(plan, t)` in the `ClockComponent` (`clock`, `plan`, `state`, `root`);
+  `TerrainSystem`, `StaffSystem` (staff **and** notes — `NoteSystem` is merged into it), `StructureSystem` and
+  `FxSystem` only read that state. Views are rebuilt when the plan object changes (`WorldHandle.load`).
+- Staff path: quadratic Bézier (`engine/staff.ts`), shared by the engine and the renderer. Kicks: drum-stem onsets,
+  or the beat grid when the analysis has no drums.
+- **Deviation — glyphs**: procedural note meshes (head + stem + 0–2 flags), one `InstancedMesh` per glyph kind, not
+  Bravura SDF text (no SDF text dependency yet). Bravura moves to `04-default-template`.
+- **Deviation — bloom**: no post-processing pass (an EffectComposer does not run inside a WebXR session without a
+  custom XR render path, and costs a full-screen pass per eye on Quest). Glow = unlit/additive materials scaled by
+  `fx.bloom` and the song energy.
+- Template contract `music-world.template.v1` (`apps/api/music_world/schemas/template.py`): zones are normalized
+  rectangles (several per kind allowed); the engine re-orders swapped bounds because zod does not re-check
+  `min < max`. Unmatched notes use `building`.
+- Diorama: plate centre at (0, 0.85, -1.3) m, scaled to 1.5 m; the desktop camera looks at it from an isometric angle,
+  so desktop and VR share one scene. Draw calls for the demo: ≈ 17 (test bound: < 40).
+- `/play/demo` plays the demo analysis synthesized to audio in the browser (OfflineAudioContext), until the analysed
+  demo song exists (roadmap 3.6).
+
 ## Testing (fast-check)
 
 - Determinism: `buildSpawnPlan(a, tpl, s)` deep-equals itself across runs; `worldStateAt(plan, t)` is idempotent.

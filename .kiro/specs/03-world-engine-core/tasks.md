@@ -12,11 +12,11 @@
   - _Requirements: 1.1–1.5, 2.1–2.4_
 - [x] 3. Default template `neon-nocturne` as JSON in `apps/web/src/templates/default/` (palette, zones, mappings).
   - _Requirements: 4.1_
-- [ ] 4. Rendering systems
-  - [ ] 4.1 `TerrainSystem` (cracked plate, edge mountains, kick pulse).
-  - [ ] 4.2 `StaffSystem` (diagonal curved staff, clefs) and `NoteSystem` (Bravura SDF glyphs, slide and fall).
-  - [ ] 4.3 `StructureSystem` (buildings, spikes, ridges) with InstancedMesh and growth.
-  - [ ] 4.4 `FxSystem` (arcs, particles, bloom).
+- [x] 4. Rendering systems
+  - [x] 4.1 `TerrainSystem` (cracked plate, edge mountains, kick pulse).
+  - [x] 4.2 `StaffSystem` (diagonal curved staff, clefs) and `NoteSystem` (Bravura SDF glyphs, slide and fall).
+  - [x] 4.3 `StructureSystem` (buildings, spikes, ridges) with InstancedMesh and growth.
+  - [x] 4.4 `FxSystem` (arcs, particles, bloom).
   - _Requirements: 3.1–3.5, 4.1, 4.2, 5.1_
 - [ ] 5. Wire `AudioClock` into a shared `ClockComponent`; play the demo fixture on `/play/demo`.
   - _Requirements: 5.2_
