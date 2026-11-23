@@ -96,3 +96,9 @@ requirement 7.2; generated TS: `AnalysisSchema` / type `Analysis`.
   short unrepeated edges = intro/outro, first other unrepeated = bridge). Known limit: on the synthetic fixture
   librosa locks onto eighth-note hats (200 BPM for a 100 BPM song); beats stay on the grid, the engine pulse
   simply runs at double speed.
+- **Lyrics (task 6.2)**: `domain/lyrics.py` `parse_lrc` (multiple time tags per line, `[offset:±ms]`, enhanced
+  `<mm:ss.xx>` word tags stripped, metadata ignored, a line ends at the next timed line, the last lasts 5 s) and
+  `fit_lyrics`. The `.lrc` is applied when the analysis is read (`GetProjectAnalysis`), so it always wins and the
+  audio-keyed cache stays valid for every upload of the same song. `transcribe_lyrics` with Muse Voice (6.1) is not
+  implemented (needs a `META_API_KEY` and a format check): the worker uses `NoLyricsTranscriber`, so without an
+  `.lrc` `lyricsSource` is `none` (requirement 6.2 fallback).

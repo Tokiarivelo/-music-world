@@ -12,7 +12,7 @@
   - _Requirements: 3.1–3.4_
 - [ ] 6. Lyrics
   - [ ] 6.1 Verify the current Muse Voice Transcribe request format in Meta's docs.
-  - [ ] 6.2 Implement `transcribe_lyrics` and `parse_lrc`; fallback to `none`; no full-text logging.
+  - [x] 6.2 Implement `transcribe_lyrics` and `parse_lrc`; fallback to `none`; no full-text logging.
   - _Requirements: 6.1–6.3_
 - [x] 7. `rhythm.py`, `harmony.py`, `structure.py` with unit tests on synthetic audio.
   - _Requirements: 4.1–4.5, 5.1, 5.2_
