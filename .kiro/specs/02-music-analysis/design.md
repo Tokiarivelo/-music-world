@@ -114,3 +114,9 @@ requirement 7.2; generated TS: `AnalysisSchema` / type `Analysis`.
   **Measured** full pipeline, 3-minute synthesized track, same laptop: **392.7 s wall / 748.5 s CPU** — separate
   351.0 s, transcribe 32.6 s, rhythm 5.0 s, structure 3.6 s, others < 1 s (10 s fixture: 29.6 s wall). Under the
   10-minute budget; to re-measure: `uv run python scripts/analyze_file.py <song> <out.json>`.
+- **Web (task 9)**: feature `features/upload` (`UploadForm`, `AnalysisProgress`, `useUpload` polling
+  `GET /api/jobs/{id}` every 1.5 s, stage list in `consts/upload.consts.ts` checked against the API `STAGES` by a
+  pytest) and page `/upload`; `/play/[projectId]` (`features/player` `ProjectPlayback`: analysis parsed with the
+  generated `AnalysisSchema`, audio from `/api/projects/{id}/audio`, seed from the audio hash). Verified live
+  (headless Chromium, API + arq worker + redis, SQLite, local storage): upload of the 10 s fixture → stages shown →
+  redirect after 44 s → the world plays the uploaded audio; upload page at 375 px has no horizontal scroll.

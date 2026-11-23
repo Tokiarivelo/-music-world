@@ -18,6 +18,6 @@
   - _Requirements: 4.1–4.5, 5.1, 5.2_
 - [x] 8. `pipeline.py`: stage orchestration, progress reporting, result storage; `GET /projects/{id}/analysis`.
   - _Requirements: 1.3, 7.1_
-- [ ] 9. Web: upload page with progress bar per stage; on done, redirect to `/play/[projectId]`.
+- [x] 9. Web: upload page with progress bar per stage; on done, redirect to `/play/[projectId]`.
   - _Requirements: 1.3_
 - [ ] 10. Pre-analyse the royalty-free demo song and ship its `AnalysisResult` as a fixture for the judges' demo.

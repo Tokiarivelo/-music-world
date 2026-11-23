@@ -52,6 +52,7 @@ make schemas                          # pydantic -> JSON Schema -> TS + zod
 make check                            # lint + types + tests + architecture check
 pnpm -C apps/web dev                  # http://localhost:3000/play/demo (IWER emulates a Quest 3 in dev)
                                       # demo: space = play/pause, arrows = seek ±5 s
+                                      # /upload needs the API + worker (proxied from DEV_API_URL, default :8000)
 ```
 
 Full stack in Docker (Caddy, web, api, worker, postgres, redis):
@@ -64,7 +65,8 @@ curl -k https://localhost/api/health  # {"status":"ok",…}
 `make help` lists every target. Production settings: copy `infra/.env.example` to `infra/.env`.
 Without `S3_*` settings, uploads and stems go to a local directory (`STORAGE_DIR`, a Docker volume in Compose).
 
-Upload a song for analysis (MP3, WAV or FLAC, ≤ 25 MB, ≤ 3 minutes; optional timed lyrics `.lrc`):
+Upload a song at `https://localhost/upload`: the page shows the analysis progress per stage, then opens the world at
+`/play/<projectId>`. The same with curl (MP3, WAV or FLAC, ≤ 25 MB, ≤ 3 minutes; optional timed lyrics `.lrc`):
 
 ```bash
 curl -k -F audio=@song.mp3 -F lyrics=@song.lrc https://localhost/api/projects   # 202 {"projectId","jobId",…}

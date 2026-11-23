@@ -52,6 +52,7 @@ Do **not** add: React Three Fiber / Drei (conflicts with IWSDK's renderer), Esse
 | `ANALYSIS_MIN_VELOCITY` | `0.25` | Notes below this velocity (0–1) are dropped (requirement 3.3) |
 | `DEMUCS_MODEL` | `htdemucs` | Demucs pretrained model name used by the worker |
 | `LYRICS_PROVIDER` | `muse` | `muse` (Muse Voice on the vocal stem, skipped without `META_API_KEY`), `lrc` (user file only), `none` |
+| `DEV_API_URL` | `http://localhost:8000` | Web dev server only (`pnpm dev` without Caddy): where `/api/*` is proxied |
 | `DOMAIN` | `localhost` | Compose/Caddy only: public domain (Let's Encrypt), `localhost` = Caddy local CA |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | `music_world` | Compose only: postgres credentials, used to build `DATABASE_URL` |
 
