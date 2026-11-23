@@ -113,3 +113,13 @@ export const VR_TABLE_HEIGHT_M = DIORAMA_POSITION.y;
 export const VR_MIN_HEAD_HEIGHT_M = 0.3;
 /** Thumbstick seek step in VR (07-xr-mode requirement 3.2), same as the keyboard arrows. */
 export const VR_SEEK_STEP_SEC = 5;
+/** Spatial panel (07-xr-mode requirement 4): UIKitML file, size (m), pose relative to the diorama anchor. */
+export const VR_PANEL_URL = '/ui/xr-panel.uikitml';
+export const VR_PANEL_SIZE_M = { width: 0.56, height: 0.3 } as const;
+/** Just above the plate's front edge (the plate spans ±DIORAMA_WIDTH_M / 2), toward the user. */
+export const VR_PANEL_OFFSET = { x: 0, y: 0.16, z: 0.86 } as const;
+/** Tilt back so the panel faces a standing user looking down at it. */
+export const VR_PANEL_TILT_DEG = 30;
+export const VR_PANEL_SEEK_STEP_SEC = 10;
+/** Template buttons in the panel markup (`mw-tpl-0` …). */
+export const VR_PANEL_TEMPLATE_SLOTS = 4;

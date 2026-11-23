@@ -32,6 +32,21 @@ import { tabletopPose, yawFromQuaternion } from '../xr-placement';
 export interface WorldControls {
   toggle(): void;
   seekBy(deltaSec: number): void;
+  seek(sec: number): void;
+  isPlaying(): boolean;
+  /** Song duration in seconds (0 until decoded). */
+  duration(): number;
+  /** Shown in the spatial panel. */
+  title: string;
+  /** Template picker (07-xr-mode requirement 4.3). */
+  templates: readonly TemplateChoice[];
+  templateId: string;
+  selectTemplate(id: string): void;
+}
+
+export interface TemplateChoice {
+  id: string;
+  name: string;
 }
 
 /** Mutable state shared by the XR systems (one per world). */

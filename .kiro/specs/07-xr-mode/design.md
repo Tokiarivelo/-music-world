@@ -111,3 +111,13 @@ Commands are executed through `WorldControls` (given by React with the scene): `
   check script therefore takes every compiled program of the world, applies super-three's multiview rewrite
   (`WebGLProgram.js` § Multiview, with `GL_OVR_multiview2`) and compiles + links it on an `OVR_multiview2` context
   (SwiftShader exposes it): 14/14 programs pass, including the building window shader.
+- Task 4: `public/ui/xr-panel.uikitml` (validated with `@drawcall/uikitml validate --kit horizon`),
+  `xr/systems/xr-panel-system.ts` (`installXRPanel`, `XRPanelSystem`), `xr/panel-format.ts`. Deviation from the
+  first design: player commands are no longer part of `WorldScene`; `WorldHandle.setControls(controls)` takes them
+  (`WorldView` / `WorldCanvas` prop `controls`), so a new duration or template selection never rebuilds the plan by
+  accident. `useWorldControls` + `useTemplateChoice` (player feature) build them; `BUILTIN_TEMPLATES` lists the
+  picker's templates (only `neon-nocturne` until the template store lands, so a live template switch is not yet
+  exercised in IWER).
+- Panel clicks in IWER need `pointerdown` → `pointerup` within the 300 ms click threshold of the pointer events:
+  SwiftShader renders a stereo frame in ≈ 250 ms, so the script skips panel clicks unless `MW_ANGLE=vulkan` (GPU).
+  The panel text uses the bundled MSDF Inter font: avoid characters it lacks (U+2212 minus rendered as a box).

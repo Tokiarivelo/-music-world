@@ -20,7 +20,7 @@ import {
 import type { MusicScene, WorldClock } from './systems/world-systems';
 import type { WorldControls } from './systems/xr-systems';
 
-export type { WorldControls } from './systems/xr-systems';
+export type { TemplateChoice, WorldControls } from './systems/xr-systems';
 
 /** What the world shows: built once into a spawn plan, then rendered from `clock.now()` every frame. */
 export interface WorldScene {
@@ -28,8 +28,6 @@ export interface WorldScene {
   template: WorldTemplate;
   seed: number;
   clock: WorldClock;
-  /** Player commands used by the XR controls (07-xr-mode requirement 3); the 2D player bar uses the same ones. */
-  controls?: WorldControls;
 }
 
 /** What the host needs from the installed systems. */
@@ -42,6 +40,11 @@ export interface WorldHandle {
   load(scene: WorldScene): void;
   enterVR(): void;
   exitVR(): void;
+  /**
+   * Player commands used in VR (controllers, spatial panel, pinch; 07-xr-mode requirements 3–5): the same functions
+   * as the 2D player bar. Cheap: does not rebuild the world.
+   */
+  setControls(controls: WorldControls | null): void;
   /** Calls `listener(immersive)` now and whenever an XR session starts or ends; returns an unsubscribe function. */
   onSessionChange(listener: (immersive: boolean) => void): () => void;
   isVRSupported(): Promise<boolean>;
@@ -97,10 +100,12 @@ const defaultDeps: WorldHostDeps = {
   async installScene(world) {
     const { installMusicSystems } = await import('./systems/world-systems');
     const { installXRSystems } = await import('./systems/xr-systems');
+    const { installXRPanel } = await import('./systems/xr-panel-system');
     // `?perf=1` logs draw calls and triangles once per second (04-default-template requirement 7.3).
     const perfLog = typeof location !== 'undefined' && new URLSearchParams(location.search).get('perf') === '1';
     const scene = installMusicSystems(world as IWSDK.World, { perfLog });
     const rig = installXRSystems(world as IWSDK.World, scene.anchorEntity, scene.anchor);
+    installXRPanel(world as IWSDK.World, scene.anchorEntity, rig);
     return {
       setScene: (plan, clock) => scene.setScene(plan, clock),
       setControls: (controls) => {
@@ -161,10 +166,12 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   let disposed = false;
 
   return {
-    load({ analysis, template, seed, clock, controls }) {
+    load({ analysis, template, seed, clock }) {
       if (disposed) return;
       scene.setScene(buildSpawnPlan(analysis, template, seed), clock);
-      scene.setControls(controls ?? null);
+    },
+    setControls(controls) {
+      if (!disposed) scene.setControls(controls);
     },
     enterVR: () => world.launchXR(),
     exitVR: () => world.exitXR(),

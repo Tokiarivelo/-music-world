@@ -116,6 +116,30 @@ describe('WorldHandle.onSessionChange (07-xr-mode requirement 1.3)', () => {
   });
 });
 
+describe('WorldHandle.setControls (07-xr-mode requirement 3.4)', () => {
+  it('hands the player commands to the XR systems without rebuilding the world', async () => {
+    const { deps, scene } = fakeDeps();
+    const handle = await createMusicWorld(document.createElement('div'), deps);
+    const controls = {
+      toggle: vi.fn(),
+      seekBy: vi.fn(),
+      seek: vi.fn(),
+      isPlaying: () => false,
+      duration: () => 10,
+      title: 'Song',
+      templates: [{ id: 'a', name: 'A' }],
+      templateId: 'a',
+      selectTemplate: vi.fn(),
+    };
+    handle.setControls(controls);
+    expect(scene.setControls).toHaveBeenLastCalledWith(controls);
+    expect(scene.setScene).not.toHaveBeenCalled();
+    handle.dispose();
+    handle.setControls(null);
+    expect(scene.setControls).toHaveBeenCalledOnce();
+  });
+});
+
 describe('WorldHandle.load', () => {
   it('builds the spawn plan once and hands it to the scene with the audio clock', async () => {
     const { deps, scene } = fakeDeps();
@@ -126,10 +150,7 @@ describe('WorldHandle.load', () => {
     const [plan, passedClock] = scene.setScene.mock.calls[0]!;
     expect(plan).toEqual(buildSpawnPlan(demo, DEFAULT_TEMPLATE, 1));
     expect(passedClock).toBe(clock);
-    expect(scene.setControls).toHaveBeenLastCalledWith(null);
-    const controls = { toggle: vi.fn(), seekBy: vi.fn() };
-    handle.load({ analysis: demo, template: DEFAULT_TEMPLATE, seed: 1, clock, controls });
-    expect(scene.setControls).toHaveBeenLastCalledWith(controls);
+    handle.load({ analysis: demo, template: DEFAULT_TEMPLATE, seed: 1, clock });
     handle.dispose();
     handle.load({ analysis: demo, template: DEFAULT_TEMPLATE, seed: 1, clock });
     expect(scene.setScene).toHaveBeenCalledTimes(2);

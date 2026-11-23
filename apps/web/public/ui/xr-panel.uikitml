@@ -1,0 +1,58 @@
+<meta preferred-color-scheme="dark" />
+<style>
+  .panel {
+    flex-direction: column;
+    width: 64;
+    padding: 2;
+    gap: 1.4;
+    background-color: #0b0920;
+    border-color: #6e4bff;
+    border-width: 0.2;
+    border-radius: 3;
+    font-family: inter;
+    color: #e8e6ff;
+  }
+  .row { flex-direction: row; align-items: center; gap: 1.2; }
+  .title { font-size: 2.6; font-weight: bold; flex-grow: 1; }
+  .time { font-size: 2.2; color: #b9b3ff; flex-shrink: 0; width: 16; text-align: right; }
+  .track { height: 0.9; width: 100%; background-color: #2a2550; border-radius: 0.45; }
+  .fill { height: 100%; width: 0%; background-color: #ff4fd8; border-radius: 0.45; }
+  .btn {
+    padding-x: 2.2;
+    padding-y: 1.2;
+    border-radius: 1.6;
+    background-color: #241f4a;
+    font-size: 2.2;
+    cursor: pointer;
+  }
+  .btn:hover { background-color: #3a3170; }
+  .btn:active { background-color: #6e4bff; }
+  .primary { background-color: #6e4bff; color: #ffffff; min-width: 14; justify-content: center; }
+  .primary:hover { background-color: #8a6dff; }
+  .label { font-size: 2; color: #8f88c8; }
+  .tpl { font-size: 1.9; }
+</style>
+<div class="panel" id="mw-panel">
+  <div class="row">
+    <span class="title" id="mw-title">Music World</span>
+    <span class="time" id="mw-time">0:00 / 0:00</span>
+  </div>
+  <div class="track"><div class="fill" id="mw-progress" /></div>
+  <div class="row">
+    <button class="btn" id="mw-restart">Restart</button>
+    <button class="btn" id="mw-back">-10 s</button>
+    <button class="btn primary" id="mw-play">Play</button>
+    <button class="btn" id="mw-forward">+10 s</button>
+  </div>
+  <div class="row">
+    <span class="label">Template</span>
+    <button class="btn tpl" id="mw-tpl-0">Template</button>
+    <button class="btn tpl" id="mw-tpl-1">Template</button>
+    <button class="btn tpl" id="mw-tpl-2">Template</button>
+    <button class="btn tpl" id="mw-tpl-3">Template</button>
+  </div>
+  <div class="row">
+    <button class="btn" id="mw-recenter">Recenter</button>
+    <button class="btn" id="mw-exit">Exit VR</button>
+  </div>
+</div>

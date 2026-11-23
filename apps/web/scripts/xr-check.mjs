@@ -19,6 +19,8 @@ const shots = args.find((a) => a.startsWith('--shots='))?.slice('--shots='.lengt
 const executablePath =
   process.env.MW_CHROMIUM ?? join(homedir(), '.cache/ms-playwright/chromium-1248/chrome-linux64/chrome');
 
+// `MW_ANGLE=vulkan` renders on the GPU (frame time close to real); SwiftShader (default) works everywhere.
+const angle = process.env.MW_ANGLE ?? 'swiftshader';
 const VR_DIORAMA_DISTANCE_M = 1.3; // xr/constants.ts
 const VR_TABLE_HEIGHT_M = 0.85;
 const HEAD = { x: 0.6, y: 1.6, z: 0.4, yaw: 0.5 }; // emulated head before entering VR
@@ -34,7 +36,12 @@ const near = (a, b, eps = 0.02) => Math.abs(a - b) <= eps;
 
 const browser = await chromium.launch({
   executablePath,
-  args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'],
+  args: [
+    `--use-angle=${angle}`,
+    '--enable-unsafe-swiftshader',
+    '--ignore-gpu-blocklist',
+    '--autoplay-policy=no-user-gesture-required',
+  ],
 });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 const errors = [];
@@ -73,9 +80,9 @@ const playLabel = () =>
 const songTime = async () => Number(await page.locator('input[type=range]').inputValue());
 
 /** Presses then releases an emulated controller button (IWER ids: a-button, x-button, squeeze, …). */
-async function press(hand, id) {
+async function press(hand, id, hold = 4) {
   await page.evaluate(([h, b]) => globalThis.__mwXRDevice.controllers[h].updateButtonValue(b, 1), [hand, id]);
-  await frames(4);
+  await frames(hold);
   await page.evaluate(([h, b]) => globalThis.__mwXRDevice.controllers[h].updateButtonValue(b, 0), [hand, id]);
   await frames(4);
 }
@@ -96,6 +103,33 @@ try {
   await page.locator('button[aria-label="Play"]').waitFor({ timeout: 60000 });
   check('desktop: Enter VR button shown with IWER', true);
   await frames(5);
+
+  await page.evaluate((h) => {
+    const device = globalThis.__mwXRDevice;
+    device.position.set(h.x, h.y, h.z);
+    device.quaternion.set(0, Math.sin(h.yaw / 2), 0, Math.cos(h.yaw / 2));
+  }, HEAD);
+  const desktop = await anchorPose();
+  await shot('desktop');
+
+  await enter.click();
+  await page.getByRole('button', { name: 'Exit VR' }).waitFor({ timeout: 30000 });
+  check('session: immersive-vr started, 2D button reads Exit VR', true);
+  await frames(20);
+  const placed = await anchorPose();
+  const expected = {
+    x: HEAD.x - Math.sin(HEAD.yaw) * VR_DIORAMA_DISTANCE_M,
+    z: HEAD.z - Math.cos(HEAD.yaw) * VR_DIORAMA_DISTANCE_M,
+  };
+  check(
+    'placement: plate in front of the head at table height, facing the user',
+    near(placed.x, expected.x) &&
+      near(placed.z, expected.z) &&
+      near(placed.y, VR_TABLE_HEIGHT_M) &&
+      near(placed.yaw, HEAD.yaw),
+    JSON.stringify({ placed, expected }),
+  );
+  await shot('xr-entered');
 
   // Multiview (requirement 6.4): super-three only takes its multiview path with OCULUS_multiview (Quest Browser), so
   // recompile every program the world uses with the same rewrite super-three applies (WebGLProgram.js, "Multiview"),
@@ -170,7 +204,7 @@ try {
   if (multiview.skipped) console.log(`SKIP multiview compile check — ${multiview.skipped}`);
   else
     check(
-      `multiview: all ${multiview.programs} world programs compile and link with OVR_multiview2`,
+      `multiview: all ${multiview.programs} programs in VR (world, panel, controllers) compile and link with OVR_multiview2`,
       multiview.failures.length === 0 &&
         multiview.programs > 0 &&
         multiview.rewritten === multiview.programs &&
@@ -179,32 +213,6 @@ try {
         ? multiview.failures.slice(0, 2).join(' | ')
         : `${multiview.rewritten} rewritten incl. the window shader: ${multiview.names.join(', ')}`,
     );
-
-  await page.evaluate((h) => {
-    const device = globalThis.__mwXRDevice;
-    device.position.set(h.x, h.y, h.z);
-    device.quaternion.set(0, Math.sin(h.yaw / 2), 0, Math.cos(h.yaw / 2));
-  }, HEAD);
-  const desktop = await anchorPose();
-
-  await enter.click();
-  await page.getByRole('button', { name: 'Exit VR' }).waitFor({ timeout: 30000 });
-  check('session: immersive-vr started, 2D button reads Exit VR', true);
-  await frames(20);
-  const placed = await anchorPose();
-  const expected = {
-    x: HEAD.x - Math.sin(HEAD.yaw) * VR_DIORAMA_DISTANCE_M,
-    z: HEAD.z - Math.cos(HEAD.yaw) * VR_DIORAMA_DISTANCE_M,
-  };
-  check(
-    'placement: plate in front of the head at table height, facing the user',
-    near(placed.x, expected.x) &&
-      near(placed.z, expected.z) &&
-      near(placed.y, VR_TABLE_HEIGHT_M) &&
-      near(placed.yaw, HEAD.yaw),
-    JSON.stringify({ placed, expected }),
-  );
-  await shot('xr-entered');
 
   const info = await page.evaluate(() => {
     const { render, memory } = globalThis.__mwWorld.renderer.info;
@@ -256,10 +264,99 @@ try {
     const n = world.renderer.info.render.frame - f0;
     return { frames: n, msPerFrame: n ? (performance.now() - t0) / n : null };
   });
-  console.log(`INFO frame time in IWER (SwiftShader, CPU raster): ${JSON.stringify(frameTime)}`);
+  console.log(`INFO frame time in IWER (ANGLE ${angle}): ${JSON.stringify(frameTime)}`);
 
-  // IWER's runtime layer covers the page while a session runs: click the 2D button programmatically.
-  await page.getByRole('button', { name: 'Exit VR' }).evaluate((button) => button.click());
+  // Spatial panel (requirement 4): aim the right controller ray at a button and pull the trigger.
+  const panel = await page.evaluate(() => {
+    const object = globalThis.__mwWorld.scene.getObjectByName('music-world-panel');
+    return { visible: !!object?.visible, loaded: !!object?.children.length };
+  });
+  check(
+    'panel: shown above the plate in VR and loaded from UIKitML',
+    panel.visible && panel.loaded,
+    JSON.stringify(panel),
+  );
+
+  /** Points the right controller from in front of the panel at the element and clicks it with the trigger. */
+  async function clickPanel(id) {
+    const hovered = await page.evaluate((elementId) => {
+      const world = globalThis.__mwWorld;
+      const object = world.scene.getObjectByName('music-world-panel');
+      let target = null;
+      object.traverse((o) => {
+        if (!target && typeof o.getElementById === 'function') target = o.getElementById(elementId);
+      });
+      if (!target) return `element ${elementId} not found`;
+      world.scene.updateMatrixWorld(true);
+      const p = target.getWorldPosition(target.position.clone());
+      const n = object.getWorldDirection(target.position.clone()); // panel front (+z)
+      const from = { x: p.x + n.x * 0.25, y: p.y + n.y * 0.25, z: p.z + n.z * 0.25 };
+      const d = { x: p.x - from.x, y: p.y - from.y, z: p.z - from.z };
+      const len = Math.hypot(d.x, d.y, d.z);
+      const b = { x: d.x / len, y: d.y / len, z: d.z / len };
+      // Quaternion rotating the controller forward (0, 0, -1) onto b.
+      const q = { x: b.y, y: -b.x, z: 0, w: 1 - b.z };
+      const ql = Math.hypot(q.x, q.y, q.z, q.w);
+      const controller = globalThis.__mwXRDevice.controllers.right;
+      controller.position.set(from.x, from.y, from.z);
+      controller.quaternion.set(q.x / ql, q.y / ql, q.z / ql, q.w / ql);
+      return null;
+    }, id);
+    if (hovered) throw new Error(hovered);
+    await frames(6);
+    // A click needs pointerdown and pointerup within the pointer click threshold (300 ms): release on the next frame.
+    await press('right', 'trigger', 1);
+    await frames(2);
+  }
+
+  // pointerdown → pointerup must fit in the 300 ms click threshold: needs a few frames per second (GPU ANGLE).
+  const canClick = frameTime.msPerFrame !== null && frameTime.msPerFrame < 120;
+  if (!canClick)
+    console.log('SKIP panel clicks — frame time too long for the click threshold; run with MW_ANGLE=vulkan');
+  else {
+    await clickPanel('mw-play');
+    check('panel: Play button (controller ray + trigger) starts the song', (await playLabel()) === 'Pause');
+    await page.waitForTimeout(500);
+    const beforeForward = await songTime();
+    await clickPanel('mw-forward');
+    const afterForward = await songTime();
+    check(
+      'panel: +10 s button seeks forward',
+      afterForward - beforeForward > 9 && afterForward - beforeForward < 13,
+      `${beforeForward.toFixed(2)} → ${afterForward.toFixed(2)}`,
+    );
+    await clickPanel('mw-restart');
+    check('panel: Restart seeks to the start', (await songTime()) < 3, `t = ${(await songTime()).toFixed(2)}`);
+    await clickPanel('mw-play');
+    check('panel: Play button pauses again', (await playLabel()) === 'Play');
+    const panelText = await page.evaluate(() => {
+      const object = globalThis.__mwWorld.scene.getObjectByName('music-world-panel');
+      let doc = null;
+      object.traverse((o) => {
+        if (!doc && typeof o.getElementById === 'function') doc = o;
+      });
+      const text = (id) => doc.getElementById(id).properties.peek().text;
+      return { title: text('mw-title'), time: text('mw-time'), play: text('mw-play'), tpl0: text('mw-tpl-0') };
+    });
+    check(
+      'panel: title, time, play label and template picker reflect the player',
+      panelText.title?.length > 0 &&
+        /^\d+:\d\d \/ \d+:\d\d$/.test(panelText.time ?? '') &&
+        panelText.play === 'Play' &&
+        panelText.tpl0 === 'Neon Nocturne',
+      JSON.stringify(panelText),
+    );
+  }
+  // Look down at the table like a standing user (pitch −35°) for the screenshot.
+  await page.evaluate(() => globalThis.__mwXRDevice.quaternion.set(Math.sin(-0.3054), 0, 0, Math.cos(-0.3054)));
+  await frames(3);
+  await shot('xr-panel');
+  await page.evaluate(() => globalThis.__mwXRDevice.quaternion.set(0, 0, 0, 1));
+
+  // Exit through the panel (IWER's runtime layer covers the 2D page while a session runs).
+  const pausedAt = await songTime();
+  if (canClick) await clickPanel('mw-exit');
+  else await page.getByRole('button', { name: 'Exit VR' }).evaluate((button) => button.click());
   await page.getByRole('button', { name: 'Enter VR' }).waitFor({ timeout: 30000 });
   await frames(5).catch(() => undefined);
   await page.waitForTimeout(500);
@@ -271,7 +368,7 @@ try {
   );
   check(
     'player: leaving VR keeps the song state (paused at the same time)',
-    (await playLabel()) === 'Play' && near(await songTime(), paused, 0.05),
+    (await playLabel()) === 'Play' && near(await songTime(), pausedAt, 0.05),
   );
   check('console: no page errors', errors.length === 0, errors.slice(0, 3).join(' | '));
 } finally {

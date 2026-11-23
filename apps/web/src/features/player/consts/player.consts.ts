@@ -5,6 +5,8 @@ export const PLAYER_TEXT = {
   loading: 'Preparing the demo song…',
   demoNote: (title: string): string => `Demo song “${title}”, composed for Music World`,
   loadingProject: 'Loading the world of your song…',
+  /** Spatial panel title for an uploaded song (the API has no title field yet). */
+  projectTitle: 'Your song',
 } as const;
 
 /** Message keys (API error codes) → user-facing text on `/play/<projectId>`. */

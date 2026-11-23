@@ -2,11 +2,12 @@
 
 import { useMemo } from 'react';
 import { WorldView } from '@/features/world-view';
-import { DEFAULT_TEMPLATE } from '@/templates/default';
 import { loadAudioUrl } from '../api/project.api';
 import { DEMO_SEED, PLAYER_TEXT } from '../consts/player.consts';
 import { DEMO_SONG } from '../demo/demo-song';
 import { useSongPlayer, type SongPlayerDeps } from '../hooks/use-song-player';
+import { useTemplateChoice } from '../hooks/use-template-choice';
+import { useWorldControls } from '../hooks/use-world-controls';
 import { synthesizeSong } from '../lib/synth-song';
 import { PlayerBar } from './PlayerBar';
 
@@ -21,14 +22,14 @@ const DEMO_DEPS: SongPlayerDeps = {
 /** `/play/demo`: the pre-analysed demo song and its audio, rendered with the default template. */
 export function DemoPlayback() {
   const player = useSongPlayer(DEMO_DEPS);
-  const { clock, toggle, seekBy } = player;
-  const scene = useMemo(
-    () => ({ analysis, template: DEFAULT_TEMPLATE, seed: DEMO_SEED, clock, controls: { toggle, seekBy } }),
-    [clock, toggle, seekBy],
-  );
+  const choice = useTemplateChoice();
+  const controls = useWorldControls(player, DEMO_SONG.title, choice);
+  const { clock } = player;
+  const { template } = choice;
+  const scene = useMemo(() => ({ analysis, template, seed: DEMO_SEED, clock }), [template, clock]);
   return (
     <div className="relative h-dvh w-full">
-      <WorldView scene={scene} />
+      <WorldView controls={controls} scene={scene} />
       {/* IWSDK sizes its canvas to the window, so the controls float above it. */}
       <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[var(--mw-bg)] to-transparent pt-6">
         <PlayerBar player={player} />

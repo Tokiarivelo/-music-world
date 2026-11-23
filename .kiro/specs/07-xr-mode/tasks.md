@@ -9,7 +9,7 @@
   seek, squeeze recenter), `XRControlSystem`; IWER check script (enter VR, placement, toggle, seek, `renderer.info`)
   and multiview shader check.
   - _Requirements: 2.3, 3.1–3.5, 6.4, 7.1_
-- [ ] 4. (7b, P1) Spatial panel: UIKitML markup, `PanelUI` entity on the anchor, time / progress, play, restart,
+- [x] 4. (7b, P1) Spatial panel: UIKitML markup, `PanelUI` entity on the anchor, time / progress, play, restart,
   seek ±10 s, template picker, recenter, exit VR; hidden on the desktop.
   - _Requirements: 4.1–4.5_
 - [ ] 5. (7b, P1) Hand pinch: `PinchGesture` (0.75 / 0.6 hysteresis), left-hand pinch toggles play unless the panel

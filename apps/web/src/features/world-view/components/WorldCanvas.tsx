@@ -1,14 +1,15 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { createMusicWorld, type WorldHandle, type WorldScene } from '@/xr/world-host';
+import { createMusicWorld, type WorldControls, type WorldHandle, type WorldScene } from '@/xr/world-host';
 import { WORLD_VIEW_TEXT } from '../consts/world-view.consts';
 
 interface WorldCanvasProps {
   scene?: WorldScene;
+  controls?: WorldControls;
 }
 
-export default function WorldCanvas({ scene }: WorldCanvasProps) {
+export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<WorldHandle | null>(null);
   const [vrSupported, setVrSupported] = useState(false);
@@ -49,6 +50,11 @@ export default function WorldCanvas({ scene }: WorldCanvasProps) {
   useEffect(() => {
     if (handle && scene) handle.load(scene);
   }, [handle, scene]);
+
+  // Player commands for VR; swapping them never rebuilds the world.
+  useEffect(() => {
+    handle?.setControls(controls ?? null);
+  }, [handle, controls]);
 
   // The 2D button follows the XR session (07-xr-mode requirement 1.3).
   useEffect(() => handle?.onSessionChange(setImmersive), [handle]);
