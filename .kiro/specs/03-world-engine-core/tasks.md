@@ -5,10 +5,10 @@
   - [x] 1.2 `mapping.ts` evaluating template rules; tests for rule order and ranges.
   - [x] 1.3 `layout.ts` zones and placement; property test: targets within zone bounds.
   - _Requirements: 1.2, 1.4_
-- [ ] 2. Spawn plan and world state
+- [x] 2. Spawn plan and world state
   - [x] 2.1 `buildSpawnPlan` with chord groups and slot budget.
   - [x] 2.2 `worldStateAt` with phases (onStaff, falling, growing, alive).
-  - [ ] 2.3 Property tests: determinism, seek equivalence, monotonicity, budget.
+  - [x] 2.3 Property tests: determinism, seek equivalence, monotonicity, budget.
   - _Requirements: 1.1–1.5, 2.1–2.4_
 - [ ] 3. Default template `neon-nocturne` as JSON in `apps/web/src/templates/default/` (palette, zones, mappings).
   - _Requirements: 4.1_

@@ -68,3 +68,8 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
   zone" check; all 5 mutants now fail.
 - Task 2.1: `engine/spawn-plan.ts` + `engine/staff.ts`. Mutation check: a chord arc keyed on the *first* landing
   instead of the last survived (the fixture's chord notes share one onset); added a random-analysis property.
+- Tasks 2.2–2.3: `engine/world-state.ts` + `world-state.property.test.ts` (determinism incl. input order, purity
+  and seek equivalence after random call histories, frame-by-frame play == direct seek, monotonic spawn count,
+  exact phase partition, budget with distinct slots, 20 000-note budget check). Mutation check: 3 of 4 mutants
+  killed; the survivor (wider falling window) is equivalent because of the `landAt <= t` guard. A first version of
+  the 20 000-note test drew its data through `fc.filter` and never finished — replaced by a seeded generator.
