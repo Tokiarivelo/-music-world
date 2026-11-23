@@ -121,3 +121,7 @@ Commands are executed through `WorldControls` (given by React with the scene): `
 - Panel clicks in IWER need `pointerdown` → `pointerup` within the 300 ms click threshold of the pointer events:
   SwiftShader renders a stereo frame in ≈ 250 ms, so the script skips panel clicks unless `MW_ANGLE=vulkan` (GPU).
   The panel text uses the bundled MSDF Inter font: avoid characters it lacks (U+2212 minus rendered as a box).
+- Task 5: `xr/pinch.ts` (`PinchGesture`, press 0.75 / release 0.6, property-tested), driven in `XRControlSystem` from
+  `visualAdapters.hand.left.getPinchStrength()` while the left primary source is a hand; skipped while the panel
+  entity has `Hovered` (`rig.panel`). IWER check: `primaryInputMode = 'hand'`, `hands.left.setPinchValueImmediate(v)`
+  (IWER pinch 0.70 → strength 0.40: no toggle; 1.0 → strength 1.0: toggle, twice).

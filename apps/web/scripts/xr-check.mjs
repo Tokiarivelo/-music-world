@@ -353,6 +353,52 @@ try {
   await shot('xr-panel');
   await page.evaluate(() => globalThis.__mwXRDevice.quaternion.set(0, 0, 0, 1));
 
+  // Hand pinch (requirement 5): IWER hands, left-hand pinch toggles play; a partial pinch does nothing.
+  await page.evaluate(() => {
+    globalThis.__mwXRDevice.primaryInputMode = 'hand';
+  });
+  await frames(10);
+  const pinchTo = async (value) => {
+    await page.evaluate((v) => globalThis.__mwXRDevice.hands.left.setPinchValueImmediate(v), value);
+    await frames(4);
+    return page.evaluate(() => {
+      const xr = globalThis.__mwWorld.input.xr;
+      return { primary: xr.isPrimary('hand', 'left'), strength: xr.visualAdapters.hand.left.getPinchStrength() };
+    });
+  };
+  const open = await pinchTo(0);
+  check('hands: left hand is the primary input', open.primary, JSON.stringify(open));
+  const before = await playLabel();
+  // Find an IWER pinch value whose strength lies between the release and press thresholds (hand pose blend).
+  let partial = null;
+  for (let v = 0.5; v < 1 && !partial; v += 0.05) {
+    const sample = await pinchTo(v);
+    if (sample.strength >= 0.4 && sample.strength < 0.75) partial = { value: v, ...sample };
+  }
+  await pinchTo(0);
+  if (!partial) console.log('SKIP partial pinch check — no IWER pinch value gives a strength in [0.4, 0.75)');
+  else
+    check(
+      'hands: a partial pinch (0.4 ≤ strength < 0.75) does not toggle',
+      (await playLabel()) === before,
+      `IWER pinch ${partial.value.toFixed(2)} → strength ${partial.strength.toFixed(2)}`,
+    );
+  const full = await pinchTo(1);
+  const afterPinch = await playLabel();
+  await pinchTo(0);
+  check(
+    'hands: a full left pinch toggles play/pause',
+    afterPinch !== before && full.strength >= 0.75,
+    `${before} → ${afterPinch}, strength ${full.strength.toFixed(2)}`,
+  );
+  await pinchTo(1);
+  await pinchTo(0);
+  check('hands: a second pinch toggles back', (await playLabel()) === before);
+  await page.evaluate(() => {
+    globalThis.__mwXRDevice.primaryInputMode = 'controller';
+  });
+  await frames(10);
+
   // Exit through the panel (IWER's runtime layer covers the 2D page while a session runs).
   const pausedAt = await songTime();
   if (canClick) await clickPanel('mw-exit');

@@ -8,11 +8,14 @@
  * IWSDK 1.1.0 API checked against the installed typings: `world.visibilityState` (signal of `VisibilityState`,
  * `NonImmersive` outside XR), `world.player.head` (viewer pose under the XR origin), `createSystem`,
  * `createComponent`, `Types.Object`, `this.input.xr.gamepads.{left,right}` (`StatefulGamepad.getButtonDown`,
- * `getAxesEnteringLeft/Right`), `InputComponent.{A_Button, X_Button, Squeeze, Thumbstick}`.
+ * `getAxesEnteringLeft/Right`), `InputComponent.{A_Button, X_Button, Squeeze, Thumbstick}`,
+ * `input.xr.isPrimary('hand', side)`, `input.xr.visualAdapters.hand.left.getPinchStrength()` (0 open at 5 cm,
+ * 1 at IWSDK's 8 mm select distance), `Hovered` tag.
  */
 import {
   createComponent,
   createSystem,
+  Hovered,
   InputComponent,
   Types,
   VisibilityState,
@@ -22,6 +25,7 @@ import {
 } from '@iwsdk/core';
 import { Quaternion, Vector3, type Group } from 'three';
 import { DIORAMA_POSITION, VR_MIN_HEAD_HEIGHT_M } from '../constants';
+import { PinchGesture } from '../pinch';
 import { commandsFromPads, type PadEdges, type XRCommand } from '../xr-input-map';
 import { tabletopPose, yawFromQuaternion } from '../xr-placement';
 
@@ -59,6 +63,8 @@ export interface XRRig {
   placed: boolean;
   /** Player commands; null until the player is ready. */
   controls: WorldControls | null;
+  /** Spatial panel entity (a pinch while it is hovered is a panel click, not a play toggle). */
+  panel: Entity | null;
 }
 
 export const XRRigComponent = createComponent(
@@ -125,15 +131,24 @@ function readPad(pad: StatefulGamepad | undefined, face: InputComponent, out: Pa
   return out.face || out.squeeze || out.stickLeft || out.stickRight;
 }
 
-/** Controller bindings (07-xr-mode requirement 3): A/X play-pause, thumbstick seek, squeeze recenter. */
+/**
+ * Controller bindings (07-xr-mode requirement 3): A/X play-pause, thumbstick seek, squeeze recenter; and the left-hand
+ * pinch (requirement 5): play-pause unless a pointer hovers the spatial panel.
+ */
 export class XRControlSystem extends createSystem({ rigs: { required: [XRRigComponent] } }) {
+  private readonly pinch = new PinchGesture();
+
   private readonly pads: [PadEdges, PadEdges] = [
     { face: false, squeeze: false, stickLeft: false, stickRight: false },
     { face: false, squeeze: false, stickLeft: false, stickRight: false },
   ];
 
   update(): void {
-    if (!isImmersive(this.world)) return;
+    if (!isImmersive(this.world)) {
+      this.pinch.reset();
+      return;
+    }
+    this.updatePinch();
     const { left, right } = this.input.xr.gamepads;
     const leftEdge = readPad(left, InputComponent.X_Button, this.pads[0]);
     const rightEdge = readPad(right, InputComponent.A_Button, this.pads[1]);
@@ -143,11 +158,21 @@ export class XRControlSystem extends createSystem({ rigs: { required: [XRRigComp
       if (rig) for (const command of commandsFromPads(this.pads)) runCommand(rig, command);
     }
   }
+
+  private updatePinch(): void {
+    const xr = this.input.xr;
+    const strength = xr.isPrimary('hand', 'left') ? xr.visualAdapters.hand.left.getPinchStrength() : 0;
+    if (this.pinch.update(strength) !== 'press') return;
+    for (const entity of this.queries.rigs.entities) {
+      const rig = readRig(entity);
+      if (rig && !rig.panel?.hasComponent(Hovered)) rig.controls?.toggle();
+    }
+  }
 }
 
 /** Registers the XR systems and the rig on the diorama anchor entity. */
 export function installXRSystems(world: World, anchorEntity: Entity, anchor: Group): XRRig {
-  const rig: XRRig = { anchor, recenterRequested: false, placed: false, controls: null };
+  const rig: XRRig = { anchor, recenterRequested: false, placed: false, controls: null, panel: null };
   world.registerComponent(XRRigComponent);
   world.registerSystem(XRPlacementSystem);
   world.registerSystem(XRControlSystem);

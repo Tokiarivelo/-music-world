@@ -10,7 +10,6 @@
  */
 import {
   createSystem,
-  Hovered,
   PanelDocument,
   PanelUI,
   PokeInteractable,
@@ -40,15 +39,13 @@ interface UIElement {
 
 /** What the panel shows last; elements are updated only when a value changes. */
 interface PanelView {
-  title: HTMLLikeText;
-  time: HTMLLikeText;
+  title: UIElement;
+  time: UIElement;
   progress: UIElement;
-  play: HTMLLikeText;
+  play: UIElement;
   templates: UIElement[];
   shown: { time: string; percent: number; playing: boolean | null; title: string; templatesKey: string };
 }
-
-type HTMLLikeText = UIElement;
 
 export interface PanelBinding {
   /** The panel entity. */
@@ -157,11 +154,6 @@ export class XRPanelSystem extends createSystem({
       });
     }
   }
-
-  /** True while a pointer hovers the panel (a pinch is then a panel click, not a play toggle). */
-  isHovered(): boolean {
-    return !!this.binding?.entity.hasComponent(Hovered);
-  }
 }
 
 /** Creates the panel entity under the diorama anchor and registers its system. */
@@ -175,6 +167,7 @@ export function installXRPanel(world: World, anchorEntity: Entity, rig: XRRig): 
   entity.addComponent(PanelUI, { config: VR_PANEL_URL });
   entity.addComponent(RayInteractable);
   entity.addComponent(PokeInteractable);
+  rig.panel = entity;
   const binding: PanelBinding = { entity, anchorEntity, rig };
   world.registerSystem(XRPanelSystem);
   world.getSystem(XRPanelSystem)?.bind(binding);

@@ -12,7 +12,7 @@
 - [x] 4. (7b, P1) Spatial panel: UIKitML markup, `PanelUI` entity on the anchor, time / progress, play, restart,
   seek ±10 s, template picker, recenter, exit VR; hidden on the desktop.
   - _Requirements: 4.1–4.5_
-- [ ] 5. (7b, P1) Hand pinch: `PinchGesture` (0.75 / 0.6 hysteresis), left-hand pinch toggles play unless the panel
+- [x] 5. (7b, P1) Hand pinch: `PinchGesture` (0.75 / 0.6 hysteresis), left-hand pinch toggles play unless the panel
   is hovered; IWER check with hands.
   - _Requirements: 5.1–5.3_
 - [ ] 6. (7c, P1) Performance pass in IWER (draw calls with panel and controllers, frame time, memory after seeks and

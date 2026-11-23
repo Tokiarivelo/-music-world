@@ -123,3 +123,6 @@ export const VR_PANEL_TILT_DEG = 30;
 export const VR_PANEL_SEEK_STEP_SEC = 10;
 /** Template buttons in the panel markup (`mw-tpl-0` …). */
 export const VR_PANEL_TEMPLATE_SLOTS = 4;
+/** Hand pinch (07-xr-mode requirement 5, xr-iwsdk.md): press / release thresholds on IWSDK's 0..1 pinch strength. */
+export const PINCH_PRESS = 0.75;
+export const PINCH_RELEASE = 0.6;
