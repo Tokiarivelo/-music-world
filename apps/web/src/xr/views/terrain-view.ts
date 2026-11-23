@@ -23,6 +23,7 @@ import type { WorldState } from '@/engine/world-state';
 import {
   CRACK_BASE_INTENSITY,
   CRACK_PULSE_INTENSITY,
+  CRACK_REST_LIGHT,
   CRACK_REST_MIX,
   PLATE_CENTRE_COOL,
   PLATE_CENTRE_LIGHT,
@@ -94,7 +95,7 @@ export function buildPlateTop(plan: SpawnPlan, field: TerrainField): BufferGeome
       const ndl = Math.max(0, normal.dot(light));
       mountain
         .copy(terrain)
-        .multiplyScalar(lightness(0.7 + 1.5 * ndl))
+        .multiplyScalar(lightness(0.5 + 0.8 * ndl))
         .lerp(lit, 0.03 * ndl * ndl);
       c = mountain.lerp(plate, 1 - Math.min(1, h / MOUNTAIN_BLEND_HEIGHT)).clone();
     }
@@ -134,7 +135,10 @@ export class TerrainView implements WorldView {
     this.object.add(new Mesh(sides, sideMaterial));
     this.disposables.push(top, topMaterial, sides, sideMaterial);
 
-    this.crackRest = new Color(palette.terrain).lerp(new Color(palette.staff), CRACK_REST_MIX);
+    // At rest the cracks are a shade darker than the plate (dried mud), with a faint cool rim of light.
+    this.crackRest = new Color(palette.terrain)
+      .multiplyScalar(lightness(CRACK_REST_LIGHT))
+      .lerp(new Color(palette.staff), CRACK_REST_MIX);
     this.crackPulse = new Color(palette.secondary).lerp(new Color(palette.primary), 0.5);
     this.crackMaterial = new LineBasicMaterial({ color: this.crackRest.clone(), transparent: true, opacity: 0.85 });
     if (terrain.style === 'cracked_plate') {

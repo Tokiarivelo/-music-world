@@ -27,8 +27,32 @@ function building(): BufferGeometry {
   return mergeGeometries([body.toNonIndexed(), top.toNonIndexed()]) ?? body;
 }
 
+/** Needle heights of one equalizer cluster (fraction of the instance height), tallest in the middle. */
+const NEEDLE_HEIGHTS = [0.32, 0.5, 0.42, 0.7, 0.86, 1, 0.78, 0.9, 0.62, 0.46, 0.55, 0.36, 0.28];
+const NEEDLE_RADIUS = 0.035;
+/** Brightness of a needle at its tip relative to its base (vertex colors, additive glow). */
+const NEEDLE_TIP_BRIGHTNESS = 0.15;
+
+/**
+ * Equalizer spike cluster (04-default-template requirement 5.2): thin 4-sided needles side by side with an equalizer
+ * envelope, staggered in depth; vertex colors fade from the base to the tip (additive material).
+ */
 function spike(): BufferGeometry {
-  return baseAtZero(new ConeGeometry(0.5, 1, 4, 1), 1);
+  const parts = NEEDLE_HEIGHTS.map((h, i) => {
+    const x = -0.5 + (i + 0.5) / NEEDLE_HEIGHTS.length;
+    const z = ((i * 7) % 5) / 5 - 0.4;
+    const needle = new ConeGeometry(NEEDLE_RADIUS, h, 4, 1, true).translate(x, h / 2, z * 0.6).toNonIndexed();
+    const pos = needle.getAttribute('position');
+    const colors = new Float32Array(pos.count * 3);
+    for (let v = 0; v < pos.count; v++) {
+      const b = 1 - (1 - NEEDLE_TIP_BRIGHTNESS) * (pos.getY(v) / h);
+      colors.set([b, b, b], v * 3);
+    }
+    needle.setAttribute('color', new Float32BufferAttribute(colors, 3));
+    needle.deleteAttribute('uv');
+    return needle;
+  });
+  return mergeGeometries(parts) ?? parts[0]!;
 }
 
 /** Summits of the ridge shape (x, z, radius, height) in the unit footprint: a main peak and two shoulders. */
