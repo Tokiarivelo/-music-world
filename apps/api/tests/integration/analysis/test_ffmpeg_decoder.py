@@ -28,12 +28,7 @@ async def test_flac_and_mp3_are_decoded(tmp_path: Path) -> None:
     src.write_bytes(wav_bytes(seconds=1.0))
     for ext in ("flac", "mp3"):
         encoded = tmp_path / f"in.{ext}"
-        assert (
-            __import__("subprocess")
-            .run(["ffmpeg", "-v", "error", "-y", "-i", str(src), str(encoded)], check=False)
-            .returncode
-            == 0
-        )
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(src), str(encoded)], check=True)
         decoded = await FfmpegDecoder().decode(encoded, tmp_path / f"{ext}.wav")
         assert abs(decoded.duration_sec - 1.0) < 0.1
 

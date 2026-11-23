@@ -75,3 +75,9 @@ requirement 7.2; generated TS: `AnalysisSchema` / type `Analysis`.
 - **Decode (task 3)**: `analysis/infrastructure/ffmpeg_decoder.py` writes a 44.1 kHz stereo 16-bit WAV (decoding
   1 s past the limit, so a file longer than 180 s raises `AUDIO_TOO_LONG` instead of being truncated). Upload
   already rejects long files with ffprobe; decode re-checks the real decoded length.
+- **Separate (task 4)**: `analysis/infrastructure/demucs_separator.py` (htdemucs, `shifts=0` for determinism,
+  `overlap=0.25`), stems written as 44.1 kHz stereo 16-bit FLAC and stored under `stems/<sha256>/<stem>.flac` by
+  `AnalyzeAudio` before transcription starts. Dependency choices: `docs/decisions/001-analysis-ml-stack.md`.
+  **Measured** on a 3-minute synthesized track (`scripts/synth_song.py`, 4-core i7-4750HQ, torch 2.15 CPU,
+  4 threads): separation **325.7 s wall / 652 s CPU**, peak RSS **2.0 GB**; model load 79 s on first use (download
+  included). Separation is ~60 % of the whole pipeline and alone takes half of the 10-minute budget on this laptop.

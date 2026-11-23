@@ -84,3 +84,8 @@ select = ["E", "F", "I", "B", "UP", "SIM"]
 python_version = "3.12"
 strict = true
 packages = ["music_world"]
+
+[[tool.mypy.overrides]]
+# Analysis libraries without type information (used only in analysis/infrastructure).
+module = ["soundfile", "demucs.*", "basic_pitch.*", "pretty_midi", "resampy"]
+ignore_missing_imports = true

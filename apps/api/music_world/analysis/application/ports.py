@@ -4,10 +4,13 @@ Stages exchange files (WAV/FLAC paths on the worker's disk) and plain domain dat
 never touches numpy, torch or librosa.
 """
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
 from music_world.analysis.domain.audio import DecodedAudio
+from music_world.analysis.domain.lyrics import LyricLine
+from music_world.analysis.domain.notes import RawNote
 from music_world.schemas.analysis import AnalysisResult
 
 
@@ -15,6 +18,59 @@ class AudioDecoder(Protocol):
     """Decodes any accepted upload to a 44.1 kHz stereo WAV; raises `AudioDecodeError` / `AudioTooLongError`."""
 
     async def decode(self, source: Path, target: Path) -> DecodedAudio: ...
+
+
+class Separator(Protocol):
+    """Splits the mix into the `STEMS` files inside `out_dir`; raises `SeparationError`."""
+
+    async def separate(self, mix: DecodedAudio, out_dir: Path) -> dict[str, Path]: ...
+
+
+class NoteTranscriber(Protocol):
+    """Notes of one stem file; raises `TranscriptionError`."""
+
+    async def transcribe(self, stem_path: Path, stem: str) -> list[RawNote]: ...
+
+
+@dataclass(frozen=True)
+class Rhythm:
+    tempo_bpm: float
+    beats: tuple[float, ...]
+    kicks: tuple[float, ...]
+    rms: tuple[float, ...]  # mix RMS sampled at `ENERGY_RATE_HZ`, not normalised
+
+
+class RhythmAnalyzer(Protocol):
+    async def analyze(self, mix: Path, drums: Path | None) -> Rhythm: ...
+
+
+@dataclass(frozen=True)
+class Structure:
+    chroma_profile: tuple[float, ...]  # 12 values, C first
+    boundaries: tuple[float, ...]  # inner cut times, seconds
+    clusters: tuple[int, ...]  # repetition cluster per segment (len(boundaries) + 1)
+
+
+class StructureAnalyzer(Protocol):
+    async def analyze(self, mix: Path) -> Structure: ...
+
+
+class LyricsTranscriber(Protocol):
+    """Timed lyrics from the vocal stem; returns [] when nothing usable was heard. Never logs the text."""
+
+    async def transcribe(self, vocals: Path, duration_sec: float) -> list[LyricLine]: ...
+
+
+class ProgressReporter(Protocol):
+    async def __call__(self, progress: float, stage: str | None = None) -> None: ...
+
+
+class ObjectStore(Protocol):
+    async def put_file(self, key: str, path: Path, content_type: str) -> None: ...
+    async def put_bytes(self, key: str, data: bytes, content_type: str) -> None: ...
+    async def get_bytes(self, key: str) -> bytes | None: ...
+    async def get_file(self, key: str, dest: Path) -> bool: ...
+    async def exists(self, key: str) -> bool: ...
 
 
 class AnalysisRepository(Protocol):
