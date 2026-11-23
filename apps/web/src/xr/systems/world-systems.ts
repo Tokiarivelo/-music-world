@@ -132,8 +132,11 @@ export class PerfSystem extends createSystem({}) {
 }
 
 export interface MusicScene {
-  /** The diorama group (plate centre at its origin), placed at table height in front of the user. */
+  /** The diorama group (plate centre at its origin, scaled to `DIORAMA_WIDTH_M`), child of `anchor`. */
   readonly root: Group;
+  /** Unscaled transform of the diorama (position + yaw): moved by the VR tabletop placement (07-xr-mode). */
+  readonly anchor: Group;
+  readonly anchorEntity: Entity;
   setScene(plan: SpawnPlan, clock: WorldClock): void;
 }
 
@@ -147,18 +150,23 @@ export function installMusicSystems(world: World, options: { perfLog?: boolean }
   world.registerSystem(FxSystem);
   if (options.perfLog) world.registerSystem(PerfSystem);
 
+  const anchor = new Group();
+  anchor.name = 'music-world-anchor';
+  anchor.position.set(DIORAMA_POSITION.x, DIORAMA_POSITION.y, DIORAMA_POSITION.z);
   const root = new Group();
   root.name = 'music-world';
-  root.position.set(DIORAMA_POSITION.x, DIORAMA_POSITION.y, DIORAMA_POSITION.z);
   root.add(new AmbientLight(0xffffff, 0.6));
   const sun = new DirectionalLight(0xc9b8ff, 1.2);
   sun.position.set(-4, 10, 6);
   root.add(sun);
-  const entity = world.createTransformEntity(root);
+  anchor.add(root);
+  const entity = world.createTransformEntity(anchor);
   entity.addComponent(ClockComponent, { root });
 
   return {
     root,
+    anchor,
+    anchorEntity: entity,
     setScene(plan, clock) {
       root.scale.setScalar(DIORAMA_WIDTH_M / plan.template.terrain.size);
       world.scene.background = new Color(plan.template.palette.background);

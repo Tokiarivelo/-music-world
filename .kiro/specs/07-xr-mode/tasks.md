@@ -2,7 +2,7 @@
 
 - [x] 1. Create this spec from `PROJECT.md` §7, `xr-iwsdk.md` and the `xr-verify` skill.
   - _Requirements: all_
-- [ ] 2. (7a, P0) Enter / exit VR: hand tracking optional feature, session state to the 2D button, desktop pose
+- [x] 2. (7a, P0) Enter / exit VR: hand tracking optional feature, session state to the 2D button, desktop pose
   restored; anchor group; tabletop placement (pure `tabletopPose`, `yawFromQuaternion`) on session start.
   - _Requirements: 1.1–1.5, 2.1, 2.2, 2.4_
 - [ ] 3. (7a, P0) Playback in VR: `WorldControls` from the player, controller command map (A/X toggle, thumbstick

@@ -105,3 +105,9 @@ export const PARTICLE_HEIGHT = 1.2;
 export const PARTICLE_SIZE = 0.07;
 /** Particle drift speed (radians per song second) — derived from t, never from frame deltas. */
 export const PARTICLE_SPIN = 0.002;
+
+/** VR tabletop placement (07-xr-mode requirement 2): head → plate centre distance on the floor, plate top height. */
+export const VR_DIORAMA_DISTANCE_M = 1.3;
+export const VR_TABLE_HEIGHT_M = DIORAMA_POSITION.y;
+/** A head pose lower than this (m above the floor) is not tracked yet: wait before placing the plate. */
+export const VR_MIN_HEAD_HEIGHT_M = 0.3;

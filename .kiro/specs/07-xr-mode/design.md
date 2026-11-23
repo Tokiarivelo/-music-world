@@ -93,3 +93,13 @@ Commands are executed through `WorldControls` (given by React with the scene): `
   development). The dev host exposes the emulated device as `window.__mwXRDevice` (development only) so the script can
   press A, push the thumbstick and switch to hands. It records placement, play state, `renderer.info` and frame time.
 - Quest 3 steps (human): see § Human checks.
+
+## As built (Phase 7, 2026-11-25)
+
+- Task 2: `xr/xr-placement.ts` + property tests; `xr/systems/xr-systems.ts` (`XRRigComponent`,
+  `XRPlacementSystem`); `installMusicSystems` now returns `anchor` (transform entity, position + yaw) with the scaled
+  `root` as a plain child. `WorldHandle.onSessionChange` drives the 2D "Enter VR" / "Exit VR" label.
+- Development hooks (only when `NODE_ENV === 'development'`): `window.__mwWorld`, `window.__mwXRDevice`, read by
+  `apps/web/scripts/xr-check.mjs` (`playwright-core` dev dependency, Chromium from `~/.cache/ms-playwright`).
+- IWER pitfall: while a session runs, IWER's runtime layer covers the page, so the 2D "Exit VR" button cannot be
+  clicked with the mouse in the emulator (the script clicks it programmatically; the spatial panel offers Exit VR).

@@ -12,6 +12,7 @@ export default function WorldCanvas({ scene }: WorldCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<WorldHandle | null>(null);
   const [vrSupported, setVrSupported] = useState(false);
+  const [immersive, setImmersive] = useState(false);
   const [failed, setFailed] = useState(false);
   const [handle, setHandle] = useState<WorldHandle | null>(null);
 
@@ -49,6 +50,9 @@ export default function WorldCanvas({ scene }: WorldCanvasProps) {
     if (handle && scene) handle.load(scene);
   }, [handle, scene]);
 
+  // The 2D button follows the XR session (07-xr-mode requirement 1.3).
+  useEffect(() => handle?.onSessionChange(setImmersive), [handle]);
+
   return (
     <div className="relative h-full w-full">
       <div ref={containerRef} aria-label={WORLD_VIEW_TEXT.canvasLabel} className="h-full w-full" role="img" />
@@ -56,10 +60,10 @@ export default function WorldCanvas({ scene }: WorldCanvasProps) {
       {vrSupported && (
         <button
           className="absolute right-4 top-4 z-10 rounded-full bg-[var(--mw-accent)] px-6 py-3 font-medium text-black"
-          onClick={() => handleRef.current?.enterVR()}
+          onClick={() => (immersive ? handleRef.current?.exitVR() : handleRef.current?.enterVR())}
           type="button"
         >
-          {WORLD_VIEW_TEXT.enterVR}
+          {immersive ? WORLD_VIEW_TEXT.exitVR : WORLD_VIEW_TEXT.enterVR}
         </button>
       )}
     </div>

@@ -5,6 +5,24 @@ import { DEFAULT_TEMPLATE } from '@/templates/default';
 import { DESKTOP_CAMERA_AZIMUTH_DEG, DESKTOP_CAMERA_DISTANCE_M, DESKTOP_CAMERA_ELEVATION_DEG } from './constants';
 import { createMusicWorld, desktopCameraPose, type WorldHostDeps } from './world-host';
 
+/** Minimal preact-like signal: `subscribe` calls back at once, then on each change. */
+function fakeSignal(initial: string) {
+  const listeners = new Set<(value: string) => void>();
+  const signal = {
+    value: initial,
+    set(value: string) {
+      signal.value = value;
+      listeners.forEach((fn) => fn(value));
+    },
+    subscribe(fn: (value: string) => void) {
+      listeners.add(fn);
+      fn(signal.value);
+      return () => listeners.delete(fn);
+    },
+  };
+  return signal;
+}
+
 function fakeDeps(withSession = false) {
   const worlds: Array<ReturnType<typeof makeWorld>> = [];
   const scene = { setScene: vi.fn() };
@@ -17,6 +35,7 @@ function fakeDeps(withSession = false) {
       destroy: vi.fn(),
       camera: { position: { set: vi.fn() }, lookAt: vi.fn(), fov: 50, updateProjectionMatrix: vi.fn() },
       session: withSession ? ({} as XRSession) : undefined,
+      visibilityState: fakeSignal(withSession ? 'visible' : 'non-immersive'),
       renderer: { dispose: vi.fn(), forceContextLoss: vi.fn(), domElement: canvas },
     };
   }
@@ -78,6 +97,22 @@ describe('createMusicWorld', () => {
   it('reports VR unsupported when WebXR is missing (Enter VR stays hidden)', async () => {
     const { deps } = fakeDeps();
     expect(await (await createMusicWorld(document.createElement('div'), deps)).isVRSupported()).toBe(false);
+  });
+});
+
+describe('WorldHandle.onSessionChange (07-xr-mode requirement 1.3)', () => {
+  it('reports the current state, then each session start and end, until unsubscribed', async () => {
+    const { deps, worlds } = fakeDeps();
+    const handle = await createMusicWorld(document.createElement('div'), deps);
+    const seen: boolean[] = [];
+    const off = handle.onSessionChange((immersive) => seen.push(immersive));
+    worlds[0]!.visibilityState.set('visible');
+    worlds[0]!.visibilityState.set('visible-blurred');
+    worlds[0]!.visibilityState.set('non-immersive');
+    off();
+    worlds[0]!.visibilityState.set('visible');
+    expect(seen).toEqual([false, true, true, false]);
+    handle.dispose();
   });
 });
 
