@@ -53,3 +53,11 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
 - Mutation check found a weak property: hashing only the low byte of each UTF-16 code unit survived the random-pair
   property (pairs rarely differ only in the high byte). Replaced by a targeted property that flips bits in either
   byte of the last code unit; all 3 mutants now fail. No hooks fired (outside Kiro IDE).
+
+### 2026-11-23 — 03-world-engine-core phase 2 tasks 1.2–5 (Claude Code as `world-builder`)
+
+- Task 1.2: new contract `music-world.template.v1` (pydantic → JSON Schema → zod). Found that the generator turned
+  every nested `$ref` into `z.any()` (the `Health.checks` object was unvalidated in TS): `$defs` are now inlined
+  before conversion. `engine/mapping.ts` with fast-check properties (first match wins, pitch threshold partition,
+  AND semantics). Mutation check: 5 mutants (strict `>` → `>=`, `findIndex` → `findLastIndex`, inverted chord test,
+  unordered `a-b` bounds, dropped velocity condition) all killed.
