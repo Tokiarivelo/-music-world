@@ -7,7 +7,7 @@
   - _Requirements: 1.2, 1.4_
 - [ ] 2. Spawn plan and world state
   - [x] 2.1 `buildSpawnPlan` with chord groups and slot budget.
-  - [ ] 2.2 `worldStateAt` with phases (onStaff, falling, growing, alive).
+  - [x] 2.2 `worldStateAt` with phases (onStaff, falling, growing, alive).
   - [ ] 2.3 Property tests: determinism, seek equivalence, monotonicity, budget.
   - _Requirements: 1.1–1.5, 2.1–2.4_
 - [ ] 3. Default template `neon-nocturne` as JSON in `apps/web/src/templates/default/` (palette, zones, mappings).
