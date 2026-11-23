@@ -38,6 +38,7 @@ export const ClockComponent = createComponent(
 );
 
 const CLOCK_PRIORITY = -100;
+const PERF_LOG_INTERVAL_SEC = 1;
 
 function read<T>(entity: Entity, key: 'clock' | 'plan' | 'state' | 'root'): T | null {
   return (entity.getValue(ClockComponent, key) as T | null) ?? null;
@@ -95,6 +96,41 @@ export const StaffSystem = viewSystem((plan) => new StaffView(plan));
 export const StructureSystem = viewSystem((plan) => new StructureView(plan));
 export const FxSystem = viewSystem((plan) => new FxView(plan));
 
+/** Snapshot of `renderer.info` (04-default-template requirement 7.3). */
+export interface PerfSample {
+  calls: number;
+  triangles: number;
+  geometries: number;
+  textures: number;
+}
+
+export function perfSample(info: {
+  render: { calls: number; triangles: number };
+  memory: { geometries: number; textures: number };
+}): PerfSample {
+  return {
+    calls: info.render.calls,
+    triangles: info.render.triangles,
+    geometries: info.memory.geometries,
+    textures: info.memory.textures,
+  };
+}
+
+/**
+ * Diagnostic only (`?perf=1`): logs draw calls and triangles of the last rendered frame once per second. The interval
+ * uses frame deltas because it schedules a log line, never a visual event.
+ */
+export class PerfSystem extends createSystem({}) {
+  private elapsed = 0;
+
+  update(delta: number): void {
+    this.elapsed += delta;
+    if (this.elapsed < PERF_LOG_INTERVAL_SEC) return;
+    this.elapsed = 0;
+    console.info(`[mw-perf] ${JSON.stringify(perfSample(this.renderer.info))}`);
+  }
+}
+
 export interface MusicScene {
   /** The diorama group (plate centre at its origin), placed at table height in front of the user. */
   readonly root: Group;
@@ -102,13 +138,14 @@ export interface MusicScene {
 }
 
 /** Registers the component and systems and creates the clock entity with the diorama root. */
-export function installMusicSystems(world: World): MusicScene {
+export function installMusicSystems(world: World, options: { perfLog?: boolean } = {}): MusicScene {
   world.registerComponent(ClockComponent);
   world.registerSystem(ClockSystem, { priority: CLOCK_PRIORITY });
   world.registerSystem(TerrainSystem);
   world.registerSystem(StaffSystem);
   world.registerSystem(StructureSystem);
   world.registerSystem(FxSystem);
+  if (options.perfLog) world.registerSystem(PerfSystem);
 
   const root = new Group();
   root.name = 'music-world';

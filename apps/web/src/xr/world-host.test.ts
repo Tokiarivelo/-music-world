@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { DEMO_ANALYSIS as demo } from '@/engine/__fixtures__/demo-analysis';
 import { buildSpawnPlan } from '@/engine/spawn-plan';
 import { DEFAULT_TEMPLATE } from '@/templates/default';
-import { createMusicWorld, type WorldHostDeps } from './world-host';
+import { DESKTOP_CAMERA_AZIMUTH_DEG, DESKTOP_CAMERA_DISTANCE_M, DESKTOP_CAMERA_ELEVATION_DEG } from './constants';
+import { createMusicWorld, desktopCameraPose, type WorldHostDeps } from './world-host';
 
 function fakeDeps(withSession = false) {
   const worlds: Array<ReturnType<typeof makeWorld>> = [];
@@ -93,5 +94,19 @@ describe('WorldHandle.load', () => {
     handle.dispose();
     handle.load({ analysis: demo, template: DEFAULT_TEMPLATE, seed: 1, clock });
     expect(scene.setScene).toHaveBeenCalledOnce();
+  });
+});
+
+describe('desktop camera (04-default-template requirement 1)', () => {
+  it('looks down at the configured elevation and azimuth from the configured distance', () => {
+    const { position, target } = desktopCameraPose();
+    const dx = position.x - target.x;
+    const dy = position.y - target.y;
+    const dz = position.z - target.z;
+    expect(Math.hypot(dx, dy, dz)).toBeCloseTo(DESKTOP_CAMERA_DISTANCE_M, 9);
+    expect((Math.asin(dy / DESKTOP_CAMERA_DISTANCE_M) * 180) / Math.PI).toBeCloseTo(DESKTOP_CAMERA_ELEVATION_DEG, 9);
+    expect((Math.atan2(dx, dz) * 180) / Math.PI).toBeCloseTo(DESKTOP_CAMERA_AZIMUTH_DEG, 9);
+    expect(DESKTOP_CAMERA_ELEVATION_DEG).toBeGreaterThanOrEqual(25);
+    expect(DESKTOP_CAMERA_ELEVATION_DEG).toBeLessThanOrEqual(35);
   });
 });

@@ -5,7 +5,7 @@
 > **Contexte :** projet développé avec **Kiro** pour le hackathon **Kiroween 2026** (catégorie visée : **Frankenstein**).
 > Soumission avant le **4 décembre 2026, 14:00 PT**. Les documents Kiro (`.kiro/`) sont en anglais, comme l'exigent les règles.
 
-Dernière mise à jour : 23 novembre 2026.
+Dernière mise à jour : 24 novembre 2026.
 
 ---
 
@@ -59,7 +59,7 @@ Trois modes de palette :
 
 Les notes et leur disposition restent celles de l'image tant que le template ne les change pas.
 
-**Rendu des notes :** police musicale **Bravura** (SMuFL, licence OFL), affichée en texte SDF. C'est net en VR et peu coûteux.
+**Rendu des notes :** police musicale **Bravura** (SMuFL, licence OFL) : les contours des glyphes sont extraits de la police (`scripts/extract_bravura_glyphs.py`) et affichés en géométrie instanciée. C'est net en VR et peu coûteux.
 
 ---
 

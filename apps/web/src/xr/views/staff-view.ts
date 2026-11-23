@@ -1,23 +1,22 @@
 /**
- * StaffSystem and NoteSystem views (task 4.2, requirements 3.1–3.4): five glowing lines along the staff path with a
- * treble clef at both ends, and note glyphs (quarter, eighth, sixteenth) that slide to the playhead then fall.
- *
- * Deviation (recorded in design.md): glyphs are procedural meshes in one InstancedMesh per glyph kind, not Bravura
- * SDF text yet — no SDF text dependency in the bundle; Bravura is a Phase 4 (default look) item.
+ * StaffSystem and NoteSystem views (03-world-engine-core task 4.2; 04-default-template requirements 3 and 4): five
+ * glowing lines along the staff path with a soft additive halo, a Bravura G clef at both ends, and Bravura note glyphs
+ * (quarter, eighth, sixteenth) that slide to the playhead then fall, each with a halo quad. One InstancedMesh per
+ * glyph kind plus one for all halos; glow comes from unlit additive materials (no post-processing).
  */
 import {
-  BoxGeometry,
+  AdditiveBlending,
   BufferGeometry,
-  CatmullRomCurve3,
   Color,
+  DoubleSide,
   Group,
   InstancedMesh,
   Matrix4,
   Mesh,
   MeshBasicMaterial,
+  PlaneGeometry,
   QuadraticBezierCurve3,
   Quaternion,
-  SphereGeometry,
   TubeGeometry,
   Vector3,
 } from 'three';
@@ -27,36 +26,25 @@ import { staffPoint, type StaffPath } from '@/engine/staff';
 import type { GlyphKind } from '@/engine/types';
 import type { WorldState } from '@/engine/world-state';
 import {
-  CLEF_TUBE_RADIUS,
+  CLEF_SCALE,
   GLYPH_CAPACITY_MAX,
-  GLYPH_HEAD_SCALE,
+  GLYPH_HALO_OPACITY,
+  GLYPH_SCALE,
+  STAFF_HALO_OPACITY,
+  STAFF_HALO_RADIUS,
   STAFF_TUBE_RADIUS,
   STAFF_TUBE_SEGMENTS,
 } from '../constants';
+import { bravuraGeometry, noteGlyphGeometry } from '../glyphs/glyph-geometry';
+import { radialAlphaTexture } from '../glyphs/halo-texture';
 import type { WorldView } from './world-view';
 
 export const GLYPH_KINDS: readonly GlyphKind[] = ['quarter', 'eighth', 'sixteenth'];
-const CLEF_U = 0.025;
-/** Treble clef outline in line-gap units (x along the staff, y up; y = 0 bottom line, y = 4 top line). */
-const CLEF_POINTS: ReadonlyArray<readonly [number, number]> = [
-  [0.3, 1.2],
-  [0, 1.55],
-  [-0.45, 1.1],
-  [-0.25, 0.45],
-  [0.4, 0.35],
-  [0.85, 1.0],
-  [0.65, 2.0],
-  [0.05, 2.8],
-  [-0.3, 3.9],
-  [0, 5.0],
-  [0.35, 4.6],
-  [0.2, 3.6],
-  [0, 2.0],
-  [-0.1, 0],
-  [-0.15, -1.0],
-  [-0.4, -1.3],
-  [-0.6, -1.0],
-];
+const CLEF_U = 0.012;
+/** The G clef's origin sits on the G line: the second line from the bottom. */
+const CLEF_LINE = 1;
+/** Halo quad around a glyph, in staff spaces: centred between the notehead and the stem top. */
+const HALO_SIZE = { w: 3.2, h: 5.2, x: 0.35, y: 1.5 } as const;
 
 function v(p: { x: number; y: number; z: number }): Vector3 {
   return new Vector3(p.x, p.y, p.z);
@@ -75,42 +63,42 @@ function lineCurve(path: StaffPath, line: number): QuadraticBezierCurve3 {
   return new QuadraticBezierCurve3(lift(path.start), lift(path.control), lift(path.end));
 }
 
+/** Bravura G clef standing on the staff at u (requirement 3.2). */
 function clefGeometry(path: StaffPath, u: number): BufferGeometry {
-  const curve = new CatmullRomCurve3(CLEF_POINTS.map(([x, y]) => new Vector3(x * path.lineGap, y * path.lineGap, 0)));
-  const geometry = new TubeGeometry(curve, 64, CLEF_TUBE_RADIUS, 6, false);
+  const size = path.lineGap * CLEF_SCALE;
+  const geometry = bravuraGeometry('gClef').toNonIndexed().scale(size, size, size);
+  geometry.translate(0, CLEF_LINE * path.lineGap, 0);
   const p = staffPoint(path, u);
   return geometry.rotateY(staffHeading(path, u)).translate(p.x, p.y, p.z);
 }
 
+function stripUv(g: BufferGeometry): BufferGeometry {
+  g.deleteAttribute('uv');
+  g.deleteAttribute('normal');
+  return g;
+}
+
 /** The five lines and both clefs merged into one mesh (one draw call). */
-export function buildStaffGeometry(path: StaffPath, withClefs: boolean): BufferGeometry {
+export function buildStaffGeometry(path: StaffPath, withClefs: boolean, radius = STAFF_TUBE_RADIUS): BufferGeometry {
   const parts: BufferGeometry[] = [];
   for (let line = 0; line < 5; line++) {
-    parts.push(new TubeGeometry(lineCurve(path, line), STAFF_TUBE_SEGMENTS, STAFF_TUBE_RADIUS, 5, false));
+    parts.push(stripUv(new TubeGeometry(lineCurve(path, line), STAFF_TUBE_SEGMENTS, radius, 5, false).toNonIndexed()));
   }
-  if (withClefs) parts.push(clefGeometry(path, CLEF_U), clefGeometry(path, 1 - CLEF_U));
-  const merged = mergeGeometries(parts.map((g) => g.toNonIndexed()));
+  if (withClefs) parts.push(stripUv(clefGeometry(path, CLEF_U)), stripUv(clefGeometry(path, 1 - CLEF_U - 0.02)));
+  const merged = mergeGeometries(parts);
   if (!merged) throw new Error('staff geometry could not be merged');
   return merged;
 }
 
-/** Glyph in line-gap units, head centred on the origin, stem up on the right, 0–2 flags. */
+/** Bravura note glyph in staff spaces, notehead centred on the origin (requirement 4.1). */
 export function buildGlyphGeometry(kind: GlyphKind): BufferGeometry {
-  const head = new SphereGeometry(0.5, 10, 6).scale(1.3, 0.9, 0.45).rotateZ(0.35);
-  const stem = new BoxGeometry(0.09, 3.4, 0.09).translate(0.6, 1.7, 0);
-  const parts = [head, stem];
-  const flags = kind === 'eighth' ? 1 : kind === 'sixteenth' ? 2 : 0;
-  for (let f = 0; f < flags; f++) {
-    parts.push(new BoxGeometry(0.75, 0.16, 0.08).rotateZ(-0.7).translate(0.88, 3.05 - f * 0.55, 0));
-  }
-  const merged = mergeGeometries(parts.map((g) => g.toNonIndexed()));
-  if (!merged) throw new Error('glyph geometry could not be merged');
-  return merged;
+  return noteGlyphGeometry(kind);
 }
 
 export class StaffView implements WorldView {
   readonly object = new Group();
   private readonly glyphMeshes = new Map<GlyphKind, InstancedMesh>();
+  private readonly halos: InstancedMesh;
   private readonly disposables: Array<{ dispose(): void }> = [];
   private readonly m = new Matrix4();
   private readonly q = new Quaternion();
@@ -122,13 +110,27 @@ export class StaffView implements WorldView {
     const { palette, staff } = plan.template;
     this.object.name = 'staff';
     const glow = new Color(palette.staff).multiplyScalar(staff.glow);
-    const material = new MeshBasicMaterial({ color: glow });
+    const material = new MeshBasicMaterial({ color: glow, side: DoubleSide });
     const staffGeometry = buildStaffGeometry(plan.staff, staff.clef === 'treble');
     this.object.add(new Mesh(staffGeometry, material));
     this.disposables.push(staffGeometry, material);
 
-    const size = plan.staff.lineGap * GLYPH_HEAD_SCALE;
+    // Soft halo of the lines: the same curves as wider, faint additive tubes (fake bloom, requirement 3.1).
+    const haloColor = new Color(palette.staff).lerp(new Color(palette.secondary), 0.35);
+    const haloMaterial = new MeshBasicMaterial({
+      color: haloColor,
+      transparent: true,
+      opacity: STAFF_HALO_OPACITY * staff.glow,
+      blending: AdditiveBlending,
+      depthWrite: false,
+    });
+    const haloGeometry = buildStaffGeometry(plan.staff, false, STAFF_HALO_RADIUS);
+    this.object.add(new Mesh(haloGeometry, haloMaterial));
+    this.disposables.push(haloGeometry, haloMaterial);
+
+    const size = plan.staff.lineGap * GLYPH_SCALE;
     this.scale = new Vector3(size, size, size);
+    let capacity = 0;
     for (const kind of GLYPH_KINDS) {
       const total = plan.records.filter((r) => r.glyph === kind).length;
       if (total === 0) continue;
@@ -139,11 +141,31 @@ export class StaffView implements WorldView {
       this.glyphMeshes.set(kind, mesh);
       this.object.add(mesh);
       this.disposables.push(geometry);
+      capacity += mesh.instanceMatrix.count;
     }
+
+    // One halo quad per visible glyph (requirement 4.2), all in one InstancedMesh.
+    const haloTexture = radialAlphaTexture();
+    const glyphHaloMaterial = new MeshBasicMaterial({
+      color: haloColor,
+      alphaMap: haloTexture,
+      transparent: true,
+      opacity: GLYPH_HALO_OPACITY * staff.glow,
+      blending: AdditiveBlending,
+      depthWrite: false,
+      side: DoubleSide,
+    });
+    const quad = new PlaneGeometry(HALO_SIZE.w, HALO_SIZE.h).translate(HALO_SIZE.x, HALO_SIZE.y, -0.01);
+    this.halos = new InstancedMesh(quad, glyphHaloMaterial, Math.max(1, capacity));
+    this.halos.count = 0;
+    this.halos.frustumCulled = false;
+    this.object.add(this.halos);
+    this.disposables.push(quad, haloTexture, glyphHaloMaterial);
   }
 
   update(state: WorldState): void {
     const counts = new Map<GlyphKind, number>();
+    let halos = 0;
     const place = (glyph: GlyphKind, position: { x: number; y: number; z: number }, u: number) => {
       const mesh = this.glyphMeshes.get(glyph);
       const n = counts.get(glyph) ?? 0;
@@ -152,6 +174,7 @@ export class StaffView implements WorldView {
       this.m.compose(this.pos.set(position.x, position.y, position.z), this.q, this.scale);
       mesh.setMatrixAt(n, this.m);
       counts.set(glyph, n + 1);
+      if (halos < this.halos.instanceMatrix.count) this.halos.setMatrixAt(halos++, this.m);
     };
     for (const n of state.notesOnStaff) place(n.glyph, n.position, n.u);
     for (const f of state.fallingNotes) place(f.glyph, f.position, this.plan.staff.playheadU);
@@ -159,6 +182,12 @@ export class StaffView implements WorldView {
       mesh.count = counts.get(kind) ?? 0;
       mesh.instanceMatrix.needsUpdate = true;
     }
+    this.halos.count = halos;
+    this.halos.instanceMatrix.needsUpdate = true;
+  }
+
+  visibleHalos(): number {
+    return this.halos.count;
   }
 
   visibleGlyphs(): number {

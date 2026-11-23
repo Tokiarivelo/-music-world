@@ -10,9 +10,11 @@ import type * as IWSDK from '@iwsdk/core';
 import { buildSpawnPlan } from '@/engine/spawn-plan';
 import type { EngineAnalysis, WorldTemplate } from '@/engine/types';
 import {
-  DESKTOP_CAMERA_DIRECTION,
+  DESKTOP_CAMERA_AZIMUTH_DEG,
   DESKTOP_CAMERA_DISTANCE_M,
+  DESKTOP_CAMERA_ELEVATION_DEG,
   DESKTOP_CAMERA_FOV_DEG,
+  DESKTOP_CAMERA_TARGET_OFFSET,
   DIORAMA_POSITION,
 } from './constants';
 import type { MusicScene, WorldClock } from './systems/world-systems';
@@ -72,10 +74,34 @@ const defaultDeps: WorldHostDeps = {
   },
   async installScene(world) {
     const { installMusicSystems } = await import('./systems/world-systems');
-    return installMusicSystems(world as IWSDK.World);
+    // `?perf=1` logs draw calls and triangles once per second (04-default-template requirement 7.3).
+    const perfLog = typeof location !== 'undefined' && new URLSearchParams(location.search).get('perf') === '1';
+    return installMusicSystems(world as IWSDK.World, { perfLog });
   },
   xr: () => (typeof navigator === 'undefined' ? undefined : navigator.xr),
 };
+
+type Point = { x: number; y: number; z: number };
+
+/** Desktop isometric pose (04-default-template requirement 1): azimuth / elevation around the diorama centre. */
+export function desktopCameraPose(): { position: Point; target: Point } {
+  const az = (DESKTOP_CAMERA_AZIMUTH_DEG * Math.PI) / 180;
+  const el = (DESKTOP_CAMERA_ELEVATION_DEG * Math.PI) / 180;
+  const target = {
+    x: DIORAMA_POSITION.x + DESKTOP_CAMERA_TARGET_OFFSET.x,
+    y: DIORAMA_POSITION.y + DESKTOP_CAMERA_TARGET_OFFSET.y,
+    z: DIORAMA_POSITION.z + DESKTOP_CAMERA_TARGET_OFFSET.z,
+  };
+  const r = DESKTOP_CAMERA_DISTANCE_M;
+  return {
+    position: {
+      x: target.x + r * Math.cos(el) * Math.sin(az),
+      y: target.y + r * Math.sin(el),
+      z: target.z + r * Math.cos(el) * Math.cos(az),
+    },
+    target,
+  };
+}
 
 export function createMusicWorld(container: HTMLDivElement, deps: WorldHostDeps = defaultDeps): Promise<WorldHandle> {
   const run = creationQueue.then(() => buildWorld(container, deps));
@@ -88,13 +114,11 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   const world = await deps.createWorld(container);
   const scene = await deps.installScene(world);
   // Desktop isometric view of the diorama; in XR the headset pose drives the camera (restored on exit by IWSDK).
-  const d = DESKTOP_CAMERA_DIRECTION;
-  const norm = Math.hypot(d.x, d.y, d.z);
-  const k = DESKTOP_CAMERA_DISTANCE_M / norm;
+  const { position, target } = desktopCameraPose();
   world.camera.fov = DESKTOP_CAMERA_FOV_DEG;
   world.camera.updateProjectionMatrix();
-  world.camera.position.set(DIORAMA_POSITION.x + d.x * k, DIORAMA_POSITION.y + d.y * k, DIORAMA_POSITION.z + d.z * k);
-  world.camera.lookAt(DIORAMA_POSITION.x, DIORAMA_POSITION.y, DIORAMA_POSITION.z);
+  world.camera.position.set(position.x, position.y, position.z);
+  world.camera.lookAt(target.x, target.y, target.z);
   let disposed = false;
 
   return {

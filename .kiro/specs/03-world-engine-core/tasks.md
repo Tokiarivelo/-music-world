@@ -20,7 +20,7 @@
   - _Requirements: 3.1–3.5, 4.1, 4.2, 5.1_
 - [x] 5. Wire `AudioClock` into a shared `ClockComponent`; play the demo fixture on `/play/demo`.
   - _Requirements: 5.2_
-- [ ] 6. Checkpoint: side-by-side screenshot with the reference image; adjust camera, palette and layout.
+- [x] 6. Checkpoint: side-by-side screenshot with the reference image; adjust camera, palette and layout.
   - _Requirements: 4.1_
 - [ ] 7. Performance pass: count draw calls, measure fps on desktop and Quest 3 (or IWER as a first check).
   - _Requirements: 5.1, 5.3_

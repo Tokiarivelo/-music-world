@@ -108,7 +108,8 @@ from `@iwsdk/vite-plugin-dev` and are **not available** in Next.js. Therefore:
 - ≥ 72 fps; request 90 Hz with `updateTargetFrameRate(90)` only if the budget holds.
 - < 100 draw calls: one `InstancedMesh` per shape kind, shared materials, no per-note meshes.
 - Compressed textures (KTX2), total texture memory < 256 MB.
-- Note glyphs: Bravura (SMuFL, OFL) rendered as SDF text.
+- Note glyphs: Bravura (SMuFL, OFL) outlines extracted at build time and rendered as instanced geometry
+  (`xr/glyphs/`, one `InstancedMesh` per glyph kind).
 
 ## Testing
 

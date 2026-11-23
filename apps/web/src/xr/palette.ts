@@ -27,3 +27,8 @@ export function structureColor(
   const base = role ? roleColor(palette, role, target) : gradientColor(palette, t, target);
   return base.multiplyScalar(emissive);
 }
+
+/** Linear-light factor for a perceived (sRGB-like) brightness multiplier: colors are stored linear in three.js. */
+export function lightness(perceived: number): number {
+  return Math.max(0, perceived) ** 2.2;
+}

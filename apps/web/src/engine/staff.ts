@@ -16,10 +16,14 @@ export interface StaffPath {
   readonly playheadU: number;
 }
 
-/** Diagonal from near-left to far-right (normalized plate units), bowed toward the viewer like the reference. */
-const DIAGONAL_START = { x: -0.82, z: 0.78 };
-const DIAGONAL_END = { x: 0.82, z: -0.78 };
-const CURVE_BOW = { x: 0.16, z: 0.22 };
+/**
+ * From the near edge (left of centre) to the far edge (right of centre), in normalized plate units: seen from the
+ * isometric desktop camera it crosses the frame diagonally, rising to the right, with the city on its left, like the
+ * reference image (04-default-template requirement 3.1). Bowed slightly toward the open (right) side.
+ */
+const DIAGONAL_START = { x: -0.5, z: 0.86 };
+const DIAGONAL_END = { x: 0.42, z: -0.9 };
+const CURVE_BOW = { x: 0.1, z: 0.04 };
 
 export function buildStaffPath(template: WorldTemplate): StaffPath {
   const half = template.terrain.size / 2;

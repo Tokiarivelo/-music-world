@@ -1,16 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { Matrix4, Vector3, type InstancedMesh, type Object3D } from 'three';
+import { AdditiveBlending, Matrix4, Vector3, type InstancedMesh, type Object3D } from 'three';
+import { mulberry32 } from '@/engine/prng';
 import { DEMO_ANALYSIS as demo } from '@/engine/__fixtures__/demo-analysis';
 import { buildSpawnPlan } from '@/engine/spawn-plan';
 import { worldStateAt } from '@/engine/world-state';
 import { DEFAULT_TEMPLATE } from '@/templates/default';
-import { PARTICLE_SPIN, SHAPE_TRIANGLE_BUDGET } from '../constants';
+import { ARC_HEIGHT_MAX, DECOR_ARC_COUNT, PARTICLE_SPIN, SHAPE_TRIANGLE_BUDGET } from '../constants';
+import { buildingMaterial, spikeMaterial } from '../shapes/city-materials';
 import { gradientColor } from '../palette';
 import { buildShapeGeometry, triangleCount } from '../shapes/builtin-shapes';
-import { arcMatrix, buildUnitArcGeometry, FxView } from './fx-view';
+import { arcMatrix, buildUnitArcGeometry, decorArcs, FxView } from './fx-view';
 import { buildGlyphGeometry, GLYPH_KINDS, StaffView } from './staff-view';
 import { StructureView } from './structure-view';
-import { crackSegments, TerrainView } from './terrain-view';
+import { buildTerrainField, crackNetwork, fieldHeight } from '../terrain-field';
+import { TerrainView } from './terrain-view';
 
 const plan = buildSpawnPlan(demo, DEFAULT_TEMPLATE, 1);
 const KINDS = ['terrain_ridge', 'building', 'spike', 'crystal', 'cluster', 'recipe:tower'] as const;
@@ -49,11 +52,47 @@ describe('palette gradient', () => {
   });
 });
 
+describe('terrain field (04-default-template requirement 2)', () => {
+  const field = buildTerrainField(DEFAULT_TEMPLATE, 3);
+
+  it('is deterministic for a seed, flat in the open plate and at the rim, mountains near the edges', () => {
+    expect(buildTerrainField(DEFAULT_TEMPLATE, 3)).toEqual(field);
+    expect(buildTerrainField(DEFAULT_TEMPLATE, 4)).not.toEqual(field);
+    expect(field.peaks.length).toBeGreaterThan(5);
+    expect(fieldHeight(field, 0, 0)).toBe(0);
+    for (const t of [-6, -3, 0, 3, 6]) {
+      expect(fieldHeight(field, t, 6)).toBe(0);
+      expect(fieldHeight(field, -6, t)).toBe(0);
+    }
+    const peak = field.peaks[0]!;
+    expect(fieldHeight(field, peak.x, peak.z)).toBeGreaterThan(0);
+  });
+
+  it('keeps mountains out of the city zones', () => {
+    const half = (DEFAULT_TEMPLATE.terrain.size / 2) * 0.95;
+    const city = DEFAULT_TEMPLATE.zones.filter((z) => z.kind === 'building' || z.kind === 'spike');
+    for (const p of field.peaks) {
+      const inside = city.some(
+        (z) => p.x > z.xMin * half && p.x < z.xMax * half && p.z > z.zMin * half && p.z < z.zMax * half,
+      );
+      expect(inside).toBe(false);
+    }
+  });
+
+  it('builds a deterministic crack network inside the plate, off the mountains', () => {
+    const cracks = crackNetwork(field, 3);
+    expect(cracks).toEqual(crackNetwork(field, 3));
+    expect(cracks).not.toEqual(crackNetwork(field, 4));
+    expect(cracks.length).toBeGreaterThan(1000);
+    for (let i = 0; i < cracks.length; i += 3) {
+      expect(Math.abs(cracks[i]!)).toBeLessThanOrEqual(6);
+      expect(Math.abs(cracks[i + 2]!)).toBeLessThanOrEqual(6);
+    }
+  });
+});
+
 describe('TerrainView (task 4.1)', () => {
-  it('builds deterministic cracks inside the plate and pulses them on kicks', () => {
-    expect(crackSegments(12, 3)).toEqual(crackSegments(12, 3));
-    expect(crackSegments(12, 3)).not.toEqual(crackSegments(12, 4));
-    expect([...crackSegments(12, 3)].every((v) => Math.abs(v) <= 6)).toBe(true);
+  it('pulses the cracks on kicks', () => {
     const view = new TerrainView(plan);
     view.update(worldStateAt(plan, plan.kicks[3]!));
     const onKick = view.crackIntensity();
@@ -128,5 +167,56 @@ describe('draw call budget (requirement 5.1)', () => {
     const total = views.reduce((n, v) => n + drawCalls(v.object), 0);
     expect(total).toBeLessThan(40);
     views.forEach((v) => v.dispose());
+  });
+});
+
+describe('city (04-default-template requirement 5)', () => {
+  it('injects the window shader into the building material without dropping three.js chunks', () => {
+    const material = buildingMaterial();
+    const shader = {
+      vertexShader: 'void main() {\n#include <begin_vertex>\n#include <project_vertex>\n}',
+      fragmentShader: 'void main() {\n#include <color_fragment>\n#include <opaque_fragment>\n}',
+    };
+    material.onBeforeCompile(shader as never, undefined as never);
+    expect(shader.vertexShader).toContain('#include <begin_vertex>');
+    expect(shader.vertexShader).toContain('vMwLocal = position * mwScale');
+    expect(shader.fragmentShader).toContain('#include <color_fragment>');
+    expect(shader.fragmentShader).toContain('#include <opaque_fragment>');
+    expect(shader.fragmentShader).toContain('mwHash');
+  });
+
+  it('builds equalizer spikes as additive needle clusters that fade toward the tips', () => {
+    const g = buildShapeGeometry('spike');
+    const colors = g.getAttribute('color');
+    const pos = g.getAttribute('position');
+    let base = 0;
+    let tip = 1;
+    for (let i = 0; i < pos.count; i++) {
+      if (pos.getY(i) < 1e-6) base = Math.max(base, colors.getX(i));
+      if (pos.getY(i) > 0.999) tip = Math.min(tip, colors.getX(i));
+    }
+    expect(base).toBeCloseTo(1, 6);
+    expect(tip).toBeLessThan(0.3);
+    expect(spikeMaterial().blending).toBe(AdditiveBlending);
+  });
+});
+
+describe('fx (04-default-template requirement 6)', () => {
+  it('lays the decor arcs around the staff, inside the plate, deterministically', () => {
+    const a = decorArcs(plan, mulberry32(9));
+    const b = decorArcs(plan, mulberry32(9));
+    expect(a.points.map((p) => p.toArray())).toEqual(b.points.map((p) => p.toArray()));
+    expect(a.tubes).toHaveLength(DECOR_ARC_COUNT);
+    const half = DEFAULT_TEMPLATE.terrain.size / 2;
+    for (const p of a.points) {
+      expect(Math.abs(p.x)).toBeLessThan(half * 1.05);
+      expect(Math.abs(p.z)).toBeLessThan(half * 1.05);
+      expect(p.y).toBeLessThan(1);
+    }
+  });
+
+  it('keeps chord arcs low', () => {
+    const m = arcMatrix(new Vector3(-5, 0, 0), new Vector3(5, 0, 0));
+    expect(new Vector3(0.5, 1, 0).applyMatrix4(m).y).toBeLessThanOrEqual(ARC_HEIGHT_MAX + 1e-9);
   });
 });
