@@ -10,7 +10,8 @@ import { buildShapeGeometry, triangleCount } from '../shapes/builtin-shapes';
 import { arcMatrix, buildUnitArcGeometry, FxView } from './fx-view';
 import { buildGlyphGeometry, GLYPH_KINDS, StaffView } from './staff-view';
 import { StructureView } from './structure-view';
-import { crackSegments, TerrainView } from './terrain-view';
+import { buildTerrainField, crackNetwork, fieldHeight } from '../terrain-field';
+import { TerrainView } from './terrain-view';
 
 const plan = buildSpawnPlan(demo, DEFAULT_TEMPLATE, 1);
 const KINDS = ['terrain_ridge', 'building', 'spike', 'crystal', 'cluster', 'recipe:tower'] as const;
@@ -49,11 +50,47 @@ describe('palette gradient', () => {
   });
 });
 
+describe('terrain field (04-default-template requirement 2)', () => {
+  const field = buildTerrainField(DEFAULT_TEMPLATE, 3);
+
+  it('is deterministic for a seed, flat in the open plate and at the rim, mountains near the edges', () => {
+    expect(buildTerrainField(DEFAULT_TEMPLATE, 3)).toEqual(field);
+    expect(buildTerrainField(DEFAULT_TEMPLATE, 4)).not.toEqual(field);
+    expect(field.peaks.length).toBeGreaterThan(5);
+    expect(fieldHeight(field, 0, 0)).toBe(0);
+    for (const t of [-6, -3, 0, 3, 6]) {
+      expect(fieldHeight(field, t, 6)).toBe(0);
+      expect(fieldHeight(field, -6, t)).toBe(0);
+    }
+    const peak = field.peaks[0]!;
+    expect(fieldHeight(field, peak.x, peak.z)).toBeGreaterThan(0);
+  });
+
+  it('keeps mountains out of the city zones', () => {
+    const half = (DEFAULT_TEMPLATE.terrain.size / 2) * 0.95;
+    const city = DEFAULT_TEMPLATE.zones.filter((z) => z.kind === 'building' || z.kind === 'spike');
+    for (const p of field.peaks) {
+      const inside = city.some(
+        (z) => p.x > z.xMin * half && p.x < z.xMax * half && p.z > z.zMin * half && p.z < z.zMax * half,
+      );
+      expect(inside).toBe(false);
+    }
+  });
+
+  it('builds a deterministic crack network inside the plate, off the mountains', () => {
+    const cracks = crackNetwork(field, 3);
+    expect(cracks).toEqual(crackNetwork(field, 3));
+    expect(cracks).not.toEqual(crackNetwork(field, 4));
+    expect(cracks.length).toBeGreaterThan(1000);
+    for (let i = 0; i < cracks.length; i += 3) {
+      expect(Math.abs(cracks[i]!)).toBeLessThanOrEqual(6);
+      expect(Math.abs(cracks[i + 2]!)).toBeLessThanOrEqual(6);
+    }
+  });
+});
+
 describe('TerrainView (task 4.1)', () => {
-  it('builds deterministic cracks inside the plate and pulses them on kicks', () => {
-    expect(crackSegments(12, 3)).toEqual(crackSegments(12, 3));
-    expect(crackSegments(12, 3)).not.toEqual(crackSegments(12, 4));
-    expect([...crackSegments(12, 3)].every((v) => Math.abs(v) <= 6)).toBe(true);
+  it('pulses the cracks on kicks', () => {
     const view = new TerrainView(plan);
     view.update(worldStateAt(plan, plan.kicks[3]!));
     const onKick = view.crackIntensity();

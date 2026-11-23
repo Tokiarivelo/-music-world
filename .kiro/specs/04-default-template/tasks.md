@@ -2,7 +2,7 @@
 
 - [x] 1. Create this spec from `PROJECT.md` §2 and the `world-template` skill checklist.
   - _Requirements: all_
-- [ ] 2. Camera framing, plate shading, crack network, edge mountains height field, ridge peaks.
+- [x] 2. Camera framing, plate shading, crack network, edge mountains height field, ridge peaks.
   - _Requirements: 1.1–1.3, 2.1–2.5_
 - [ ] 3. Bravura: ship the font and its OFL license, extraction script to glyph outline data, staff halo, G clefs,
   note glyphs and halos.

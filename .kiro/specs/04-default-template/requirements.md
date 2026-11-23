@@ -16,7 +16,7 @@ colors from the palette roles and never hard-codes the default look.
 
 #### Acceptance Criteria
 
-1. THE desktop camera SHALL look at the plate from an isometric-like angle (elevation 25–35°, azimuth 25–40° from the
+1. THE desktop camera SHALL look at the plate from an isometric-like angle (elevation 25–35°, azimuth 20–40° from the
    plate's front axis) with the near corner at the bottom of the frame.
 2. AT a 16:9 or 16:10 viewport the plate SHALL fill the frame width, with the near-black background visible only
    behind the far edge.

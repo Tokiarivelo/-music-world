@@ -77,7 +77,8 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 | 02-music-analysis 1–5, 6.2, 7–10 | Claude Code (audio-analyst) | done | merged with Phase 3 PR |
 | 02-music-analysis 6.1 | — | blocked | Muse Voice: needs `META_API_KEY` + format check (P2) |
 | 03-world-engine-core 1–5 | Claude Code (world-builder) | done | merged with Phase 2 PR |
-| 03-world-engine-core 6 | world-builder | todo | Phase 4 (default look checkpoint) |
+| 03-world-engine-core 6 | Claude Code (world-builder) | in progress | Phase 4 (default look checkpoint) |
+| 04-default-template 1–5 | Claude Code (world-builder) | in progress | branch `phase-4-default-look` |
 | 03-world-engine-core 7 | — | blocked | needs a Quest 3 (human); IWER first check possible |
 | 05-ai-world-director | ai-director | todo | generate design.md + tasks.md with Kiro first; contracts exist |
 
