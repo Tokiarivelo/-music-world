@@ -34,3 +34,15 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
   drift check in `make check`. First contract `music-world.health.v1`.
 - Steering change: `rules.md` absolute rule — no AI attribution in commits, PRs or comments.
 - No hooks fired (work done outside Kiro IDE); no property-test findings yet.
+
+### 2026-11-23 — 01-foundation tasks 2, 3, 4, 6.1 + engine fixture (Claude Code)
+
+- Task 2: Next.js 16 + IWSDK 1.1.0 demo cube; IWSDK API checked in the installed typings (`World.create`,
+  `launchXR`, `exitXR`, `destroy`). Found that two concurrent `World.create` calls leave one pending (React
+  StrictMode) → world creation is serialized; caught by a headless-browser check (2 canvases instead of 1).
+- Task 3: `AudioPlayer` clock with a fast-check reference-model property (500 runs). Mutation check: removing the
+  rate rebase makes the property fail with a 3-step counterexample.
+- Task 4: FastAPI + arq + jobs (Clean Architecture `projects` and `system` contexts), Hypothesis test for monotonic
+  job progress, end-to-end run on real postgres + redis containers.
+- Task 6.1: Dockerfiles, Compose, Caddyfile, `.env.example`. Roadmap 1.7: hand-made `AnalysisResult` fixture.
+- Steering/skill/hook fixes: `pnpm --dir apps/web vitest` does not work with pnpm 10 → `pnpm -C apps/web exec vitest`.

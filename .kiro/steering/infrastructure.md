@@ -26,6 +26,11 @@ fileMatchPattern: ["infra/**", "**/Dockerfile*", "Makefile"]
   `S3_ACCESS_KEY`, `S3_SECRET_KEY`. Buckets are private; the API serves presigned URLs.
 - The worker image pre-downloads Demucs and Basic Pitch weights at build time (no download at first job).
 - Caddy blocks `/api/docs` in production unless `API_DOCS=true`.
+- The `api` container runs `alembic upgrade head` before uvicorn; `worker` waits for `api` to be healthy.
+- Images build from the repository root (`.dockerignore` excludes node_modules, venvs, `.env`). The web image is
+  Next.js standalone (`apps/web/server.js` inside the image because tracing root = repo root).
+- Local stack: `make dev` (no `infra/.env` needed; defaults = development, `DOMAIN=localhost`, Caddy local CA, so
+  use `curl -k https://localhost/api/health`).
 - Deployment is scripted in `infra/deploy.sh` and described in the `deploy-ovh` skill. The demo must stay online
   until 2027-01-29 (end of Kiroween judging).
 

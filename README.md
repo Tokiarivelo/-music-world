@@ -53,7 +53,14 @@ make check                            # lint + types + tests + architecture chec
 pnpm -C apps/web dev                  # http://localhost:3000/play/demo (IWER emulates a Quest 3 in dev)
 ```
 
-`make help` lists every target. `make dev`, `make build` and `make deploy` become available with `01-foundation` task 6.
+Full stack in Docker (Caddy, web, api, worker, postgres, redis):
+
+```bash
+make dev                              # then open https://localhost/play/demo (accept the local certificate)
+curl -k https://localhost/api/health  # {"status":"ok",…}
+```
+
+`make help` lists every target. Production settings: copy `infra/.env.example` to `infra/.env`.
 
 ## License
 

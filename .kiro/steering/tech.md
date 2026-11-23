@@ -48,6 +48,8 @@ Do **not** add: React Three Fiber / Drei (conflicts with IWSDK's renderer), Esse
 | `DATABASE_URL` | `postgresql+asyncpg://music_world:music_world@localhost:5432/music_world` | Postgres (asyncpg driver) |
 | `REDIS_URL` | `redis://localhost:6379/0` | arq queue |
 | `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | — | OVHcloud Object Storage; health reports `not_configured` while unset |
+| `DOMAIN` | `localhost` | Compose/Caddy only: public domain (Let's Encrypt), `localhost` = Caddy local CA |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | `music_world` | Compose only: postgres credentials, used to build `DATABASE_URL` |
 
 ## LLM providers (switchable)
 

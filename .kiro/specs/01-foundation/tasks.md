@@ -30,7 +30,7 @@
   - _Requirements: 5.1–5.3_
 
 - [ ] 6. Docker Compose and OVHcloud
-  - [ ] 6.1 Dockerfiles (web standalone, api, worker), `infra/docker-compose.yml`, Caddyfile, `.env.example`.
+  - [x] 6.1 Dockerfiles (web standalone, api, worker), `infra/docker-compose.yml`, Caddyfile, `.env.example`.
   - [ ] 6.2 S3 client configured for OVHcloud Object Storage; upload/download smoke test.
   - [ ] 6.3 `infra/deploy.sh`; deploy and verify `https://<domain>/api/health`, then open `/play/demo` on a Quest.
   - _Requirements: 6.1–6.4, 1.3_
