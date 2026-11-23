@@ -25,7 +25,7 @@ function fakeSignal(initial: string) {
 
 function fakeDeps(withSession = false) {
   const worlds: Array<ReturnType<typeof makeWorld>> = [];
-  const scene = { setScene: vi.fn() };
+  const scene = { setScene: vi.fn(), setControls: vi.fn() };
   function makeWorld(container: HTMLElement) {
     const canvas = document.createElement('canvas');
     container.appendChild(canvas);
@@ -126,9 +126,13 @@ describe('WorldHandle.load', () => {
     const [plan, passedClock] = scene.setScene.mock.calls[0]!;
     expect(plan).toEqual(buildSpawnPlan(demo, DEFAULT_TEMPLATE, 1));
     expect(passedClock).toBe(clock);
+    expect(scene.setControls).toHaveBeenLastCalledWith(null);
+    const controls = { toggle: vi.fn(), seekBy: vi.fn() };
+    handle.load({ analysis: demo, template: DEFAULT_TEMPLATE, seed: 1, clock, controls });
+    expect(scene.setControls).toHaveBeenLastCalledWith(controls);
     handle.dispose();
     handle.load({ analysis: demo, template: DEFAULT_TEMPLATE, seed: 1, clock });
-    expect(scene.setScene).toHaveBeenCalledOnce();
+    expect(scene.setScene).toHaveBeenCalledTimes(2);
   });
 });
 

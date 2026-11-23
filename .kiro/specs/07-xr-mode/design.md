@@ -103,3 +103,11 @@ Commands are executed through `WorldControls` (given by React with the scene): `
   `apps/web/scripts/xr-check.mjs` (`playwright-core` dev dependency, Chromium from `~/.cache/ms-playwright`).
 - IWER pitfall: while a session runs, IWER's runtime layer covers the page, so the 2D "Exit VR" button cannot be
   clicked with the mouse in the emulator (the script clicks it programmatically; the spatial panel offers Exit VR).
+- Task 3: `xr/xr-input-map.ts` (pure bindings), `XRControlSystem` (edges read from `input.xr.gamepads`, no
+  allocation when no edge), `WorldScene.controls` = `{ toggle, seekBy }` of `useSongPlayer`, so the 2D bar shows the
+  state set in VR. Audio: the AudioContext is resumed in `toggle`; Chrome's sticky user activation (the Enter VR click)
+  lets a later A-button toggle resume it.
+- Multiview: super-three uses its multiview path only with `OCULUS_multiview` (Quest Browser), absent on desktop. The
+  check script therefore takes every compiled program of the world, applies super-three's multiview rewrite
+  (`WebGLProgram.js` § Multiview, with `GL_OVR_multiview2`) and compiles + links it on an `OVR_multiview2` context
+  (SwiftShader exposes it): 14/14 programs pass, including the building window shader.

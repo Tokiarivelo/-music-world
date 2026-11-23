@@ -111,3 +111,5 @@ export const VR_DIORAMA_DISTANCE_M = 1.3;
 export const VR_TABLE_HEIGHT_M = DIORAMA_POSITION.y;
 /** A head pose lower than this (m above the floor) is not tracked yet: wait before placing the plate. */
 export const VR_MIN_HEAD_HEIGHT_M = 0.3;
+/** Thumbstick seek step in VR (07-xr-mode requirement 3.2), same as the keyboard arrows. */
+export const VR_SEEK_STEP_SEC = 5;

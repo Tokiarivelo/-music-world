@@ -18,6 +18,9 @@ import {
   DIORAMA_POSITION,
 } from './constants';
 import type { MusicScene, WorldClock } from './systems/world-systems';
+import type { WorldControls } from './systems/xr-systems';
+
+export type { WorldControls } from './systems/xr-systems';
 
 /** What the world shows: built once into a spawn plan, then rendered from `clock.now()` every frame. */
 export interface WorldScene {
@@ -25,6 +28,13 @@ export interface WorldScene {
   template: WorldTemplate;
   seed: number;
   clock: WorldClock;
+  /** Player commands used by the XR controls (07-xr-mode requirement 3); the 2D player bar uses the same ones. */
+  controls?: WorldControls;
+}
+
+/** What the host needs from the installed systems. */
+export interface InstalledScene extends Pick<MusicScene, 'setScene'> {
+  setControls(controls: WorldControls | null): void;
 }
 
 export interface WorldHandle {
@@ -49,7 +59,7 @@ export interface WorldHostDeps {
   installEmulator(): Promise<void>;
   createWorld(container: HTMLElement): Promise<WorldLike>;
   /** Registers the music systems on the world (`installMusicSystems`). */
-  installScene(world: WorldLike): Promise<Pick<MusicScene, 'setScene'>>;
+  installScene(world: WorldLike): Promise<InstalledScene>;
   xr(): Pick<XRSystem, 'isSessionSupported'> | undefined;
 }
 
@@ -90,8 +100,13 @@ const defaultDeps: WorldHostDeps = {
     // `?perf=1` logs draw calls and triangles once per second (04-default-template requirement 7.3).
     const perfLog = typeof location !== 'undefined' && new URLSearchParams(location.search).get('perf') === '1';
     const scene = installMusicSystems(world as IWSDK.World, { perfLog });
-    installXRSystems(world as IWSDK.World, scene.anchorEntity, scene.anchor);
-    return scene;
+    const rig = installXRSystems(world as IWSDK.World, scene.anchorEntity, scene.anchor);
+    return {
+      setScene: (plan, clock) => scene.setScene(plan, clock),
+      setControls: (controls) => {
+        rig.controls = controls;
+      },
+    };
   },
   xr: () => (typeof navigator === 'undefined' ? undefined : navigator.xr),
 };
@@ -146,9 +161,10 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   let disposed = false;
 
   return {
-    load({ analysis, template, seed, clock }) {
+    load({ analysis, template, seed, clock, controls }) {
       if (disposed) return;
       scene.setScene(buildSpawnPlan(analysis, template, seed), clock);
+      scene.setControls(controls ?? null);
     },
     enterVR: () => world.launchXR(),
     exitVR: () => world.exitXR(),

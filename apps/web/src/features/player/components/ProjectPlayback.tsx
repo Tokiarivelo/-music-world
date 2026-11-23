@@ -17,9 +17,16 @@ function ProjectWorld({ projectId, analysis }: { projectId: string; analysis: An
     [projectId],
   );
   const player = useSongPlayer(deps);
+  const { clock, toggle, seekBy } = player;
   const scene = useMemo(
-    () => ({ analysis, template: DEFAULT_TEMPLATE, seed: seedFromHash(analysis.audioHash), clock: player.clock }),
-    [analysis, player.clock],
+    () => ({
+      analysis,
+      template: DEFAULT_TEMPLATE,
+      seed: seedFromHash(analysis.audioHash),
+      clock,
+      controls: { toggle, seekBy },
+    }),
+    [analysis, clock, toggle, seekBy],
   );
   return (
     <div className="relative h-dvh w-full">

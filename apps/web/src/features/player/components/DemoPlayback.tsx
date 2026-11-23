@@ -21,9 +21,10 @@ const DEMO_DEPS: SongPlayerDeps = {
 /** `/play/demo`: the pre-analysed demo song and its audio, rendered with the default template. */
 export function DemoPlayback() {
   const player = useSongPlayer(DEMO_DEPS);
+  const { clock, toggle, seekBy } = player;
   const scene = useMemo(
-    () => ({ analysis, template: DEFAULT_TEMPLATE, seed: DEMO_SEED, clock: player.clock }),
-    [player.clock],
+    () => ({ analysis, template: DEFAULT_TEMPLATE, seed: DEMO_SEED, clock, controls: { toggle, seekBy } }),
+    [clock, toggle, seekBy],
   );
   return (
     <div className="relative h-dvh w-full">
