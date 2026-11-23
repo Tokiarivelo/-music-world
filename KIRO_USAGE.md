@@ -27,3 +27,10 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
 ## Log
 
 <!-- Dated entries are appended below. -->
+
+### 2026-11-23 — 01-foundation tasks 1 + 5 (Claude Code)
+
+- Monorepo skeleton and root `Makefile`; schema pipeline pydantic → JSON Schema → TS + zod (`make schemas`),
+  drift check in `make check`. First contract `music-world.health.v1`.
+- Steering change: `rules.md` absolute rule — no AI attribution in commits, PRs or comments.
+- No hooks fired (work done outside Kiro IDE); no property-test findings yet.

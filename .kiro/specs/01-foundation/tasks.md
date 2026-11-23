@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Repository skeleton
+- [x] 1. Repository skeleton
   - Create `apps/web`, `apps/api`, `packages/schemas`, `infra`, root `Makefile` (targets listed in `infrastructure.md` steering, `make check` runs `scripts/agents/validate-architecture.sh`), MIT `LICENSE`, `.gitignore` (without `.kiro`).
   - _Requirements: 1.1, 1.2_
 
@@ -24,7 +24,7 @@
   - [ ] 4.2 arq worker, `jobs` table, `GET /jobs/{id}`, fake job + tests.
   - _Requirements: 4.1–4.3_
 
-- [ ] 5. Schema pipeline
+- [x] 5. Schema pipeline
   - `make schemas`: export pydantic → JSON Schema → TS + zod, with GENERATED header.
   - _Requirements: 5.1–5.3_
 

@@ -299,6 +299,10 @@ Chaque utilisateur peut publier des templates que les autres utilisent pendant l
 
 ## 9. Contrats de données
 
+Source de vérité : modèles pydantic dans `apps/api/music_world/schemas/`, enregistrés dans `EXPORTED`.
+`make schemas` produit `packages/schemas/*.schema.json` puis les types TS + validateurs zod dans
+`apps/web/src/templates/generated/`. Schémas exportés : `music-world.health.v1`.
+
 ### NoteEvent
 
 ```json

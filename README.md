@@ -41,7 +41,18 @@ PostgreSQL · Redis · OVHcloud (Docker Compose, Object Storage) · Meta Model A
 - Design document (French): [`PROJECT.md`](PROJECT.md)
 - Current status and next steps: [`docs/handoff.md`](docs/handoff.md)
 
-Setup, run and deployment instructions will be added with the first implementation spec (`01-foundation`).
+## Development setup
+
+Requirements: Python 3.12 via [uv](https://docs.astral.sh/uv/), Node 22+ with pnpm, Docker (for `make dev`).
+
+```bash
+cd apps/api && uv sync && cd ../..   # Python deps
+pnpm install                          # schema generator (and web app once scaffolded)
+make schemas                          # pydantic -> JSON Schema -> TS + zod
+make check                            # lint + types + tests + architecture check
+```
+
+`make help` lists every target. `make dev`, `make build` and `make deploy` become available with `01-foundation` task 6.
 
 ## License
 

@@ -1,0 +1,14 @@
+{
+  "name": "@music-world/schemas",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "JSON Schemas exported from the pydantic models, and the TS + zod generator",
+  "scripts": {
+    "generate": "node scripts/generate-ts.mjs"
+  },
+  "devDependencies": {
+    "json-schema-to-zod": "2.8.1"
+  }
+}
