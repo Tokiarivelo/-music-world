@@ -7,9 +7,9 @@ export const DIORAMA_POSITION = { x: 0, y: 0.85, z: -1.3 } as const;
  * Desktop isometric camera (04-default-template requirement 1): azimuth from the plate's front axis (+z) toward +x,
  * elevation above the plate, distance from the diorama centre in metres, vertical field of view.
  */
-export const DESKTOP_CAMERA_AZIMUTH_DEG = 24;
+export const DESKTOP_CAMERA_AZIMUTH_DEG = 27;
 export const DESKTOP_CAMERA_ELEVATION_DEG = 31;
-export const DESKTOP_CAMERA_DISTANCE_M = 2.6;
+export const DESKTOP_CAMERA_DISTANCE_M = 2.5;
 export const DESKTOP_CAMERA_FOV_DEG = 20;
 /** Point the desktop camera looks at, relative to the diorama centre (metres): slightly toward the city. */
 export const DESKTOP_CAMERA_TARGET_OFFSET = { x: 0.0, y: 0.09, z: 0.0 } as const;
@@ -55,28 +55,28 @@ export const STAFF_TUBE_RADIUS = 0.012;
 export const STAFF_TUBE_SEGMENTS = 96;
 /** Additive halo tubes around the staff lines (fake bloom): radius in metres, opacity × `staff.glow`. */
 export const STAFF_HALO_RADIUS = 0.045;
-export const STAFF_HALO_OPACITY = 0.16;
+export const STAFF_HALO_OPACITY = 0.22;
 /** Bravura G clef size in staff spaces per line gap. */
 export const CLEF_SCALE = 1.25;
 
 /** Bravura note glyph size: metres per staff space = line gap × this. */
 export const GLYPH_SCALE = 1.2;
 /** Halo quad behind each note glyph: opacity × `staff.glow`. */
-export const GLYPH_HALO_OPACITY = 0.38;
+export const GLYPH_HALO_OPACITY = 0.55;
 export const GLYPH_CAPACITY_MAX = 512;
 
 /** Footprint (x and z scale) of one structure instance per kind. */
 export const KIND_FOOTPRINT: Readonly<Record<string, number>> = {
   terrain_ridge: 0.9,
   building: 0.24,
-  spike: 0.55,
+  spike: 0.8,
   crystal: 0.2,
   cluster: 0.22,
 };
 export const RECIPE_FOOTPRINT = 0.25;
 
 /** Building windows (04-default-template requirement 5.1): window cell in metres, lit share, colors. */
-export const BUILDING_WINDOW_SIZE = { w: 0.06, h: 0.075 } as const;
+export const BUILDING_WINDOW_SIZE = { w: 0.075, h: 0.09 } as const;
 export const BUILDING_WINDOW_LIT_RATE = 0.55;
 /** Lit window color: instance tint mixed toward white by this amount. */
 export const BUILDING_WINDOW_WHITE = 0.72;

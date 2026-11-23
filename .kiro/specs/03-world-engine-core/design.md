@@ -59,7 +59,8 @@ function worldStateAt(plan: SpawnPlan, t: number): WorldState;
 - Staff path: quadratic Bézier (`engine/staff.ts`), shared by the engine and the renderer. Kicks: drum-stem onsets,
   or the beat grid when the analysis has no drums.
 - **Deviation — glyphs**: procedural note meshes (head + stem + 0–2 flags), one `InstancedMesh` per glyph kind, not
-  Bravura SDF text (no SDF text dependency yet). Bravura moves to `04-default-template`.
+  Bravura SDF text (no SDF text dependency yet). Bravura moves to `04-default-template`. *Done in Phase 4:* Bravura
+  outlines as instanced geometry (see `04-default-template/design.md` § As built).
 - **Deviation — bloom**: no post-processing pass (an EffectComposer does not run inside a WebXR session without a
   custom XR render path, and costs a full-screen pass per eye on Quest). Glow = unlit/additive materials scaled by
   `fx.bloom` and the song energy.
@@ -67,7 +68,8 @@ function worldStateAt(plan: SpawnPlan, t: number): WorldState;
   rectangles (several per kind allowed); the engine re-orders swapped bounds because zod does not re-check
   `min < max`. Unmatched notes use `building`.
 - Diorama: plate centre at (0, 0.85, -1.3) m, scaled to 1.5 m; the desktop camera looks at it from an isometric angle,
-  so desktop and VR share one scene. Draw calls for the demo: ≈ 17 (test bound: < 40).
+  so desktop and VR share one scene. Draw calls for the demo: ≈ 17 (test bound: < 40); 15–16 after Phase 4
+  (`?perf=1`, production build).
 - `/play/demo` plays the pre-analysed demo song (`features/player/demo/`, 02-music-analysis task 10); the
   hand-made `engine/__fixtures__/demo-analysis.json` stays the engine test fixture. If the MP3 cannot load, the
   demo falls back to synthesizing the analysed notes in the browser (OfflineAudioContext).

@@ -74,7 +74,9 @@ const defaultDeps: WorldHostDeps = {
   },
   async installScene(world) {
     const { installMusicSystems } = await import('./systems/world-systems');
-    return installMusicSystems(world as IWSDK.World);
+    // `?perf=1` logs draw calls and triangles once per second (04-default-template requirement 7.3).
+    const perfLog = typeof location !== 'undefined' && new URLSearchParams(location.search).get('perf') === '1';
+    return installMusicSystems(world as IWSDK.World, { perfLog });
   },
   xr: () => (typeof navigator === 'undefined' ? undefined : navigator.xr),
 };

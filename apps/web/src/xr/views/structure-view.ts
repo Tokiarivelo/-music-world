@@ -18,7 +18,7 @@ const RIDGE_KIND: ShapeKind = 'terrain_ridge';
 const RIDGE_PRIMARY_MIX = 0;
 const RIDGE_LIGHT = 1.2;
 /** Equalizer needles are additive and thin: boost their instance color so they read as light (requirement 5.2). */
-const SPIKE_GLOW = 1.8;
+const SPIKE_GLOW = 2.2;
 const ZERO = new Matrix4().makeScale(0, 0, 0);
 
 export function footprintOf(kind: ShapeKind): number {

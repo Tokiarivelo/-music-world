@@ -73,3 +73,50 @@ narrow field of view (≈ 30°) and a distance chosen so the plate fills the fra
 - `?perf=1`: a `PerfSystem` logs `renderer.info.render.calls` and `triangles` once per second (console).
 - Unit tests: triangle budgets (glyphs, needle cluster, ridge), determinism of the height field and crack network,
   draw-call bound of the whole default world.
+
+## As built (Phase 4, 2026-11-24)
+
+- **Staff path changed** (`engine/staff.ts`): the reference staff runs from the near edge (left of centre) to the far
+  edge (right of centre), not corner to corner; with the desktop camera it crosses the frame diagonally, rising to
+  the right, with the city on its left. Template zones moved accordingly (city left of the staff, spikes at the back
+  and on the left edge, ridges on the right and near edges). Spike pitch rule split `73-84` / `>84` so the gradient
+  reaches cyan.
+- Camera: azimuth 27°, elevation 31°, vertical FOV 20°, distance 2.5 m, target 9 cm above the diorama centre — a
+  near-isometric framing (fitting the reference landmarks pointed to an almost orthographic camera).
+- Terrain: `xr/terrain-field.ts` (pure; peaks along the edges outside the city zones, crack network). Plate top =
+  96 × 96 grid with baked vertex colors, sides = dark box; cracks darker than the plate at rest, cool glow on kicks.
+- Bravura: `assets/fonts/bravura/{Bravura.otf,LICENSE.txt}` (OFL 1.1, v1.482). `scripts/extract_bravura_glyphs.py`
+  (`uv run --with fonttools python scripts/extract_bravura_glyphs.py`) writes `xr/glyphs/bravura-outlines.ts`;
+  glyphs are `ShapeGeometry` (3 segments per curve): quarter 13, eighth 46, sixteenth 97, G clef 167 triangles.
+  This replaces the SDF text plan of `tech.md`: geometry needs no font atlas or text library and stays sharp in VR.
+- Halos: staff halo tubes (radius 4.5 cm on the 12 m plate, additive) and one instanced soft quad per visible glyph
+  (`radialAlphaTexture`, a generated `DataTexture`).
+- City: building windows from `onBeforeCompile` on `MeshBasicMaterial` (`xr/shapes/city-materials.ts`); spikes are
+  clusters of 13 needles (52 triangles) with vertex-color fade, additive, instance color × 2.2.
+- Fx: 6 decor arcs merged into one mesh with vertex colors; 160 round particles (60 % on the arcs); chord arcs
+  thinner and capped at 0.7 m high.
+- `?perf=1`: `PerfSystem` logs `[mw-perf] {calls, triangles, geometries, textures}` once per second.
+
+### Verification (headless Chromium, SwiftShader, production build, 1280 × 700, 2026-11-24)
+
+Script: Playwright opens `/play/demo?perf=1`, seeks with the range input (paused clock) to 10, 25, 40 and 57 s and
+takes screenshots; compared side by side with the reference crop. Three tuning passes.
+
+| Metric | Value |
+|---|---|
+| Draw calls (`renderer.info.render.calls`) | 15–16 |
+| Triangles per frame | ≈ 72 k–75 k (plate grid 18 k, ridges 27 k at 200 per instance) |
+| Geometries / textures | 15 / 2 |
+
+Remaining mismatches with the reference:
+
+1. No bloom haze: glow is crisp (unlit additive materials; post-processing is not used in WebXR).
+2. The cyan equalizer cluster in the middle of the reference city is weaker: the gradient follows pitch and the demo
+   song's spike notes are mostly in the violet / magenta part of the range.
+3. Beamed groups (the reference's beamed sixteenths) are drawn as separate flagged notes.
+4. The reference crops the plate tighter; our near-edge mountains are below the frame and the right-edge ridges
+   (bass notes) are denser and more faceted than the reference's soft ranges.
+5. The reference lights the right part of the plate cooler and brighter (rim light); ours is evenly lit.
+6. Decor arcs are shorter and fainter than the reference's long arcs; a few chord arcs cross the open plate as long
+   thin lines.
+7. Building windows are denser and the skyline more uniform than the reference's stepped blocks.
