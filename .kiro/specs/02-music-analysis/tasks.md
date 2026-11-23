@@ -8,7 +8,7 @@
   - _Requirements: 1.2_
 - [x] 4. `separate.py` with Demucs; store stems in S3; measure CPU time on a 3-minute song and record it.
   - _Requirements: 2.1, 2.2_
-- [ ] 5. `notes.py` with Basic Pitch; merge and filter; Hypothesis tests.
+- [x] 5. `notes.py` with Basic Pitch; merge and filter; Hypothesis tests.
   - _Requirements: 3.1–3.4_
 - [ ] 6. Lyrics
   - [ ] 6.1 Verify the current Muse Voice Transcribe request format in Meta's docs.

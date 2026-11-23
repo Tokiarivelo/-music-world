@@ -81,3 +81,9 @@ requirement 7.2; generated TS: `AnalysisSchema` / type `Analysis`.
   **Measured** on a 3-minute synthesized track (`scripts/synth_song.py`, 4-core i7-4750HQ, torch 2.15 CPU,
   4 threads): separation **325.7 s wall / 652 s CPU**, peak RSS **2.0 GB**; model load 79 s on first use (download
   included). Separation is ~60 % of the whole pipeline and alone takes half of the 10-minute budget on this laptop.
+- **Notes (task 5)**: `analysis/infrastructure/basic_pitch_transcriber.py` runs the ONNX model on `other`, `bass`
+  (30–400 Hz) and `vocals` (80–1200 Hz). Pure cleaning in `domain/notes.py`: `join_fragments` (Basic Pitch splits
+  some held notes into touching pieces: same stem + pitch, gap < 30 ms → one note), `filter_notes` (≥ 50 ms,
+  velocity ≥ `ANALYSIS_MIN_VELOCITY`), `fit_to_song`, then `merge_stems` (sorted by time, midi; exact duplicates
+  keep the loudest; capped at 20 000 keeping the loudest). Times are rounded to 0.1 ms before sorting and chord
+  grouping so stored values are the ones checked.
