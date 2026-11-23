@@ -68,3 +68,13 @@ def test_mapping_conditions_never_accept_arbitrary_text(when: dict[str, str]) ->
     assert cond.stem in (None, "vocals", "drums", "bass", "other")
     for text in (cond.pitch, cond.velocity):
         assert text is None or text[0] in "<>0123456789"
+
+
+def test_default_template_validates_in_python() -> None:
+    """The web default template must pass the server-side validation too (same contract on both sides)."""
+    import json
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parents[3] / "web/src/templates/default/neon-nocturne.json"
+    tpl = WorldTemplate.model_validate(json.loads(path.read_text()))
+    assert tpl.id == "neon-nocturne"

@@ -1,0 +1,38 @@
+{
+  "schema": "music-world.template.v1",
+  "id": "neon-nocturne",
+  "name": "Neon Nocturne",
+  "license": "CC-BY-4.0",
+  "palette": {
+    "background": "#07051a",
+    "terrain": "#1a1533",
+    "primary": "#b04cff",
+    "accent": "#ff4fd8",
+    "secondary": "#22d3ee",
+    "staff": "#e8f7ff"
+  },
+  "terrain": { "style": "cracked_plate", "mountains": "edges", "size": 12 },
+  "staff": {
+    "style": "glowing_lines",
+    "path": "diagonal_curve",
+    "clef": "treble",
+    "glow": 1.2,
+    "lookahead": 4.0,
+    "fallDuration": 0.35
+  },
+  "mappings": [
+    { "when": { "pitch": "<48" }, "spawn": "terrain_ridge", "heightFrom": "velocity" },
+    { "when": { "pitch": "48-72" }, "spawn": "building", "heightFrom": "velocity" },
+    { "when": { "pitch": ">72" }, "spawn": "spike", "heightFrom": "velocity" },
+    { "when": {}, "spawn": "building" }
+  ],
+  "zones": [
+    { "kind": "building", "xMin": -0.95, "xMax": -0.3, "zMin": -0.95, "zMax": 0.2 },
+    { "kind": "building", "xMin": -0.3, "xMax": 0.1, "zMin": -0.95, "zMax": -0.4 },
+    { "kind": "spike", "xMin": -0.95, "xMax": -0.4, "zMin": -0.95, "zMax": -0.3 },
+    { "kind": "terrain_ridge", "xMin": 0.6, "xMax": 0.95, "zMin": -0.3, "zMax": 0.95 },
+    { "kind": "terrain_ridge", "xMin": -0.3, "xMax": 0.6, "zMin": 0.7, "zMax": 0.95 }
+  ],
+  "budget": { "instancesPerKind": 2000 },
+  "fx": { "particles": "arcs", "bloom": 0.8, "beatPulse": true, "chordLinks": "light_arc" }
+}

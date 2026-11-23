@@ -10,7 +10,7 @@
   - [x] 2.2 `worldStateAt` with phases (onStaff, falling, growing, alive).
   - [x] 2.3 Property tests: determinism, seek equivalence, monotonicity, budget.
   - _Requirements: 1.1–1.5, 2.1–2.4_
-- [ ] 3. Default template `neon-nocturne` as JSON in `apps/web/src/templates/default/` (palette, zones, mappings).
+- [x] 3. Default template `neon-nocturne` as JSON in `apps/web/src/templates/default/` (palette, zones, mappings).
   - _Requirements: 4.1_
 - [ ] 4. Rendering systems
   - [ ] 4.1 `TerrainSystem` (cracked plate, edge mountains, kick pulse).
