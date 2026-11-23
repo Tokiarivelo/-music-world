@@ -63,7 +63,11 @@ export function buildPlateTop(plan: SpawnPlan, field: TerrainField): BufferGeome
   const primary = new Color(palette.primary);
   const cool = new Color(palette.secondary);
   const lit = new Color(palette.staff).lerp(new Color(palette.secondary), 0.5);
-  const light = new Vector3(TERRAIN_LIGHT_DIRECTION.x, TERRAIN_LIGHT_DIRECTION.y, TERRAIN_LIGHT_DIRECTION.z).normalize();
+  const light = new Vector3(
+    TERRAIN_LIGHT_DIRECTION.x,
+    TERRAIN_LIGHT_DIRECTION.y,
+    TERRAIN_LIGHT_DIRECTION.z,
+  ).normalize();
   const city = cityCentre(plan);
   const normal = new Vector3();
   const plate = new Color();

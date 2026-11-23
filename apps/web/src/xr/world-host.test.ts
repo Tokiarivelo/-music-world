@@ -2,11 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { DEMO_ANALYSIS as demo } from '@/engine/__fixtures__/demo-analysis';
 import { buildSpawnPlan } from '@/engine/spawn-plan';
 import { DEFAULT_TEMPLATE } from '@/templates/default';
-import {
-  DESKTOP_CAMERA_AZIMUTH_DEG,
-  DESKTOP_CAMERA_DISTANCE_M,
-  DESKTOP_CAMERA_ELEVATION_DEG,
-} from './constants';
+import { DESKTOP_CAMERA_AZIMUTH_DEG, DESKTOP_CAMERA_DISTANCE_M, DESKTOP_CAMERA_ELEVATION_DEG } from './constants';
 import { createMusicWorld, desktopCameraPose, type WorldHostDeps } from './world-host';
 
 function fakeDeps(withSession = false) {

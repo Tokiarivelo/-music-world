@@ -52,10 +52,16 @@ export const MOUNTAIN_EDGE_FADE = 0.35;
 
 export const STAFF_TUBE_RADIUS = 0.012;
 export const STAFF_TUBE_SEGMENTS = 96;
-export const CLEF_TUBE_RADIUS = 0.018;
+/** Additive halo tubes around the staff lines (fake bloom): radius in metres, opacity × `staff.glow`. */
+export const STAFF_HALO_RADIUS = 0.045;
+export const STAFF_HALO_OPACITY = 0.16;
+/** Bravura G clef size in staff spaces per line gap. */
+export const CLEF_SCALE = 1.25;
 
-/** Glyph size relative to the staff line gap. */
-export const GLYPH_HEAD_SCALE = 1.25;
+/** Bravura note glyph size: metres per staff space = line gap × this. */
+export const GLYPH_SCALE = 1.2;
+/** Halo quad behind each note glyph: opacity × `staff.glow`. */
+export const GLYPH_HALO_OPACITY = 0.38;
 export const GLYPH_CAPACITY_MAX = 512;
 
 /** Footprint (x and z scale) of one structure instance per kind. */
