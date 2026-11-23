@@ -15,9 +15,9 @@
     - Done in Next.js (no fallback needed); real Quest check stays in 6.3.
     - _Requirements: 2.5_
 
-- [ ] 3. Audio clock
-  - [ ] 3.1 Implement `AudioPlayer` / `AudioClock` in `src/features/player/lib/audio-player.ts`.
-  - [ ] 3.2 Property test: random play/pause/seek/rate/advance sequences match a reference model.
+- [x] 3. Audio clock
+  - [x] 3.1 Implement `AudioPlayer` / `AudioClock` in `src/features/player/lib/audio-player.ts`.
+  - [x] 3.2 Property test: random play/pause/seek/rate/advance sequences match a reference model.
   - _Requirements: 3.1–3.5_
 
 - [ ] 4. FastAPI and worker

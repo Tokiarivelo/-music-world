@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -35,7 +36,6 @@
     "jsdom": "31.0.1",
     "tailwindcss": "4.3.5",
     "typescript": "5.9.3",
-    "vite-tsconfig-paths": "6.1.1",
     "vitest": "5.1.1"
   }
 }

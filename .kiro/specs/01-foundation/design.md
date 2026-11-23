@@ -51,6 +51,8 @@ class AudioPlayer implements AudioClock {
 ```
 
   A new `AudioBufferSourceNode` is created on each play/seek (they are one-shot). `now()` is clamped to `[0, duration]`.
+  Rate is limited to `[0.25, 4]` (`RangeError` otherwise); `play()` at the end restarts from 0; `isPlaying()` is false
+  once the end is reached. The player depends on `AudioContextLike` so tests use `FakeAudioContext`.
 
 ### API (`apps/api`)
 
