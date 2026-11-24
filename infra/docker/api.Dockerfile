@@ -29,6 +29,8 @@ RUN python -c "from demucs.pretrained import get_model; get_model('${DEMUCS_MODE
 COPY --chown=app apps/api/ ./
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev
 
+# librosa compiles with numba `cache=True`: the non-root user cannot write into /opt/venv, so the cache lives in /tmp.
+ENV NUMBA_CACHE_DIR=/tmp/numba
 USER app
 EXPOSE 8000
 CMD ["uvicorn", "music_world.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

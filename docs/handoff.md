@@ -92,6 +92,8 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
   `override-dependencies` removes it and runs the bundled ONNX model. Do not "fix" that override.
 - torch / torchaudio must come from the PyTorch CPU index (`[tool.uv.sources]`); a plain PyPI torch pulls ~3 GB of
   CUDA. Disk on this laptop is ~98 % full: watch `df -h` before adding models or images.
+- Docker worker: librosa/numba needs `NUMBA_CACHE_DIR` (set in the Dockerfile and Compose); without it Basic Pitch fails
+  with "cannot cache function ... no locator available" after minutes of Demucs.
 - Never import analysis infrastructure (torch, librosa) at module level in code the API process loads.
 - `.gitignore` ignores audio except `apps/api/tests/fixtures/*.{wav,mp3,flac}` and `apps/web/public/demo/*.mp3`.
 - Next's route announcer is an empty `role="alert"`: in browser tests select `p[role=alert]`.
