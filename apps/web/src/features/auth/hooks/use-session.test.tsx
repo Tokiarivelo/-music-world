@@ -6,7 +6,7 @@ const USER = { id: 'u1', email: 'ada@example.com', displayName: 'creator-abc123'
 
 describe('useSession', () => {
   it('loads the user and signs out', async () => {
-    const api: SessionApi = { getSession: vi.fn(async () => ({ user: USER })), signOut: vi.fn(async () => undefined) };
+    const api: SessionApi = { getSession: vi.fn(async () => ({ user: USER, moderator: null })), signOut: vi.fn(async () => undefined) };
     const hook = renderHook(() => useSession(api));
     expect(hook.result.current.status).toBe('loading');
     await waitFor(() => expect(hook.result.current.user).toEqual(USER));

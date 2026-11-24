@@ -54,6 +54,19 @@
           "type": "null"
         }
       ]
+    },
+    "moderator": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "`true` only for a moderator; absent for everyone else (10-template-moderation).",
+      "title": "Moderator"
     }
   },
   "required": [

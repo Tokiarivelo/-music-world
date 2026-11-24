@@ -119,3 +119,19 @@ async def test_owned_projects_are_404_for_everyone_else() -> None:
     assert other == [404] * 6 and director.status_code == 404
     assert director.json()["error"]["code"] == "PROJECT_NOT_FOUND"
     assert anonymous_project.status_code == 200
+
+
+async def test_session_exposes_moderator_only_to_a_moderator() -> None:
+    sender = CapturingEmailSender()
+    app = _app(sender, moderator_emails="Mod@Example.com")
+    async with _client(app) as c, LifespanManager(c):
+        await sign_in(c, sender, "mod@example.com")
+        moderator = (await c.get("/api/auth/session")).json()
+    async with _client(_app(sender, moderator_emails="mod@example.com")) as c, LifespanManager(c):
+        await sign_in(c, sender, "ada@example.com")
+        other = (await c.get("/api/auth/session")).json()
+    async with _client(_app(sender)) as c, LifespanManager(c):
+        await sign_in(c, sender, "mod@example.com")
+        disabled = (await c.get("/api/auth/session")).json()
+    assert moderator["moderator"] is True
+    assert "moderator" not in other and "moderator" not in disabled

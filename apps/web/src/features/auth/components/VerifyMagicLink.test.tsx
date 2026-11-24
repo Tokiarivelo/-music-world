@@ -9,7 +9,7 @@ afterEach(cleanup);
 describe('VerifyMagicLink', () => {
   it('posts the token once, even in strict mode, and removes it from the URL', async () => {
     window.history.replaceState(null, '', '/auth/verify?token=abc');
-    const verify = vi.fn(async () => ({ user: { id: 'u', email: 'a@b.co', displayName: 'creator-1' } }));
+    const verify = vi.fn(async () => ({ user: { id: 'u', email: 'a@b.co', displayName: 'creator-1' }, moderator: null }));
     render(
       <StrictMode>
         <VerifyMagicLink token="abc" verify={verify} />

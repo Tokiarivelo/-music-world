@@ -47,10 +47,13 @@ Services = Annotated[AccountServices, Depends(_services)]
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
-def _session(user: User | None) -> AuthSession:
+def _session(user: User | None, services: AccountServices) -> AuthSession:
     if user is None:
         return AuthSession(user=None)
-    return AuthSession.model_validate({"user": {"id": user.id, "email": user.email, "displayName": user.display_name}})
+    payload: dict[str, object] = {"user": {"id": user.id, "email": user.email, "displayName": user.display_name}}
+    if services.moderators.is_moderator(user):
+        payload["moderator"] = True  # left unset (so absent from the JSON) for everyone else
+    return AuthSession.model_validate(payload)
 
 
 def _set_cookies(response: Response, signed_in: SignedIn, settings: Settings) -> None:
@@ -92,6 +95,7 @@ async def request_magic_link(body: MagicLinkRequest, request: Request, services:
 @router.post(
     "/verify",
     response_model=AuthSession,
+    response_model_exclude_unset=True,
     summary="Exchange a sign-in link token for a session (sets the httpOnly session cookie)",
     responses={401: ERROR_RESPONSES[401], 403: ERROR_RESPONSES[403], 429: ERROR_RESPONSES[429]},
 )
@@ -100,12 +104,17 @@ async def verify(body: VerifyRequest, request: Request, response: Response, serv
         raise RateLimitedError("too many sign-in attempts, try again later")
     signed_in = await services.verify_magic_link.execute(body.token)
     _set_cookies(response, signed_in, request.app.state.container.settings)
-    return _session(signed_in.user)
+    return _session(signed_in.user, services)
 
 
-@router.get("/session", response_model=AuthSession, summary="Who is signed in (`user` is null when nobody is)")
+@router.get(
+    "/session",
+    response_model=AuthSession,
+    response_model_exclude_unset=True,
+    summary="Who is signed in (`user` is null when nobody is)",
+)
 async def get_session(request: Request, services: Services) -> AuthSession:
-    return _session(await services.resolve_session.execute(request.cookies.get(SESSION_COOKIE)))
+    return _session(await services.resolve_session.execute(request.cookies.get(SESSION_COOKIE)), services)
 
 
 @router.post(

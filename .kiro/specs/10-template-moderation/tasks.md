@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Settings `MODERATOR_EMAILS`, `ModeratorDirectory` port and adapter, session `moderator` field
+- [x] 1. Settings `MODERATOR_EMAILS`, `ModeratorDirectory` port and adapter, session `moderator` field
   (contract change, `make schemas`); tests (empty list, case, non-moderator).
   - _Requirements: 1.1–1.4_
 - [ ] 2. Migration (`moderation_actions`, `reports_since`), repository methods, `ModerationAudit` adapter; tests.

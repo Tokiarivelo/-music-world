@@ -27,6 +27,9 @@ class AuthSession(ContractModel):
     )
 
     user: SessionUser | None
+    moderator: bool | None = Field(
+        default=None, description="`true` only for a moderator; absent for everyone else (10-template-moderation)."
+    )
 
 
 class MagicLinkRequest(ContractModel):

@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from music_world.accounts.application.ports import (
     EmailSender,
     LoginTokenRepository,
+    ModeratorDirectory,
     SessionRepository,
     UserRepository,
 )
@@ -23,6 +24,7 @@ from music_world.accounts.application.use_cases.sign_in import (
     VerifyMagicLink,
 )
 from music_world.accounts.infrastructure.email_senders import ConsoleEmailSender, SmtpEmailSender
+from music_world.accounts.infrastructure.moderators import EmailHashModeratorDirectory
 from music_world.accounts.infrastructure.sqlalchemy_repositories import (
     SqlAlchemyLoginTokenRepository,
     SqlAlchemySessionRepository,
@@ -178,6 +180,7 @@ class AccountServices:
     link_ip_limiter: SlidingWindowLimiter
     link_email_limiter: SlidingWindowLimiter
     verify_ip_limiter: SlidingWindowLimiter
+    moderators: ModeratorDirectory
 
 
 MAGIC_LINKS_PER_EMAIL_PER_HOUR = 5
@@ -216,6 +219,7 @@ def build_accounts(
     new_token: Callable[[], str] = new_secret_token,
     new_id: Callable[[], str] = uuid7,
     clock: Callable[[], datetime] = utc_now,
+    moderators: ModeratorDirectory | None = None,
 ) -> AccountServices:
     return AccountServices(
         request_magic_link=RequestMagicLink(
@@ -234,6 +238,7 @@ def build_accounts(
         link_ip_limiter=SlidingWindowLimiter(settings.auth_rate_limit_per_hour, 3600.0),
         link_email_limiter=SlidingWindowLimiter(MAGIC_LINKS_PER_EMAIL_PER_HOUR, 3600.0),
         verify_ip_limiter=SlidingWindowLimiter(VERIFY_PER_IP_PER_HOUR, 3600.0),
+        moderators=moderators or EmailHashModeratorDirectory(settings.moderator_emails),
     )
 
 
