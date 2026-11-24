@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useT } from '@/i18n';
 import type { NavigationState } from '@/xr/navigation/navigation-controller';
 import type { ViewPresetId } from '@/xr/navigation/orbit-camera';
 import { createMusicWorld, type WorldControls, type WorldHandle, type WorldScene } from '@/xr/world-host';
-import { WORLD_VIEW_TEXT } from '../consts/world-view.consts';
 import {
   INITIAL_NAVIGATION_STATE,
   useNavigationShortcuts,
@@ -18,6 +18,7 @@ interface WorldCanvasProps {
 }
 
 export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
+  const t = useT('world');
   const containerRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<WorldHandle | null>(null);
   const [vrSupported, setVrSupported] = useState(false);
@@ -84,8 +85,8 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
 
   return (
     <div className="relative h-full w-full">
-      <div ref={containerRef} aria-label={WORLD_VIEW_TEXT.canvasLabel} className="h-full w-full" role="img" />
-      {failed && <p className="absolute inset-x-0 top-6 text-center">{WORLD_VIEW_TEXT.loadError}</p>}
+      <div ref={containerRef} aria-label={t('canvasLabel')} className="h-full w-full" role="img" />
+      {failed && <p className="absolute inset-x-0 top-6 text-center">{t('loadError')}</p>}
       {commands && !immersive && <NavigationControls commands={commands} state={navigation} />}
       {vrSupported && (
         <button
@@ -93,7 +94,7 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
           onClick={() => (immersive ? handleRef.current?.exitVR() : handleRef.current?.enterVR())}
           type="button"
         >
-          {immersive ? WORLD_VIEW_TEXT.exitVR : WORLD_VIEW_TEXT.enterVR}
+          {immersive ? t('exitVR') : t('enterVR')}
         </button>
       )}
     </div>

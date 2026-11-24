@@ -41,4 +41,9 @@ apps/web/src/
   palette tokens of the default template (`--mw-bg`, `--mw-primary`, `--mw-accent`, `--mw-secondary`).
 - **Accessibility**: every control has a label; player controls work with the keyboard (space = play/pause,
   arrows = seek ±5 s).
-- **Text**: English only; user-facing strings live in the feature's `consts/`.
+- **Text (i18n)**: no literal user-visible text in `.tsx`, `aria-*`, `title`, `placeholder`, metadata or the VR panel.
+  Every string is a key in `src/i18n/messages/<locale>/<namespace>.json` (`en` is the source; `fr`, `mg` follow),
+  read with `useT('<namespace>')` (client) or `getT` (server). API errors stay codes: `t.error(code)` maps
+  `errors.<CODE>` and falls back to `errors.UNKNOWN`. Add a key to `en` first; every locale must have the same keys
+  and parameters (`src/i18n/i18n.test.ts`) and `no-literal-text.test.ts` fails on raw JSX text. Code, comments, logs,
+  prompts and docs stay English.

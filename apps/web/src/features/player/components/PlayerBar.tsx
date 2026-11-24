@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { PLAYER_TEXT, SEEK_STEP_SEC } from '../consts/player.consts';
+import { useT } from '@/i18n';
+import { SEEK_STEP_SEC } from '../consts/player.consts';
 import type { SongPlayer } from '../hooks/use-song-player';
 import { usePlaybackTime } from '../hooks/use-playback-time';
 
@@ -16,6 +17,7 @@ interface PlayerBarProps {
 
 /** Play/pause, seek slider and time; keyboard: space = play/pause, arrows = seek ±5 s. */
 export function PlayerBar({ player }: PlayerBarProps) {
+  const t = useT('player');
   const time = usePlaybackTime(player.clock);
   const { toggle, seekBy } = player;
 
@@ -45,20 +47,20 @@ export function PlayerBar({ player }: PlayerBarProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [toggle, seekBy]);
 
-  if (!player.ready) return <p className="p-4 text-center text-sm">{PLAYER_TEXT.loading}</p>;
+  if (!player.ready) return <p className="p-4 text-center text-sm">{t('loading')}</p>;
 
   return (
     <div className="flex w-full items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6">
       <button
-        aria-label={player.playing ? PLAYER_TEXT.pause : PLAYER_TEXT.play}
+        aria-label={player.playing ? t('pause') : t('play')}
         className="min-w-20 rounded-full bg-[var(--mw-primary)] px-4 py-2 font-medium text-black"
         onClick={toggle}
         type="button"
       >
-        {player.playing ? PLAYER_TEXT.pause : PLAYER_TEXT.play}
+        {player.playing ? t('pause') : t('play')}
       </button>
       <input
-        aria-label={PLAYER_TEXT.seek}
+        aria-label={t('seek')}
         className="flex-1 accent-[var(--mw-accent)]"
         max={player.duration}
         min={0}

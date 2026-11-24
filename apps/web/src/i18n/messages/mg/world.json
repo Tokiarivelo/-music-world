@@ -1,0 +1,17 @@
+{
+  "enterVR": "Hiditra VR",
+  "exitVR": "Hiala amin'ny VR",
+  "loading": "Fampidirana ny tontolo…",
+  "loadError": "Tsy afaka noforonina tamin'ity navigateur ity ny tontolo 3D.",
+  "canvasLabel": "Fijerena 3D an'i Music World",
+  "nav.group": "Fakan-tsary",
+  "nav.explore": "Hodinihina",
+  "nav.exploring": "Mandinika",
+  "nav.reset": "Avereno ny fijery",
+  "nav.presetsLabel": "Fijery voafidy mialoha",
+  "nav.hint": "Vonoy hihodina · tsindrio havanana sy vonoy hamindra · kodia hanakaiky · WASD handeha · R hamerina",
+  "preset.overview": "Fijery ankapobeny",
+  "preset.staff": "Portée",
+  "preset.city": "Tanàna",
+  "preset.top": "Ambony"
+}

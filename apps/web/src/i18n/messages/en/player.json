@@ -1,0 +1,14 @@
+{
+  "play": "Play",
+  "pause": "Pause",
+  "seek": "Song position",
+  "loading": "Preparing the demo song…",
+  "demoNote": "Demo song “{title}”, composed for Music World",
+  "demoStats": "{key} · {bpm} BPM · {count, plural, one {# note} other {# notes}}",
+  "loadingProject": "Loading the world of your song…",
+  "projectTitle": "Your song",
+  "errors.PROJECT_NOT_FOUND": "This song does not exist.",
+  "errors.ANALYSIS_NOT_READY": "This song is still being analysed. Come back in a minute.",
+  "errors.NETWORK": "The server could not be reached. Try again.",
+  "errors.UNKNOWN": "This world could not be loaded."
+}

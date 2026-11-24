@@ -29,7 +29,7 @@ import {
 } from '../constants';
 import { panelTime, progressPercent } from '../panel-format';
 import { ClockComponent, type WorldClock } from './world-systems';
-import { isImmersive, XRRigComponent, type WorldControls, type XRRig } from './xr-systems';
+import { DEFAULT_PANEL_LABELS, isImmersive, XRRigComponent, type WorldControls, type XRRig } from './xr-systems';
 
 /** Minimal surface of a UIKit component used here. */
 interface UIElement {
@@ -43,6 +43,8 @@ interface PanelView {
   time: UIElement;
   progress: UIElement;
   play: UIElement;
+  /** Fixed texts: restart, template label, recenter, exit (re-labelled when the language changes). */
+  texts: { restart: UIElement; template: UIElement; recenter: UIElement; exit: UIElement };
   templates: UIElement[];
   shown: {
     second: number;
@@ -50,6 +52,7 @@ interface PanelView {
     percent: number;
     playing: boolean | null;
     controls: WorldControls | null;
+    labels: object | null;
   };
 }
 
@@ -109,8 +112,9 @@ export class XRPanelSystem extends createSystem({
       time: el('mw-time'),
       progress: el('mw-progress'),
       play: el('mw-play'),
+      texts: { restart: el('mw-restart'), template: el('mw-tpl-label'), recenter: el('mw-recenter'), exit: el('mw-exit') },
       templates,
-      shown: { second: -1, duration: -1, percent: -1, playing: null, controls: null },
+      shown: { second: -1, duration: -1, percent: -1, playing: null, controls: null, labels: null },
     };
   }
 
@@ -140,10 +144,19 @@ export class XRPanelSystem extends createSystem({
       shown.percent = percent;
       view.progress.setProperties({ width: `${percent}%` });
     }
+    const labels = controls.labels ?? DEFAULT_PANEL_LABELS;
+    if (labels !== shown.labels) {
+      shown.labels = labels;
+      shown.playing = null; // the play button is re-labelled below
+      view.texts.restart.setProperties({ text: labels.restart });
+      view.texts.template.setProperties({ text: labels.template });
+      view.texts.recenter.setProperties({ text: labels.recenter });
+      view.texts.exit.setProperties({ text: labels.exit });
+    }
     const playing = controls.isPlaying();
     if (playing !== shown.playing) {
       shown.playing = playing;
-      view.play.setProperties({ text: playing ? 'Pause' : 'Play' });
+      view.play.setProperties({ text: playing ? labels.pause : labels.play });
     }
     // Title and template choices change only with a new controls object (React memo).
     if (controls !== shown.controls) {

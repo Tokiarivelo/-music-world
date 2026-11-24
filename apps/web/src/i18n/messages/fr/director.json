@@ -1,0 +1,17 @@
+{
+  "title": "Directeur de monde IA",
+  "provider": "Fournisseur d'IA",
+  "generate": "Générer le monde avec l'IA",
+  "generating": "Génération de votre monde…",
+  "generatedBy": "Généré par {provider} · {model}",
+  "fallback": "{requested} était indisponible, c'est donc {provider} qui a répondu.",
+  "cached": "depuis le cache",
+  "provider.muse": "Meta Muse",
+  "provider.bedrock": "Claude (Amazon Bedrock)",
+  "provider.mock": "Simulé (hors ligne)",
+  "errors.RATE_LIMITED": "Trop de mondes générés. Réessayez plus tard.",
+  "errors.ANALYSIS_NOT_READY": "Cette chanson est encore en cours d'analyse.",
+  "errors.PROJECT_NOT_FOUND": "Cette chanson n'existe pas.",
+  "errors.NETWORK": "Le serveur est injoignable. Réessayez.",
+  "errors.UNKNOWN": "Le monde n'a pas pu être généré."
+}

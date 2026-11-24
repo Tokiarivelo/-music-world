@@ -45,7 +45,7 @@
     <button class="btn" id="mw-forward">+10 s</button>
   </div>
   <div class="row">
-    <span class="label">Template</span>
+    <span class="label" id="mw-tpl-label">Template</span>
     <button class="btn tpl" id="mw-tpl-0">Template</button>
     <button class="btn tpl" id="mw-tpl-1">Template</button>
     <button class="btn tpl" id="mw-tpl-2">Template</button>

@@ -1,8 +1,8 @@
 'use client';
 
+import { useT } from '@/i18n';
 import type { NavigationState } from '@/xr/navigation/navigation-controller';
 import { VIEW_PRESET_IDS } from '@/xr/navigation/orbit-camera';
-import { NAVIGATION_TEXT } from '../consts/world-view.consts';
 import type { NavigationCommands } from '../hooks/use-navigation-shortcuts';
 
 interface NavigationControlsProps {
@@ -18,10 +18,11 @@ const ACTIVE = 'bg-[var(--mw-accent)] text-black';
 
 /** Explore toggle, presets, reset and hint, floating above the canvas (siblings: they never move the camera). */
 export function NavigationControls({ state, commands }: NavigationControlsProps) {
+  const t = useT('world');
   const exploring = state.mode === 'explore';
   return (
     <div
-      aria-label={NAVIGATION_TEXT.group}
+      aria-label={t('nav.group')}
       className="absolute right-4 top-20 z-10 flex max-w-[calc(100%-2rem)] flex-col items-end gap-2"
       role="group"
     >
@@ -32,11 +33,11 @@ export function NavigationControls({ state, commands }: NavigationControlsProps)
           onClick={commands.toggleExplore}
           type="button"
         >
-          {NAVIGATION_TEXT.explore}
+          {t('nav.explore')}
         </button>
         {exploring && (
           <>
-            <div aria-label={NAVIGATION_TEXT.presetsLabel} className="flex flex-wrap justify-end gap-2" role="group">
+            <div aria-label={t('nav.presetsLabel')} className="flex flex-wrap justify-end gap-2" role="group">
               {VIEW_PRESET_IDS.map((id) => (
                 <button
                   aria-pressed={state.preset === id}
@@ -45,17 +46,17 @@ export function NavigationControls({ state, commands }: NavigationControlsProps)
                   onClick={() => commands.selectPreset(id)}
                   type="button"
                 >
-                  {NAVIGATION_TEXT.presets[id]}
+                  {t(`preset.${id}`)}
                 </button>
               ))}
             </div>
             <button className={`${BUTTON} ${IDLE}`} onClick={commands.reset} type="button">
-              {NAVIGATION_TEXT.reset}
+              {t('nav.reset')}
             </button>
           </>
         )}
       </div>
-      {exploring && <p className="max-w-xs text-right text-xs text-white/70">{NAVIGATION_TEXT.hint}</p>}
+      {exploring && <p className="max-w-xs text-right text-xs text-white/70">{t('nav.hint')}</p>}
     </div>
   );
 }

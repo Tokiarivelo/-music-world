@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { StoreTemplate } from '@/templates/generated';
-import { PROVIDER_NAMES, STORE_ROUTES, STORE_TEXT } from '../consts/template-store.consts';
+import { useT, type Translator } from '@/i18n';
+import { STORE_ROUTES } from '../consts/template-store.consts';
 import { ReportTemplateButton } from './ReportTemplateButton';
 import { TemplatePreview } from './TemplatePreview';
 
@@ -10,8 +11,13 @@ interface TemplateCardProps {
   canReport?: boolean;
 }
 
+function providerName(t: Translator<'store'>, id: string): string {
+  return id === 'muse' || id === 'bedrock' || id === 'mock' ? t(`provider.${id}`) : id;
+}
+
 /** Name, author, license, AI label, thumbnail (or palette preview) and "Use this template". Text only. */
 export function TemplateCard({ item, canReport = false }: TemplateCardProps) {
+  const t = useT('store');
   const { template } = item;
   const generatedBy = template.meta?.generatedBy ?? null;
   return (
@@ -20,7 +26,7 @@ export function TemplateCard({ item, canReport = false }: TemplateCardProps) {
         // eslint-disable-next-line @next/next/no-img-element -- same-origin API image, already small (≤ 128 KB)
         <img
           src={item.thumbnailUrl}
-          alt={STORE_TEXT.previewAlt(template.name)}
+          alt={t('previewAlt', { name: template.name })}
           width={256}
           height={256}
           className="aspect-square w-full rounded object-cover"
@@ -30,15 +36,15 @@ export function TemplateCard({ item, canReport = false }: TemplateCardProps) {
       )}
       <h2 className="font-semibold">{template.name}</h2>
       <p className="text-xs opacity-80">
-        {STORE_TEXT.by(item.author.displayName)} · {STORE_TEXT.license(template.license)}
+        {t('by', { author: item.author.displayName })} · {t('license', { license: template.license })}
       </p>
       <div className="flex flex-wrap gap-1 text-xs">
         {item.featured && (
-          <span className="rounded-full bg-[var(--mw-accent)]/30 px-2 py-0.5">{STORE_TEXT.featured}</span>
+          <span className="rounded-full bg-[var(--mw-accent)]/30 px-2 py-0.5">{t('featured')}</span>
         )}
         {generatedBy && (
           <span className="rounded-full bg-[var(--mw-secondary)]/30 px-2 py-0.5">
-            {STORE_TEXT.aiLabel(PROVIDER_NAMES[generatedBy.provider] ?? generatedBy.provider)}
+            {t('aiLabel', { provider: providerName(t, generatedBy.provider) })}
           </span>
         )}
       </div>
@@ -46,7 +52,7 @@ export function TemplateCard({ item, canReport = false }: TemplateCardProps) {
         className="mt-auto rounded-full bg-[var(--mw-primary)] px-4 py-2 text-center text-sm font-medium text-black"
         href={STORE_ROUTES.play(item.id)}
       >
-        {STORE_TEXT.use}
+        {t('use')}
       </Link>
       {canReport && !item.featured && <ReportTemplateButton storeId={item.id} />}
     </article>

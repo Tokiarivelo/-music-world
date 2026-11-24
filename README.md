@@ -181,6 +181,14 @@ curl -k https://localhost/api/templates?limit=5          # {"items":[…],"nextC
 - **Handoff between agents** — `docs/handoff.md`.
 - Full write-up: [`KIRO_USAGE.md`](KIRO_USAGE.md).
 
+## Languages
+
+The UI is available in English, French and Malagasy (language select at the top of every page; choice kept in the
+`mw_locale` cookie, otherwise `Accept-Language`). To add a language: copy `apps/web/src/i18n/messages/en/` to a new
+folder (e.g. `es/`), translate the values (keep the `{parameters}` and plural forms), then add the code to `LOCALES`,
+`LOCALE_NAMES` and `LOCALE_DIR` in `src/i18n/config.ts` and the imports in `src/i18n/catalogs.ts`; TypeScript and
+`pnpm test` list anything missing. French and Malagasy are machine drafts until a native speaker reviews them.
+
 ## Known limitations
 
 - Not deployed yet (public URL above is `TODO(deploy)`); the Quest 3 headset check, real Muse / Bedrock calls and
@@ -190,6 +198,8 @@ curl -k https://localhost/api/templates?limit=5          # {"items":[…],"nextC
 - The AI director picks among built-in shape kinds; custom shape recipes (ShapeRecipe) are not implemented.
 - Default look vs the reference image: no bloom haze in WebXR, beamed sixteenths drawn as separate flagged notes
   (full list in `.kiro/specs/04-default-template/design.md`).
+- The VR panel uses the bundled MSDF Inter font: French and Malagasy accents must be checked on a Quest (glyphs missing
+  from the atlas render as boxes). Lyrics are shown as transcribed, never translated.
 - Reported templates have no review UI; rate limits are in memory per API worker.
 
 ## Documentation

@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-24 · **Last updated by:** Claude Code (Makefile, Docker, env examples, optimization, token budget)
+> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase I3 i18n)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -16,23 +16,23 @@ Read docs/handoff.md and continue with the next actions.
   handoff), merged into `main` through the PR "Phase 9: submission docs". Work from `main`.
   Push with gh credentials: `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
 - `08-navigation-mode` is merged (PR #9).
-- Uncommitted: this session's tooling changes (see § 2), on `main`: create a branch before committing.
+- Phase I3 work is on branch `phase-14-i18n` (committed, not pushed or merged).
 - `make check` green (exit 0): API pytest 313 passed (3 slow deselected), web vitest 213 passed (44 files), ruff,
   mypy strict, eslint, tsc, schema drift and architecture checks clean. Docs-only session: no code changed.
 - No server left running. A `music-world` Compose stack (old images, predates Phase 6) and another project's
   containers (`angaly_*`) may be running — not started by these sessions; leave them alone.
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-24, Claude Code, phase 11 quality and performance)
+## 2. Last session (2026-11-24, Claude Code, phase I3 i18n)
 
-- Phase 10 (ShapeRecipe, PR #11) merged, then tooling follow-ups: `NUMBA_CACHE_DIR` (worker failed in Basic Pitch),
-  director default is the `-contributor` Muse model (project decision, upload page warns users; keep `dataNote`),
-  `WEB_PORT`, `make db-password`.
-- Phase 11 (branch `phase-11-quality-perf`, backlog B3–B7, C1, C2): boto3 imported lazily; Caddy caches `/demo/*`;
-  `apps/web/scripts/check-bundle.mjs` (`make bundle-check`, run by the web Dockerfile); pitfalls moved to
-  `docs/pitfalls.md` (handoff 11.3 → 8 KB); `make smoke`; KIRO_USAGE token-budget section; prune/clean run.
-- Left in `docs/backlog-agent.md`: B1 (`pip-audit`, `pnpm audit`) and B2 (`pytest-xdist`) need network; C3 (verify
-  the Dockerfile weights layer is reused) needs network and ~6 GB; A2/A3 need a spec first.
+- Branch `phase-14-i18n` (`docs/improvements/i3-i18n.md`, ADR `docs/decisions/002-i18n-in-house.md`): in-house
+  `apps/web/src/i18n` (typed JSON catalogs `en`/`fr`/`mg`, `useT`/`getT`, `t.error(code)`, `LanguageSwitch` in the
+  root layout, cookie `mw_locale`). Every `*_TEXT` / `*_ERRORS` constant was moved to the catalogs; the VR panel
+  labels come from `WorldControls.labels`. Tests: catalog parity, ICU, locale resolution, provider switch, and
+  `no-literal-text.test.ts` (fails on raw JSX text or text attributes). `next build` and `check-bundle` are green.
+- Not done: **glyph atlas** for the VR panel (needs a Quest / MSDF tooling, check accents with `xr-verify`), Playwright
+  screenshots in `fr`/`mg`, native review of the fr/mg drafts, `PROJECT.md` §7.
+- Rule for every later phase (I1, I2, I4–I8): add text only as catalog keys (`en` first).
 
 ## 3. Next actions
 

@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo, useState, type FormEvent } from 'react';
+import { useT } from '@/i18n';
 import { createProject, getJob } from '../api/projects.api';
 import {
   AUDIO_ACCEPT,
@@ -10,8 +11,6 @@ import {
   MAX_AUDIO_BYTES,
   MAX_LRC_BYTES,
   PLAY_PATH,
-  UPLOAD_ERRORS,
-  UPLOAD_TEXT,
 } from '../consts/upload.consts';
 import { useUpload, type UploadDeps } from '../hooks/use-upload';
 import { checkFiles } from '../lib/stage-progress';
@@ -23,6 +22,7 @@ const LIMITS = { maxAudioBytes: MAX_AUDIO_BYTES, maxLrcBytes: MAX_LRC_BYTES, ext
 export function UploadForm({ deps }: { deps?: Partial<UploadDeps> }) {
   const router = useRouter();
   const onReady = useCallback((projectId: string) => router.push(PLAY_PATH(projectId)), [router]);
+  const t = useT('upload');
   const upload = useUpload(useMemo(() => ({ createProject, getJob, onReady, ...deps }), [onReady, deps]));
   const [audio, setAudio] = useState<File | null>(null);
   const [lrc, setLrc] = useState<File | null>(null);
@@ -38,12 +38,12 @@ export function UploadForm({ deps }: { deps?: Partial<UploadDeps> }) {
   return (
     <div className="w-full max-w-xl space-y-6">
       <header className="space-y-2 text-center">
-        <h1 className="text-3xl font-semibold text-[var(--mw-primary)] sm:text-4xl">{UPLOAD_TEXT.title}</h1>
-        <p className="text-sm opacity-80">{UPLOAD_TEXT.intro}</p>
+        <h1 className="text-3xl font-semibold text-[var(--mw-primary)] sm:text-4xl">{t('title')}</h1>
+        <p className="text-sm opacity-80">{t('intro')}</p>
       </header>
       <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-6">
         <label className="block space-y-1 text-sm">
-          <span>{UPLOAD_TEXT.audioLabel}</span>
+          <span>{t('audioLabel')}</span>
           <input
             type="file"
             name="audio"
@@ -54,7 +54,7 @@ export function UploadForm({ deps }: { deps?: Partial<UploadDeps> }) {
           />
         </label>
         <label className="block space-y-1 text-sm">
-          <span>{UPLOAD_TEXT.lrcLabel}</span>
+          <span>{t('lrcLabel')}</span>
           <input
             type="file"
             name="lyrics"
@@ -69,16 +69,16 @@ export function UploadForm({ deps }: { deps?: Partial<UploadDeps> }) {
           disabled={busy}
           className="w-full rounded-full bg-[var(--mw-secondary)] px-6 py-3 font-medium text-black disabled:opacity-50"
         >
-          {upload.phase.kind === 'uploading' ? UPLOAD_TEXT.uploading : UPLOAD_TEXT.submit}
+          {upload.phase.kind === 'uploading' ? t('uploading') : t('submit')}
         </button>
-        <p className="text-center text-xs opacity-60">{UPLOAD_TEXT.royaltyNote}</p>
-        <p className="text-center text-xs opacity-60">{UPLOAD_TEXT.dataNote}</p>
+        <p className="text-center text-xs opacity-60">{t('royaltyNote')}</p>
+        <p className="text-center text-xs opacity-60">{t('dataNote')}</p>
       </form>
       {upload.phase.kind === 'analysing' && <AnalysisProgress job={upload.job} />}
-      {upload.phase.kind === 'ready' && <p role="status">{UPLOAD_TEXT.ready}</p>}
+      {upload.phase.kind === 'ready' && <p role="status">{t('ready')}</p>}
       {upload.phase.kind === 'error' && (
         <p role="alert" className="text-[var(--mw-accent)]">
-          {UPLOAD_ERRORS[upload.phase.messageKey] ?? UPLOAD_ERRORS.UNKNOWN}
+          {t.error(upload.phase.messageKey)}
         </p>
       )}
     </div>
