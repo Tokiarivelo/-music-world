@@ -1,0 +1,6 @@
+# Root entry point so `docker compose up` works from the repository root. The services live in infra/docker-compose.yml
+# (caddy, web, api, worker, postgres, redis); `make dev` / `make up` build only what changed first, which a bare
+# `docker compose up --build` does not. Variables come from infra/.env (copy infra/.env.example).
+include:
+  - path: infra/docker-compose.yml
+    env_file: infra/.env

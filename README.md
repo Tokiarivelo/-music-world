@@ -40,6 +40,7 @@ Pick one way. `make help` lists every target.
 |---|---|---|---|
 | **A. Web only** (demo song, no backend) | `pnpm -C apps/web dev` | `http://localhost:3000/play/demo` | web 3000 |
 | **B. Full stack in Docker** (production-like) | `make dev` | `https://localhost/play/demo` | Caddy 80 and 443 only |
+| **D. Host, no Docker at all** | `make dev-local` | `http://localhost:3000/play/demo` | web 3000 (`WEB_PORT`), api 8000 (`API_PORT`) |
 | **C. Hot reload on the host** (daily development) | `make dev-infra`, then `dev-api`, `dev-worker`, `dev-web` | `http://localhost:3000/play/demo` | web 3000 (`WEB_PORT`), api 8000, postgres 5432, redis 6379 (127.0.0.1) |
 
 **A. Web only** — the AI button and the template store need the API.
@@ -49,7 +50,13 @@ pnpm install
 pnpm -C apps/web dev        # IWER emulates a Quest 3 in dev
 ```
 
-**B. Full stack in Docker** (Caddy, web, api, worker, postgres, redis):
+**D. No Docker** — `make dev-local` runs the API (SQLite file `apps/api/.data/dev.db`, migrations first) and the web
+app together, `Ctrl-C` stops both. When `redis-server` is installed it also starts Redis and the analysis worker;
+otherwise uploads are not analysed (demo, template editor, store and sign-in work). Override with `LOCAL_DB=…`,
+`API_PORT`, `WEB_PORT` (and `DEV_API_URL` for the web proxy when `API_PORT` changes).
+
+**B. Full stack in Docker** (Caddy, web, api, worker, postgres, redis); `docker compose up` from the repository
+root also works (root `docker-compose.yml` includes `infra/docker-compose.yml` and `infra/.env`):
 
 ```bash
 make dev                              # accept the local certificate in the browser
