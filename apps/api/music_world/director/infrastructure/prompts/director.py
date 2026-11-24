@@ -5,7 +5,7 @@ from typing import Any
 
 from music_world.director.application.summary import AnalysisSummary
 
-PROMPT_VERSION = "director-v3"
+PROMPT_VERSION = "director-v4"
 
 # Closed enums repeated in plain words (requirement 2.2); the JSON Schema below is the authority.
 _ENUMS = """Allowed values (closed lists, use nothing else):
@@ -42,11 +42,32 @@ Rules:
 - Keep the world readable: a dark background, a bright staff, 3 to 8 mapping rules, at most 8 zones."""
 
 
+# Keys that cost tokens and tell the model nothing the closed lists above do not: pydantic titles and defaults.
+# The validator (and a provider's structured output) still uses the full schema; only this prompt copy is slimmed.
+_NOISE_KEYS = frozenset({"title", "default"})
+
+
+def slim_schema(node: Any) -> Any:
+    """The schema as shown to the model: without `title` and `default` keywords (property names are never touched)."""
+    if isinstance(node, dict):
+        return {
+            k: ({name: slim_schema(sub) for name, sub in v.items()} if k == "properties" else slim_schema(v))
+            for k, v in node.items()
+            if k not in _NOISE_KEYS
+        }
+    if isinstance(node, list):
+        return [slim_schema(v) for v in node]
+    return node
+
+
 class DirectorPromptSet:
     version = PROMPT_VERSION
 
     def system(self, schema: dict[str, Any]) -> str:
-        compact = json.dumps(schema, separators=(",", ":"))
+        slim = slim_schema(schema)
+        if "title" in schema:
+            slim = {"title": schema["title"], **slim}  # the root keeps its name: it is the model's anchor
+        compact = json.dumps(slim, separators=(",", ":"))
         return f"{_ROLE}\n\n{_ENUMS}\n\nJSON Schema (music-world.template.v1):\n{compact}"
 
     def user(self, summary: AnalysisSummary) -> str:
