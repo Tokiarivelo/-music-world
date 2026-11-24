@@ -65,8 +65,9 @@ Master plan and priorities (P0/P1/P2, cut line, token rules): `docs/roadmap.md` 
    (`<spec>: <task number> <summary>`) on the phase branch (`phase-<id>-<slug>`, from the latest `main`; never commit on
    `main`). Commit everything that belongs to the change, always. If GPG signing fails, use
    `git -c commit.gpgsign=false commit`.
-   When the last task of the phase is committed and tests pass, push the branch and open a PR to `main` without asking
-   (push command in `docs/handoff.md` § 1). Do not merge it unless the user asks.
+   When the last task of the phase is committed and tests pass, push the branch, open a PR to `main` and merge it (merge commit) without asking, then start the next phase
+   (push command in `docs/handoff.md` § 1). A question that needs a human goes into `docs/open-questions.md` with the
+   default applied, to be evaluated at the end; do not stop for it. If a commit is refused for signing, use the unsigned form above.
 7. **Handoff**: run the `handoff` skill before stopping or switching agent.
 
 ## Absolute rules (summary — details in `tech.md`)
