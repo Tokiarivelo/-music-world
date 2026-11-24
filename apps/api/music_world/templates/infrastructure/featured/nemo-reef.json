@@ -1,0 +1,40 @@
+{
+  "schema": "music-world.template.v1",
+  "id": "nemo-reef",
+  "name": "Nemo Reef",
+  "license": "CC-BY-4.0",
+  "palette": {
+    "background": "#020b1c",
+    "terrain": "#0c2a4a",
+    "primary": "#2fa8ff",
+    "accent": "#ff8a1f",
+    "secondary": "#3ef0d0",
+    "staff": "#e6fbff"
+  },
+  "terrain": { "style": "smooth_plate", "mountains": "edges", "size": 12 },
+  "staff": {
+    "style": "glowing_lines",
+    "path": "diagonal_curve",
+    "clef": "treble",
+    "glow": 1.0,
+    "lookahead": 4.0,
+    "fallDuration": 0.5
+  },
+  "mappings": [
+    { "when": { "chord": true }, "spawn": "cluster", "heightFrom": "velocity", "colorRole": "accent" },
+    { "when": { "pitch": "<48" }, "spawn": "terrain_ridge", "heightFrom": "duration", "colorRole": "primary" },
+    { "when": { "pitch": "48-65" }, "spawn": "crystal", "heightFrom": "velocity", "colorRole": "secondary" },
+    { "when": { "pitch": "65-76" }, "spawn": "building", "heightFrom": "velocity", "colorRole": "primary" },
+    { "when": { "pitch": ">76" }, "spawn": "spike", "heightFrom": "pitch", "colorRole": "accent" },
+    { "when": {}, "spawn": "crystal" }
+  ],
+  "zones": [
+    { "kind": "crystal", "xMin": -0.95, "xMax": -0.1, "zMin": -0.95, "zMax": -0.2 },
+    { "kind": "building", "xMin": -0.95, "xMax": -0.45, "zMin": -0.2, "zMax": 0.55 },
+    { "kind": "spike", "xMin": -0.95, "xMax": -0.1, "zMin": -0.95, "zMax": -0.7 },
+    { "kind": "cluster", "xMin": 0.2, "xMax": 0.95, "zMin": 0.1, "zMax": 0.95 },
+    { "kind": "terrain_ridge", "xMin": 0.7, "xMax": 0.95, "zMin": -0.95, "zMax": 0.1 }
+  ],
+  "budget": { "instancesPerKind": 2000 },
+  "fx": { "particles": "dust", "bloom": 0.9, "beatPulse": true, "chordLinks": "light_arc" }
+}
