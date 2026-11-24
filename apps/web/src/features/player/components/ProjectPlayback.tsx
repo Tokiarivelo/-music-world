@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useT } from "@/i18n";
 import { SiteNav } from "@/features/navigation";
 import type { Analysis } from "@/templates/generated";
+import { extendWithGenericNotes } from "@/engine/generic-notes";
 import {
   DirectorPanel,
   useDirector,
@@ -53,9 +54,15 @@ function ProjectWorld({
   const { template } = choice;
   const seed = usePlaySeed(player.run, seedFromHash(analysis.audioHash));
   const editsRemote = useMemo(() => projectEditsRemote(projectId), [projectId]);
+  // A song longer than the analysed first 5 minutes plays whole, with generic notes after the analysis ends.
+  const world = useMemo(
+    () => extendWithGenericNotes(analysis, player.duration),
+    [analysis, player.duration],
+  );
+  const extended = world !== analysis;
   const scene = useMemo(
-    () => ({ analysis, template, seed, clock }),
-    [analysis, template, seed, clock],
+    () => ({ analysis: world, template, seed, clock }),
+    [world, template, seed, clock],
   );
   return (
     <div className="relative h-dvh w-full">
@@ -74,6 +81,11 @@ function ProjectWorld({
       {/* IWSDK sizes its canvas to the window, so the controls float above it. */}
       <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[var(--mw-bg)] to-transparent pt-6">
         <PlayerBar player={player} />
+        {extended && (
+          <p className="text-center text-xs opacity-80">
+            {t("genericTail", { minutes: Math.round(analysis.durationSec / 60) })}
+          </p>
+        )}
         <p className="pb-2 text-center text-xs opacity-60">
           {t("demoStats", {
             key: analysis.key,

@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from music_world.analysis.domain.audio import MIX_CHANNELS, MIX_SAMPLE_RATE
-from music_world.analysis.domain.errors import AudioDecodeError, AudioTooLongError
+from music_world.analysis.domain.errors import AudioDecodeError
 from music_world.analysis.infrastructure.ffmpeg_decoder import FfmpegDecoder
 from tests.fakes import wav_bytes
 
@@ -40,8 +40,8 @@ async def test_garbage_is_a_decode_error(tmp_path: Path) -> None:
         await FfmpegDecoder().decode(src, tmp_path / "mix.wav")
 
 
-async def test_longer_than_three_minutes_is_rejected(tmp_path: Path) -> None:
+async def test_a_song_longer_than_five_minutes_is_cut_to_five_minutes(tmp_path: Path) -> None:
     src = tmp_path / "long.wav"
-    src.write_bytes(wav_bytes(seconds=181, sample_rate=1000))
-    with pytest.raises(AudioTooLongError):
-        await FfmpegDecoder().decode(src, tmp_path / "mix.wav")
+    src.write_bytes(wav_bytes(seconds=301, sample_rate=1000))
+    decoded = await FfmpegDecoder().decode(src, tmp_path / "mix.wav")
+    assert abs(decoded.duration_sec - 300.0) < 0.1

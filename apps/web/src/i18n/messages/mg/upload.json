@@ -1,6 +1,6 @@
 {
   "title": "Ovay tontolo ny hira iray",
-  "intro": "Alefaso ny rakitra MP3, WAV na FLAC (25 Mo sy 3 minitra no ambony indrindra). Ampio ny tononkira miaraka amin'ny fotoana amin'ny rakitra .lrc raha manana ianao.",
+  "intro": "Alefaso ny rakitra MP3, WAV na FLAC (25 Mo no ambony indrindra; ny 5 minitra voalohany no voaanalyse, ny hira lava kokoa dia misy nota ankapobeny aorian'izay). Ampio ny tononkira miaraka amin'ny fotoana amin'ny rakitra .lrc raha manana ianao.",
   "audioLabel": "Hira",
   "lrcLabel": "Tononkira miaraka amin'ny fotoana (.lrc, tsy voatery)",
   "submit": "Hanadihady",
@@ -24,7 +24,7 @@
   "errors.CLIENT_LRC_TOO_LARGE": "Lehibe lavitra noho ny 64 Ko ny rakitra tononkira.",
   "errors.AUDIO_TOO_LARGE": "Lehibe lavitra noho ny 25 Mo ity rakitra ity.",
   "errors.AUDIO_FORMAT_UNSUPPORTED": "Tsy rakitra MP3, WAV na FLAC ity rakitra ity.",
-  "errors.AUDIO_TOO_LONG": "Mihoatra ny 3 minitra ity hira ity.",
+  "errors.AUDIO_TOO_LONG": "Mihoatra ny 30 minitra ity hira ity.",
   "errors.AUDIO_UNREADABLE": "Tsy azo vakiana ity rakitra feo ity.",
   "errors.LRC_INVALID": "Tsy maintsy soratra UTF-8 ny rakitra tononkira.",
   "errors.AUDIO_DECODE_FAILED": "Tsy azo novaina ity rakitra feo ity.",

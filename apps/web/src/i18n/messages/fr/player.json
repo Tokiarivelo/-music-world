@@ -4,6 +4,7 @@
   "seek": "Position dans la chanson",
   "loading": "Préparation de la chanson de démonstration…",
   "demoNote": "Chanson de démonstration « {title} », composée pour Music World",
+  "genericTail": "Seules les {minutes} premières minutes sont analysées ; la suite de la chanson se joue avec des notes génériques.",
   "demoStats": "{key} · {bpm} BPM · {count, plural, one {# note} other {# notes}}",
   "loadingProject": "Chargement du monde de votre chanson…",
   "projectTitle": "Votre chanson",

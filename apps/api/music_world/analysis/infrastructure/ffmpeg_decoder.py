@@ -12,15 +12,14 @@ from music_world.analysis.domain.audio import (
     MIX_CHANNELS,
     MIX_SAMPLE_RATE,
     DecodedAudio,
-    check_duration,
 )
 from music_world.analysis.domain.errors import AudioDecodeError
 
 log = structlog.get_logger(__name__)
 
 FFMPEG_TIMEOUT_SECONDS = 120
-# Decode slightly past the limit so an over-long file is detected instead of silently truncated.
-_DECODE_LIMIT_SEC = MAX_DURATION_SEC + 1
+# A longer song is cut here: the analysis covers its first MAX_DURATION_SEC seconds only.
+_DECODE_LIMIT_SEC = MAX_DURATION_SEC
 
 
 class FfmpegDecoder:
@@ -55,7 +54,6 @@ class FfmpegDecoder:
         duration = frames / rate
         if frames == 0:
             raise AudioDecodeError("audio file contains no samples")
-        check_duration(duration)
         log.info("analysis.stage_done", stage="decode", duration_sec=round(duration, 3),
                  cpu_sec=round(time.process_time() - started, 3))  # fmt: skip
         return DecodedAudio(target, rate, channels, duration)

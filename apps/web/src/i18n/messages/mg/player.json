@@ -4,6 +4,7 @@
   "seek": "Toerana ao amin'ny hira",
   "loading": "Fiomanana ny hira fanehoana…",
   "demoNote": "Hira fanehoana “{title}”, noforonina ho an'i Music World",
+  "genericTail": "Ny {minutes} minitra voalohany ihany no voaanalyse; ny tohiny dia misy nota ankapobeny.",
   "demoStats": "{key} · {bpm} BPM · {count, plural, other {nota #}}",
   "loadingProject": "Fampidirana ny tontolon'ny hira…",
   "projectTitle": "Ny hirao",

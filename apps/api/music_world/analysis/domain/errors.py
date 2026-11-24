@@ -5,10 +5,6 @@ class AudioDecodeError(MusicWorldError):
     code = "AUDIO_DECODE_FAILED"
 
 
-class AudioTooLongError(MusicWorldError):
-    code = "AUDIO_TOO_LONG"
-
-
 class SeparationError(MusicWorldError):
     code = "SEPARATION_FAILED"
 

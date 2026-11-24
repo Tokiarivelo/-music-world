@@ -16,7 +16,7 @@ LABEL_RE = r"^(intro|verse|chorus|bridge|outro|section_\d+)$"
 @given(
     st.lists(st.floats(min_value=-10, max_value=200, allow_nan=False), max_size=12),
     st.lists(st.integers(0, 4), max_size=14),
-    st.floats(min_value=1, max_value=180),
+    st.floats(min_value=1, max_value=300),
 )
 def test_sections_are_contiguous_cover_the_song_and_have_valid_labels(
     boundaries: list[float], clusters: list[int], duration: float

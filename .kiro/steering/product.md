@@ -12,7 +12,7 @@ The full design document is `PROJECT.md` (French). This file is the English summ
 
 ## Target experience
 
-1. Upload an audio file (MP3, WAV, FLAC; max 3 minutes in the MVP).
+1. Upload an audio file (MP3, WAV, FLAC; 25 MB; the first 5 minutes are analysed, a longer song plays whole with generic notes after that).
 2. The backend analyses it: notes, chords, tempo, key, energy, sections, lyrics.
 3. An LLM (Meta Muse Spark) reads a text summary of the analysis and proposes a world template.
 4. The user picks that template, a store template, or the default `neon-nocturne`.

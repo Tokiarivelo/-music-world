@@ -50,7 +50,7 @@ async def test_same_audio_twice_creates_two_projects_with_one_hash(client: Async
     ("content", "probe", "status", "code"),
     [
         (b"OggS" + b"\x00" * 64, None, 415, "AUDIO_FORMAT_UNSUPPORTED"),
-        (wav_bytes(), FakeAudioProbe(240.0), 422, "AUDIO_TOO_LONG"),
+        (wav_bytes(), FakeAudioProbe(1900.0), 422, "AUDIO_TOO_LONG"),
         (wav_bytes(), FakeAudioProbe(AudioUnreadableError("audio file could not be read")), 422, "AUDIO_UNREADABLE"),
         (b"RIFF" + b"\x00" * (MAX_AUDIO_BYTES + 1), None, 413, "AUDIO_TOO_LARGE"),
     ],
