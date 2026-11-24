@@ -18,6 +18,7 @@ from music_world.shared.logging import configure_logging
 from music_world.shared.settings import Settings, get_settings
 from music_world.system.interfaces import http as system_http
 from music_world.templates.interfaces import http as templates_http
+from music_world.templates.interfaces import moderation_http
 
 # Song upload = audio + optional .lrc + multipart overhead; every other body (templates, director demo analysis,
 # thumbnails) is far below 1 MB. Caddy applies the same limits (infra/Caddyfile).
@@ -63,6 +64,7 @@ def create_app(
     app.include_router(director_http.router)
     app.include_router(accounts_http.router)
     app.include_router(templates_http.router)
+    app.include_router(moderation_http.router)
     if settings.app_env == "development":
         app.include_router(jobs_http.demo_router)
     return app

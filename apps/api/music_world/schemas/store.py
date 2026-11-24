@@ -10,6 +10,7 @@ from music_world.schemas.template import WorldTemplate
 
 TEMPLATE_SCHEMA_ID = "music-world.store-template.v1"
 PAGE_SCHEMA_ID = "music-world.store-template-page.v1"
+QUEUE_SCHEMA_ID = "music-world.moderation-queue.v1"
 
 
 class StoreAuthor(ContractModel):
@@ -57,3 +58,21 @@ class CreateStoreTemplateRequest(ContractModel):
 
     template: dict[str, Any] = Field(description="A `music-world.template.v1` document (validated by the store).")
     publish: bool = Field(default=False, description="Publish at once instead of keeping a draft.")
+
+
+class ModerationQueueItem(ContractModel):
+    template: StoreTemplate
+    report_count: int = Field(ge=0)
+    reasons: list[Literal["offensive", "spam", "broken", "copyright"]] = Field(
+        description="Reason codes of the current reports, newest first; render as text."
+    )
+    last_reported_at: datetime
+
+
+class ModerationQueue(ContractModel):
+    """`GET /api/moderation/templates`: hidden templates, latest report first (moderators only)."""
+
+    model_config = ConfigDict(title="ModerationQueue")
+
+    items: list[ModerationQueueItem]
+    next_cursor: str | None = Field(description="Pass as `?cursor=` for the next page; null on the last page.")

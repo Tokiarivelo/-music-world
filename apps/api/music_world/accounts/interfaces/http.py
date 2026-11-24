@@ -51,7 +51,7 @@ def _session(user: User | None, services: AccountServices) -> AuthSession:
     if user is None:
         return AuthSession(user=None)
     payload: dict[str, object] = {"user": {"id": user.id, "email": user.email, "displayName": user.display_name}}
-    if services.moderators.is_moderator(user):
+    if services.moderators.is_moderator(user.email):
         payload["moderator"] = True  # left unset (so absent from the JSON) for everyone else
     return AuthSession.model_validate(payload)
 

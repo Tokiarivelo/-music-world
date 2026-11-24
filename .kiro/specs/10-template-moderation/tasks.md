@@ -8,7 +8,7 @@
 - [x] 3. Use cases `ListHiddenTemplates`, `RestoreTemplate`, `RemoveTemplate` with fakes; property test on counts
   after a restore.
   - _Requirements: 2.1, 3.1, 3.2, 5.2_
-- [ ] 4. Router `/api/moderation/*` (404 rules, CSRF, rate limit, 409), docs in `api-specs.md`; HTTP tests.
+- [x] 4. Router `/api/moderation/*` (404 rules, CSRF, rate limit, 409), docs in `api-specs.md`; HTTP tests.
   - _Requirements: 1.2, 1.3, 3.3, 5.1_
 - [ ] 5. Web `features/moderation` + `/moderation` page + navigation link from `session.moderator`; "My templates" hidden
   label; Testing Library tests.

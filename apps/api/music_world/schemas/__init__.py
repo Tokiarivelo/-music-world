@@ -15,7 +15,7 @@ from music_world.schemas.health import DependencyChecks, Health
 from music_world.schemas.job import Job, JobAccepted
 from music_world.schemas.project import Project, ProjectCreated
 from music_world.schemas.shape import ShapeRecipe
-from music_world.schemas.store import StoreTemplate, StoreTemplatePage
+from music_world.schemas.store import ModerationQueue, StoreTemplate, StoreTemplatePage
 from music_world.schemas.template import WorldTemplate
 
 EXPORTED: dict[str, type[BaseModel]] = {
@@ -31,6 +31,7 @@ EXPORTED: dict[str, type[BaseModel]] = {
     account.SESSION_SCHEMA_ID: AuthSession,
     store.TEMPLATE_SCHEMA_ID: StoreTemplate,
     store.PAGE_SCHEMA_ID: StoreTemplatePage,
+    store.QUEUE_SCHEMA_ID: ModerationQueue,
     template.SCHEMA_ID: WorldTemplate,
 }
 
@@ -42,6 +43,7 @@ __all__ = [
     "DirectorProviders",
     "DirectorResult",
     "Health",
+    "ModerationQueue",
     "Job",
     "JobAccepted",
     "Project",

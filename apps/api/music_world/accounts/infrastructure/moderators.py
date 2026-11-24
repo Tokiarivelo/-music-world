@@ -1,6 +1,6 @@
 """Moderator directory backed by the `MODERATOR_EMAILS` setting (10-template-moderation requirement 1)."""
 
-from music_world.accounts.domain.model import User, hash_token
+from music_world.accounts.domain.model import hash_token
 
 
 def _hash(email: str) -> str:
@@ -16,5 +16,5 @@ class EmailHashModeratorDirectory:
     def is_enabled(self) -> bool:
         return bool(self._hashes)
 
-    def is_moderator(self, user: User) -> bool:
-        return _hash(user.email) in self._hashes
+    def is_moderator(self, email: str) -> bool:
+        return _hash(email) in self._hashes
