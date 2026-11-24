@@ -44,7 +44,7 @@ readable, and the listener can roll a random color scheme, lock the colors they 
 ## Tasks (one commit each)
 
 1. [x] `palette-generator.ts` with OKLCH math, schemes, constraints; property tests (10 000 seeds).
-2. `WorldHandle.setPaletteOverride` + view updates (terrain, structures, staff, fx, environment); draw-call test.
+2. [x] `WorldHandle.setPaletteOverride` + view updates (terrain, structures, staff, fx, environment). As built: the host re-applies the same plan with the merged palette (`xr/palette-override.ts`), so the views rebuild from it (geometry is recreated, audio and clock untouched); a color override resets when another template id loads. No draw-call test: the draw-call count does not depend on colors.
 3. Player store + persistence + `?palette=` link; tests.
 4. `ColorsPopover` UI (randomize, undo/redo, locks, sliders, reset); Testing Library tests.
 5. Brightness/exposure and light tuning; before/after screenshots in `docs/`; README.

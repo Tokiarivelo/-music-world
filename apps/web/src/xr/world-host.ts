@@ -7,7 +7,7 @@
  * we do it here), `visibilityState` (signal, `'non-immersive'` outside XR), `xr.features.handTracking`.
  */
 import type * as IWSDK from '@iwsdk/core';
-import { buildSpawnPlan } from '@/engine/spawn-plan';
+import { buildSpawnPlan, type SpawnPlan } from '@/engine/spawn-plan';
 import type { EngineAnalysis, WorldTemplate } from '@/engine/types';
 import {
   DESKTOP_CAMERA_AZIMUTH_DEG,
@@ -18,6 +18,7 @@ import {
   DIORAMA_POSITION,
   NAV_WHEEL_ZOOM,
 } from './constants';
+import { applyPaletteOverride, type PaletteOverride } from './palette-override';
 import { cinematicDistance } from './navigation/orbit-camera';
 import { bindNavigationInput } from './navigation/navigation-input';
 import type { CameraMode, NavigationController, NavigationState } from './navigation/navigation-controller';
@@ -47,6 +48,11 @@ export interface InstalledScene extends Pick<MusicScene, 'setScene'> {
 export interface WorldHandle {
   /** Replaces the song, template, seed or clock (typed command API, frontend.md). */
   load(scene: WorldScene): void;
+  /**
+   * View-only colors on top of the template (I4 requirement 5): `null` restores the template. Never mutates the
+   * template, never touches the clock or the audio; the views are rebuilt from the same plan data.
+   */
+  setPaletteOverride(override: PaletteOverride | null): void;
   enterVR(): void;
   exitVR(): void;
   /**
@@ -225,10 +231,26 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     canvas.style.touchAction = state.mode === 'explore' ? 'none' : '';
   });
 
+  let basePlan: SpawnPlan | null = null;
+  let baseClock: WorldClock | null = null;
+  let override: PaletteOverride | null = null;
+  const show = (): void => {
+    if (basePlan && baseClock) scene.setScene(applyPaletteOverride(basePlan, override), baseClock);
+  };
+
   return {
     load({ analysis, template, seed, clock }) {
       if (disposed) return;
-      scene.setScene(buildSpawnPlan(analysis, template, seed), clock);
+      // A color choice belongs to one template: a different template starts from its own colors.
+      if (basePlan && basePlan.template.id !== template.id) override = null;
+      basePlan = buildSpawnPlan(analysis, template, seed);
+      baseClock = clock;
+      show();
+    },
+    setPaletteOverride(next) {
+      if (disposed) return;
+      override = next;
+      show();
     },
     setControls(controls) {
       if (!disposed) scene.setControls(controls);
