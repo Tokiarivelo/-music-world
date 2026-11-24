@@ -7,9 +7,18 @@
 **/.ruff_cache
 **/.hypothesis
 **/*.tsbuildinfo
+**/.data
 .git
 infra/.env
 **/.env
 **/.env.*
-docs/handoff-archive
+docs
 infra/backups
+# Not needed by any image: keeps the build context small and stops doc / test edits from invalidating the COPY layers.
+.kiro
+.claude
+assets
+scripts
+apps/api/tests
+apps/web/scripts
+**/*.md
