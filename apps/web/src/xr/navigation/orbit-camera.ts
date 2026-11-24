@@ -11,6 +11,7 @@ import {
   DESKTOP_CAMERA_DISTANCE_M,
   DESKTOP_CAMERA_ELEVATION_DEG,
   DESKTOP_CAMERA_TARGET_OFFSET,
+  DESKTOP_REFERENCE_ASPECT,
   DIORAMA_POSITION,
   NAV_DISTANCE_MAX_M,
   NAV_DISTANCE_MIN_M,
@@ -110,13 +111,22 @@ function presetPose(offset: Vec3, yawDeg: number, pitchDeg: number, distance: nu
   });
 }
 
-/** The fixed isometric pose of the default look (requirement 1.1): equals `desktopCameraPose()`. */
-export function cinematicPose(): OrbitPose {
+/**
+ * Cinematic camera distance for an aspect ratio (I2 requirement 4): the plate fits the height on landscape (the 16:9
+ * distance is kept for every wider view) and its width on portrait. Non-finite or non-positive aspects use 16:9.
+ */
+export function cinematicDistance(aspect: number = DESKTOP_REFERENCE_ASPECT): number {
+  const a = Number.isFinite(aspect) && aspect > 0 ? aspect : DESKTOP_REFERENCE_ASPECT;
+  return DESKTOP_CAMERA_DISTANCE_M * Math.max(1, DESKTOP_REFERENCE_ASPECT / a);
+}
+
+/** The fixed isometric pose of the default look (requirement 1.1): equals `desktopCameraPose()` at 16:9. */
+export function cinematicPose(aspect: number = DESKTOP_REFERENCE_ASPECT): OrbitPose {
   return presetPose(
     DESKTOP_CAMERA_TARGET_OFFSET,
     DESKTOP_CAMERA_AZIMUTH_DEG,
     DESKTOP_CAMERA_ELEVATION_DEG,
-    DESKTOP_CAMERA_DISTANCE_M,
+    cinematicDistance(aspect),
   );
 }
 

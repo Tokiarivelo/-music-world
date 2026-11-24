@@ -11,13 +11,14 @@ import { buildSpawnPlan } from '@/engine/spawn-plan';
 import type { EngineAnalysis, WorldTemplate } from '@/engine/types';
 import {
   DESKTOP_CAMERA_AZIMUTH_DEG,
-  DESKTOP_CAMERA_DISTANCE_M,
   DESKTOP_CAMERA_ELEVATION_DEG,
   DESKTOP_CAMERA_FOV_DEG,
   DESKTOP_CAMERA_TARGET_OFFSET,
+  DESKTOP_REFERENCE_ASPECT,
   DIORAMA_POSITION,
   NAV_WHEEL_ZOOM,
 } from './constants';
+import { cinematicDistance } from './navigation/orbit-camera';
 import { bindNavigationInput } from './navigation/navigation-input';
 import type { CameraMode, NavigationController, NavigationState } from './navigation/navigation-controller';
 import type { ViewPresetId } from './navigation/orbit-camera';
@@ -66,8 +67,11 @@ export interface WorldHandle {
 }
 
 type WorldLike = Pick<IWSDK.World, 'launchXR' | 'exitXR' | 'destroy'> & {
-  camera: Pick<IWSDK.World['camera'], 'position' | 'lookAt' | 'fov' | 'updateProjectionMatrix'>;
-  renderer: Pick<IWSDK.World['renderer'], 'dispose' | 'forceContextLoss' | 'domElement'>;
+  camera: Pick<IWSDK.World['camera'], 'position' | 'lookAt' | 'fov' | 'aspect' | 'updateProjectionMatrix'>;
+  renderer: Pick<
+    IWSDK.World['renderer'],
+    'dispose' | 'forceContextLoss' | 'domElement' | 'setPixelRatio' | 'setSize'
+  >;
   session: XRSession | undefined;
   visibilityState: { readonly value: string; subscribe(fn: (value: string) => void): () => void };
 };
@@ -146,10 +150,18 @@ function devHooks(): { __mwWorld?: unknown; __mwXRDevice?: unknown } {
 /** `VisibilityState.NonImmersive` of IWSDK (kept as a literal so this module does not load IWSDK eagerly). */
 const NON_IMMERSIVE = 'non-immersive';
 
+/** Device pixel ratio cap (I2 requirement 1): beyond 2 the fill cost grows with no visible gain. */
+export const MAX_PIXEL_RATIO = 2;
+
+/** Pixel ratio actually used for a device ratio. */
+export function cappedPixelRatio(devicePixelRatio: number): number {
+  return Math.min(MAX_PIXEL_RATIO, Math.max(1, Number.isFinite(devicePixelRatio) ? devicePixelRatio : 1));
+}
+
 type Point = { x: number; y: number; z: number };
 
 /** Desktop isometric pose (04-default-template requirement 1): azimuth / elevation around the diorama centre. */
-export function desktopCameraPose(): { position: Point; target: Point } {
+export function desktopCameraPose(aspect: number = DESKTOP_REFERENCE_ASPECT): { position: Point; target: Point } {
   const az = (DESKTOP_CAMERA_AZIMUTH_DEG * Math.PI) / 180;
   const el = (DESKTOP_CAMERA_ELEVATION_DEG * Math.PI) / 180;
   const target = {
@@ -157,7 +169,7 @@ export function desktopCameraPose(): { position: Point; target: Point } {
     y: DIORAMA_POSITION.y + DESKTOP_CAMERA_TARGET_OFFSET.y,
     z: DIORAMA_POSITION.z + DESKTOP_CAMERA_TARGET_OFFSET.z,
   };
-  const r = DESKTOP_CAMERA_DISTANCE_M;
+  const r = cinematicDistance(aspect);
   return {
     position: {
       x: target.x + r * Math.cos(el) * Math.sin(az),
@@ -180,13 +192,31 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   const scene = await deps.installScene(world);
   if (process.env.NODE_ENV === 'development') devHooks().__mwWorld = world; // read by scripts/xr-check.mjs
   // Desktop isometric view of the diorama; in XR the headset pose drives the camera (restored on exit by IWSDK).
-  const { position, target } = desktopCameraPose();
+  const aspect = container.clientWidth / Math.max(1, container.clientHeight);
+  const { position, target } = desktopCameraPose(aspect > 0 ? aspect : undefined);
   world.camera.fov = DESKTOP_CAMERA_FOV_DEG;
   world.camera.updateProjectionMatrix();
   world.camera.position.set(position.x, position.y, position.z);
   world.camera.lookAt(target.x, target.y, target.z);
   let disposed = false;
   const nav = scene.navigation;
+  // The canvas follows its container (I2 requirement 1); in XR the headset owns the drawing buffer size.
+  const fit = (): void => {
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    if (disposed || world.session || width < 1 || height < 1) return;
+    world.renderer.setPixelRatio(cappedPixelRatio(globalThis.devicePixelRatio ?? 1));
+    world.renderer.setSize(width, height);
+    world.camera.aspect = width / height;
+    world.camera.updateProjectionMatrix();
+    nav.setAspect(width / height);
+  };
+  fit();
+  const resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(fit) : null;
+  resizeObserver?.observe(container);
+  const offSession = world.visibilityState.subscribe((state) => {
+    if (state === NON_IMMERSIVE) fit(); // back from XR: restore the window size
+  });
   const canvas = world.renderer.domElement;
   nav.reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const unbind = bindNavigationInput(canvas, nav.input, () => nav.acceptsInput, { wheelPerPixel: NAV_WHEEL_ZOOM });
@@ -228,6 +258,8 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
       disposed = true;
       unbind();
       offTouch();
+      resizeObserver?.disconnect();
+      offSession();
       scene.disposeNavigation();
       if (world.session) world.exitXR();
       world.destroy();

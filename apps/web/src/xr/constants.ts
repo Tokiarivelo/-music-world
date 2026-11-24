@@ -11,6 +11,8 @@ export const DESKTOP_CAMERA_AZIMUTH_DEG = 27;
 export const DESKTOP_CAMERA_ELEVATION_DEG = 31;
 export const DESKTOP_CAMERA_DISTANCE_M = 2.5;
 export const DESKTOP_CAMERA_FOV_DEG = 20;
+/** Aspect ratio the framing above is tuned for (16:9): wider keeps it, narrower moves the camera back (I2). */
+export const DESKTOP_REFERENCE_ASPECT = 16 / 9;
 /** Point the desktop camera looks at, relative to the diorama centre (metres): slightly toward the city. */
 export const DESKTOP_CAMERA_TARGET_OFFSET = { x: 0.0, y: 0.09, z: 0.0 } as const;
 
@@ -134,7 +136,7 @@ export const PINCH_RELEASE = 0.6;
 export const NAV_PITCH_MIN_DEG = 5;
 export const NAV_PITCH_MAX_DEG = 85;
 export const NAV_DISTANCE_MIN_M = 0.35;
-export const NAV_DISTANCE_MAX_M = 6;
+export const NAV_DISTANCE_MAX_M = 9;
 /** The orbit target stays within this horizontal distance of the plate centre (per axis). */
 export const NAV_TARGET_RADIUS_M = 0.9;
 /** The orbit target stays between the plate top and this height above it. */

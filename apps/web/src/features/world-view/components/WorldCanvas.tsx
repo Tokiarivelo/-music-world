@@ -84,13 +84,13 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
   useNavigationShortcuts(commands, !immersive);
 
   return (
-    <div className="relative h-full w-full">
+    <div className="fixed inset-0">
       <div ref={containerRef} aria-label={t('canvasLabel')} className="h-full w-full" role="img" />
       {failed && <p className="absolute inset-x-0 top-6 text-center">{t('loadError')}</p>}
       {commands && !immersive && <NavigationControls commands={commands} state={navigation} />}
       {vrSupported && (
         <button
-          className="absolute right-4 top-4 z-10 rounded-full bg-[var(--mw-accent)] px-6 py-3 font-medium text-black"
+          className="absolute right-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] z-10 rounded-full bg-[var(--mw-accent)] px-6 py-3 font-medium text-black"
           onClick={() => (immersive ? handleRef.current?.exitVR() : handleRef.current?.enterVR())}
           type="button"
         >

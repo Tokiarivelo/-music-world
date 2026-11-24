@@ -35,10 +35,16 @@ function fakeDeps(withSession = false) {
       launchXR: vi.fn(),
       exitXR: vi.fn(),
       destroy: vi.fn(),
-      camera: { position: { set: vi.fn() }, lookAt: vi.fn(), fov: 50, updateProjectionMatrix: vi.fn() },
+      camera: { position: { set: vi.fn() }, lookAt: vi.fn(), fov: 50, aspect: 1, updateProjectionMatrix: vi.fn() },
       session: withSession ? ({} as XRSession) : undefined,
       visibilityState: fakeSignal(withSession ? 'visible' : 'non-immersive'),
-      renderer: { dispose: vi.fn(), forceContextLoss: vi.fn(), domElement: canvas },
+      renderer: {
+        dispose: vi.fn(),
+        forceContextLoss: vi.fn(),
+        domElement: canvas,
+        setPixelRatio: vi.fn(),
+        setSize: vi.fn(),
+      },
     };
   }
   const deps = {
