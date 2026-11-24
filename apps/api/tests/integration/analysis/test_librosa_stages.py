@@ -57,3 +57,16 @@ async def test_very_short_audio_does_not_crash(tmp_path: Path, seconds: float) -
     await LibrosaRhythmAnalyzer().analyze(short, None)
     structure = await LibrosaStructureAnalyzer().analyze(short)
     assert len(structure.clusters) == len(structure.boundaries) + 1
+
+
+async def test_chroma_check_keeps_a_note_of_the_first_chord_and_drops_a_foreign_quiet_one() -> None:
+    """The first chord of the fixture is A minor (A, C, E): a quiet A is in the recording, a quiet F# is not."""
+    from music_world.analysis.domain.notes import RawNote, verify_with_chroma
+    from music_world.analysis.infrastructure.librosa_chroma import LibrosaChromaAnalyzer
+
+    chroma = await LibrosaChromaAnalyzer().analyze(FIXTURE)
+    assert len(chroma.frames) > 100 and all(len(f) == 12 for f in chroma.frames[:5])
+    in_mix = RawNote(time=0.3, duration=1.5, midi=57, velocity=0.3, stem="other")
+    foreign = RawNote(time=0.3, duration=1.5, midi=66, velocity=0.3, stem="other")
+    kept = verify_with_chroma([in_mix, foreign], chroma)
+    assert [n.midi for n in kept] == [57]

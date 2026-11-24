@@ -345,6 +345,7 @@ def _analysis_handler(
     from music_world.analysis.infrastructure.basic_pitch_transcriber import BasicPitchTranscriber
     from music_world.analysis.infrastructure.demucs_separator import DemucsSeparator
     from music_world.analysis.infrastructure.ffmpeg_decoder import FfmpegDecoder
+    from music_world.analysis.infrastructure.librosa_chroma import LibrosaChromaAnalyzer
     from music_world.analysis.infrastructure.librosa_rhythm import LibrosaRhythmAnalyzer
     from music_world.analysis.infrastructure.librosa_structure import LibrosaStructureAnalyzer
     from music_world.analysis.infrastructure.null_lyrics import NoLyricsTranscriber
@@ -362,6 +363,7 @@ def _analysis_handler(
         LibrosaStructureAnalyzer(),
         NoLyricsTranscriber(),
         min_velocity=settings.analysis_min_velocity,
+        chroma=LibrosaChromaAnalyzer(),
     )
     return AnalyzeProjectJobHandler(projects, analyze)
 

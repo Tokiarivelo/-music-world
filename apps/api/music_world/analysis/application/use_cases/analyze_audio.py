@@ -18,6 +18,7 @@ from typing import Any
 from music_world.analysis.application.ports import (
     AnalysisRepository,
     AudioDecoder,
+    ChromaAnalyzer,
     LyricsTranscriber,
     NoteTranscriber,
     ObjectStore,
@@ -32,7 +33,7 @@ from music_world.analysis.domain.audio import PITCHED_STEMS, STEMS, DecodedAudio
 from music_world.analysis.domain.errors import AnalysisInvalidError, AudioMissingError
 from music_world.analysis.domain.harmony import ChordGroup, estimate_key, group_chords
 from music_world.analysis.domain.lyrics import LyricLine
-from music_world.analysis.domain.notes import RawNote, clean_notes, merge_stems
+from music_world.analysis.domain.notes import RawNote, clean_notes, merge_stems, verify_with_chroma
 from music_world.analysis.domain.structure import build_segments, label_sections, normalize_energy
 from music_world.schemas.analysis import SCHEMA_ID, TIME_EPSILON, AnalysisResult
 
@@ -94,10 +95,11 @@ class AnalyzeAudio:
         lyrics: LyricsTranscriber,
         min_velocity: float,
         work_root: Path | None = None,
+        chroma: ChromaAnalyzer | None = None,
     ) -> None:
         self._repo, self._store, self._decoder, self._separator = repo, store, decoder, separator
         self._transcriber, self._rhythm, self._structure, self._lyrics = transcriber, rhythm, structure, lyrics
-        self._min_velocity, self._work_root = min_velocity, work_root
+        self._min_velocity, self._work_root, self._chroma = min_velocity, work_root, chroma
 
     async def execute(self, data: AnalyzeAudioInput, report: ProgressReporter) -> AnalysisResult:
         cached = await self._repo.get(data.audio_hash)
@@ -117,7 +119,7 @@ class AnalyzeAudio:
             stems = await self._stems(data.audio_hash, mix, work / "stems")
 
             await progress.start("transcribe")
-            notes = await self._notes(data.audio_hash, stems, duration)
+            notes = await self._notes(data.audio_hash, stems, duration, mix.path)
 
             await progress.start("rhythm")
             rhythm = await self._cached_rhythm(data.audio_hash, mix.path, stems.get("drums"))
@@ -148,7 +150,7 @@ class AnalyzeAudio:
             await self._store.put_file(stem_key(audio_hash, stem), separated[stem], STEM_CONTENT_TYPE)
         return separated
 
-    async def _notes(self, audio_hash: str, stems: dict[str, Path], duration: float) -> list[RawNote]:
+    async def _notes(self, audio_hash: str, stems: dict[str, Path], duration: float, mix: Path) -> list[RawNote]:
         key = _work_key(audio_hash, "notes")
         saved = await self._load_json(key)
         if saved is None:
@@ -158,7 +160,11 @@ class AnalyzeAudio:
             raw = [[RawNote(**n) for n in notes] for notes in saved]
         # Filters run on every load, so a new ANALYSIS_MIN_VELOCITY applies without re-transcribing.
         kept = [_rounded(clean_notes(notes, self._min_velocity, duration)) for notes in raw]
-        return merge_stems(kept)
+        merged = merge_stems(kept)
+        if self._chroma is None:
+            return merged
+        # Check the notes against the recording itself and drop the quiet ones the mix does not contain.
+        return verify_with_chroma(merged, await self._chroma.analyze(mix))
 
     async def _cached_rhythm(self, audio_hash: str, mix: Path, drums: Path | None) -> Rhythm:
         key = _work_key(audio_hash, "rhythm")

@@ -10,7 +10,7 @@ from typing import Protocol
 
 from music_world.analysis.domain.audio import DecodedAudio
 from music_world.analysis.domain.lyrics import LyricLine
-from music_world.analysis.domain.notes import RawNote
+from music_world.analysis.domain.notes import Chroma, RawNote
 from music_world.schemas.analysis import AnalysisResult
 
 
@@ -53,6 +53,12 @@ class Structure:
 
 class StructureAnalyzer(Protocol):
     async def analyze(self, mix: Path) -> Structure: ...
+
+
+class ChromaAnalyzer(Protocol):
+    """Pitch-class energy of the mix over time, used to check the transcribed notes against the recording."""
+
+    async def analyze(self, mix: Path) -> Chroma: ...
 
 
 class LyricsTranscriber(Protocol):

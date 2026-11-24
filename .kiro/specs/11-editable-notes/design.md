@@ -53,3 +53,19 @@ See `docs/improvements/i9-editable-notes.md` § Design. Add an "As built" sectio
   scheduler over the audio clock, delay computed at each tick so seeks, pauses and rate changes are followed, mute / solo per
   line honored) plus `AudioPlayer.setMuted` (a gain node; the clock keeps running). Polyphony of the score is capped by the
   synth's pool of 8 voices.
+- Task 10, note accuracy ("the notes I see are not the ones I hear"). Two causes found in the code, both fixed:
+  1. **Display**: `staffUOf` was chromatic and clamped to [−0.75, 1.75], so every note below F3 or above E6 (all of a bass
+     line, most of the vocals' low and high range) sat on the same edge and notes between lines looked random. Positions are
+     now the diatonic step of the pitch's natural (a sharp shares the place of the note below) and octave-folded into F3–E6
+     (`foldMidi`), so the pitch class is always right and every note sits on a line or in a space.
+  2. **Detection** (`analysis/domain/notes.py`, applies to new analyses; an analysis already stored for an audio hash is not
+     recomputed): minimum length per stem (vocals and bass 80 ms, other 60 ms); `remove_harmonic_ghosts` drops a note that is
+     an octave, octave + fifth or two octaves above a note ≥ 1.25 times louder that sounds at the same time (overtones heard
+     as notes); `enforce_monophony` for vocals and bass (the quieter of two simultaneous notes goes, a short overlap is
+     trimmed); `verify_with_chroma` checks each quiet note (velocity < 0.6) against the pitch-class energy of the mix during
+     the note (librosa CQT chroma, port `ChromaAnalyzer`) and drops it when its pitch class has less than 20 % of the
+     strongest one. Loud notes are never dropped by the check. Tested on the synthetic fixture (A minor: a quiet A is kept,
+     a quiet F♯ is dropped). Not measured against a reference transcription: no ground-truth recording is in the repository.
+  **Why not an LLM for exact notes**: a text model (Muse, Bedrock) cannot hear the audio, so it can only invent notes, and
+  the project rule is that algorithms detect notes and LLMs only interpret. What can raise accuracy further is a better
+  transcription model or a human fix: the note editor of this phase lets the listener correct a wrong note by hand.

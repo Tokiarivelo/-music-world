@@ -18,6 +18,9 @@
   - _Requirements: 15_
 - [x] 7. Persistence (browser, then `PUT /api/projects/{id}/edits`), "Play my edits".
   - _Requirements: 8, 9_
+- [x] 10. Note accuracy (asked by the author): diatonic octave-folded staff positions (done with the VR keyboard commit),
+  per-stem minimum length, overtone filter, single-voice stems, chroma check against the recording.
+  - _Requirements: none (fix of the analysis and the staff display)_
 - [ ] 8. VR picking and drag, IWER check, docs, screenshots.
   - _Requirements: 1, 3_
 - [ ] 9. (human) Quest 3 check: ray accuracy, drag comfort, tone latency.
