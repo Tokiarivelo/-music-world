@@ -26,7 +26,7 @@ the repository; "Backlog" points to `docs/backlog-agent.md`.
 | # | Finding | Action | Status |
 |---|---|---|---|
 | D1 | `make dev` ran `compose up --build` every time: BuildKit re-checks both images, and the API image re-ran the Demucs download after any code edit (the weights layer came **after** `COPY apps/api/`) | `infra/scripts/build-changed.sh`: content hash of each image's inputs, build only when it changed or the image is missing; `make dev`, `up`, `build` use it; `rebuild` forces | Applied |
-| D2 | Layer order in `api.Dockerfile`: code before weights | Order is now system packages → `pyproject` + lock → Demucs weights → code. A code change rebuilds two small layers | Applied (verify: backlog C3) |
+| D2 | Layer order in `api.Dockerfile`: code before weights | Order is now system packages → `pyproject` + lock → Demucs weights → code. A code change rebuilds two small layers | Applied, verified 2026-11-24 (code-only change: deps and weights `CACHED`, rebuild ≈ 5 s) |
 | D3 | `chown -R app /app /opt/models` in its own `RUN` duplicated the code and the 80 MB weights in a new layer | `COPY --chown`, `chown` of the weights directory inside the download `RUN`, user created before | Applied |
 | D4 | No build caches: a lock-file change re-downloaded torch CPU (~200 MB wheels) and the whole pnpm store | BuildKit cache mounts: uv cache, pnpm store, `.next/cache` (incremental Next build). Not stored in the image | Applied |
 | D5 | Build context contained docs, `.kiro`, `assets`, tests, fixtures, `*.md`: every doc edit invalidated `COPY apps/...` hash inputs and slowed context upload | `.dockerignore` extended (docs, `.kiro`, `.claude`, `assets`, scripts, `apps/api/tests`, `**/*.md`, `**/.data`) | Applied |

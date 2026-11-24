@@ -33,7 +33,7 @@ Last reviewed: 2026-11-24 (after the Makefile / Docker / env / token session).
 |---|---|---|
 | C1 | ~~KIRO_USAGE.md setup section~~ | done 2026-11-24 (phase 11) |
 | C2 | ~~Smoke test of the local stack~~ | done 2026-11-24: `make smoke` (`UP=1` starts the stack first) |
-| C3 | Verify the new Dockerfile layer order really avoids the Demucs download on a code-only change (needs network once, ~15 min, ~6 GB disk: free space first with `make prune`) | two consecutive `make build` runs, the second reuses the weights layer |
+| C3 | ~~Verify the Dockerfile weights layer is reused~~ | done 2026-11-24 (phase 12): after a one-line code change the dependency layer and the Demucs weights layer are `CACHED`; only `COPY apps/api` and the project install rebuilt (≈ 5 s). A lock-file change rebuilds both (≈ 3 min with the uv cache mount) |
 
 ## Not here (needs a human)
 
