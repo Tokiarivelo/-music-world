@@ -82,3 +82,15 @@ numbers. Priority: **P2** (after the P0/P1 phases of `docs/roadmap.md`).
    no React), a Zustand store for the draft, components under 150 lines.
 3. Property tests: any sequence of editor updates yields a template that either validates or is reported invalid with
    at least one error; updates never mutate their input.
+
+## Requirement 7: Recipe editing (follow-up, phase A5)
+
+1. THE editor SHALL list the template's recipes (≤ 16) and let the user add one, remove one and rename one.
+2. WHEN a recipe is renamed or removed THE editor SHALL rewrite every `recipe:<name>` reference in mappings, zones and
+   scenery (a removed recipe becomes `crystal`), so the draft stays valid.
+3. EACH recipe SHALL expose its parts (1–8) with the fields their operation uses, `footprint`, `heightScale` and the
+   triangle budget, every number clamped to the schema bounds (`shape.py`).
+4. THE editor SHALL show the triangle count of each recipe against its budget and report `recipeBudget` when it is
+   exceeded; duplicate or invalid names report `recipeName`. The names follow `^[a-z0-9_]{1,40}$`.
+5. THE preview SHALL show the edited recipe live (same swap as the other sections).
+6. ALL labels SHALL come from the locale files (en, fr, mg); controls are keyboard operable and labelled.
