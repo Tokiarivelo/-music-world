@@ -9,7 +9,7 @@
   - _Requirements: 1.1–1.3, 5.3_
 - [x] 4. Form sections (Identity, Palette, Terrain, Staff, Effects) with bounds from the schema; Testing Library tests.
   - _Requirements: 2.1, 2.2, 3.1, 6.1_
-- [ ] 5. Mappings and zones editors (order, add, remove, limits, recipe kinds read-only); tests.
+- [x] 5. Mappings and zones editors (order, add, remove, limits, recipe kinds read-only); tests.
   - _Requirements: 2.1, 2.3, 2.4_
 - [ ] 6. Live preview with `WorldHandle` template swap, debounce, last valid template; tests with a fake handle.
   - _Requirements: 3.3, 4.1, 4.2_

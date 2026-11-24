@@ -4,9 +4,11 @@ import { useT } from '@/i18n';
 import type { SectionProps } from '../interfaces/section.types';
 import { EffectsSection } from './EffectsSection';
 import { IdentitySection } from './IdentitySection';
+import { MappingsSection } from './MappingsSection';
 import { PaletteSection } from './PaletteSection';
 import { StaffSection } from './StaffSection';
 import { TerrainSection } from './TerrainSection';
+import { ZonesSection } from './ZonesSection';
 
 /** Paths the form has a control for; any other error goes to the form-level alert. */
 const FIELD_PREFIXES = ['name', 'palette.', 'terrain.', 'staff.', 'fx.', 'mappings.', 'zones.'];
@@ -34,6 +36,8 @@ export function EditorForm(props: SectionProps) {
       <TerrainSection {...props} />
       <StaffSection {...props} />
       <EffectsSection {...props} />
+      <MappingsSection {...props} />
+      <ZonesSection {...props} />
     </form>
   );
 }
