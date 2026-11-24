@@ -28,6 +28,8 @@ import { IMMERSIVE_PLATE_M, VR_MIN_HEAD_HEIGHT_M, VR_PANEL_OFFSET, VR_PANEL_TILT
 import { SNAP_TURN_RAD, SnapTurn, glide, onPlate, turnAround } from '../locomotion';
 import { anchorPlacement, scaleStore, type ScaleMode } from '../scale';
 import { PinchGesture } from '../pinch';
+import { keyboardPad, mergeAxis, mergeStick } from '../keyboard-pad';
+import { VR_SEEK_STEP_SEC } from '../constants';
 import { commandsFromPads, type PadEdges, type XRCommand } from '../xr-input-map';
 import { tabletopPose, yawFromQuaternion } from '../xr-placement';
 
@@ -210,11 +212,13 @@ export class XRControlSystem extends createSystem({ rigs: { required: [XRRigComp
 
   update(): void {
     if (!isImmersive(this.world)) {
+      keyboardPad.clear();
       this.pinch.reset();
       return;
     }
     this.updatePinch();
     const { left, right } = this.input.xr.gamepads;
+    this.runKeyboard();
     const leftEdge = readPad(left, InputComponent.X_Button, this.pads[0]);
     const rightEdge = readPad(right, InputComponent.A_Button, this.pads[1]);
     if (scaleStore.mode === 'immersive') {
@@ -229,6 +233,23 @@ export class XRControlSystem extends createSystem({ rigs: { required: [XRRigComp
     for (const entity of this.queries.rigs.entities) {
       const rig = readRig(entity);
       if (rig) for (const command of commandsFromPads(this.pads)) runCommand(rig, command);
+    }
+  }
+
+  /** Keyboard twin of the controller buttons (see `keyboard-pad.ts`): play / pause, seek, recenter, scale. */
+  private runKeyboard(): void {
+    for (const edge of keyboardPad.takeEdges()) {
+      if (edge === 'scale') {
+        scaleStore.set(scaleStore.mode === 'immersive' ? 'diorama' : 'immersive');
+        continue;
+      }
+      for (const entity of this.queries.rigs.entities) {
+        const rig = readRig(entity);
+        if (!rig) continue;
+        if (edge === 'toggle') runCommand(rig, { kind: 'toggle' });
+        else if (edge === 'recenter') runCommand(rig, { kind: 'recenter' });
+        else runCommand(rig, { kind: 'seek', deltaSec: edge === 'seekBack' ? -VR_SEEK_STEP_SEC : VR_SEEK_STEP_SEC });
+      }
     }
   }
 
@@ -280,6 +301,8 @@ export class XRLocomotionSystem extends createSystem({ rigs: { required: [XRRigC
         toggle = !!pad.buttons[SCALE_TOGGLE_BUTTON]?.pressed;
       }
     }
+    glideStick = mergeStick(glideStick, keyboardPad.stick());
+    turnX = mergeAxis(turnX, keyboardPad.turn());
     if (toggle && !this.toggleHeld) scaleStore.set(scaleStore.mode === 'immersive' ? 'diorama' : 'immersive');
     this.toggleHeld = toggle;
     if (scaleStore.mode !== 'immersive') return;

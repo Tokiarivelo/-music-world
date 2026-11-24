@@ -26,6 +26,7 @@ import { activityAt, type Activity, type HiddenLayers } from '@/engine/layers';
 import { layerStore } from './layer-store';
 import { EditController, type NoteEditEvent } from './interaction/edit-controller';
 import { NoteSynth } from './audio/note-synth';
+import { keyboardPad } from './keyboard-pad';
 import { ScorePlayer, type ScoreNote } from './audio/score-player';
 import { anchorPlacement, plateWidthM, rootScale } from './scale';
 import { bindNavigationInput } from './navigation/navigation-input';
@@ -325,9 +326,11 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   canvas.addEventListener('pointerup', onUp, true);
   canvas.addEventListener('pointercancel', onUp, true);
   globalThis.addEventListener?.('keydown', onKey);
+  const detachKeyboard = keyboardPad.attach(window, () => inSession);
   const unbindNav = bindNavigationInput(canvas, nav.input, () => nav.acceptsInput, { wheelPerPixel: NAV_WHEEL_ZOOM });
   const unbind = (): void => {
     unbindNav();
+    detachKeyboard();
     canvas.removeEventListener('pointerdown', onDown, true);
     canvas.removeEventListener('pointermove', onMove, true);
     canvas.removeEventListener('pointerup', onUp, true);

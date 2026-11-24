@@ -3,7 +3,7 @@
  * analysis; `applyEdits` returns a new analysis plus per-note line and color maps. Pitch moves snap to the diatonic
  * steps of the staff (one step = half a line gap).
  */
-import { STAFF_BOTTOM_MIDI, STAFF_TOP_MIDI } from './constants';
+import { STAFF_BOTTOM_MIDI, STAFF_DISPLAY_HIGH_MIDI, STAFF_DISPLAY_LOW_MIDI, STAFF_TOP_MIDI } from './constants';
 import type { EngineAnalysis, NoteEvent } from './types';
 
 export const MAIN_LINE_ID = 'main';
@@ -173,9 +173,21 @@ export function snapToStaff(staffU: number): number {
   return stepPitch(STAFF_BOTTOM_MIDI, steps);
 }
 
-/** Inverse of `snapToStaff` for a pitch: staff position in line gaps / 4 (unclamped). */
+/** The same pitch class inside the window the staff can show (see `STAFF_DISPLAY_LOW_MIDI`). */
+export function foldMidi(midi: number): number {
+  let m = Math.round(midi);
+  while (m < STAFF_DISPLAY_LOW_MIDI) m += 12;
+  while (m > STAFF_DISPLAY_HIGH_MIDI) m -= 12;
+  return m;
+}
+
+/**
+ * Vertical position of a pitch on the staff (0 = bottom line E4, 1 = top line F5): the diatonic step of its natural
+ * (a sharp shares the place of the note below, as in a key-less score), octave-folded into the displayable window.
+ * Lines and spaces are 0.125 apart, so every note sits on a line or in a space, like written music.
+ */
 export function staffUOfSnapped(midi: number): number {
-  return (degreeIndex(midi) - degreeIndex(STAFF_BOTTOM_MIDI)) / 8;
+  return (degreeIndex(foldMidi(midi)) - degreeIndex(STAFF_BOTTOM_MIDI)) / 8;
 }
 
 export { STAFF_TOP_MIDI };

@@ -16,8 +16,6 @@ import {
   SCENERY_VELOCITY_MIN,
   PIANO_HIGH_MIDI,
   PIANO_LOW_MIDI,
-  STAFF_BOTTOM_MIDI,
-  STAFF_TOP_MIDI,
   STAFF_U_MAX,
   STAFF_U_MIN,
 } from './constants';
@@ -25,7 +23,7 @@ import { pitchFraction, placeNote, zonesFor, type ZoneRect } from './layout';
 import { mapNote, type MappedNote } from './mapping';
 import { noteStream, uniform } from './prng';
 import { recipeScale } from './recipe-scale';
-import { applyEdits, linesOf, MAIN_LINE_ID, type LayoutEdits, type StaffLine } from './edits';
+import { applyEdits, linesOf, staffUOfSnapped, MAIN_LINE_ID, type LayoutEdits, type StaffLine } from './edits';
 import { buildStaffPath, lineOffsetY, type StaffPath } from './staff';
 import type { EngineAnalysis, GlyphKind, NoteEvent, PaletteRole, ShapeKind, Stem, Vec3, WorldTemplate } from './types';
 
@@ -108,7 +106,7 @@ function clamp(v: number, lo: number, hi: number): number {
 }
 
 export function staffUOf(midi: number): number {
-  return clamp((midi - STAFF_BOTTOM_MIDI) / (STAFF_TOP_MIDI - STAFF_BOTTOM_MIDI), STAFF_U_MIN, STAFF_U_MAX);
+  return clamp(staffUOfSnapped(midi), STAFF_U_MIN, STAFF_U_MAX);
 }
 
 /** Glyph by duration relative to the beat (requirement 3.4). */

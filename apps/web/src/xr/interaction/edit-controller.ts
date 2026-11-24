@@ -3,7 +3,7 @@
  * song is paused (the host enables it). Framework-free: the DOM and three.js are behind the deps, so a fake clock,
  * projector and synth drive the tests. States: idle → pressed → dragging → committed (back to idle).
  */
-import { snapToStaff, stepPitch, stepsBetween } from '@/engine/edits';
+import { foldMidi, snapToStaff, stepPitch, stepsBetween } from '@/engine/edits';
 import type { HiddenLayers } from '@/engine/layers';
 import type { SpawnPlan } from '@/engine/spawn-plan';
 import { staffNotePosition } from '@/engine/staff';
@@ -117,9 +117,9 @@ export class EditController {
   pointerUp(): void {
     if (this.mode === 'dragging' && this.active !== null && this.ghostMidi !== null) {
       const r = this.record(this.active);
-      if (r && this.ghostMidi !== r.midi) {
+      if (r && this.ghostMidi !== foldMidi(r.midi)) {
         this.deps.synth.playNote(this.ghostMidi, r.velocity);
-        this.commitSteps(stepsBetween(r.midi, this.ghostMidi), this.active);
+        this.commitSteps(stepsBetween(foldMidi(r.midi), this.ghostMidi), this.active);
       }
     }
     this.abort();
