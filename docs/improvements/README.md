@@ -1,6 +1,6 @@
 # Improvement phases (post-MVP)
 
-Eight improvements asked on 2026-11-24, one file per phase. Each file has: goal (the request), current state (checked in
+Nine improvements asked on 2026-11-24, one file per phase (I9 added the same day). Each file has: goal (the request), current state (checked in
 the code), requirements with acceptance criteria, design, tasks (one commit per task, like the roadmap phases),
 verification and the decisions that need a human. They are plans: nothing here is implemented yet. When a phase starts,
 convert it to a spec in `.kiro/specs/<NN>-<name>/` (`requirements.md`, `design.md`, `tasks.md`) as the workflow requires.
@@ -15,6 +15,7 @@ convert it to a spec in `.kiro/specs/<NN>-<name>/` (`requirements.md`, `design.m
 | I6 | [`i6-aurora-sky-staff.md`](i6-aurora-sky-staff.md) | Tablature as aurora in the sky, notes rain down | 3 days | Quest check — **first slice done** (style `aurora`, rain, curtain, Aurora Night) |
 | I7 | [`i7-immersive-scale.md`](i7-immersive-scale.md) | Immersion and explore: you stand inside the world | 2–3 days | Quest check, comfort — **first slice done** (walk, scale, VR glide) |
 | I8 | [`i8-realistic-objects.md`](i8-realistic-objects.md) | Clouds, cars, bicycles, planes, plants… very realistic | 5+ days | asset sourcing and licences |
+| I9 | [`i9-editable-notes.md`](i9-editable-notes.md) | Click a note when paused to hear it, move it to other lines, create a new line | 4–5 days | what a "line" is, tone (synth vs sampled) |
 
 ## Order and schedule
 
