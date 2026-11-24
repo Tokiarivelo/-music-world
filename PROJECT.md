@@ -256,6 +256,9 @@ Tout est calculé à partir de `t`. Avec un seek, la note est simplement à l'en
 
 ---
 
+> **Calques (I5) :** le spectateur peut masquer batterie, basse, voix, autres instruments, accords, paroles, effets et portée
+> (préréglages « Rythme seul », « Mélodie seule », « Voix et paroles »). C'est un état de vue : l'audio et `worldStateAt` ne changent pas.
+
 ## 7. Immersion Meta Quest (WebXR via IWSDK)
 
 - **Bouton « Entrer en VR »** sur la page de lecture. La session est `immersive-vr` avec `local-floor`.

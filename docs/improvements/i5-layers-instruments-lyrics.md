@@ -66,3 +66,19 @@ meter, and a toggle for each.
 
 Vitest (mask invariance, lyrics lookup), views budget tests, Playwright screenshots with each layer hidden, Quest check
 of the VR layers page.
+
+## As built (phase I5, 2026-11-24)
+
+- `engine/layers.ts` (pure): layer ids, hidden set, presets (Everything, Rhythm only, Melody only, Voice and lyrics),
+  `lyricsAt` (binary search, seek-safe), `activityAt` (loudest sounding note per stem). `SpawnRecord.stem` is new (null for
+  scenery, which is never hidden). `worldStateAt` and the plan do not read the mask.
+- `xr/layer-store.ts` + `WorldHandle.setHiddenLayers` / `activity()`: structures, staff glyphs, chord arcs, particles and
+  decor arcs, and the staff lines honor the mask in `update` (instances not written, objects hidden), no extra draw call; a
+  mask change redraws at once even while paused (tests in `views/layers-view.test.ts`).
+- UI: `LayersPopover` (next to Colors): presets, one toggle per layer (`aria-pressed`, swatch, stem activity meter polled at
+  10 Hz, 2 Hz with reduced motion), Lyrics disabled with the reason when the song has none; choice kept per browser
+  (`mw.layers.hidden`, try / catch). `LyricsOverlay`: current verse highlighted, next one dimmed, driven by the audio clock.
+  Strings in en, fr, mg. Screenshots: `docs/improvements/i5/`.
+- Not done: the VR layers page and world-anchored lyrics panel, muting the audio of hidden layers (needs stems served to the
+  browser), more instrument types (`htdemucs_6s`), a browser check of the lyrics overlay (the demo song has no lyrics: only
+  unit tests), a Quest check.
