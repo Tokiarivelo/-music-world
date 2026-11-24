@@ -11,7 +11,7 @@
   - _Requirements: 2.1, 2.2, 3.1, 6.1_
 - [x] 5. Mappings and zones editors (order, add, remove, limits, recipe kinds read-only); tests.
   - _Requirements: 2.1, 2.3, 2.4_
-- [ ] 6. Live preview with `WorldHandle` template swap, debounce, last valid template; tests with a fake handle.
+- [x] 6. Live preview with `WorldHandle` template swap, debounce, last valid template; tests with a fake handle.
   - _Requirements: 3.3, 4.1, 4.2_
 - [ ] 7. Save draft, publish, sign-in round trip, "Edit a copy" entry points (play page, store card); tests.
   - _Requirements: 1.1, 5.1–5.4_
