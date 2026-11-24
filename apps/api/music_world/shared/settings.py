@@ -68,6 +68,8 @@ class Settings(BaseSettings):
     auth_rate_limit_per_hour: int = 10
     template_publish_rate_limit_per_hour: int = 10
     template_report_hide_threshold: int = 3
+    # Comma-separated e-mails allowed to review reported templates (10-template-moderation). Empty = feature off.
+    moderator_emails: str = ""
     upload_rate_limit_per_hour: int = 20
 
     @property

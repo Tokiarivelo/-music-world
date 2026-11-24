@@ -224,7 +224,7 @@ class ReportTemplate:
             raise TemplateNotReportableError("this template cannot be reported")
         if not await self._reports.add(TemplateReport(template.id, caller_id, reason, self._clock())):
             return  # already reported by this user: idempotent
-        count = await self._reports.count(template.id)
+        count = await self._reports.count(template.id, template.reports_since)
         status = TemplateStatus.HIDDEN if count >= self._threshold else template.status
         await self._repo.save(replace(template, report_count=count, status=status))
         log.info("templates.reported", template_id=template.id, reason=reason, reports=count, status=status.value)

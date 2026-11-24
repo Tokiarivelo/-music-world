@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase A2 template editor)
+> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase A3 moderation queue)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -21,7 +21,13 @@ Read docs/handoff.md and continue with the next actions.
   containers (`angaly_*`) may be running — not started by these sessions; leave them alone.
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-24, Claude Code, phase A2 template editor)
+## 2. Last session (2026-11-24, Claude Code, phase A3 moderation queue)
+
+- `10-template-moderation` 1–6 done on `phase-A3-moderation` (one commit per task, PR open, not merged): `MODERATOR_EMAILS`,
+  session `moderator`, migration `0005`, `/api/moderation/*`, web `/moderation`. Req 4.1 label deferred (no "My templates"
+  list in the web app). API 354 passed, web 348 passed, ruff / mypy / tsc / eslint clean. Rules changed: commit every task
+  and open the PR at the end of a phase without asking (`rules.md` step 6).
+- Previous session (phase A2 template editor):
 
 - `09-template-editor` 1–8 done: `PUT /api/templates/{id}` (draft only, owner only, 409 `TEMPLATE_NOT_EDITABLE`), then
   `features/template-editor` (pure `editor-model` / `editor-validate`, draft store, form, rules and zones editors, live
@@ -51,8 +57,8 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
    Update README § Known limitations once done.
 4. **Human** — roadmap 9.3 video, 9.4 Devpost form, 9.5 posts from the drafts in `docs/submission.md` (checklist at
    its top). Run `uvx pip-audit` / `pnpm audit --prod` once before submitting.
-5. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` — next free: A3 moderation queue (spec
-   `10-template-moderation`, 7 tasks, task 7 human), then B4 (Caddy cache headers).
+5. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` — next free: A3 done except human task 7 (PR on branch
+   `phase-A3-moderation`), then B4 (Caddy cache headers). Add `MODERATOR_EMAILS=` to `infra/.env` before the next deploy.
    Optional: recipe editing in the template editor; `02-music-analysis` 6.1 (Muse Voice); `01-foundation` 6.2/6.3/7.
 
 ## 4. Task ownership
@@ -81,6 +87,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | Improvements I1, I2, I3 | Claude Code (world-builder) | done | all merged (I1 PR #17) |
 | Improvement I4 | Claude Code (world-builder) | done | tasks 1–5 and I4b merged (PRs #18, #19); Neon Nocturne stays the default |
 | 09-template-editor 1–8 | Claude Code (world-builder) | done | branch `phase-A2-template-editor` (backlog A2), one commit per task |
+| 10-template-moderation 1–6 | Claude Code | done | branch `phase-A3-moderation`, one commit per task; PR open; task 7 is human |
 | Roadmap 9.3–9.5 | — | blocked | human: video, Devpost, posts; drafts in `docs/submission.md` |
 
 ## 5. Active pitfalls
@@ -110,4 +117,4 @@ The daily ones. The rest (API, web/XR, tooling): `docs/pitfalls.md`, read the gr
 | 07-xr-mode | 1–6 done | 7 (Quest, human) | design.md § Human checks |
 | 08-navigation-mode | 1–6 done | — (human: try it on a phone) | design.md § As built |
 | 09-template-editor | 1–8 done | — (follow-up: recipe editing) | design.md § As built |
-| 10-template-moderation | spec written, 0/7 | 1 (`MODERATOR_EMAILS`, session field) | design.md § Moderator check |
+| 10-template-moderation | 6/7 done | 7 (human: review a real hidden template) | design.md § Moderator check |

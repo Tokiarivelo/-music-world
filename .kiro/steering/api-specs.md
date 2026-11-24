@@ -14,6 +14,10 @@ fileMatchPattern: "apps/api/music_world/*/interfaces/**"
   Codes are stable UPPER_SNAKE strings defined in the domain.
 - Auth: `Depends(current_user)` on every non-public route. Public routes: `/api/health`, `GET /api/templates`
   (published only), `GET /api/templates/{id}` (published only), demo project read.
+- Moderation: `/api/moderation/templates` (queue, `ModerationQueue` contract), `POST …/{id}/restore` and
+  `POST …/{id}/remove` (204, 409 `TEMPLATE_NOT_HIDDEN`, 429). Guarded by `require_moderator`
+  (`MODERATOR_EMAILS`): **404 for everyone else, before CSRF, and for all when the list is empty**; a moderator's
+  POST needs CSRF like any write. Every decision writes a `moderation_actions` row.
 - Ownership: load the resource, compare `owner_id` with the caller, answer **404** on mismatch.
 - Uploads: `multipart/form-data`, streamed to object storage; reject by content sniffing, size (25 MB) and
   duration (180 s) with `413` / `415` / `422`.

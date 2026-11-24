@@ -6,6 +6,7 @@ export * from './director-result-v1';
 export * from './health-v1';
 export * from './job-accepted-v1';
 export * from './job-v1';
+export * from './moderation-queue-v1';
 export * from './project-created-v1';
 export * from './project-v1';
 export * from './session-v1';

@@ -13,6 +13,7 @@ from music_world.templates.domain.errors import (
 from music_world.templates.domain.model import StoreTemplate, TemplateStatus
 from tests.fakes import (
     FakeClock,
+    InMemoryModerationAudit,
     InMemoryObjectStore,
     InMemoryReportRepository,
     InMemoryStoreTemplateRepository,
@@ -39,6 +40,7 @@ def _services(featured: NoFeatured | None = None):  # type: ignore[no-untyped-de
         repo,
         store,
         InMemoryReportRepository(),
+        InMemoryModerationAudit(),
         featured or NoFeatured(),
         new_id=SequentialIds(),
         clock=clock,

@@ -26,6 +26,25 @@ class TemplateReport:
     created_at: datetime
 
 
+@dataclass(frozen=True)
+class ModerationAction:
+    """Audit row of a moderator decision (10-template-moderation requirement 3.4)."""
+
+    id: str
+    template_id: str
+    moderator_id: str
+    action: str  # "restore" | "remove"
+    created_at: datetime
+
+
+@dataclass(frozen=True)
+class HiddenTemplate:
+    """A hidden template and the time of its latest report (the queue is ordered by it, newest first)."""
+
+    template: "StoreTemplate"
+    last_reported_at: datetime
+
+
 class TemplateStatus(StrEnum):
     DRAFT = "draft"
     PUBLISHED = "published"
@@ -46,6 +65,7 @@ class StoreTemplate:
     thumbnail_type: str | None = None
     featured: bool = False
     report_count: int = 0
+    reports_since: datetime | None = None  # set by a moderator restore: older reports no longer count
 
     def visible_to(self, caller_id: str | None) -> bool:
         """Published templates are public; drafts and hidden ones only exist for their owner (404 otherwise)."""

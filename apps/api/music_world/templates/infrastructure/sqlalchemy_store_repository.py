@@ -9,7 +9,14 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column
 
 from music_world.shared.db import Base
-from music_world.templates.domain.model import PageCursor, StoreTemplate, TemplateReport, TemplateStatus
+from music_world.templates.domain.model import (
+    HiddenTemplate,
+    ModerationAction,
+    PageCursor,
+    StoreTemplate,
+    TemplateReport,
+    TemplateStatus,
+)
 
 
 def _utc(value: datetime | None) -> datetime | None:
@@ -32,6 +39,7 @@ class StoreTemplateRow(Base):
     report_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reports_since: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 def _to_domain(row: StoreTemplateRow) -> StoreTemplate:
@@ -47,6 +55,7 @@ def _to_domain(row: StoreTemplateRow) -> StoreTemplate:
         thumbnail_key=row.thumbnail_key,
         thumbnail_type=row.thumbnail_type,
         report_count=row.report_count,
+        reports_since=_utc(row.reports_since),
     )
 
 
@@ -54,6 +63,7 @@ def _apply(row: StoreTemplateRow, t: StoreTemplate) -> None:
     row.owner_id, row.template_id, row.author_name, row.status = t.owner_id, t.template_id, t.author_name, t.status
     row.document, row.thumbnail_key, row.thumbnail_type = dict(t.document), t.thumbnail_key, t.thumbnail_type
     row.report_count, row.created_at, row.published_at = t.report_count, t.created_at, t.published_at
+    row.reports_since = t.reports_since
 
 
 class SqlAlchemyStoreTemplateRepository:
@@ -104,6 +114,29 @@ class SqlAlchemyStoreTemplateRepository:
         async with self._sessions() as s:
             return [_to_domain(row) for row in (await s.execute(query)).scalars()]
 
+    async def list_hidden(self, after: PageCursor | None, limit: int) -> list[HiddenTemplate]:
+        last = (
+            select(TemplateReportRow.template_id, func.max(TemplateReportRow.created_at).label("last_at"))
+            .group_by(TemplateReportRow.template_id)
+            .subquery()
+        )
+        last_at = func.coalesce(last.c.last_at, StoreTemplateRow.created_at)
+        query = (
+            select(StoreTemplateRow, last_at.label("reported_at"))
+            .outerjoin(last, last.c.template_id == StoreTemplateRow.id)
+            .where(StoreTemplateRow.status == TemplateStatus.HIDDEN.value)
+        )
+        if after is not None:
+            query = query.where(
+                or_(last_at < after.published_at, and_(last_at == after.published_at, StoreTemplateRow.id < after.id))
+            )
+        query = query.order_by(last_at.desc(), StoreTemplateRow.id.desc()).limit(limit)
+        async with self._sessions() as s:
+            return [
+                HiddenTemplate(_to_domain(row), _utc(reported) or reported)
+                for row, reported in (await s.execute(query)).all()
+            ]
+
 
 class TemplateReportRow(Base):
     __tablename__ = "template_reports"
@@ -133,7 +166,49 @@ class SqlAlchemyReportRepository:
             return False
         return True
 
-    async def count(self, template_id: str) -> int:
+    async def count(self, template_id: str, since: datetime | None = None) -> int:
         query = select(func.count()).select_from(TemplateReportRow).where(TemplateReportRow.template_id == template_id)
+        if since is not None:
+            query = query.where(TemplateReportRow.created_at >= since)
         async with self._sessions() as s:
             return int((await s.execute(query)).scalar_one())
+
+    async def reasons(self, template_id: str) -> list[str]:
+        query = (
+            select(TemplateReportRow.reason)
+            .where(TemplateReportRow.template_id == template_id)
+            .order_by(TemplateReportRow.created_at.desc())
+        )
+        async with self._sessions() as s:
+            return list((await s.execute(query)).scalars())
+
+    async def delete_for(self, template_id: str) -> None:
+        async with self._sessions.begin() as s:
+            await s.execute(delete(TemplateReportRow).where(TemplateReportRow.template_id == template_id))
+
+
+class ModerationActionRow(Base):
+    __tablename__ = "moderation_actions"
+
+    id: Mapped[str] = mapped_column(Uuid(as_uuid=False), primary_key=True)
+    template_id: Mapped[str] = mapped_column(Uuid(as_uuid=False), index=True)  # no FK: rows outlive a removal
+    moderator_id: Mapped[str] = mapped_column(Uuid(as_uuid=False))
+    action: Mapped[str] = mapped_column(String(16))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class SqlAlchemyModerationAudit:
+    def __init__(self, sessions: async_sessionmaker[AsyncSession]) -> None:
+        self._sessions = sessions
+
+    async def record(self, action: ModerationAction) -> None:
+        async with self._sessions.begin() as s:
+            s.add(
+                ModerationActionRow(
+                    id=action.id,
+                    template_id=action.template_id,
+                    moderator_id=action.moderator_id,
+                    action=action.action,
+                    created_at=action.created_at,
+                )
+            )

@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from music_world.accounts.application.ports import (
     EmailSender,
     LoginTokenRepository,
+    ModeratorDirectory,
     SessionRepository,
     UserRepository,
 )
@@ -23,6 +24,7 @@ from music_world.accounts.application.use_cases.sign_in import (
     VerifyMagicLink,
 )
 from music_world.accounts.infrastructure.email_senders import ConsoleEmailSender, SmtpEmailSender
+from music_world.accounts.infrastructure.moderators import EmailHashModeratorDirectory
 from music_world.accounts.infrastructure.sqlalchemy_repositories import (
     SqlAlchemyLoginTokenRepository,
     SqlAlchemySessionRepository,
@@ -69,9 +71,15 @@ from music_world.system.application.use_cases.check_health import CheckHealth
 from music_world.system.infrastructure.probes import PostgresProbe, RedisProbe, S3Probe
 from music_world.templates.application.ports import (
     FeaturedCatalog,
+    ModerationAudit,
     ReportRepository,
     StoreTemplateRepository,
     ThumbnailStore,
+)
+from music_world.templates.application.use_cases.moderation import (
+    ListHiddenTemplates,
+    RemoveTemplate,
+    RestoreTemplate,
 )
 from music_world.templates.application.use_cases.store import (
     CreateStoreTemplate,
@@ -87,6 +95,7 @@ from music_world.templates.application.use_cases.store import (
 )
 from music_world.templates.infrastructure.featured_catalog import FileFeaturedCatalog
 from music_world.templates.infrastructure.sqlalchemy_store_repository import (
+    SqlAlchemyModerationAudit,
     SqlAlchemyReportRepository,
     SqlAlchemyStoreTemplateRepository,
 )
@@ -178,9 +187,11 @@ class AccountServices:
     link_ip_limiter: SlidingWindowLimiter
     link_email_limiter: SlidingWindowLimiter
     verify_ip_limiter: SlidingWindowLimiter
+    moderators: ModeratorDirectory
 
 
 MAGIC_LINKS_PER_EMAIL_PER_HOUR = 5
+MODERATION_ACTIONS_PER_HOUR = 120
 VERIFY_PER_IP_PER_HOUR = 30
 
 
@@ -216,6 +227,7 @@ def build_accounts(
     new_token: Callable[[], str] = new_secret_token,
     new_id: Callable[[], str] = uuid7,
     clock: Callable[[], datetime] = utc_now,
+    moderators: ModeratorDirectory | None = None,
 ) -> AccountServices:
     return AccountServices(
         request_magic_link=RequestMagicLink(
@@ -234,6 +246,7 @@ def build_accounts(
         link_ip_limiter=SlidingWindowLimiter(settings.auth_rate_limit_per_hour, 3600.0),
         link_email_limiter=SlidingWindowLimiter(MAGIC_LINKS_PER_EMAIL_PER_HOUR, 3600.0),
         verify_ip_limiter=SlidingWindowLimiter(VERIFY_PER_IP_PER_HOUR, 3600.0),
+        moderators=moderators or EmailHashModeratorDirectory(settings.moderator_emails),
     )
 
 
@@ -249,6 +262,10 @@ class TemplateServices:
     list_published: ListPublishedTemplates
     list_mine: ListMyTemplates
     report: ReportTemplate
+    list_hidden: ListHiddenTemplates
+    restore: RestoreTemplate
+    remove: RemoveTemplate
+    moderation_limiter: SlidingWindowLimiter
     publish_limiter: SlidingWindowLimiter
 
 
@@ -261,6 +278,7 @@ def build_templates(
     repo: StoreTemplateRepository,
     store: ThumbnailStore,
     reports: ReportRepository,
+    audit: ModerationAudit,
     featured: FeaturedCatalog | None = None,
     *,
     new_id: Callable[[], str] = uuid7,
@@ -279,6 +297,10 @@ def build_templates(
         list_published=ListPublishedTemplates(repo, catalog),
         list_mine=ListMyTemplates(repo),
         report=ReportTemplate(repo, reports, get, clock, hide_threshold=settings.template_report_hide_threshold),
+        list_hidden=ListHiddenTemplates(repo, reports),
+        restore=RestoreTemplate(repo, reports, audit, new_id, clock),
+        remove=RemoveTemplate(repo, reports, audit, new_id, clock),
+        moderation_limiter=SlidingWindowLimiter(MODERATION_ACTIONS_PER_HOUR, 3600.0),
         publish_limiter=SlidingWindowLimiter(settings.template_publish_rate_limit_per_hour, 3600.0),
     )
 
@@ -379,7 +401,11 @@ def build_container(settings: Settings, *, with_analysis: bool = False) -> Conta
             email_sender(settings),
         ),
         templates=build_templates(
-            settings, SqlAlchemyStoreTemplateRepository(sessions), store, SqlAlchemyReportRepository(sessions)
+            settings,
+            SqlAlchemyStoreTemplateRepository(sessions),
+            store,
+            SqlAlchemyReportRepository(sessions),
+            SqlAlchemyModerationAudit(sessions),
         ),
         upload_limiter=SlidingWindowLimiter(settings.upload_rate_limit_per_hour, 3600.0),
         check_project_access=CheckProjectAccess(projects),

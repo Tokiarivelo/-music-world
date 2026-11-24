@@ -11,7 +11,7 @@ from typing import Annotated, Protocol
 
 from fastapi import Depends, Path, Request
 
-from music_world.shared.errors import MusicWorldError
+from music_world.shared.errors import MusicWorldError, NotFoundError
 
 SESSION_COOKIE = "mw_session"
 CSRF_COOKIE = "mw_csrf"
@@ -21,6 +21,12 @@ SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 
 class AuthRequiredError(MusicWorldError):
     code = "AUTH_REQUIRED"
+
+
+class NotAModeratorError(NotFoundError):
+    """Moderation routes do not exist for anyone but a moderator (404, never 403)."""
+
+    code = "NOT_FOUND"
 
 
 class CsrfFailedError(MusicWorldError):
@@ -94,3 +100,20 @@ async def accessible_project(
 
 
 AccessibleProjectId = Annotated[str, Depends(accessible_project)]
+
+
+async def require_moderator(request: Request) -> Caller:
+    """404 for anyone who is not a moderator (also when the CSRF check would fail), and for everyone when
+    `MODERATOR_EMAILS` is empty: no hint that the routes exist."""
+    container = request.app.state.container
+    moderators = container.accounts.moderators
+    if not moderators.is_enabled():
+        raise NotAModeratorError("not found")
+    token = request.cookies.get(SESSION_COOKIE)
+    user = await container.accounts.resolve_session.execute(token) if token else None
+    if user is None or not moderators.is_moderator(user.email):
+        raise NotAModeratorError("not found")
+    return await current_caller(request)  # CSRF applies to a real moderator
+
+
+ModeratorCaller = Annotated[Caller, Depends(require_moderator)]

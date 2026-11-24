@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { ModerationLink } from "@/features/moderation";
 import { useT } from "@/i18n";
 import { NAV_LINKS } from "../consts/navigation.consts";
 
@@ -43,6 +44,7 @@ export function SiteNav() {
             </Link>
           </li>
         ))}
+        <ModerationLink className={`block ${LINK}`} />
       </ul>
     </nav>
   );

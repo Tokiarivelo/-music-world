@@ -12,7 +12,7 @@ Last reviewed: 2026-11-24 (after the Makefile / Docker / env / token session).
 |---|---|---|---|---|
 | A1 | ~~`05-ai-world-director` task 6: ShapeRecipe~~ | done 2026-11-24 (phase 10) | — | follow-ups: Quest 3 check of heavy recipes, dedicated shape-model call (see design.md § As built, task 6) |
 | A2 | ~~Template editor (`09-template-editor`, 8 tasks)~~ | done 2026-11-24 (phase A2) | — | `/editor`, `PUT /api/templates/{id}`; follow-ups: recipe editing, sign-in round trip across tabs |
-| A3 | Moderation queue: spec `10-template-moderation` written (7 tasks, task 7 human); implement task by task | P2 | skill `new-api-module` + `new-web-feature` | tasks ticked |
+| A3 | **Done** (tasks 1–6, PR `phase-A3-moderation`; task 7 human): moderation queue, spec `10-template-moderation` | P2 | skill `new-api-module` + `new-web-feature` | tasks ticked |
 | A4 | ~~Fix the stale navigation-PR line in `docs/handoff.md`~~ | done 2026-11-24 | — | done |
 
 ## B. Quality, security and performance tasks

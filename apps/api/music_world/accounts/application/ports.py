@@ -33,3 +33,11 @@ class SessionRepository(Protocol):
 
 class EmailSender(Protocol):
     async def send_sign_in_link(self, email: str, link: str) -> None: ...
+
+
+class ModeratorDirectory(Protocol):
+    def is_enabled(self) -> bool:
+        """False when no moderator is configured: the moderation routes then do not exist (404)."""
+        ...
+
+    def is_moderator(self, email: str) -> bool: ...
