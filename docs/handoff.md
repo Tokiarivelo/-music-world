@@ -71,7 +71,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 | 04-default-template 1–5 | Claude Code (world-builder) | done | merged with Phase 4 PR |
 | 07-xr-mode 1–6 | Claude Code (world-builder) | done | merged with Phase 7 PR |
 | 07-xr-mode 7 | — | blocked | Quest 3 check (human) |
-| 05-ai-world-director | ai-director | todo | generate design.md + tasks.md with Kiro first; contracts exist |
+| 05-ai-world-director 1–6 | Claude Code (ai-director) | in progress | branch `phase-5-ai-director` |
 
 ## 5. Active pitfalls
 
