@@ -13,15 +13,18 @@ function formatTime(sec: number): string {
 
 interface PlayerBarProps {
   player: SongPlayer;
+  /** Global keys (space, arrows). Off where arrows must stay with a text or number field (the template editor). */
+  shortcuts?: boolean;
 }
 
 /** Play/pause, seek slider and time; keyboard: space = play/pause, arrows = seek ±5 s. */
-export function PlayerBar({ player }: PlayerBarProps) {
+export function PlayerBar({ player, shortcuts = true }: PlayerBarProps) {
   const t = useT("player");
   const time = usePlaybackTime(player.clock);
   const { toggle, seekBy } = player;
 
   useEffect(() => {
+    if (!shortcuts) return;
     const onKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       if (
@@ -45,7 +48,7 @@ export function PlayerBar({ player }: PlayerBarProps) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [toggle, seekBy]);
+  }, [toggle, seekBy, shortcuts]);
 
   if (!player.ready)
     return <p className="p-4 text-center text-sm">{t("loading")}</p>;

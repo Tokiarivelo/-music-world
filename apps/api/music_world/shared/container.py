@@ -83,6 +83,7 @@ from music_world.templates.application.use_cases.store import (
     PublishStoreTemplate,
     ReportTemplate,
     SetThumbnail,
+    UpdateDraftTemplate,
 )
 from music_world.templates.infrastructure.featured_catalog import FileFeaturedCatalog
 from music_world.templates.infrastructure.sqlalchemy_store_repository import (
@@ -239,6 +240,7 @@ def build_accounts(
 @dataclass
 class TemplateServices:
     create: CreateStoreTemplate
+    update: UpdateDraftTemplate
     publish: PublishStoreTemplate
     set_thumbnail: SetThumbnail
     delete: DeleteStoreTemplate
@@ -268,6 +270,7 @@ def build_templates(
     get = GetStoreTemplate(repo, catalog)
     return TemplateServices(
         create=CreateStoreTemplate(repo, new_id, clock),
+        update=UpdateDraftTemplate(repo),
         publish=PublishStoreTemplate(repo, clock),
         set_thumbnail=SetThumbnail(repo, store, new_object_key),
         delete=DeleteStoreTemplate(repo),

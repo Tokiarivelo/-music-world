@@ -11,7 +11,7 @@ from music_world.shared.auth import CurrentCaller, SignedInCaller
 from music_world.shared.container import TemplateServices
 from music_world.shared.errors import RateLimitedError
 from music_world.shared.http import ERROR_RESPONSES
-from music_world.templates.application.use_cases.store import CreateTemplateCommand
+from music_world.templates.application.use_cases.store import CreateTemplateCommand, UpdateDraftCommand
 from music_world.templates.domain.errors import StoreTemplateNotFoundError, TemplateInvalidError, ThumbnailTooLargeError
 from music_world.templates.domain.model import MAX_PAGE_SIZE, StoreTemplate, TemplatePage
 from music_world.templates.domain.specification import MAX_TEMPLATE_BYTES
@@ -112,6 +112,34 @@ async def create_template(
         raw_size=size,
     )
     return _contract(await services.create.execute(command))
+
+
+@router.put(
+    "/{template_id}",
+    response_model=StoreTemplateContract,
+    summary="Replace the document of one of the caller's drafts (published templates answer 409)",
+    responses={
+        **_WRITE,
+        409: ERROR_RESPONSES[409],
+        413: ERROR_RESPONSES[413],
+        422: ERROR_RESPONSES[422],
+        429: ERROR_RESPONSES[429],
+    },
+)
+async def update_template(
+    template_id: TemplateId,
+    body: CreateStoreTemplateRequest,
+    request: Request,
+    services: Services,
+    caller: SignedInCaller,
+) -> StoreTemplateContract:
+    size = int(request.headers.get("content-length") or 0)
+    if size > _MAX_BODY_BYTES:
+        raise TemplateInvalidError("template is invalid", details=[{"loc": ["template"], "msg": "too large"}])
+    if not services.publish_limiter.allow(caller.rate_key):
+        raise RateLimitedError("too many templates submitted, try again later")
+    command = UpdateDraftCommand(template_id, caller.user_id or "", body.template, size)
+    return _contract(await services.update.execute(command))
 
 
 @router.get(

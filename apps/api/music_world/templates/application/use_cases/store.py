@@ -15,7 +15,11 @@ from music_world.templates.application.ports import (
     ThumbnailStore,
 )
 from music_world.templates.application.validation import validated_document
-from music_world.templates.domain.errors import StoreTemplateNotFoundError, TemplateNotReportableError
+from music_world.templates.domain.errors import (
+    StoreTemplateNotFoundError,
+    TemplateNotEditableError,
+    TemplateNotReportableError,
+)
 from music_world.templates.domain.model import (
     DEFAULT_PAGE_SIZE,
     MAX_PAGE_SIZE,
@@ -73,6 +77,32 @@ class CreateStoreTemplate:
         await self._repo.add(stored)
         log.info("templates.created", template_id=row_id, owner_id=cmd.owner_id, status=stored.status.value)
         return stored
+
+
+@dataclass(frozen=True)
+class UpdateDraftCommand:
+    template_id: str
+    caller_id: str
+    template: Any  # untrusted JSON from the request
+    raw_size: int = 0
+
+
+class UpdateDraftTemplate:
+    """Replace the document of one of the caller's drafts; the same validation as creation applies."""
+
+    def __init__(self, repo: StoreTemplateRepository) -> None:
+        self._repo = repo
+
+    async def execute(self, cmd: UpdateDraftCommand) -> StoreTemplate:
+        template = await _owned(self._repo, cmd.template_id, cmd.caller_id)
+        if template.status is not TemplateStatus.DRAFT:
+            raise TemplateNotEditableError("only a draft can be edited")
+        doc = validated_document(cmd.template, raw_size=cmd.raw_size)
+        doc["id"] = store_template_id(str(doc["id"]), template.id)
+        template = replace(template, template_id=doc["id"], document=doc)
+        await self._repo.save(template)
+        log.info("templates.updated", template_id=template.id, owner_id=cmd.caller_id)
+        return template
 
 
 class PublishStoreTemplate:

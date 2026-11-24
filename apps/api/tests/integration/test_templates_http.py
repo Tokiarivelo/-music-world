@@ -127,3 +127,32 @@ async def test_reports_hide_a_template_and_uploads_are_rate_limited() -> None:
     assert created["id"] not in [t["id"] for t in gallery["items"]]
     assert owner_view.json()["status"] == "hidden"
     assert uploads == [202, 429]
+
+
+async def test_update_draft_owner_only_and_draft_only() -> None:
+    sender = CapturingEmailSender()
+    app = _app(sender)
+    async with _client(app) as ada, _client(app) as bob, _client(app) as anon, LifespanManager(ada):
+        csrf = await sign_in(ada, sender)
+        bob_csrf = await sign_in(bob, sender, "bob@example.com")
+        draft = await _create(ada, csrf, name="Ada Night")
+        url = f"/api/templates/{draft['id']}"
+        unsigned = await anon.put(url, json={"template": template()})
+        no_csrf = await ada.put(url, json={"template": template()})
+        stolen = await bob.put(url, json={"template": template()}, headers=_h(bob_csrf))
+        invalid = await ada.put(url, json={"template": template(name="see https://x.y")}, headers=_h(csrf))
+        updated = await ada.put(url, json={"template": template(name="Ada Dawn")}, headers=_h(csrf))
+        reread = await ada.get(url)
+        await ada.post(f"{url}/publish", headers=_h(csrf))
+        frozen = await ada.put(url, json={"template": template(name="Late")}, headers=_h(csrf))
+        after = await ada.get(url)
+    assert unsigned.status_code == 401 and no_csrf.status_code == 403
+    assert (stolen.status_code, stolen.json()["error"]["code"]) == (404, "TEMPLATE_NOT_FOUND")
+    assert (invalid.status_code, invalid.json()["error"]["code"]) == (422, "TEMPLATE_INVALID")
+    assert invalid.json()["error"]["details"][0]["loc"] == ["template", "name"]
+    StoreTemplate.model_validate(updated.json())
+    assert updated.status_code == 200 and updated.json()["id"] == draft["id"] and updated.json()["status"] == "draft"
+    assert reread.json()["template"]["name"] == "Ada Dawn"
+    assert reread.json()["template"]["id"].endswith(draft["template"]["id"][-8:])
+    assert (frozen.status_code, frozen.json()["error"]["code"]) == (409, "TEMPLATE_NOT_EDITABLE")
+    assert after.json()["template"]["name"] == "Ada Dawn"

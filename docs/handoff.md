@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase I1 back to upload)
+> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase A2 template editor)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -12,29 +12,25 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 1. Repository state
 
-- Phase 9 docs worked on branch `phase-9-submission` (one commit per roadmap task: 9.1, 9.2, 9.3–9.5 drafts, + this
-  handoff), merged into `main` through the PR "Phase 9: submission docs". Work from `main`.
-  Push with gh credentials: `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
-- `08-navigation-mode` is merged (PR #9).
-- Phases I3 (PR #15) and I2 (PR #16) are merged. Phase I1 is on branch `phase-I1-back-to-upload` (3 commits, not
-  pushed or merged; PR to open). Last commit `974b2e8`.
-- `make check` green: web vitest 273 passed (51 files), eslint, tsc, architecture checks clean (API untouched,
-  313 passed last run).
+- Work from `main`. Push with gh credentials:
+  `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
+- Merged: phase 9 docs, `08-navigation-mode` (PR #9), I1–I4b (PRs #15–#19). Phase A2 (template editor, spec
+  `09-template-editor`, 8 tasks, one commit each) is on branch `phase-A2-template-editor`, merged through its PR.
+- `make check` green at the end of A2: web vitest 339 passed (67 files), eslint, tsc; API 335 passed.
 - No server left running. A `music-world` Compose stack (old images, predates Phase 6) and another project's
   containers (`angaly_*`) may be running — not started by these sessions; leave them alone.
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-24, Claude Code, phase I1 back to upload)
+## 2. Last session (2026-11-24, Claude Code, phase A2 template editor)
 
-- I2 merged (PR #16). Branch `phase-I1-back-to-upload` (3 commits, one per task; not pushed or merged, PR to open).
-- `features/navigation/SiteNav`: labelled `<nav>` with Home, New song (`/upload`), Templates; menu button below `sm`.
-  Labels are `common` keys `nav*` in `en`, `fr`, `mg`. Placed at the top of the top-left stack of both play pages.
-- `scripts/play-layout.mjs` (needs `next dev` on 3125, `MW_ANGLE=vulkan`): no overlap with controls, language switch
-  and player bar at 1280×720 and 390×844. It caught a real bug (full-width nav covered the language switch): `w-fit`.
-- Tests: `SiteNav.test.tsx`, `WorldCanvas.test.tsx` (dispose once, one world per mount), audio stops on unmount.
-- Not done: req 7 (`beforeunload`) waits for spec 09; no Quest check. Details: `docs/improvements/i1-back-to-upload.md`.
-- Next improvement in the plan order: I4 (brighter scene, random colors). I3 open items: VR glyph atlas for accents,
-  fr/mg screenshots and native review, `PROJECT.md` §7.
+- `09-template-editor` 1–8 done: `PUT /api/templates/{id}` (draft only, owner only, 409 `TEMPLATE_NOT_EDITABLE`), then
+  `features/template-editor` (pure `editor-model` / `editor-validate`, draft store, form, rules and zones editors, live
+  preview, save / publish, sign-in round trip) and `/editor`. "Edit a copy" is on store cards and the play pages.
+- Preview bug caught by `scripts/editor-check.mjs`: the world canvas is `fixed inset-0` and covered the form; fixed with
+  `contain: layout paint` on the preview section. A stale `next dev` on 3125 answered 500 for `/editor`: restart it.
+- Deviations (see `09-template-editor/design.md` § As built): no Zustand (external store like the palette store),
+  `repo.save` reused instead of `update_document`, unsaved document kept in `sessionStorage` (per tab).
+- Not done: recipe editing, Quest check of the editor page. Screenshots: `docs/template-editor/`.
 
 ## 3. Next actions
 
@@ -55,10 +51,9 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
    Update README § Known limitations once done.
 4. **Human** — roadmap 9.3 video, 9.4 Devpost form, 9.5 posts from the drafts in `docs/submission.md` (checklist at
    its top). Run `uvx pip-audit` / `pnpm audit --prod` once before submitting.
-5. Agent-only: I4 tasks 2–5 (`docs/improvements/i4-random-scene-colors.md`), branch `phase-I4-random-scene-colors`.
-6. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` (A: product, B: quality and perf, C: docs).
-   Optional: `05-ai-world-director` task 6 (ShapeRecipe, P2); a template editor; review UI for hidden templates;
-   `02-music-analysis` 6.1 (Muse Voice); `01-foundation` 6.2/6.3/7.
+5. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` — next free: A3 moderation queue (spec
+   `10-template-moderation`, 7 tasks, task 7 human), then B4 (Caddy cache headers).
+   Optional: recipe editing in the template editor; `02-music-analysis` 6.1 (Muse Voice); `01-foundation` 6.2/6.3/7.
 
 ## 4. Task ownership
 
@@ -84,7 +79,8 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | 08-navigation-mode 1–6 | Claude Code (world-builder) | done | branch `feature-navigation-mode`, one commit per task; PR to open |
 | 05-ai-world-director 6 | Claude Code (ai-director) | done | phase 10 branch, one commit per sub-task |
 | Improvements I1, I2, I3 | Claude Code (world-builder) | done | all merged (I1 PR #17) |
-| Improvement I4 | Claude Code (world-builder) | in progress | branch `phase-I4-random-scene-colors`; tasks 1–5 and I4b (Contrast, lights) done, see `docs/improvements/i4-random-scene-colors.md` § As built; merged; Neon Nocturne stays the default |
+| Improvement I4 | Claude Code (world-builder) | done | tasks 1–5 and I4b merged (PRs #18, #19); Neon Nocturne stays the default |
+| 09-template-editor 1–8 | Claude Code (world-builder) | done | branch `phase-A2-template-editor` (backlog A2), one commit per task |
 | Roadmap 9.3–9.5 | — | blocked | human: video, Devpost, posts; drafts in `docs/submission.md` |
 
 ## 5. Active pitfalls
@@ -113,5 +109,5 @@ The daily ones. The rest (API, web/XR, tooling): `docs/pitfalls.md`, read the gr
 | 06-template-store | 1–6 done | 7 (human: real e-mail, public URL) | design.md § Human checks, § As built |
 | 07-xr-mode | 1–6 done | 7 (Quest, human) | design.md § Human checks |
 | 08-navigation-mode | 1–6 done | — (human: try it on a phone) | design.md § As built |
-| 09-template-editor | spec written, 0/8 | 1 (`PUT /api/templates/{id}`) | design.md § API addition |
+| 09-template-editor | 1–8 done | — (follow-up: recipe editing) | design.md § As built |
 | 10-template-moderation | spec written, 0/7 | 1 (`MODERATOR_EMAILS`, session field) | design.md § Moderator check |
