@@ -15,7 +15,7 @@ convert it to a spec in `.kiro/specs/<NN>-<name>/` (`requirements.md`, `design.m
 | I6 | [`i6-aurora-sky-staff.md`](i6-aurora-sky-staff.md) | Tablature as aurora in the sky, notes rain down | 3 days | Quest check — **first slice done** (style `aurora`, rain, curtain, Aurora Night) |
 | I7 | [`i7-immersive-scale.md`](i7-immersive-scale.md) | Immersion and explore: you stand inside the world | 2–3 days | Quest check, comfort — **first slice done** (walk, scale, VR glide) |
 | I8 | [`i8-realistic-objects.md`](i8-realistic-objects.md) | Clouds, cars, bicycles, planes, plants… very realistic | 5+ days | asset sourcing and licences |
-| I9 | [`i9-editable-notes.md`](i9-editable-notes.md) | Click a note when paused to hear it, move it to other lines, create a new line | 4–5 days | what a "line" is, tone (synth vs sampled) |
+| I9 | [`i9-editable-notes.md`](i9-editable-notes.md) | Click a note when paused to hear it, move it to other lines, create a new line | 6–8 days | decided: lines are full staves, per-note and per-line colors; open: sampled tone |
 
 ## Order and schedule
 

@@ -90,16 +90,39 @@ it to another line of the staff (another pitch), or open a new line and put note
 8. VR picking and drag, line list on the panel; IWER check; docs (README, `PROJECT.md` §6/§7), screenshots.
 9. Quest 3 check (human): ray accuracy, drag comfort, tone latency.
 
-## Decisions for the author
+## Decisions (answered by the author, 2026-11-24): maximum control
 
-- **What is a "line"?** Proposed: a new *staff* (a voice line with five lines of its own), because moving a note to
-  another *line of the same staff* is just a pitch change that already works with the staff you see. Alternative: only
-  extra ledger lines on the main staff (simpler, no new staves, no `when.line` mapping). Confirm before task 3.
-- **Time moves?** Pitch only by default; allowing horizontal moves changes the rhythm and the structures' onsets.
-- **Tone**: a simple synthesized instrument (sine + soft pluck envelope) is proposed; a licensed sampled piano would
-  sound better but adds files and a licence entry (CC0 only, no GPL/AGPL).
-- **Server persistence**: browser-only for the first slice is acceptable if the deadline is tight (tasks 1–6, 8 without
-  the server part); the demo song never writes to the server.
+"I want as much control as possible: over the notes, over the lines of the notes, and over the colors of each line."
+This settles the open points and widens the scope:
+
+- **A line is a full staff (voice line)**, not only extra ledger lines. Each line has its own five lines, clef (treble,
+  bass, none), name, **color** (staff, glow and its notes), height in the sky (aurora, I6), visibility (layer, I5),
+  mute and solo. Lines can be created, duplicated, reordered, renamed, recolored and deleted (up to 8).
+- **Per note**: pitch (drag between lines and spaces, or Up / Down), time (drag sideways, snapped to the beat grid or free
+  with Alt), duration (drag the right edge, which changes the glyph), velocity (wheel or slider), line, **own color** (an
+  override of the line color), delete, duplicate, and **add a note** by clicking an empty spot of a line while paused.
+  Multi-select (Shift-click, rubber band) moves, recolors or deletes several notes at once; Ctrl+C / Ctrl+V copies them.
+- **Per line colors** reach the world: a line's color tints its glyphs, its staff and, through `colorRole: "line"`, the
+  structures its notes make (a new mapping color source next to the palette roles).
+- Pitch moves and time moves are both allowed (settings in the toolbar: "Lock time", "Snap to beat", "Snap to scale").
+- Tone: synthesized by default; a sampled instrument is an option per line only if a CC0 sample set is found.
+- Persistence: browser first (tasks 1–6, 8 without the server), then the server (task 7).
+
+Requirements 3, 4, 5 and 6 above are read with this wider scope, and these are added:
+
+13. `NoteEdit` gains `duration?`, `velocity?`, `color?`, `deleted?`; `LayoutEdits` gains `added[]` (new notes with their own
+    ids `user:<n>`), and `StaffLine` gains `clef`, `height`, `muted`, `solo`, `order`. All validated, bounded (≤ 2 000 edits).
+14. A **properties panel** shows the selected note or line with number fields and a color input for every property
+    (hex input, preset swatches, the palette roles), so everything done by dragging can also be typed.
+15. **Line colors** SHALL respect the I4 palette override (a line follows the template palette unless the user picked a
+    color for it) and the contrast rule of the editor (staff against background ≥ 0.2).
+
+Additional tasks (inserted after task 6, each one commit): **6b** per-note properties (duration, velocity, color, delete,
+duplicate, add) with a properties panel and multi-select; **6c** per-line properties (clef, color, mute, solo, order,
+duplicate) and `colorRole: "line"` in the mapping contract; their tests, strings (en, fr, mg) and docs.
+
+Still open for the author: sampled instrument (needs a CC0 sample set), and whether "Play my edits" should honor mute /
+solo per line (proposed: yes).
 
 ## Verification
 
