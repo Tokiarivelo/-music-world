@@ -43,7 +43,7 @@ readable, and the listener can roll a random color scheme, lock the colors they 
 
 ## Tasks (one commit each)
 
-1. `palette-generator.ts` with OKLCH math, schemes, constraints; property tests.
+1. [x] `palette-generator.ts` with OKLCH math, schemes, constraints; property tests (10 000 seeds).
 2. `WorldHandle.setPaletteOverride` + view updates (terrain, structures, staff, fx, environment); draw-call test.
 3. Player store + persistence + `?palette=` link; tests.
 4. `ColorsPopover` UI (randomize, undo/redo, locks, sliders, reset); Testing Library tests.

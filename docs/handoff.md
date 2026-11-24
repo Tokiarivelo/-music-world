@@ -55,7 +55,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
    Update README § Known limitations once done.
 4. **Human** — roadmap 9.3 video, 9.4 Devpost form, 9.5 posts from the drafts in `docs/submission.md` (checklist at
    its top). Run `uvx pip-audit` / `pnpm audit --prod` once before submitting.
-5. Agent-only: push and merge `phase-I1-back-to-upload`, then I4 (`docs/improvements/i4-random-scene-colors.md`).
+5. Agent-only: I4 tasks 2–5 (`docs/improvements/i4-random-scene-colors.md`), branch `phase-I4-random-scene-colors`.
 6. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` (A: product, B: quality and perf, C: docs).
    Optional: `05-ai-world-director` task 6 (ShapeRecipe, P2); a template editor; review UI for hidden templates;
    `02-music-analysis` 6.1 (Muse Voice); `01-foundation` 6.2/6.3/7.
@@ -83,7 +83,8 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | Roadmap 9.1, 9.2 | Claude Code (submission docs) | done | `README.md`, `KIRO_USAGE.md` |
 | 08-navigation-mode 1–6 | Claude Code (world-builder) | done | branch `feature-navigation-mode`, one commit per task; PR to open |
 | 05-ai-world-director 6 | Claude Code (ai-director) | done | phase 10 branch, one commit per sub-task |
-| Improvements I1, I2, I3 | Claude Code (world-builder) | done | I2, I3 merged; I1 branch to merge |
+| Improvements I1, I2, I3 | Claude Code (world-builder) | done | all merged (I1 PR #17) |
+| Improvement I4 | Claude Code (world-builder) | in progress | branch `phase-I4-random-scene-colors`; task 1 done (`xr/palette-generator.ts`), next task 2 |
 | Roadmap 9.3–9.5 | — | blocked | human: video, Devpost, posts; drafts in `docs/submission.md` |
 
 ## 5. Active pitfalls
