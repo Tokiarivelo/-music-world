@@ -342,13 +342,16 @@ def _analysis_handler(
 ) -> JobHandler:
     """The analysis pipeline with its real stages. Imported lazily: torch / librosa load only in the worker."""
     from music_world.analysis.application.use_cases.analyze_audio import AnalyzeAudio
+    from music_world.analysis.infrastructure.audio_tags import FfprobeTagReader
     from music_world.analysis.infrastructure.basic_pitch_transcriber import BasicPitchTranscriber
     from music_world.analysis.infrastructure.demucs_separator import DemucsSeparator
     from music_world.analysis.infrastructure.ffmpeg_decoder import FfmpegDecoder
     from music_world.analysis.infrastructure.librosa_chroma import LibrosaChromaAnalyzer
     from music_world.analysis.infrastructure.librosa_rhythm import LibrosaRhythmAnalyzer
     from music_world.analysis.infrastructure.librosa_structure import LibrosaStructureAnalyzer
+    from music_world.analysis.infrastructure.lrclib_lookup import LrclibLookup
     from music_world.analysis.infrastructure.null_lyrics import NoLyricsTranscriber
+    from music_world.analysis.infrastructure.whisper_lyrics import WhisperLyricsTranscriber
     from music_world.analysis.interfaces.jobs import AnalyzeProjectJobHandler
 
     # LYRICS_PROVIDER=muse needs Muse Voice (02-music-analysis task 6.1, not implemented yet): no transcription for
@@ -361,9 +364,13 @@ def _analysis_handler(
         BasicPitchTranscriber(),
         LibrosaRhythmAnalyzer(),
         LibrosaStructureAnalyzer(),
-        NoLyricsTranscriber(),
+        WhisperLyricsTranscriber(settings.lyrics_asr_model, settings.lyrics_language)
+        if settings.lyrics_asr
+        else NoLyricsTranscriber(),
         min_velocity=settings.analysis_min_velocity,
         chroma=LibrosaChromaAnalyzer(),
+        lookup=LrclibLookup() if settings.lyrics_lookup else None,
+        tags=FfprobeTagReader(),
     )
     return AnalyzeProjectJobHandler(projects, analyze)
 

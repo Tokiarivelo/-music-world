@@ -67,6 +67,25 @@ class LyricsTranscriber(Protocol):
     async def transcribe(self, vocals: Path, duration_sec: float) -> list[LyricLine]: ...
 
 
+@dataclass(frozen=True)
+class FoundLyrics:
+    lines: tuple[LyricLine, ...]
+    instrumental: bool = False  # the catalog says the track has no vocals: nothing to transcribe either
+
+
+class LyricsLookup(Protocol):
+    """Synced lyrics of a known track from an online catalog; None when not found or the service is unreachable.
+    Sends only the artist, the title and the duration; never logs the text."""
+
+    async def find(self, artist: str, title: str, duration_sec: float) -> FoundLyrics | None: ...
+
+
+class TagReader(Protocol):
+    """(artist, title) written in the audio file's tags; None when absent."""
+
+    async def read(self, audio: Path) -> tuple[str, str] | None: ...
+
+
 class ProgressReporter(Protocol):
     async def __call__(self, progress: float, stage: str | None = None) -> None: ...
 

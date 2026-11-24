@@ -19,6 +19,7 @@ from music_world.analysis.application.ports import (
     AnalysisRepository,
     AudioDecoder,
     ChromaAnalyzer,
+    LyricsLookup,
     LyricsTranscriber,
     NoteTranscriber,
     ObjectStore,
@@ -28,11 +29,12 @@ from music_world.analysis.application.ports import (
     Separator,
     Structure,
     StructureAnalyzer,
+    TagReader,
 )
 from music_world.analysis.domain.audio import PITCHED_STEMS, STEMS, DecodedAudio
 from music_world.analysis.domain.errors import AnalysisInvalidError, AudioMissingError
 from music_world.analysis.domain.harmony import ChordGroup, estimate_key, group_chords
-from music_world.analysis.domain.lyrics import LyricLine
+from music_world.analysis.domain.lyrics import LyricLine, fit_lyrics, is_plausible_lyrics
 from music_world.analysis.domain.notes import RawNote, clean_notes, merge_stems, verify_with_chroma
 from music_world.analysis.domain.structure import build_segments, label_sections, normalize_energy
 from music_world.schemas.analysis import SCHEMA_ID, TIME_EPSILON, AnalysisResult
@@ -59,6 +61,11 @@ MAX_CHORDS = 5000  # schema cap
 class AnalyzeAudioInput:
     audio_hash: str  # "sha256:<hex>"
     audio_key: str
+    # Hints for the online lyrics lookup when the file has no tags (a catalog song, an API caller).
+    artist: str | None = None
+    title: str | None = None
+    # False when the user supplied an .lrc: the costly speech recognition is skipped (the online lookup is cheap).
+    allow_asr: bool = True
 
 
 def stem_key(audio_hash: str, stem: str) -> str:
@@ -96,10 +103,13 @@ class AnalyzeAudio:
         min_velocity: float,
         work_root: Path | None = None,
         chroma: ChromaAnalyzer | None = None,
+        lookup: LyricsLookup | None = None,
+        tags: TagReader | None = None,
     ) -> None:
         self._repo, self._store, self._decoder, self._separator = repo, store, decoder, separator
         self._transcriber, self._rhythm, self._structure, self._lyrics = transcriber, rhythm, structure, lyrics
         self._min_velocity, self._work_root, self._chroma = min_velocity, work_root, chroma
+        self._lookup, self._tags = lookup, tags
 
     async def execute(self, data: AnalyzeAudioInput, report: ProgressReporter) -> AnalysisResult:
         cached = await self._repo.get(data.audio_hash)
@@ -132,10 +142,12 @@ class AnalyzeAudio:
             key = estimate_key(structure.chroma_profile)
 
             await progress.start("lyrics")
-            lyrics = await self._lyrics.transcribe(stems["vocals"], duration)
+            lyrics, lyrics_source = await self._lyrics_for(data, source, stems["vocals"], duration)
 
             await progress.start("store")
-            result = assemble_result(data.audio_hash, duration, notes, chords, key, rhythm, structure, lyrics)
+            result = assemble_result(
+                data.audio_hash, duration, notes, chords, key, rhythm, structure, lyrics, lyrics_source
+            )
         await self._repo.save(result)
         return result
 
@@ -174,6 +186,38 @@ class AnalyzeAudio:
         rhythm = await self._rhythm.analyze(mix, drums)
         await self._save_json(key, asdict(rhythm))
         return rhythm
+
+    async def _lyrics_for(
+        self, data: AnalyzeAudioInput, source: Path, vocals: Path, duration: float
+    ) -> tuple[list[LyricLine], str]:
+        """Lyrics without a user .lrc: the online catalog first (exact timings, free), then speech recognition on the
+        vocal stem (CPU). The outcome is cached with the work files: a re-analysis neither queries nor transcribes."""
+        key = _work_key(data.audio_hash, "lyrics")
+        saved = await self._load_json(key)
+        if saved is not None and (saved["source"] != "none" or not data.allow_asr):
+            return [LyricLine(**line) for line in saved["lines"]], saved["source"]
+        instrumental = False
+        if self._lookup is not None:
+            query = (data.artist, data.title) if data.artist and data.title else None
+            if query is None and self._tags is not None:
+                query = await self._tags.read(source)
+            if query is not None:
+                found = await self._lookup.find(query[0], query[1], duration)
+                if found is not None and found.instrumental:
+                    instrumental = True
+                elif found is not None and is_plausible_lyrics(found.lines, duration):
+                    lines = fit_lyrics(found.lines, duration)
+                    await self._save_lyrics(key, "lrclib", lines)
+                    return lines, "lrclib"
+        if instrumental or not data.allow_asr:
+            return [], "none"
+        lines = fit_lyrics(await self._lyrics.transcribe(vocals, duration), duration)
+        source_name = "whisper" if lines else "none"
+        await self._save_lyrics(key, source_name, lines)
+        return lines, source_name
+
+    async def _save_lyrics(self, key: str, source: str, lines: Sequence[LyricLine]) -> None:
+        await self._save_json(key, {"source": source, "lines": [asdict(line) for line in lines]})
 
     async def _cached_structure(self, audio_hash: str, mix: Path) -> Structure:
         key = _work_key(audio_hash, "structure")
@@ -216,6 +260,7 @@ def assemble_result(
     rhythm: Rhythm,
     structure: Structure,
     lyrics: Sequence[LyricLine],
+    lyrics_source: str = "muse-voice",
 ) -> AnalysisResult:
     """Builds and validates the `music-world.analysis.v1` document (ids `n_<i>` / `c_<i>`, requirement 7).
 
@@ -271,7 +316,7 @@ def assemble_result(
         ],
         "sections": section_docs,
         "lyrics": lyric_docs,
-        "lyricsSource": "muse-voice" if lyric_docs else "none",
+        "lyricsSource": lyrics_source if lyric_docs else "none",
     }
     try:
         return AnalysisResult.model_validate(doc)

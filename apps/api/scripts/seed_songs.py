@@ -26,14 +26,17 @@ from urllib.parse import urlparse
 
 from music_world.analysis.application.use_cases.analyze_audio import AnalyzeAudio, AnalyzeAudioInput
 from music_world.analysis.domain.quality import note_quality
+from music_world.analysis.infrastructure.audio_tags import FfprobeTagReader
 from music_world.analysis.infrastructure.basic_pitch_transcriber import BasicPitchTranscriber
 from music_world.analysis.infrastructure.demucs_separator import DemucsSeparator
 from music_world.analysis.infrastructure.ffmpeg_decoder import FfmpegDecoder
 from music_world.analysis.infrastructure.librosa_chroma import LibrosaChromaAnalyzer
 from music_world.analysis.infrastructure.librosa_rhythm import LibrosaRhythmAnalyzer
 from music_world.analysis.infrastructure.librosa_structure import LibrosaStructureAnalyzer
+from music_world.analysis.infrastructure.lrclib_lookup import LrclibLookup
 from music_world.analysis.infrastructure.null_lyrics import NoLyricsTranscriber
 from music_world.analysis.infrastructure.sqlalchemy_analysis_repository import AnalysisRow, SqlAlchemyAnalysisRepository
+from music_world.analysis.infrastructure.whisper_lyrics import WhisperLyricsTranscriber
 from music_world.projects.domain.project import Project
 from music_world.projects.infrastructure.sqlalchemy_project_repository import SqlAlchemyProjectRepository
 from music_world.projects.infrastructure.sqlalchemy_song_repository import Song, SqlAlchemySongRepository
@@ -80,10 +83,17 @@ async def main(args: argparse.Namespace) -> int:
     )
     store = build_object_store(settings)
     local = _is_local(settings)
+    asr = (
+        WhisperLyricsTranscriber(settings.lyrics_asr_model, settings.lyrics_language)
+        if settings.lyrics_asr
+        else NoLyricsTranscriber()
+    )
     analyze = AnalyzeAudio(
         analyses, store, FfmpegDecoder(), DemucsSeparator(settings.demucs_model), BasicPitchTranscriber(),
-        LibrosaRhythmAnalyzer(), LibrosaStructureAnalyzer(), NoLyricsTranscriber(),
+        LibrosaRhythmAnalyzer(), LibrosaStructureAnalyzer(),
+        asr,
         min_velocity=settings.analysis_min_velocity, chroma=LibrosaChromaAnalyzer(),
+        lookup=LrclibLookup() if settings.lyrics_lookup else None, tags=FfprobeTagReader(),
     )  # fmt: skip
     failures = 0
     for entry in chosen:
@@ -139,7 +149,10 @@ async def main(args: argparse.Namespace) -> int:
             result = None
         started = time.perf_counter()
         if result is None:
-            result = await analyze.execute(AnalyzeAudioInput(audio_hash, audio_key), _progress(entry["slug"]))
+            result = await analyze.execute(
+                AnalyzeAudioInput(audio_hash, audio_key, artist=entry["artist"], title=entry["title"]),
+                _progress(entry["slug"]),
+            )
             print(f"[seed] {entry['slug']}: analysed in {time.perf_counter() - started:.0f} s")
         project_id = existing.project_id if existing else None
         if project_id is None or await projects.get(project_id) is None:

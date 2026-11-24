@@ -305,6 +305,8 @@
       "enum": [
         "muse-voice",
         "lrc",
+        "lrclib",
+        "whisper",
         "none"
       ],
       "title": "Lyricssource",

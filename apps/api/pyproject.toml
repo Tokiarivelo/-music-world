@@ -26,6 +26,7 @@ dependencies = [
   "torchaudio>=2.5",
   "anthropic[bedrock]>=2.13.0",
   "httpx>=0.28",
+  "faster-whisper>=1.2.1",
 ]
 
 [dependency-groups]

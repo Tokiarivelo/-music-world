@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     analysis_min_velocity: float = 0.25
     demucs_model: str = "htdemucs"
     lyrics_provider: Literal["muse", "lrc", "none"] = "muse"
+    # Lyrics when the user gives no .lrc: look the track up online (artist + title + duration only leave the server),
+    # else transcribe the vocal stem locally with Whisper. Both can be switched off.
+    lyrics_lookup: bool = True
+    lyrics_asr: bool = True
+    lyrics_asr_model: str = "base"  # faster-whisper model: tiny (fastest) | base | small (most accurate)
+    lyrics_language: str | None = None  # ISO code to skip language detection; None = detect once per song
 
     # AI World Director (05-ai-world-director). Keys stay server side and are never returned or logged.
     llm_provider: Literal["muse", "bedrock", "mock"] = "muse"
