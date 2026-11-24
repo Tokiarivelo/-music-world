@@ -5,7 +5,7 @@
   - _Requirements: 5.1, 5.4_
 - [x] 2. Pure `editor-model.ts` and `editor-validate.ts` (zod + store specification), property tests.
   - _Requirements: 2.2, 2.3, 3.1, 3.2, 6.3_
-- [ ] 3. `useTemplateDraft` store and loading (`?from=`, default, error fallback); tests.
+- [x] 3. `useTemplateDraft` store and loading (`?from=`, default, error fallback); tests.
   - _Requirements: 1.1–1.3, 5.3_
 - [ ] 4. Form sections (Identity, Palette, Terrain, Staff, Effects) with bounds from the schema; Testing Library tests.
   - _Requirements: 2.1, 2.2, 3.1, 6.1_
