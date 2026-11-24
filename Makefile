@@ -14,6 +14,8 @@ DC := docker compose -f $(COMPOSE)
 # Optional apps/api/.env (copy of apps/api/.env.example) is loaded by uv for the host-run api and worker.
 API_ENV_FILE := $(if $(wildcard $(API)/.env),--env-file .env,)
 SERVICE ?=
+# pytest-xdist workers for the API tests (measured: serial 34 s, 4 workers 25 s; use 0 to run serially in one process).
+PYTEST_WORKERS ?= 4
 # Port of the host web dev server: WEB_PORT in apps/web/.env.local (make reads it), or `make dev-web WEB_PORT=3001`.
 -include $(WEB)/.env.local
 WEB_PORT ?= 3000
@@ -96,7 +98,7 @@ rebuild: ## Force a rebuild of every image (Docker layer cache still applies)
 test: test-api test-web ## Run API and web tests (no slow tests)
 
 test-api: ## API tests (no slow tests)
-	cd $(API) && uv run pytest -q -m "not slow"
+	cd $(API) && uv run pytest -q -m "not slow" -n $(PYTEST_WORKERS)
 
 test-web: ## Web tests
 	@if [ -f $(WEB)/package.json ]; then pnpm -C $(WEB) test; else echo "[test] apps/web not scaffolded yet, skipped"; fi

@@ -19,8 +19,8 @@ Last reviewed: 2026-11-24 (after the Makefile / Docker / env / token session).
 
 | # | Task | Load first | Done when |
 |---|---|---|---|
-| B1 | `uvx pip-audit` and `pnpm audit --prod` (needs network to the advisory databases only) | `docs/security-review.md` | results recorded there, fixes or accepted risks listed |
-| B2 | Add `pytest-xdist` and make `test-api` run with `-n auto` (measured: 30 s serial, 8 cores available) | `docs/optimization.md` § Tests | `make check-api` faster, no flaky test across 5 runs (needs network once for `uv add --dev pytest-xdist`) |
+| B1 | ~~Dependency audits~~ | done 2026-11-24 (phase 12) | — | `pip-audit` and `pnpm audit --prod`: no known vulnerabilities (torch/torchaudio CPU wheels not auditable); recorded in `docs/security-review.md`; repeat before 2026-12-04 |
+| B2 | ~~pytest-xdist~~ | done 2026-11-24 (phase 12) | — | `make test-api` uses `-n 4` (`PYTEST_WORKERS`, 0 = serial): 34 s → 25 s alone, 5 runs without a flaky test. Inside `make -j3 check` the web tests compete for the CPU: no gain there (≈ 60 s). The floor is collection (3.3 s per worker) plus two 9 s property tests |
 | B3 | ~~Lazy-load heavy API imports~~ | done 2026-11-24 (phase 11) | — | boto3 is now imported only when S3 is configured (−0.3 s cumulative); the rest of the 1.1 s is FastAPI 0.8 s and SQLAlchemy 0.36 s, not avoidable, so the < 0.6 s goal is dropped |
 | B4 | Caching headers in Caddy for `/demo/*` (MP3 922 KB, analysis JSON) and a `Cache-Control: immutable` check on `/_next/static/*`; validate with `docker run caddy caddy validate` | `infrastructure.md` | headers verified with `curl -kI` against `make dev` |
 | B5 | ~~Bundle budget guard~~ | done 2026-11-24 (phase 11) | — | `apps/web/scripts/check-bundle.mjs`: light pages must not load the engine chunk, ≤ 900 KB JS; run by `make bundle-check` and by the web Dockerfile after `next build` |

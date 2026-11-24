@@ -41,7 +41,7 @@ the repository; "Backlog" points to `docs/backlog-agent.md`.
 | L1 | The only dev path was the production-like Docker stack: no hot reload, a rebuild per edit | `make dev-infra` (Postgres + Redis on 127.0.0.1 via `docker-compose.dev.yml`) + `dev-api` (uvicorn `--reload`) + `dev-worker` (`arq --watch`) + `dev-web` (Turbopack HMR). Docker `make dev` stays for the full prod-like check | Applied |
 | L2 | No `.env.example` for the host-run API or the web app (only `infra/.env.example`); `Settings` reads no file | `apps/api/.env.example` (loaded by `uv run --env-file`, optional), `apps/web/.env.example` (copy to `.env.local`), `infra/.env.example` stays the global one | Applied |
 | L3 | `make check` ran everything serially (≈ 75 s) | split into `check-api`, `check-web`, `arch`, `schemas-check`; `make -j3 check` runs api and web in parallel (measured 46 s vs ≈ 75 s serial, bounded by pytest, all green) | Applied |
-| L4 | pytest is serial on 8 cores | `pytest-xdist` `-n auto` (expected 30 s → ~10 s); needs network once to add the dependency, so not applied | Backlog B2 |
+| L4 | pytest is serial on 8 cores | `pytest-xdist` `-n auto` (measured 34 s → 25 s alone; flat above 2 workers, the floor is collection plus two 9 s property tests) | Applied: `make test-api` (`PYTEST_WORKERS`) |
 | L5 | `import music_world.main` takes ~1.1 s (FastAPI 0.8 s, SQLAlchemy 0.36 s, boto3 0.28 s) | boto3 and botocore are imported only when S3 is configured (`object_store.py`, `probes.py`); FastAPI and SQLAlchemy are required | Applied (−0.1 to −0.3 s) |
 | L6 | Disk 97 % full; stale tool caches and images accumulate | `make disk`, `prune`, `prune-images`, `prune-cache`, `prune-all`, `clean`, `clean-deps`, guarded `prune-volumes` | Applied; run once: backlog B7 |
 
