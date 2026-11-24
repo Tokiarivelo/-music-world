@@ -6,9 +6,9 @@ from dataclasses import dataclass
 
 from music_world.schemas.analysis import AnalysisResult
 
-ENERGY_POINTS = 32
-MAX_CHORDS_PER_SECTION = 8
-MAX_LYRICS_CHARS = 1500
+ENERGY_POINTS = 16
+MAX_CHORDS_PER_SECTION = 6
+MAX_LYRICS_CHARS = 800
 
 
 @dataclass(frozen=True)

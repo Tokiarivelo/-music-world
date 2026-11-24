@@ -1,7 +1,20 @@
-# Development override (make dev-infra): publishes Postgres and Redis on 127.0.0.1 only, so the API, the worker and
+# Development override (make dev-infra): publishes Postgres, Redis and Garage (S3) on 127.0.0.1 only, so the API, the worker and
 # the web app can run on the host with hot reload. Never used in production (deploy.sh loads docker-compose.yml only).
 services:
   postgres:
     ports: ["127.0.0.1:5432:5432"]
   redis:
     ports: ["127.0.0.1:6379:6379"]
+  # Local S3-compatible object store (the deployed stack uses Cloudflare R2). First run: make garage-init.
+  garage:
+    image: dxflrs/garage:v1.0.1
+    restart: unless-stopped
+    ports: ["127.0.0.1:3900:3900"]
+    volumes:
+      - ./garage/garage.toml:/etc/garage.toml:ro
+      - garage-meta:/var/lib/garage/meta
+      - garage-data:/var/lib/garage/data
+
+volumes:
+  garage-meta:
+  garage-data:

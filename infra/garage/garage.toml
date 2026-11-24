@@ -1,0 +1,20 @@
+# Garage (S3-compatible object store) for local development only: single node, no replication, published on
+# 127.0.0.1 by infra/docker-compose.dev.yml. The deployed stack uses Cloudflare R2 (see infra/README.md).
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+db_engine = "sqlite"
+replication_factor = 1
+
+rpc_bind_addr = "0.0.0.0:3901"
+rpc_public_addr = "127.0.0.1:3901"
+# Development-only secret: the RPC port is not published, so it protects nothing outside the container.
+rpc_secret = "0000000000000000000000000000000000000000000000000000000000000001"
+
+[s3_api]
+s3_region = "garage"
+api_bind_addr = "0.0.0.0:3900"
+root_domain = ".s3.garage.localhost"
+
+[admin]
+api_bind_addr = "0.0.0.0:3903"
+admin_token = "dev-admin-token"
