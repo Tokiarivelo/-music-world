@@ -113,6 +113,15 @@ Signed in, an AI-generated world gets a **Publish to the store** button on the p
 template again (schema, 32 KB, built-in shapes, readable staff, plain-text name), gives it a unique id and a small
 generated preview image, and lists it in the public gallery.
 
+The gallery at `/templates` (no account needed) lists published templates newest first, launch templates first.
+**Use this template** opens `/play/demo?template=<store id>` with it (`/play/<projectId>?template=<store id>` works
+too); the player's template picker, in 2D and in VR, also offers the 12 newest store templates. If the store cannot be
+reached, the player keeps the built-in and AI-generated templates.
+
+```bash
+curl -k https://localhost/api/templates?limit=5          # {"items":[…],"nextCursor":…}
+```
+
 ## License
 
 [MIT](LICENSE)

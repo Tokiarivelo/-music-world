@@ -193,3 +193,9 @@ the MVP volume).
   `features/template-store` (api with per-item zod validation, `usePublishTemplate`, `PublishTemplateButton`,
   `lib/thumbnail.ts` 256 px WebP/PNG palette preview) and `features/player/components/TemplateActions.tsx` (publish
   button under the director panel, only for AI-generated templates: built-ins are already in every player).
+- Task 4: web `useStoreTemplates(storeId)` (12 newest + the `?template=` one, store down → empty),
+  `useGallery` (cursor pages), `TemplateGallery`, `TemplateCard` (`<img>` for API thumbnails, `TemplatePreview`
+  canvas otherwise), page `/templates`; `useAiTemplateChoice(director, store)` = built-ins → store → generated with
+  duplicate ids dropped; the requested store template is selected once, and a generation is selected only when the
+  director results change (store templates arriving no longer re-select the last generation). Play pages pass
+  `?template=` from `searchParams` to `DemoPlayback` / `ProjectPlayback`.

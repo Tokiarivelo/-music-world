@@ -15,6 +15,9 @@ export default function HomePage() {
         <Link className="rounded-full border border-[var(--mw-primary)] px-6 py-3 font-medium" href="/upload">
           Upload your song
         </Link>
+        <Link className="rounded-full border border-[var(--mw-accent)] px-6 py-3 font-medium" href="/templates">
+          Browse templates
+        </Link>
       </div>
     </main>
   );

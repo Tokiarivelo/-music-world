@@ -25,9 +25,15 @@ describe('api client', () => {
   });
 
   it('maps errors to ApiError', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ error: { code: 'AUTH_REQUIRED' } }, { status: 401 })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Response.json({ error: { code: 'AUTH_REQUIRED' } }, { status: 401 })),
+    );
     await expect(apiFetch('/api/x')).rejects.toMatchObject({ code: 'AUTH_REQUIRED', status: 401 });
-    vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new TypeError('offline'))));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Promise.reject(new TypeError('offline'))),
+    );
     await expect(apiFetch('/api/x')).rejects.toBeInstanceOf(ApiError);
   });
 });

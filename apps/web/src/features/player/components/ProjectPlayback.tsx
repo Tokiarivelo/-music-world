@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import type { Analysis } from '@/templates/generated';
 import { DirectorPanel, useDirector, type DirectorSource } from '@/features/director';
+import { useStoreTemplates } from '@/features/template-store';
 import { WorldView } from '@/features/world-view';
 import { loadProjectAudio } from '../api/project.api';
 import { PLAYER_ERRORS, PLAYER_TEXT } from '../consts/player.consts';
@@ -14,7 +15,13 @@ import { seedFromHash } from '../lib/seed';
 import { PlayerBar } from './PlayerBar';
 import { TemplateActions } from './TemplateActions';
 
-function ProjectWorld({ projectId, analysis }: { projectId: string; analysis: Analysis }) {
+interface ProjectWorldProps {
+  projectId: string;
+  analysis: Analysis;
+  storeTemplateId: string | null;
+}
+
+function ProjectWorld({ projectId, analysis, storeTemplateId }: ProjectWorldProps) {
   const deps = useMemo(
     () => ({ createContext: () => new AudioContext(), loadBuffer: () => loadProjectAudio(projectId) }),
     [projectId],
@@ -22,7 +29,8 @@ function ProjectWorld({ projectId, analysis }: { projectId: string; analysis: An
   const player = useSongPlayer(deps);
   const source = useMemo<DirectorSource>(() => ({ kind: 'project', projectId }), [projectId]);
   const director = useDirector(source);
-  const choice = useAiTemplateChoice(director);
+  const store = useStoreTemplates(storeTemplateId);
+  const choice = useAiTemplateChoice(director, store);
   const controls = useWorldControls(player, PLAYER_TEXT.projectTitle, choice);
   const { clock } = player;
   const { template } = choice;
@@ -51,9 +59,17 @@ function ProjectWorld({ projectId, analysis }: { projectId: string; analysis: An
 }
 
 /** `/play/<projectId>`: an uploaded song's analysis and audio, rendered with the default template or an AI-generated one. */
-export function ProjectPlayback({ projectId }: { projectId: string }) {
+export function ProjectPlayback({
+  projectId,
+  storeTemplateId = null,
+}: {
+  projectId: string;
+  storeTemplateId?: string | null;
+}) {
   const state = useProjectAnalysis(projectId);
-  if (state.kind === 'ready') return <ProjectWorld projectId={projectId} analysis={state.analysis} />;
+  if (state.kind === 'ready') {
+    return <ProjectWorld projectId={projectId} analysis={state.analysis} storeTemplateId={storeTemplateId} />;
+  }
   return (
     <div className="flex h-dvh items-center justify-center p-6 text-center">
       {state.kind === 'loading' ? (

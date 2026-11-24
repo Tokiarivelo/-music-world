@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { DirectorPanel, useDirector, type DirectorSource } from '@/features/director';
+import { useStoreTemplates } from '@/features/template-store';
 import { WorldView } from '@/features/world-view';
 import { loadAudioUrl } from '../api/project.api';
 import { DEMO_SEED, PLAYER_TEXT } from '../consts/player.consts';
@@ -22,11 +23,13 @@ const DEMO_DEPS: SongPlayerDeps = {
   loadBuffer: () => loadAudioUrl(DEMO_SONG.audioUrl).catch(() => synthesizeSong(analysis.notes, analysis.durationSec)),
 };
 
-/** `/play/demo`: the pre-analysed demo song and its audio, rendered with the default template or an AI-generated one. */
-export function DemoPlayback() {
+/** `/play/demo`: the pre-analysed demo song and its audio, rendered with the default, a store or an AI-generated template
+ * (`?template=<store id>` selects a store template). */
+export function DemoPlayback({ storeTemplateId = null }: { storeTemplateId?: string | null }) {
   const player = useSongPlayer(DEMO_DEPS);
   const director = useDirector(DEMO_SOURCE);
-  const choice = useAiTemplateChoice(director);
+  const store = useStoreTemplates(storeTemplateId);
+  const choice = useAiTemplateChoice(director, store);
   const controls = useWorldControls(player, DEMO_SONG.title, choice);
   const { clock } = player;
   const { template } = choice;

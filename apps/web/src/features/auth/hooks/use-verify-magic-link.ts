@@ -25,8 +25,7 @@ export function useVerifyMagicLink(
     window.history.replaceState(null, '', window.location.pathname);
     verify(token).then(
       () => setState({ status: 'verified', errorKey: null }),
-      (error: unknown) =>
-        setState({ status: 'error', errorKey: error instanceof ApiError ? error.code : 'UNKNOWN' }),
+      (error: unknown) => setState({ status: 'error', errorKey: error instanceof ApiError ? error.code : 'UNKNOWN' }),
     );
   }, [token, verify]);
   return state;

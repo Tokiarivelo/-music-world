@@ -21,7 +21,12 @@ describe('VerifyMagicLink', () => {
   });
 
   it('explains an invalid or missing link', async () => {
-    render(<VerifyMagicLink token="bad" verify={vi.fn(async () => Promise.reject(new ApiError('AUTH_TOKEN_INVALID', 401)))} />);
+    render(
+      <VerifyMagicLink
+        token="bad"
+        verify={vi.fn(async () => Promise.reject(new ApiError('AUTH_TOKEN_INVALID', 401)))}
+      />,
+    );
     expect((await screen.findByRole('alert')).textContent).toContain('invalid or has expired');
     cleanup();
     render(<VerifyMagicLink token={null} verify={vi.fn()} />);

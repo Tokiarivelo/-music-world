@@ -15,7 +15,7 @@
   publication rate limit, contracts `store-template.v1` / `store-template-page.v1`; web publish button on the player
   (any template, AI-generated included) with a generated palette thumbnail.
   - _Requirements: 3.1–3.7_
-- [ ] 4. (6.4, P1) Gallery and use during playback: public paginated list (featured first), web `/templates` page,
+- [x] 4. (6.4, P1) Gallery and use during playback: public paginated list (featured first), web `/templates` page,
   store templates in `useAiTemplateChoice` (2D and VR picker), `?template=<store id>`, zod re-validation, offline
   fallback; run `apps/web/scripts/xr-check.mjs` once if feasible.
   - _Requirements: 4.1–4.6_
