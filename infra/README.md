@@ -6,7 +6,7 @@ Rules in `.kiro/steering/infrastructure.md`; deployment steps in the `deploy-ovh
 | Path | Purpose |
 |---|---|
 | `docker-compose.yml` | caddy, web, api, worker, postgres, redis; restart policies, healthchecks, log rotation |
-| `Caddyfile` | HTTPS, `/api/*` → api, rest → web, body limits, security headers and CSP |
+| `Caddyfile` | HTTPS, `/api/*` → api, rest → web, body limits, cache headers (`/demo/*`, `/_next/static/*`), security headers and CSP |
 | `docker/` | `api.Dockerfile` (api + worker, ffmpeg, Demucs weights pre-downloaded), `web.Dockerfile` |
 | `.env.example` | every variable; copy to `infra/.env` on the server (never committed). Host-run API and web have their own: `apps/api/.env.example`, `apps/web/.env.example` |
 | `docker-compose.dev.yml` | `make dev-infra` only: publishes Postgres and Redis on 127.0.0.1 for the host-run API and worker |
