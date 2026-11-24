@@ -128,7 +128,7 @@
         "maxTriangles": {
           "default": 500,
           "description": "Upper bound of the built geometry; the recipe is rejected when its parts need more.",
-          "maximum": 1000,
+          "maximum": 2000,
           "minimum": 12,
           "title": "Maxtriangles",
           "type": "integer"

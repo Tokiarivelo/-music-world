@@ -23,7 +23,7 @@
 - [ ] 6. (5.6, P2, skipped in Phase 5: not bounded — new contract, Three.js builder and a Python triangle-count mirror) ShapeRecipe generation (`music-world.shape.v1`, closed op list, triangle budget checked by
   building) — only if everything else is green.
   - _Requirements: 4.1, 4.2_
-  - [x] 6.1 Contract `music-world.shape.v1` (closed ops: box, prism, spike, stack, cluster; bounded numbers; budget ≤ 600
+  - [x] 6.1 Contract `music-world.shape.v1` (closed ops: box, prism, spike, stack, cluster; bounded numbers; budget ≤ 2000
     triangles), `WorldTemplate.recipes` (≤ 4), Python `triangle_count`, renderability and store rules, property tests.
   - [x] 6.2 Web builder `xr/shapes/recipe-builder.ts`: recipe → one BufferGeometry, seeded cluster, parity test with
     `apps/api/tests/fixtures/shape-recipes.json`.
