@@ -4,6 +4,7 @@ from music_world.director.domain.spend import Price
 
 PRICES: dict[str, Price] = {
     "muse-spark-1.3": Price(1.25, 4.25),
+    "muse-spark-1.3-contributor": Price(1.25, 4.25),
     "muse-wonder-1.0": Price(4.00, 20.00),
     # Anthropic list prices; Claude in Amazon Bedrock bills through AWS (estimate for the cap only).
     "anthropic.claude-sonnet-5-5": Price(2.00, 10.00),

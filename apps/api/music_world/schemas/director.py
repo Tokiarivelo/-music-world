@@ -40,7 +40,7 @@ class DirectorProviders(ContractModel):
                 {
                     "default": "mock",
                     "providers": [
-                        {"id": "muse", "model": "muse-spark-1.3", "configured": False},
+                        {"id": "muse", "model": "muse-spark-1.3-contributor", "configured": False},
                         {"id": "bedrock", "model": "anthropic.claude-sonnet-5-5", "configured": False},
                         {"id": "mock", "model": "mock-director-1", "configured": True},
                     ],

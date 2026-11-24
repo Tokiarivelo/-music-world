@@ -143,7 +143,7 @@ curl -k https://localhost/api/projects/<projectId>                              
 AI**. Generate again with another provider to compare (both stay in the template list, also in VR). To enable the real
 providers, set in `infra/.env` (server only):
 
-- Meta Muse: `META_API_KEY` (model `META_DIRECTOR_MODEL=muse-spark-1.3`).
+- Meta Muse: `META_API_KEY` (model `META_DIRECTOR_MODEL=muse-spark-1.3-contributor`).
 - Claude in Amazon Bedrock: `AWS_REGION` + AWS credentials (`AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`, or
   `AWS_BEARER_TOKEN_BEDROCK`), model `BEDROCK_MODEL_ID=anthropic.claude-sonnet-5-5` (enable access in the console).
 - `LLM_PROVIDER` picks the default; `META_SPEND_CAP_USD` (default 1) caps the estimated spend per song.

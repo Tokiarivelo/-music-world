@@ -159,8 +159,8 @@ API compatible OpenAI, `https://api.meta.ai/v1`, clé dans `META_API_KEY` (côt�
 | Besoin | Modèle | Comment | Statut |
 |---|---|---|---|
 | **Paroles** | `muse-voice-transcribe-1.0` | Transcrit la **piste voix isolée par Demucs**, avec horodatage par segment | ⚠️ Conçu pour la parole : qualité sur le chant **à tester le jour 1** |
-| **Interprétation musicale** (ambiance, thèmes, narration) | `muse-spark-1.3` | Reçoit un **résumé texte** : tonalité, tempo, progression d'accords, courbe d'énergie, sections, tessiture, paroles. Renvoie un `WorldTemplate` en JSON structuré. | ✅ Rôle principal |
-| **Écoute directe d'un extrait** (optionnel) | `muse-spark-1.3` avec entrée audio | Extrait de 30 s joint, seulement comme **indice d'ambiance** | ⚠️ Support audio de Spark 1.3 annoncé comme incomplet : expérimental |
+| **Interprétation musicale** (ambiance, thèmes, narration) | `muse-spark-1.3-contributor` | Reçoit un **résumé texte** : tonalité, tempo, progression d'accords, courbe d'énergie, sections, tessiture, paroles. Renvoie un `WorldTemplate` en JSON structuré. | ✅ Rôle principal |
+| **Écoute directe d'un extrait** (optionnel) | `muse-spark-1.3-contributor` avec entrée audio | Extrait de 30 s joint, seulement comme **indice d'ambiance** | ⚠️ Support audio de Spark 1.3 annoncé comme incomplet : expérimental |
 | **Formes 3D sur mesure** (§ 6) | `muse-wonder-1.0` (ou Spark 1.3 si le coût est trop élevé) | Produit une **recette de forme** dans un langage fermé, jamais du code | ✅ Optionnel pour le MVP |
 | **Textures / ciel** (optionnel) | `muse-image-1.0` | Texture de fond ou motif émissif d'un template | Extension |
 | **Repli hors ligne** (futur) | Muse Glimmer (poids ouverts, Apache-2.0) | Auto-hébergé sur un GPU OVHcloud | Après le hackathon |
@@ -195,7 +195,7 @@ fournisseur suivant. Détails : `.kiro/specs/05-ai-world-director/design.md`.
 
 **Ce que les LLM ne font pas ici :** détecter les notes, les accords, le tempo ou la tonalité. Ce travail revient à Basic Pitch et librosa, qui sont précis et déterministes.
 
-**Données des utilisateurs (décision du 2026-11-24) :** le director utilise par défaut `muse-spark-1.3-contributor` (moins cher ; Meta peut entraîner ses modèles sur les entrées : résumé texte de la chanson et paroles, jamais le fichier audio). La page d'envoi en avertit l'utilisateur. `META_DIRECTOR_MODEL=muse-spark-1.3` désactive ce choix.
+**Données des utilisateurs (décision du 2026-11-24) :** le director utilise par défaut `muse-spark-1.3-contributor` (moins cher ; Meta peut entraîner ses modèles sur les entrées : résumé texte de la chanson et paroles, jamais le fichier audio). La page d'envoi en avertit l'utilisateur. `META_DIRECTOR_MODEL=muse-spark-1.3-contributor` désactive ce choix.
 
 **Garde-fous :**
 - plafond de dépense par analyse ;

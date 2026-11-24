@@ -10,7 +10,7 @@ fileMatchPattern: "apps/api/music_world/director/**"
 | Task | Model | Input | Output |
 |---|---|---|---|
 | Lyrics | `muse-voice-transcribe-1.0` | Demucs vocal stem | timed text segments |
-| World direction | `muse-spark-1.3` | text summary of `AnalysisResult` + lyrics | `WorldTemplate` JSON |
+| World direction | `muse-spark-1.3-contributor` | text summary of `AnalysisResult` + lyrics | `WorldTemplate` JSON |
 | Custom shapes (optional) | `muse-wonder-1.0` | shape intent from the template | `ShapeRecipe` JSON |
 
 Bedrock equivalents (Claude in Amazon Bedrock, `bedrock-mantle`): director `anthropic.claude-sonnet-5-5`, shapes

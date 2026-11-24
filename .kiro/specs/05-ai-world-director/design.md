@@ -125,7 +125,7 @@ zone order, palette hex), (c) is a fixed point (re-parsing gives the same docume
 - Spend: `director/spend/<audio hash>.json` keeps the USD estimate spent for that audio; a provider is skipped with
   `SPEND_CAP` once `spent ≥ META_SPEND_CAP_USD` (default 1, both real providers, requirement 5.2). The demo shares the
   cap of its audio hash, which bounds what the public demo endpoint can spend.
-- Catalogue prices (USD per 1M tokens, input / output): `muse-spark-1.3` 1.25 / 4.25, `muse-wonder-1.0` 4 / 20,
+- Catalogue prices (USD per 1M tokens, input / output): `muse-spark-1.3-contributor` 1.25 / 4.25, `muse-wonder-1.0` 4 / 20,
   Bedrock Claude Sonnet 5.5 2 / 10, Claude Opus 5.5 4 / 20 (Anthropic list prices; Bedrock bills separately, so these
   are estimates for the cap). Unknown model → the highest known price.
 - `*-contributor` Muse ids are accepted and are the default director model (decision 2026-11-24, supersedes requirement 5.3):
@@ -163,7 +163,7 @@ so the 2D page and the VR template picker both list every generated template; no
   (`{type: json_schema, json_schema: {name, schema, strict}}`, `strict` defaults to false); reply text in
   `choices[0].message.content`, `message.refusal`, `finish_reason ∈ stop|length|content_filter|…`, usage
   `prompt_tokens` / `completion_tokens`. Errors `{error: {message, type, param, code}}`; retry 429 / 500 / 503.
-  Model ids: `muse-spark-1.3` (recommended), `muse-wonder-1.0` (preview), contributor id
+  Model ids: `muse-spark-1.3` (standard), `muse-spark-1.3-contributor` (default), `muse-wonder-1.0` (preview), contributor id
   `muse-spark-1.3-contributor`. Sources: https://dev.meta.ai/docs/models.md,
   https://dev.meta.ai/docs/structured-output.md, https://dev.meta.ai/docs/api-reference/chat-completions/schemas.md,
   https://dev.meta.ai/docs/error-handling.md, https://dev.meta.ai/docs/pricing-rate-limits.md.

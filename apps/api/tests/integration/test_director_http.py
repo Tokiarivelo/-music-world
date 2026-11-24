@@ -63,7 +63,7 @@ async def test_project_route_uses_the_selected_provider() -> None:
     await analyses.save(
         AnalysisResult.model_validate({**_base(), "audioHash": "sha256:" + hashlib.sha256(audio).hexdigest()})
     )
-    muse = FakeProvider("muse", [valid_llm_template()], model="muse-spark-1.3")
+    muse = FakeProvider("muse", [valid_llm_template()], model="muse-spark-1.3-contributor")
     c = _client(analyses, Settings(app_env="test"), providers={"muse": muse})
     async with c, LifespanManager(c):
         created = (await c.post("/api/projects", files={"audio": ("a.wav", audio, "audio/wav")})).json()
@@ -71,7 +71,7 @@ async def test_project_route_uses_the_selected_provider() -> None:
         providers = (await c.get("/api/director/providers")).json()
     assert response.status_code == 200, response.text
     body = response.json()
-    assert (body["provider"], body["model"], body["fallbacks"]) == ("muse", "muse-spark-1.3", [])
+    assert (body["provider"], body["model"], body["fallbacks"]) == ("muse", "muse-spark-1.3-contributor", [])
     assert body["template"]["name"] == "Midnight Glass"
     assert providers["default"] == "muse"
 
