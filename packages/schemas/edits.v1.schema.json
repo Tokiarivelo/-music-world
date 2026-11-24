@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "music-world.edits.v1",
+  "$comment": "GENERATED — do not edit. Source: apps/api/music_world/schemas (run `make schemas`).",
+  "$defs": {
+    "AddedNote": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^user:[0-9]{1,5}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "time": {
+          "minimum": 0,
+          "title": "Time",
+          "type": "number"
+        },
+        "duration": {
+          "exclusiveMinimum": 0,
+          "maximum": 60,
+          "title": "Duration",
+          "type": "number"
+        },
+        "midi": {
+          "maximum": 108,
+          "minimum": 21,
+          "title": "Midi",
+          "type": "integer"
+        },
+        "velocity": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Velocity",
+          "type": "number"
+        },
+        "lineId": {
+          "pattern": "^[a-z0-9-]{1,32}$",
+          "title": "Lineid",
+          "type": "string"
+        },
+        "color": {
+          "anyOf": [
+            {
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Color"
+        }
+      },
+      "required": [
+        "id",
+        "time",
+        "duration",
+        "midi",
+        "velocity",
+        "lineId",
+        "color"
+      ],
+      "title": "AddedNote",
+      "type": "object"
+    },
+    "NoteEdit": {
+      "additionalProperties": false,
+      "properties": {
+        "noteId": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Noteid",
+          "type": "string"
+        },
+        "midi": {
+          "anyOf": [
+            {
+              "maximum": 108,
+              "minimum": 21,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Midi"
+        },
+        "time": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Time"
+        },
+        "duration": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 60,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration"
+        },
+        "velocity": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Velocity"
+        },
+        "color": {
+          "anyOf": [
+            {
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Color"
+        },
+        "lineId": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9-]{1,32}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lineid"
+        },
+        "deleted": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Deleted"
+        }
+      },
+      "required": [
+        "noteId",
+        "color",
+        "lineId"
+      ],
+      "title": "NoteEdit",
+      "type": "object"
+    },
+    "StaffLine": {
+      "additionalProperties": false,
+      "description": "A voice line: a full staff with its own clef, color, height in the sky, mute and solo.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9-]{1,32}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 40,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "color": {
+          "anyOf": [
+            {
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Color"
+        },
+        "clef": {
+          "default": "treble",
+          "enum": [
+            "treble",
+            "bass",
+            "none"
+          ],
+          "title": "Clef",
+          "type": "string"
+        },
+        "height": {
+          "default": 0,
+          "description": "Extra height in staff gaps.",
+          "maximum": 8,
+          "minimum": 0,
+          "title": "Height",
+          "type": "number"
+        },
+        "muted": {
+          "default": false,
+          "title": "Muted",
+          "type": "boolean"
+        },
+        "solo": {
+          "default": false,
+          "title": "Solo",
+          "type": "boolean"
+        },
+        "order": {
+          "default": 0,
+          "maximum": 16,
+          "minimum": 0,
+          "title": "Order",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "color"
+      ],
+      "title": "StaffLine",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "const": 1,
+      "default": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "lines": {
+      "items": {
+        "$ref": "#/$defs/StaffLine"
+      },
+      "maxItems": 8,
+      "title": "Lines",
+      "type": "array"
+    },
+    "notes": {
+      "items": {
+        "$ref": "#/$defs/NoteEdit"
+      },
+      "maxItems": 2000,
+      "title": "Notes",
+      "type": "array"
+    },
+    "added": {
+      "items": {
+        "$ref": "#/$defs/AddedNote"
+      },
+      "maxItems": 2000,
+      "title": "Added",
+      "type": "array"
+    }
+  },
+  "title": "LayoutEdits",
+  "type": "object"
+}

@@ -62,6 +62,9 @@ class MappingCondition(ContractModel):
     pitch: PitchRange | None = None
     chord: bool | None = Field(default=None, description="True: only chord notes; false: only notes outside chords.")
     stem: Stem | None = None
+    line: str | None = Field(
+        default=None, pattern=r"^[a-z0-9-]{1,32}$", description="Voice line id (user edits); `main` is the original."
+    )
     velocity: VelocityRange | None = None
 
 
