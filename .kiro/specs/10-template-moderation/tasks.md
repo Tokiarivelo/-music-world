@@ -3,7 +3,7 @@
 - [x] 1. Settings `MODERATOR_EMAILS`, `ModeratorDirectory` port and adapter, session `moderator` field
   (contract change, `make schemas`); tests (empty list, case, non-moderator).
   - _Requirements: 1.1–1.4_
-- [ ] 2. Migration (`moderation_actions`, `reports_since`), repository methods, `ModerationAudit` adapter; tests.
+- [x] 2. Migration (`moderation_actions`, `reports_since`), repository methods, `ModerationAudit` adapter; tests.
   - _Requirements: 3.1, 3.4_
 - [ ] 3. Use cases `ListHiddenTemplates`, `RestoreTemplate`, `RemoveTemplate` with fakes; property test on counts
   after a restore.

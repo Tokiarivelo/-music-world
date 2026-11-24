@@ -13,7 +13,14 @@ from music_world.projects.domain.job import Job
 from music_world.projects.domain.project import Project
 from music_world.schemas.analysis import AnalysisResult
 from music_world.system.application.ports import CheckStatus
-from music_world.templates.domain.model import PageCursor, StoreTemplate, TemplateReport, TemplateStatus
+from music_world.templates.domain.model import (
+    HiddenTemplate,
+    ModerationAction,
+    PageCursor,
+    StoreTemplate,
+    TemplateReport,
+    TemplateStatus,
+)
 
 
 class FakeClock:
@@ -206,6 +213,7 @@ class CapturingEmailSender:
 class InMemoryStoreTemplateRepository:
     def __init__(self) -> None:
         self.templates: dict[str, StoreTemplate] = {}
+        self.last_reported: dict[str, datetime] = {}
 
     async def add(self, template: StoreTemplate) -> None:
         self.templates[template.id] = template
@@ -233,6 +241,17 @@ class InMemoryStoreTemplateRepository:
         rows = [t for t in self.templates.values() if t.owner_id == owner_id]
         return sorted(rows, key=lambda t: t.created_at, reverse=True)[:limit]
 
+    async def list_hidden(self, after: PageCursor | None, limit: int) -> list[HiddenTemplate]:
+        rows = [
+            HiddenTemplate(t, self.last_reported.get(t.id, t.created_at))
+            for t in self.templates.values()
+            if t.status is TemplateStatus.HIDDEN
+        ]
+        rows.sort(key=lambda h: (h.last_reported_at, h.template.id), reverse=True)
+        if after is not None:
+            rows = [h for h in rows if (h.last_reported_at, h.template.id) < (after.published_at, after.id)]
+        return rows[:limit]
+
 
 class InMemoryReportRepository:
     def __init__(self) -> None:
@@ -245,5 +264,23 @@ class InMemoryReportRepository:
         self.reports[key] = report
         return True
 
-    async def count(self, template_id: str) -> int:
-        return sum(1 for t, _ in self.reports if t == template_id)
+    async def count(self, template_id: str, since: datetime | None = None) -> int:
+        return sum(
+            1 for (t, _), r in self.reports.items() if t == template_id and (since is None or r.created_at >= since)
+        )
+
+    async def reasons(self, template_id: str) -> list[str]:
+        rows = sorted((r for (t, _), r in self.reports.items() if t == template_id), key=lambda r: r.created_at)
+        return [r.reason for r in reversed(rows)]
+
+    async def delete_for(self, template_id: str) -> None:
+        for key in [k for k in self.reports if k[0] == template_id]:
+            del self.reports[key]
+
+
+class InMemoryModerationAudit:
+    def __init__(self) -> None:
+        self.actions: list[ModerationAction] = []
+
+    async def record(self, action: ModerationAction) -> None:
+        self.actions.append(action)
