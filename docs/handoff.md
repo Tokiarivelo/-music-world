@@ -61,7 +61,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
    Update README § Known limitations once done.
 4. **Human** — roadmap 9.3 video, 9.4 Devpost form, 9.5 posts from the drafts in `docs/submission.md` (checklist at
    its top). Run `uvx pip-audit` / `pnpm audit --prod` once before submitting.
-5. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` — next free: B4 (Caddy cache headers).
+5. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` — B4 done (Caddy cache headers); see the file for the next free one.
    Optional: recipe editing in the template editor; `02-music-analysis` 6.1 (Muse Voice); `01-foundation` 6.2/6.3/7.
 
 ## 4. Task ownership

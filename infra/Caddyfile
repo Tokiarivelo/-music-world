@@ -34,6 +34,10 @@
 	@demo path /demo/*
 	header @demo >Cache-Control "public, max-age=86400"
 
+	# Next.js build output is content-hashed: cache it for a year, whatever the upstream sends.
+	@next_static path /_next/static/*
+	header @next_static >Cache-Control "public, max-age=31536000, immutable"
+
 	handle /api/* {
 		# Caddy replaces any client X-Forwarded-For (no trusted_proxies): the API trusts it only from Caddy.
 		reverse_proxy api:8000
