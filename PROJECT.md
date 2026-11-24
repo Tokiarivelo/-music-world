@@ -342,7 +342,9 @@ du store : ≤ 32 Ko, formes intégrées uniquement, portée lisible, nom en tex
 `featured`, `thumbnailUrl`, `createdAt`, `publishedAt`). `POST /api/templates/{id}/publish`, `PUT|GET
 /api/templates/{id}/thumbnail` (PNG/JPEG/WebP ≤ 128 Ko, ≤ 640 px) et `DELETE /api/templates/{id}` : propriétaire seul,
 `404` sinon. `GET /api/templates` (public, `?cursor=&limit=`) renvoie `StoreTemplatePage` (`items`, `nextCursor`) ;
-`GET /api/templates/mine` les templates de l'appelant.
+`GET /api/templates/mine` les templates de l'appelant. `POST /api/templates/{id}/reports` (`{reason}` parmi
+`offensive | spam | broken | copyright`, connecté) : un signalement par personne et par template ; au seuil
+`TEMPLATE_REPORT_HIDE_THRESHOLD` le template passe `hidden` (retiré de la galerie, visible de son auteur).
 
 ### NoteEvent
 

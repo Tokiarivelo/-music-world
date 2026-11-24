@@ -6,9 +6,12 @@ from typing import Any
 import pytest
 
 from music_world.shared.db import Base, create_engine, create_session_factory
-from music_world.templates.domain.model import PageCursor, StoreTemplate, TemplateStatus
+from music_world.templates.domain.model import PageCursor, StoreTemplate, TemplateReport, TemplateStatus
 from music_world.templates.infrastructure.featured_catalog import FileFeaturedCatalog
-from music_world.templates.infrastructure.sqlalchemy_store_repository import SqlAlchemyStoreTemplateRepository
+from music_world.templates.infrastructure.sqlalchemy_store_repository import (
+    SqlAlchemyReportRepository,
+    SqlAlchemyStoreTemplateRepository,
+)
 from tests.unit.templates.helpers import NEON
 
 T0 = datetime(2026, 11, 26, 10, 0, tzinfo=UTC)
@@ -70,3 +73,12 @@ def test_featured_catalog_loads_and_validates_files(tmp_path: Any) -> None:
     (tmp_path / "bad.json").write_text('{"schema": "music-world.template.v1"}')
     with pytest.raises(Exception, match="template is invalid"):
         FileFeaturedCatalog({"x": "bad.json"}, tmp_path)
+
+
+async def test_reports_are_unique_per_user(repo: SqlAlchemyStoreTemplateRepository) -> None:
+    reports = SqlAlchemyReportRepository(repo._sessions)
+    tid = "00000000-0000-7000-8000-000000000001"
+    assert await reports.add(TemplateReport(tid, OWNER, "spam", T0))
+    assert not await reports.add(TemplateReport(tid, OWNER, "broken", T0))
+    assert await reports.add(TemplateReport(tid, "00000000-0000-7000-8000-00000000000b", "spam", T0))
+    assert await reports.count(tid) == 2 and await reports.count(OWNER) == 0

@@ -5,7 +5,7 @@ from typing import Any
 from httpx import AsyncClient
 
 from music_world.schemas.store import StoreTemplate
-from tests.fakes import CapturingEmailSender
+from tests.fakes import CapturingEmailSender, wav_bytes
 from tests.integration.test_accounts_http import _app, _client, sign_in
 from tests.integration.test_http import LifespanManager
 from tests.unit.templates.helpers import jpeg, png, template
@@ -103,3 +103,27 @@ async def test_publication_is_rate_limited_per_user() -> None:
             for _ in range(3)
         ]
     assert codes == [201, 201, 429]
+
+
+async def test_reports_hide_a_template_and_uploads_are_rate_limited() -> None:
+    sender = CapturingEmailSender()
+    app = _app(sender, template_report_hide_threshold=1, upload_rate_limit_per_hour=1)
+    async with _client(app) as ada, _client(app) as bob, _client(app) as anon, LifespanManager(ada):
+        csrf = await sign_in(ada, sender)
+        bob_csrf = await sign_in(bob, sender, "bob@example.com")
+        created = await _create(ada, csrf, publish=True)
+        url = f"/api/templates/{created['id']}/reports"
+        own = await ada.post(url, json={"reason": "spam"}, headers=_h(csrf))
+        bad = await bob.post(url, json={"reason": "boring"}, headers=_h(bob_csrf))
+        anonymous = await anon.post(url, json={"reason": "spam"})
+        reported = await bob.post(url, json={"reason": "offensive"}, headers=_h(bob_csrf))
+        gallery = (await anon.get("/api/templates")).json()
+        owner_view = await ada.get(f"/api/templates/{created['id']}")
+        files = {"audio": ("a.wav", wav_bytes(), "audio/wav")}
+        uploads = [(await anon.post("/api/projects", files=files)).status_code for _ in range(2)]
+    assert (own.status_code, own.json()["error"]["code"]) == (409, "TEMPLATE_NOT_REPORTABLE")
+    assert bad.status_code == 422 and anonymous.status_code == 401
+    assert (reported.status_code, reported.json()) == (202, {"status": "received"})
+    assert created["id"] not in [t["id"] for t in gallery["items"]]
+    assert owner_view.json()["status"] == "hidden"
+    assert uploads == [202, 429]

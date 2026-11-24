@@ -119,6 +119,11 @@ The gallery at `/templates` (no account needed) lists published templates newest
 too); the player's template picker, in 2D and in VR, also offers the 12 newest store templates. If the store cannot be
 reached, the player keeps the built-in and AI-generated templates.
 
+Signed-in visitors can **Report** a community template (offensive, spam, does not render, copyright); after
+`TEMPLATE_REPORT_HIDE_THRESHOLD` (default 3) distinct reports it leaves the gallery until reviewed. Uploads are limited
+to `UPLOAD_RATE_LIMIT_PER_HOUR` (default 20) per user or IP, template publication to
+`TEMPLATE_PUBLISH_RATE_LIMIT_PER_HOUR` (default 10) per user.
+
 ```bash
 curl -k https://localhost/api/templates?limit=5          # {"items":[…],"nextCursor":…}
 ```

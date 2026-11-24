@@ -22,7 +22,7 @@
 - [x] 5. (6.5, P1) Halloween template `kiroween-pumpkin-night` as a featured store template (skill `world-template`
   checklist), validated by pydantic, the store specification and zod; renders on `/play/demo?template=…`.
   - _Requirements: 5.1, 5.2_
-- [ ] 6. (6.6, P2) Reports (closed reasons, one per user and template, hide at threshold) and upload rate limit.
+- [x] 6. (6.6, P2) Reports (closed reasons, one per user and template, hide at threshold) and upload rate limit.
   - _Requirements: 6.1–6.3_
 - [ ] 7. (human) Real e-mail sign-in and the cross-user check on the public URL (`design.md` § Human checks).
   - _Requirements: 1.1, 1.7, 4.4_

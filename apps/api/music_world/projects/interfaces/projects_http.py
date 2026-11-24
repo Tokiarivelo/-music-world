@@ -16,7 +16,9 @@ from music_world.projects.domain.project import MAX_AUDIO_BYTES, MAX_LRC_BYTES
 from music_world.projects.interfaces.mappers import project_to_contract
 from music_world.schemas import Project, ProjectCreated
 from music_world.shared.auth import AccessibleProjectId, CurrentCaller
+from music_world.shared.errors import RateLimitedError
 from music_world.shared.http import ERROR_RESPONSES
+from music_world.shared.rate_limit import SlidingWindowLimiter
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
 
@@ -67,14 +69,18 @@ async def _read_lrc(upload: UploadFile | None) -> bytes | None:
     response_model=ProjectCreated,
     status_code=status.HTTP_202_ACCEPTED,
     summary="Upload a song (MP3, WAV or FLAC, ≤ 25 MB, ≤ 3 min) and an optional .lrc; starts its analysis",
-    responses={413: ERROR_RESPONSES[413], 415: ERROR_RESPONSES[415], 422: ERROR_RESPONSES[422]},
+    responses={code: ERROR_RESPONSES[code] for code in (403, 413, 415, 422, 429)},
 )
 async def create_project(
     use_case: Annotated[CreateProject, Depends(_create_project)],
     caller: CurrentCaller,
+    request: Request,
     audio: Annotated[UploadFile, File(description="MP3, WAV or FLAC; checked by content.")],
     lyrics: Annotated[UploadFile | None, File(description="Optional timed lyrics (.lrc, UTF-8).")] = None,
 ) -> ProjectCreated:
+    limiter: SlidingWindowLimiter = request.app.state.container.upload_limiter
+    if not limiter.allow(caller.rate_key):  # per user when signed in, per client IP otherwise
+        raise RateLimitedError("too many songs uploaded, try again later")
     lrc = await _read_lrc(lyrics)
     async with _spooled(audio) as path:
         created = await use_case.execute(path, lrc, owner_id=caller.user_id)

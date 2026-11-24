@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { StoreTemplateSchema, type StoreTemplate, type Template } from '@/templates/generated';
-import { apiJson } from '@/lib/api-client';
+import { apiFetch, apiJson } from '@/lib/api-client';
+import type { ReportReason } from '../consts/template-store.consts';
 
 export interface StorePage {
   items: StoreTemplate[];
@@ -42,6 +43,12 @@ export async function createStoreTemplate(template: Template, publish: boolean):
     body: JSON.stringify({ template, publish }),
   };
   return StoreTemplateSchema.parse(await apiJson('/api/templates', init));
+}
+
+/** `POST /api/templates/{id}/reports` (signed in): one report per user and template. */
+export async function reportStoreTemplate(id: string, reason: ReportReason): Promise<void> {
+  const init = { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ reason }) };
+  await apiFetch(`/api/templates/${encodeURIComponent(id)}/reports`, init);
 }
 
 /** `PUT /api/templates/{id}/thumbnail` (owner): PNG, JPEG or WebP, ≤ 128 KB. */

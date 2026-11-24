@@ -18,6 +18,7 @@ from music_world.projects.application.use_cases.get_project_audio import GetProj
 from music_world.projects.application.use_cases.run_job import RunJob
 from music_world.projects.domain.job_kinds import ANALYZE_PROJECT_JOB_KIND
 from music_world.shared.container import Container, build_accounts, build_director, build_templates
+from music_world.shared.rate_limit import SlidingWindowLimiter
 from music_world.shared.settings import Settings
 from music_world.system.application.use_cases.check_health import CheckHealth
 from tests.fakes import (
@@ -29,6 +30,7 @@ from tests.fakes import (
     InMemoryLoginTokenRepository,
     InMemoryObjectStore,
     InMemoryProjectRepository,
+    InMemoryReportRepository,
     InMemorySessionRepository,
     InMemoryStoreTemplateRepository,
     InMemoryUserRepository,
@@ -75,7 +77,8 @@ def make_container(
             InMemorySessionRepository(),
             sender or CapturingEmailSender(),
         ),
-        templates=build_templates(settings, InMemoryStoreTemplateRepository(), store),
+        templates=build_templates(settings, InMemoryStoreTemplateRepository(), store, InMemoryReportRepository()),
+        upload_limiter=SlidingWindowLimiter(settings.upload_rate_limit_per_hour, 3600.0),
         check_project_access=CheckProjectAccess(projects),
     )
 

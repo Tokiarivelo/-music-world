@@ -13,7 +13,7 @@ from music_world.projects.domain.job import Job
 from music_world.projects.domain.project import Project
 from music_world.schemas.analysis import AnalysisResult
 from music_world.system.application.ports import CheckStatus
-from music_world.templates.domain.model import PageCursor, StoreTemplate, TemplateStatus
+from music_world.templates.domain.model import PageCursor, StoreTemplate, TemplateReport, TemplateStatus
 
 
 class FakeClock:
@@ -232,3 +232,18 @@ class InMemoryStoreTemplateRepository:
     async def list_by_owner(self, owner_id: str, limit: int) -> list[StoreTemplate]:
         rows = [t for t in self.templates.values() if t.owner_id == owner_id]
         return sorted(rows, key=lambda t: t.created_at, reverse=True)[:limit]
+
+
+class InMemoryReportRepository:
+    def __init__(self) -> None:
+        self.reports: dict[tuple[str, str], TemplateReport] = {}
+
+    async def add(self, report: TemplateReport) -> bool:
+        key = (report.template_id, report.user_id)
+        if key in self.reports:
+            return False
+        self.reports[key] = report
+        return True
+
+    async def count(self, template_id: str) -> int:
+        return sum(1 for t, _ in self.reports if t == template_id)

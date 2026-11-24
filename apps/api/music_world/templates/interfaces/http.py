@@ -5,7 +5,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, File, Path, Query, Request, Response, UploadFile, status
 
-from music_world.schemas.store import CreateStoreTemplateRequest, StoreTemplatePage
+from music_world.schemas.store import CreateStoreTemplateRequest, ReportReceived, ReportRequest, StoreTemplatePage
 from music_world.schemas.store import StoreTemplate as StoreTemplateContract
 from music_world.shared.auth import CurrentCaller, SignedInCaller
 from music_world.shared.container import TemplateServices
@@ -176,3 +176,17 @@ async def get_thumbnail(template_id: TemplateId, services: Services, caller: Cur
 async def delete_template(template_id: TemplateId, services: Services, caller: SignedInCaller) -> Response:
     await services.delete.execute(template_id, caller.user_id or "")
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/{template_id}/reports",
+    response_model=ReportReceived,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Report a published template (one report per user; hidden from the gallery at the threshold)",
+    responses={**_WRITE, 409: ERROR_RESPONSES[409], 422: ERROR_RESPONSES[422]},
+)
+async def report_template(
+    template_id: TemplateId, body: ReportRequest, services: Services, caller: SignedInCaller
+) -> ReportReceived:
+    await services.report.execute(template_id, caller.user_id or "", body.reason)
+    return ReportReceived()

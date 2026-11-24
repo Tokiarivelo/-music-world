@@ -1,15 +1,26 @@
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
 from music_world.shared.container import build_templates
 from music_world.shared.settings import Settings
 from music_world.templates.application.use_cases.store import CreateTemplateCommand
-from music_world.templates.domain.errors import StoreTemplateNotFoundError, TemplateInvalidError
+from music_world.templates.domain.errors import (
+    StoreTemplateNotFoundError,
+    TemplateInvalidError,
+    TemplateNotReportableError,
+)
 from music_world.templates.domain.model import StoreTemplate, TemplateStatus
-from tests.fakes import FakeClock, InMemoryObjectStore, InMemoryStoreTemplateRepository, SequentialIds
+from tests.fakes import (
+    FakeClock,
+    InMemoryObjectStore,
+    InMemoryReportRepository,
+    InMemoryStoreTemplateRepository,
+    SequentialIds,
+)
 from tests.unit.templates.helpers import png, template
 
+T0 = datetime(2026, 11, 1, tzinfo=UTC)
 ADA, BOB = "00000000-0000-7000-8000-00000000000a", "00000000-0000-7000-8000-00000000000b"
 
 
@@ -24,7 +35,13 @@ class NoFeatured:
 def _services(featured: NoFeatured | None = None):  # type: ignore[no-untyped-def]
     repo, store, clock = InMemoryStoreTemplateRepository(), InMemoryObjectStore(), FakeClock()
     services = build_templates(
-        Settings(app_env="test"), repo, store, featured or NoFeatured(), new_id=SequentialIds(), clock=clock
+        Settings(app_env="test", template_report_hide_threshold=2),
+        repo,
+        store,
+        InMemoryReportRepository(),
+        featured or NoFeatured(),
+        new_id=SequentialIds(),
+        clock=clock,
     )
     return services, repo, store, clock
 
@@ -84,8 +101,8 @@ async def test_thumbnail_is_stored_under_a_random_key() -> None:
 
 async def test_gallery_pages_newest_first_with_featured_on_the_first_page_only() -> None:
     featured = StoreTemplate(
-        "f-1", "system", "kiroween", "Music World", TemplateStatus.PUBLISHED, {}, None, None, featured=True
-    )  # type: ignore[arg-type]
+        "f-1", "system", "kiroween", "Music World", TemplateStatus.PUBLISHED, {}, T0, T0, featured=True
+    )
     services, _, _, clock = _services(NoFeatured([featured]))
     ids = []
     for _ in range(5):
@@ -101,3 +118,21 @@ async def test_gallery_pages_newest_first_with_featured_on_the_first_page_only()
     assert (await services.get.execute("f-1", None)).featured
     mine = await services.list_mine.execute(ADA)
     assert len(mine.items) == 6 and mine.next_cursor is None
+
+
+async def test_reports_hide_a_template_at_the_threshold_once_per_user() -> None:
+    featured = StoreTemplate("f-1", "system", "k", "Music World", TemplateStatus.PUBLISHED, {}, T0, T0, featured=True)
+    services, repo, *_ = _services(NoFeatured([featured]))
+    t = await services.create.execute(_cmd(publish=True))
+    for call in (services.report.execute(t.id, ADA, "spam"), services.report.execute("f-1", BOB, "spam")):
+        with pytest.raises(TemplateNotReportableError):
+            await call
+    await services.report.execute(t.id, BOB, "spam")
+    await services.report.execute(t.id, BOB, "offensive")  # same user again: ignored
+    assert repo.templates[t.id].status is TemplateStatus.PUBLISHED and repo.templates[t.id].report_count == 1
+    await services.report.execute(t.id, "00000000-0000-7000-8000-00000000000c", "broken")
+    assert repo.templates[t.id].status is TemplateStatus.HIDDEN
+    assert (await services.list_published.execute(None, None)).items == [featured]
+    assert (await services.get.execute(t.id, ADA)).status is TemplateStatus.HIDDEN  # the owner still sees it
+    with pytest.raises(StoreTemplateNotFoundError):
+        await services.get.execute(t.id, BOB)

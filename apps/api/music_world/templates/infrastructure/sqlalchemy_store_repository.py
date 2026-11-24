@@ -3,12 +3,13 @@
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import JSON, DateTime, Integer, String, Uuid, and_, delete, or_, select
+from sqlalchemy import JSON, DateTime, Integer, String, Uuid, and_, delete, func, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column
 
 from music_world.shared.db import Base
-from music_world.templates.domain.model import PageCursor, StoreTemplate, TemplateStatus
+from music_world.templates.domain.model import PageCursor, StoreTemplate, TemplateReport, TemplateStatus
 
 
 def _utc(value: datetime | None) -> datetime | None:
@@ -102,3 +103,37 @@ class SqlAlchemyStoreTemplateRepository:
         )
         async with self._sessions() as s:
             return [_to_domain(row) for row in (await s.execute(query)).scalars()]
+
+
+class TemplateReportRow(Base):
+    __tablename__ = "template_reports"
+
+    template_id: Mapped[str] = mapped_column(Uuid(as_uuid=False), primary_key=True)
+    user_id: Mapped[str] = mapped_column(Uuid(as_uuid=False), primary_key=True)
+    reason: Mapped[str] = mapped_column(String(16))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class SqlAlchemyReportRepository:
+    def __init__(self, sessions: async_sessionmaker[AsyncSession]) -> None:
+        self._sessions = sessions
+
+    async def add(self, report: TemplateReport) -> bool:
+        try:
+            async with self._sessions.begin() as s:
+                s.add(
+                    TemplateReportRow(
+                        template_id=report.template_id,
+                        user_id=report.user_id,
+                        reason=report.reason,
+                        created_at=report.created_at,
+                    )
+                )
+        except IntegrityError:  # primary key (template, user): one report per user
+            return False
+        return True
+
+    async def count(self, template_id: str) -> int:
+        query = select(func.count()).select_from(TemplateReportRow).where(TemplateReportRow.template_id == template_id)
+        async with self._sessions() as s:
+            return int((await s.execute(query)).scalar_one())

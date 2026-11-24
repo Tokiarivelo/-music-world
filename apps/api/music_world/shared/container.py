@@ -67,7 +67,12 @@ from music_world.shared.rate_limit import SlidingWindowLimiter
 from music_world.shared.settings import Settings
 from music_world.system.application.use_cases.check_health import CheckHealth
 from music_world.system.infrastructure.probes import PostgresProbe, RedisProbe, S3Probe
-from music_world.templates.application.ports import FeaturedCatalog, StoreTemplateRepository, ThumbnailStore
+from music_world.templates.application.ports import (
+    FeaturedCatalog,
+    ReportRepository,
+    StoreTemplateRepository,
+    ThumbnailStore,
+)
 from music_world.templates.application.use_cases.store import (
     CreateStoreTemplate,
     DeleteStoreTemplate,
@@ -76,10 +81,14 @@ from music_world.templates.application.use_cases.store import (
     ListMyTemplates,
     ListPublishedTemplates,
     PublishStoreTemplate,
+    ReportTemplate,
     SetThumbnail,
 )
 from music_world.templates.infrastructure.featured_catalog import FileFeaturedCatalog
-from music_world.templates.infrastructure.sqlalchemy_store_repository import SqlAlchemyStoreTemplateRepository
+from music_world.templates.infrastructure.sqlalchemy_store_repository import (
+    SqlAlchemyReportRepository,
+    SqlAlchemyStoreTemplateRepository,
+)
 
 log = structlog.get_logger(__name__)
 
@@ -240,6 +249,7 @@ class TemplateServices:
     get_thumbnail: GetThumbnail
     list_published: ListPublishedTemplates
     list_mine: ListMyTemplates
+    report: ReportTemplate
     publish_limiter: SlidingWindowLimiter
 
 
@@ -251,6 +261,7 @@ def build_templates(
     settings: Settings,
     repo: StoreTemplateRepository,
     store: ThumbnailStore,
+    reports: ReportRepository,
     featured: FeaturedCatalog | None = None,
     *,
     new_id: Callable[[], str] = uuid7,
@@ -267,6 +278,7 @@ def build_templates(
         get_thumbnail=GetThumbnail(get, store),
         list_published=ListPublishedTemplates(repo, catalog),
         list_mine=ListMyTemplates(repo),
+        report=ReportTemplate(repo, reports, get, clock, hide_threshold=settings.template_report_hide_threshold),
         publish_limiter=SlidingWindowLimiter(settings.template_publish_rate_limit_per_hour, 3600.0),
     )
 
@@ -287,6 +299,7 @@ class Container:
     accounts: AccountServices
     templates: TemplateServices
     check_project_access: CheckProjectAccess
+    upload_limiter: SlidingWindowLimiter = field(default_factory=lambda: SlidingWindowLimiter(20, 3600.0))
     engine: AsyncEngine | None = None
     redis: ArqRedis | None = None
     handlers: dict[str, JobHandler] = field(default_factory=dict)
@@ -365,7 +378,10 @@ def build_container(settings: Settings, *, with_analysis: bool = False) -> Conta
             SqlAlchemySessionRepository(sessions),
             email_sender(settings),
         ),
-        templates=build_templates(settings, SqlAlchemyStoreTemplateRepository(sessions), store),
+        templates=build_templates(
+            settings, SqlAlchemyStoreTemplateRepository(sessions), store, SqlAlchemyReportRepository(sessions)
+        ),
+        upload_limiter=SlidingWindowLimiter(settings.upload_rate_limit_per_hour, 3600.0),
         check_project_access=CheckProjectAccess(projects),
         engine=engine,
         redis=redis,

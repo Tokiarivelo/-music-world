@@ -21,3 +21,9 @@ class ThumbnailTypeUnsupportedError(MusicWorldError):
 
 class ThumbnailInvalidError(MusicWorldError):
     code = "THUMBNAIL_INVALID"
+
+
+class TemplateNotReportableError(MusicWorldError):
+    """Launch templates and the caller's own templates cannot be reported."""
+
+    code = "TEMPLATE_NOT_REPORTABLE"

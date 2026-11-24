@@ -10,17 +10,19 @@ from music_world.templates.application.ports import (
     FeaturedCatalog,
     IdGenerator,
     KeyGenerator,
+    ReportRepository,
     StoreTemplateRepository,
     ThumbnailStore,
 )
 from music_world.templates.application.validation import validated_document
-from music_world.templates.domain.errors import StoreTemplateNotFoundError
+from music_world.templates.domain.errors import StoreTemplateNotFoundError, TemplateNotReportableError
 from music_world.templates.domain.model import (
     DEFAULT_PAGE_SIZE,
     MAX_PAGE_SIZE,
     PageCursor,
     StoreTemplate,
     TemplatePage,
+    TemplateReport,
     TemplateStatus,
     store_template_id,
 )
@@ -168,3 +170,31 @@ class ListMyTemplates:
 
     async def execute(self, caller_id: str) -> TemplatePage:
         return TemplatePage(await self._repo.list_by_owner(caller_id, MAX_PAGE_SIZE), None)
+
+
+class ReportTemplate:
+    """One report per user and template; at `hide_threshold` distinct reports the template leaves the gallery
+    (status `hidden`, still visible to its owner) until reviewed (requirement 6)."""
+
+    def __init__(
+        self,
+        repo: StoreTemplateRepository,
+        reports: ReportRepository,
+        get_template: GetStoreTemplate,
+        clock: Clock,
+        *,
+        hide_threshold: int,
+    ) -> None:
+        self._repo, self._reports, self._get, self._clock = repo, reports, get_template, clock
+        self._threshold = hide_threshold
+
+    async def execute(self, template_id: str, caller_id: str, reason: str) -> None:
+        template = await self._get.execute(template_id, caller_id)
+        if template.featured or template.owner_id == caller_id:
+            raise TemplateNotReportableError("this template cannot be reported")
+        if not await self._reports.add(TemplateReport(template.id, caller_id, reason, self._clock())):
+            return  # already reported by this user: idempotent
+        count = await self._reports.count(template.id)
+        status = TemplateStatus.HIDDEN if count >= self._threshold else template.status
+        await self._repo.save(replace(template, report_count=count, status=status))
+        log.info("templates.reported", template_id=template.id, reason=reason, reports=count, status=status.value)

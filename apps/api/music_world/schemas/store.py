@@ -40,6 +40,16 @@ class StoreTemplatePage(ContractModel):
     next_cursor: str | None = Field(description="Pass as `?cursor=` for the next page; null on the last page.")
 
 
+class ReportRequest(ContractModel):
+    model_config = ConfigDict(json_schema_extra={"examples": [{"reason": "offensive"}]})
+
+    reason: Literal["offensive", "spam", "broken", "copyright"]
+
+
+class ReportReceived(ContractModel):
+    status: Literal["received"] = "received"
+
+
 class CreateStoreTemplateRequest(ContractModel):
     model_config = ConfigDict(
         json_schema_extra={"examples": [{"template": {"schema": "music-world.template.v1", "…": "…"}, "publish": True}]}

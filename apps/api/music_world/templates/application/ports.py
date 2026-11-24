@@ -4,7 +4,7 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Protocol
 
-from music_world.templates.domain.model import PageCursor, StoreTemplate
+from music_world.templates.domain.model import PageCursor, StoreTemplate, TemplateReport
 
 Clock = Callable[[], datetime]
 IdGenerator = Callable[[], str]
@@ -33,3 +33,11 @@ class FeaturedCatalog(Protocol):
 class ThumbnailStore(Protocol):
     async def put_bytes(self, key: str, data: bytes, content_type: str) -> None: ...
     async def get_bytes(self, key: str) -> bytes | None: ...
+
+
+class ReportRepository(Protocol):
+    async def add(self, report: TemplateReport) -> bool:
+        """False when this user already reported this template (one report per user and template)."""
+        ...
+
+    async def count(self, template_id: str) -> int: ...

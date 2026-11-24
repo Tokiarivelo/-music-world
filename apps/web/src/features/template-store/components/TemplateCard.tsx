@@ -1,14 +1,17 @@
 import Link from 'next/link';
 import type { StoreTemplate } from '@/templates/generated';
 import { PROVIDER_NAMES, STORE_ROUTES, STORE_TEXT } from '../consts/template-store.consts';
+import { ReportTemplateButton } from './ReportTemplateButton';
 import { TemplatePreview } from './TemplatePreview';
 
 interface TemplateCardProps {
   item: StoreTemplate;
+  /** Signed-in viewers can report community templates (not the launch templates). */
+  canReport?: boolean;
 }
 
 /** Name, author, license, AI label, thumbnail (or palette preview) and "Use this template". Text only. */
-export function TemplateCard({ item }: TemplateCardProps) {
+export function TemplateCard({ item, canReport = false }: TemplateCardProps) {
   const { template } = item;
   const generatedBy = template.meta?.generatedBy ?? null;
   return (
@@ -45,6 +48,7 @@ export function TemplateCard({ item }: TemplateCardProps) {
       >
         {STORE_TEXT.use}
       </Link>
+      {canReport && !item.featured && <ReportTemplateButton storeId={item.id} />}
     </article>
   );
 }

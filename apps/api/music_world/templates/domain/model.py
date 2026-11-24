@@ -15,6 +15,17 @@ MAX_PAGE_SIZE = 50
 DEFAULT_PAGE_SIZE = 24
 
 
+REPORT_REASONS = ("offensive", "spam", "broken", "copyright")
+
+
+@dataclass(frozen=True)
+class TemplateReport:
+    template_id: str
+    user_id: str
+    reason: str
+    created_at: datetime
+
+
 class TemplateStatus(StrEnum):
     DRAFT = "draft"
     PUBLISHED = "published"

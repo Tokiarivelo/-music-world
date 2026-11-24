@@ -17,6 +17,16 @@ export const STORE_TEXT = {
   previewAlt: (name: string): string => `Preview of ${name}`,
 } as const;
 
+export const REPORT_REASONS = ['offensive', 'spam', 'broken', 'copyright'] as const;
+export type ReportReason = (typeof REPORT_REASONS)[number];
+export const REPORT_TEXT = {
+  open: 'Report',
+  reason: 'Reason',
+  send: 'Send report',
+  sent: 'Thanks, the report was sent.',
+  reasons: { offensive: 'Offensive', spam: 'Spam', broken: 'Does not render', copyright: 'Copyright' },
+} as const satisfies { reasons: Record<ReportReason, string> } & Record<string, unknown>;
+
 export const STORE_ROUTES = {
   gallery: '/templates',
   signIn: '/sign-in',
@@ -38,6 +48,8 @@ export const STORE_ERRORS: Record<string, string> = {
   CSRF_FAILED: 'Your session expired. Sign in again.',
   TEMPLATE_INVALID: 'This template cannot be published (it does not pass the store checks).',
   RATE_LIMITED: 'Too many templates published. Try again later.',
+  TEMPLATE_NOT_REPORTABLE: 'This template cannot be reported.',
+  TEMPLATE_NOT_FOUND: 'This template is no longer in the store.',
   NETWORK: 'The server could not be reached. Try again.',
   UNKNOWN: 'Something went wrong. Try again.',
 };

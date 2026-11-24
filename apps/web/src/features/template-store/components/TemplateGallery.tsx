@@ -8,10 +8,12 @@ import { TemplateCard } from './TemplateCard';
 interface TemplateGalleryProps {
   /** Injected in tests; defaults to `GET /api/templates`. */
   list?: (cursor: string | null, limit: number) => Promise<StorePage>;
+  /** Signed-in viewers can report templates. */
+  signedIn?: boolean;
 }
 
 /** `/templates`: the public gallery of published templates. */
-export function TemplateGallery({ list = listStoreTemplates }: TemplateGalleryProps) {
+export function TemplateGallery({ list = listStoreTemplates, signedIn = false }: TemplateGalleryProps) {
   const { status, errorKey, items, hasMore, loadMore } = useGallery(list);
   return (
     <section className="flex w-full flex-col gap-4">
@@ -21,7 +23,7 @@ export function TemplateGallery({ list = listStoreTemplates }: TemplateGalleryPr
       </header>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => (
-          <TemplateCard key={item.id} item={item} />
+          <TemplateCard key={item.id} item={item} canReport={signedIn} />
         ))}
       </div>
       {status === 'loading' && <p role="status">{STORE_TEXT.loading}</p>}
