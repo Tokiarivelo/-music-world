@@ -153,3 +153,13 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
   generated in the session. Second finding: the VR panel has 4 template slots, so store templates listed before the
   generated ones would have pushed AI worlds out of VR — order changed and the IWER check extended.
 - No Kiro hooks fired (work done outside the Kiro IDE).
+
+### 2026-11-24 — Roadmap Phase 8 prep (Claude Code): hardening and deploy readiness
+
+- Skills used: `start`, `review-change` (security review over the whole app, `reviewer` agent checklist),
+  `deploy-ovh` (made executable end to end: `infra/deploy.sh`, `make check-env`, runbook), `handoff`.
+- Review result in `docs/security-review.md`: no high finding; two medium findings fixed with tests (request bodies
+  spooled to disk before the upload size check → body-limit middleware + Caddy `request_body`; missing CSP and
+  clickjacking headers → Caddy CSP checked in Chromium). Production settings guard added.
+- Uptime pieces: log rotation, backup/disk/health scripts and cron file, restore runbook, Demucs weights in the image.
+- Steering updated: `infrastructure.md` (limits, headers, uptime), `api-specs.md` (body limit, production guard).
