@@ -56,3 +56,18 @@ empty black margin on any screen shape; what is beyond the plate must look like 
 
 Fog and sky must keep the staff and notes readable (contrast test with the staff color). Vulkan flag needed for
 headless rendering (`MW_ANGLE=vulkan`).
+
+## Baseline (task 1, before any change)
+
+`node apps/web/scripts/blank-ratio.mjs --baseline` against `next dev`, SwiftShader, demo song, share of canvas pixels
+that differ from `palette.background` (`#07051a`) by more than 6 per channel:
+
+| Ratio | Viewport | Filled | Cause |
+|---|---|---|---|
+| 16:9 | 1280×720 | 70.7 % | plate corner and sky band stay flat |
+| 21:9 | 1260×540 | 57.9 % | plate does not reach the top and left |
+| 4:3 | 1024×768 | 76.4 % | same |
+| 1:1 | 800×800 | 78.8 % | same |
+| 9:16 | 450×800 | 81.0 % | plate wider than the view (cropped), flat band on top |
+
+The canvas already covers the viewport in these runs (`h-dvh`); the black areas are the scene behind the plate.
