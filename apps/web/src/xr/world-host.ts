@@ -4,7 +4,7 @@
  *
  * IWSDK 1.1.0 API checked against the installed typings: `World.create`, `launchXR`, `exitXR`, `destroy`
  * (stops systems + render loop and runs system cleanups, which dispose the views; does not dispose the renderer, so
- * we do it here).
+ * we do it here), `visibilityState` (signal, `'non-immersive'` outside XR), `xr.features.handTracking`.
  */
 import type * as IWSDK from '@iwsdk/core';
 import { buildSpawnPlan } from '@/engine/spawn-plan';
@@ -18,6 +18,9 @@ import {
   DIORAMA_POSITION,
 } from './constants';
 import type { MusicScene, WorldClock } from './systems/world-systems';
+import type { WorldControls } from './systems/xr-systems';
+
+export type { TemplateChoice, WorldControls } from './systems/xr-systems';
 
 /** What the world shows: built once into a spawn plan, then rendered from `clock.now()` every frame. */
 export interface WorldScene {
@@ -27,11 +30,23 @@ export interface WorldScene {
   clock: WorldClock;
 }
 
+/** What the host needs from the installed systems. */
+export interface InstalledScene extends Pick<MusicScene, 'setScene'> {
+  setControls(controls: WorldControls | null): void;
+}
+
 export interface WorldHandle {
   /** Replaces the song, template, seed or clock (typed command API, frontend.md). */
   load(scene: WorldScene): void;
   enterVR(): void;
   exitVR(): void;
+  /**
+   * Player commands used in VR (controllers, spatial panel, pinch; 07-xr-mode requirements 3–5): the same functions
+   * as the 2D player bar. Cheap: does not rebuild the world.
+   */
+  setControls(controls: WorldControls | null): void;
+  /** Calls `listener(immersive)` now and whenever an XR session starts or ends; returns an unsubscribe function. */
+  onSessionChange(listener: (immersive: boolean) => void): () => void;
   isVRSupported(): Promise<boolean>;
   dispose(): void;
 }
@@ -40,13 +55,14 @@ type WorldLike = Pick<IWSDK.World, 'launchXR' | 'exitXR' | 'destroy'> & {
   camera: Pick<IWSDK.World['camera'], 'position' | 'lookAt' | 'fov' | 'updateProjectionMatrix'>;
   renderer: Pick<IWSDK.World['renderer'], 'dispose' | 'forceContextLoss' | 'domElement'>;
   session: XRSession | undefined;
+  visibilityState: { readonly value: string; subscribe(fn: (value: string) => void): () => void };
 };
 
 export interface WorldHostDeps {
   installEmulator(): Promise<void>;
   createWorld(container: HTMLElement): Promise<WorldLike>;
   /** Registers the music systems on the world (`installMusicSystems`). */
-  installScene(world: WorldLike): Promise<Pick<MusicScene, 'setScene'>>;
+  installScene(world: WorldLike): Promise<InstalledScene>;
   xr(): Pick<XRSystem, 'isSessionSupported'> | undefined;
 }
 
@@ -63,23 +79,50 @@ const defaultDeps: WorldHostDeps = {
     const nativeVR = await navigator.xr?.isSessionSupported('immersive-vr').catch(() => false);
     if (nativeVR) return;
     const { XRDevice, metaQuest3 } = await import('iwer');
-    new XRDevice(metaQuest3).installRuntime({ forceInstall: true }); // before World.create; once per page
+    const device = new XRDevice(metaQuest3);
+    device.installRuntime({ forceInstall: true }); // before World.create; once per page
+    // Development only: lets the IWER check script (07-xr-mode) drive the emulated controllers and hands.
+    devHooks().__mwXRDevice = device;
     emulatorInstalled = true;
   },
   async createWorld(container) {
     const { World, SessionMode, ReferenceSpaceType } = await import('@iwsdk/core');
     return World.create(container, {
-      xr: { sessionMode: SessionMode.ImmersiveVR, referenceSpace: ReferenceSpaceType.LocalFloor, offer: 'none' },
+      xr: {
+        sessionMode: SessionMode.ImmersiveVR,
+        referenceSpace: ReferenceSpaceType.LocalFloor,
+        offer: 'none',
+        // Optional: controllers keep working when the runtime has no hand tracking (07-xr-mode requirement 1.2).
+        features: { handTracking: true },
+      },
     });
   },
   async installScene(world) {
     const { installMusicSystems } = await import('./systems/world-systems');
+    const { installXRSystems } = await import('./systems/xr-systems');
+    const { installXRPanel } = await import('./systems/xr-panel-system');
     // `?perf=1` logs draw calls and triangles once per second (04-default-template requirement 7.3).
     const perfLog = typeof location !== 'undefined' && new URLSearchParams(location.search).get('perf') === '1';
-    return installMusicSystems(world as IWSDK.World, { perfLog });
+    const scene = installMusicSystems(world as IWSDK.World, { perfLog });
+    const rig = installXRSystems(world as IWSDK.World, scene.anchorEntity, scene.anchor);
+    installXRPanel(world as IWSDK.World, scene.anchorEntity, rig);
+    return {
+      setScene: (plan, clock) => scene.setScene(plan, clock),
+      setControls: (controls) => {
+        rig.controls = controls;
+      },
+    };
   },
   xr: () => (typeof navigator === 'undefined' ? undefined : navigator.xr),
 };
+
+/** Development-only globals read by the IWER check script (`scripts/xr-check.mjs`). */
+function devHooks(): { __mwWorld?: unknown; __mwXRDevice?: unknown } {
+  return globalThis as { __mwWorld?: unknown; __mwXRDevice?: unknown };
+}
+
+/** `VisibilityState.NonImmersive` of IWSDK (kept as a literal so this module does not load IWSDK eagerly). */
+const NON_IMMERSIVE = 'non-immersive';
 
 type Point = { x: number; y: number; z: number };
 
@@ -113,6 +156,7 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   await deps.installEmulator();
   const world = await deps.createWorld(container);
   const scene = await deps.installScene(world);
+  if (process.env.NODE_ENV === 'development') devHooks().__mwWorld = world; // read by scripts/xr-check.mjs
   // Desktop isometric view of the diorama; in XR the headset pose drives the camera (restored on exit by IWSDK).
   const { position, target } = desktopCameraPose();
   world.camera.fov = DESKTOP_CAMERA_FOV_DEG;
@@ -126,8 +170,15 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
       if (disposed) return;
       scene.setScene(buildSpawnPlan(analysis, template, seed), clock);
     },
+    setControls(controls) {
+      if (!disposed) scene.setControls(controls);
+    },
     enterVR: () => world.launchXR(),
     exitVR: () => world.exitXR(),
+    onSessionChange(listener) {
+      // `subscribe` calls the listener at once with the current value, then on every change.
+      return world.visibilityState.subscribe((state) => listener(state !== NON_IMMERSIVE));
+    },
     async isVRSupported() {
       const xr = deps.xr();
       return xr ? xr.isSessionSupported('immersive-vr').catch(() => false) : false;
@@ -140,6 +191,7 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
       world.renderer.dispose();
       world.renderer.forceContextLoss();
       world.renderer.domElement.remove();
+      if (devHooks().__mwWorld === world) delete devHooks().__mwWorld;
     },
   };
 }

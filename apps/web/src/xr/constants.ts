@@ -105,3 +105,24 @@ export const PARTICLE_HEIGHT = 1.2;
 export const PARTICLE_SIZE = 0.07;
 /** Particle drift speed (radians per song second) — derived from t, never from frame deltas. */
 export const PARTICLE_SPIN = 0.002;
+
+/** VR tabletop placement (07-xr-mode requirement 2): head → plate centre distance on the floor, plate top height. */
+export const VR_DIORAMA_DISTANCE_M = 1.3;
+export const VR_TABLE_HEIGHT_M = DIORAMA_POSITION.y;
+/** A head pose lower than this (m above the floor) is not tracked yet: wait before placing the plate. */
+export const VR_MIN_HEAD_HEIGHT_M = 0.3;
+/** Thumbstick seek step in VR (07-xr-mode requirement 3.2), same as the keyboard arrows. */
+export const VR_SEEK_STEP_SEC = 5;
+/** Spatial panel (07-xr-mode requirement 4): UIKitML file, size (m), pose relative to the diorama anchor. */
+export const VR_PANEL_URL = '/ui/xr-panel.uikitml';
+export const VR_PANEL_SIZE_M = { width: 0.56, height: 0.3 } as const;
+/** Just above the plate's front edge (the plate spans ±DIORAMA_WIDTH_M / 2), toward the user. */
+export const VR_PANEL_OFFSET = { x: 0, y: 0.16, z: 0.86 } as const;
+/** Tilt back so the panel faces a standing user looking down at it. */
+export const VR_PANEL_TILT_DEG = 30;
+export const VR_PANEL_SEEK_STEP_SEC = 10;
+/** Template buttons in the panel markup (`mw-tpl-0` …). */
+export const VR_PANEL_TEMPLATE_SLOTS = 4;
+/** Hand pinch (07-xr-mode requirement 5, xr-iwsdk.md): press / release thresholds on IWSDK's 0..1 pinch strength. */
+export const PINCH_PRESS = 0.75;
+export const PINCH_RELEASE = 0.6;

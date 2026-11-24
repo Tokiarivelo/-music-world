@@ -45,12 +45,19 @@ function read<T>(entity: Entity, key: 'clock' | 'plan' | 'state' | 'root'): T | 
 }
 
 export class ClockSystem extends createSystem({ clocks: { required: [ClockComponent] } }) {
+  private lastPlan: SpawnPlan | null = null;
+
   update(): void {
     for (const entity of this.queries.clocks.entities) {
       const clock = read<WorldClock>(entity, 'clock');
       const plan = read<SpawnPlan>(entity, 'plan');
       if (!clock || !plan) continue;
-      entity.setValue(ClockComponent, 'state', worldStateAt(plan, clock.now()));
+      const t = clock.now();
+      const state = read<WorldState>(entity, 'state');
+      // Paused: same plan and t give the same state (worldStateAt is pure), so keep it and allocate nothing.
+      if (state && state.t === t && this.lastPlan === plan) continue;
+      this.lastPlan = plan;
+      entity.setValue(ClockComponent, 'state', worldStateAt(plan, t));
     }
   }
 }
@@ -132,8 +139,11 @@ export class PerfSystem extends createSystem({}) {
 }
 
 export interface MusicScene {
-  /** The diorama group (plate centre at its origin), placed at table height in front of the user. */
+  /** The diorama group (plate centre at its origin, scaled to `DIORAMA_WIDTH_M`), child of `anchor`. */
   readonly root: Group;
+  /** Unscaled transform of the diorama (position + yaw): moved by the VR tabletop placement (07-xr-mode). */
+  readonly anchor: Group;
+  readonly anchorEntity: Entity;
   setScene(plan: SpawnPlan, clock: WorldClock): void;
 }
 
@@ -147,18 +157,23 @@ export function installMusicSystems(world: World, options: { perfLog?: boolean }
   world.registerSystem(FxSystem);
   if (options.perfLog) world.registerSystem(PerfSystem);
 
+  const anchor = new Group();
+  anchor.name = 'music-world-anchor';
+  anchor.position.set(DIORAMA_POSITION.x, DIORAMA_POSITION.y, DIORAMA_POSITION.z);
   const root = new Group();
   root.name = 'music-world';
-  root.position.set(DIORAMA_POSITION.x, DIORAMA_POSITION.y, DIORAMA_POSITION.z);
   root.add(new AmbientLight(0xffffff, 0.6));
   const sun = new DirectionalLight(0xc9b8ff, 1.2);
   sun.position.set(-4, 10, 6);
   root.add(sun);
-  const entity = world.createTransformEntity(root);
+  anchor.add(root);
+  const entity = world.createTransformEntity(anchor);
   entity.addComponent(ClockComponent, { root });
 
   return {
     root,
+    anchor,
+    anchorEntity: entity,
     setScene(plan, clock) {
       root.scale.setScalar(DIORAMA_WIDTH_M / plan.template.terrain.size);
       world.scene.background = new Color(plan.template.palette.background);

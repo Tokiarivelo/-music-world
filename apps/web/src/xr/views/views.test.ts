@@ -220,3 +220,29 @@ describe('fx (04-default-template requirement 6)', () => {
     expect(new Vector3(0.5, 1, 0).applyMatrix4(m).y).toBeLessThanOrEqual(ARC_HEIGHT_MAX + 1e-9);
   });
 });
+
+describe('paused steady state (07-xr-mode requirement 6.2)', () => {
+  it('re-uploads no instance buffer while t does not change, and resumes on the next t', () => {
+    const staff = new StaffView(plan);
+    const fx = new FxView(plan);
+    const structures = new StructureView(plan);
+    const buffers = () => {
+      const versions: number[] = [];
+      for (const view of [staff, fx, structures]) {
+        view.object.traverse((o) => {
+          const mesh = o as InstancedMesh;
+          if (mesh.isInstancedMesh) versions.push(mesh.instanceMatrix.version);
+        });
+      }
+      return versions;
+    };
+    const paused = worldStateAt(plan, 20);
+    for (const view of [staff, fx, structures]) view.update(paused);
+    const before = buffers();
+    for (const view of [staff, fx, structures]) view.update(worldStateAt(plan, 20));
+    expect(buffers()).toEqual(before);
+    for (const view of [staff, fx, structures]) view.update(worldStateAt(plan, 20.5));
+    expect(buffers().some((v, i) => v !== before[i])).toBe(true);
+    for (const view of [staff, fx, structures]) view.dispose();
+  });
+});

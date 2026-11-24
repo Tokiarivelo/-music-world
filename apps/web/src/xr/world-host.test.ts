@@ -5,9 +5,27 @@ import { DEFAULT_TEMPLATE } from '@/templates/default';
 import { DESKTOP_CAMERA_AZIMUTH_DEG, DESKTOP_CAMERA_DISTANCE_M, DESKTOP_CAMERA_ELEVATION_DEG } from './constants';
 import { createMusicWorld, desktopCameraPose, type WorldHostDeps } from './world-host';
 
+/** Minimal preact-like signal: `subscribe` calls back at once, then on each change. */
+function fakeSignal(initial: string) {
+  const listeners = new Set<(value: string) => void>();
+  const signal = {
+    value: initial,
+    set(value: string) {
+      signal.value = value;
+      listeners.forEach((fn) => fn(value));
+    },
+    subscribe(fn: (value: string) => void) {
+      listeners.add(fn);
+      fn(signal.value);
+      return () => listeners.delete(fn);
+    },
+  };
+  return signal;
+}
+
 function fakeDeps(withSession = false) {
   const worlds: Array<ReturnType<typeof makeWorld>> = [];
-  const scene = { setScene: vi.fn() };
+  const scene = { setScene: vi.fn(), setControls: vi.fn() };
   function makeWorld(container: HTMLElement) {
     const canvas = document.createElement('canvas');
     container.appendChild(canvas);
@@ -17,6 +35,7 @@ function fakeDeps(withSession = false) {
       destroy: vi.fn(),
       camera: { position: { set: vi.fn() }, lookAt: vi.fn(), fov: 50, updateProjectionMatrix: vi.fn() },
       session: withSession ? ({} as XRSession) : undefined,
+      visibilityState: fakeSignal(withSession ? 'visible' : 'non-immersive'),
       renderer: { dispose: vi.fn(), forceContextLoss: vi.fn(), domElement: canvas },
     };
   }
@@ -81,6 +100,46 @@ describe('createMusicWorld', () => {
   });
 });
 
+describe('WorldHandle.onSessionChange (07-xr-mode requirement 1.3)', () => {
+  it('reports the current state, then each session start and end, until unsubscribed', async () => {
+    const { deps, worlds } = fakeDeps();
+    const handle = await createMusicWorld(document.createElement('div'), deps);
+    const seen: boolean[] = [];
+    const off = handle.onSessionChange((immersive) => seen.push(immersive));
+    worlds[0]!.visibilityState.set('visible');
+    worlds[0]!.visibilityState.set('visible-blurred');
+    worlds[0]!.visibilityState.set('non-immersive');
+    off();
+    worlds[0]!.visibilityState.set('visible');
+    expect(seen).toEqual([false, true, true, false]);
+    handle.dispose();
+  });
+});
+
+describe('WorldHandle.setControls (07-xr-mode requirement 3.4)', () => {
+  it('hands the player commands to the XR systems without rebuilding the world', async () => {
+    const { deps, scene } = fakeDeps();
+    const handle = await createMusicWorld(document.createElement('div'), deps);
+    const controls = {
+      toggle: vi.fn(),
+      seekBy: vi.fn(),
+      seek: vi.fn(),
+      isPlaying: () => false,
+      duration: () => 10,
+      title: 'Song',
+      templates: [{ id: 'a', name: 'A' }],
+      templateId: 'a',
+      selectTemplate: vi.fn(),
+    };
+    handle.setControls(controls);
+    expect(scene.setControls).toHaveBeenLastCalledWith(controls);
+    expect(scene.setScene).not.toHaveBeenCalled();
+    handle.dispose();
+    handle.setControls(null);
+    expect(scene.setControls).toHaveBeenCalledOnce();
+  });
+});
+
 describe('WorldHandle.load', () => {
   it('builds the spawn plan once and hands it to the scene with the audio clock', async () => {
     const { deps, scene } = fakeDeps();
@@ -91,9 +150,10 @@ describe('WorldHandle.load', () => {
     const [plan, passedClock] = scene.setScene.mock.calls[0]!;
     expect(plan).toEqual(buildSpawnPlan(demo, DEFAULT_TEMPLATE, 1));
     expect(passedClock).toBe(clock);
+    handle.load({ analysis: demo, template: DEFAULT_TEMPLATE, seed: 1, clock });
     handle.dispose();
     handle.load({ analysis: demo, template: DEFAULT_TEMPLATE, seed: 1, clock });
-    expect(scene.setScene).toHaveBeenCalledOnce();
+    expect(scene.setScene).toHaveBeenCalledTimes(2);
   });
 });
 

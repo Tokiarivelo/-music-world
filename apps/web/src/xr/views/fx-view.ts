@@ -131,6 +131,7 @@ export class FxView implements WorldView {
   private readonly to = new Vector3();
   private readonly m = new Matrix4();
   private readonly bloom: number;
+  private lastT = Number.NaN;
 
   constructor(plan: SpawnPlan) {
     const { palette, fx, terrain } = plan.template;
@@ -220,6 +221,8 @@ export class FxView implements WorldView {
   }
 
   update(state: WorldState): void {
+    if (state.t === this.lastT) return; // paused: nothing changed (everything below is a function of t)
+    this.lastT = state.t;
     const glow = this.glow(state.pulses.energy);
     let n = 0;
     let intensity = 0;

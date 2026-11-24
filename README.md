@@ -55,6 +55,16 @@ pnpm -C apps/web dev                  # http://localhost:3000/play/demo (IWER em
                                       # /upload needs the API + worker (proxied from DEV_API_URL, default :8000)
 ```
 
+VR mode: press **Enter VR** (IWER in dev, Quest Browser over HTTPS). The world becomes a tabletop diorama in front of
+you; A/X = play/pause, thumbstick = seek ±5 s, grip = recenter, left-hand pinch = play/pause, and a floating panel
+(trigger ray, hand pinch or poke) has play, seek ±10 s, restart, template picker, recenter and Exit VR. Automated
+emulator check (needs `next dev` on port 3125 and Playwright's Chromium in `~/.cache/ms-playwright`):
+
+```bash
+pnpm -C apps/web exec next dev -p 3125 &
+MW_ANGLE=vulkan node apps/web/scripts/xr-check.mjs   # GPU; without MW_ANGLE it uses SwiftShader and skips panel clicks
+```
+
 Full stack in Docker (Caddy, web, api, worker, postgres, redis):
 
 ```bash
