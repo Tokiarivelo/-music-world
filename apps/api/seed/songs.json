@@ -1,0 +1,41 @@
+{
+  "_comment": "Songs seeded by scripts/seed_songs.py. The audio files are not in the repository: pass the folder with --audio-dir. is_public=false songs are analysed for local tuning only and are refused by the seed on any non-local object store.",
+  "songs": [
+    {
+      "slug": "luke-bergs-aurora",
+      "file": "Luke Bergs - Aurora (freetouse.com).mp3",
+      "title": "Aurora",
+      "artist": "Luke Bergs",
+      "license": "Free To Use (credit required)",
+      "source_url": "https://freetouse.com",
+      "is_public": true
+    },
+    {
+      "slug": "zambolino-machine",
+      "file": "Zambolino - Machine (freetouse.com).mp3",
+      "title": "Machine",
+      "artist": "Zambolino",
+      "license": "Free To Use (credit required)",
+      "source_url": "https://freetouse.com",
+      "is_public": true
+    },
+    {
+      "slug": "nebulite-feel-alive",
+      "file": "Nebulite - Feel Alive (freetouse.com).mp3",
+      "title": "Feel Alive",
+      "artist": "Nebulite",
+      "license": "Free To Use (credit required)",
+      "source_url": "https://freetouse.com",
+      "is_public": true
+    },
+    {
+      "slug": "eric-clapton-wonderful-tonight",
+      "file": "51mpc.com_Eric_Clapton_-_Wonderful_Tonight_(mp3.pm).mp3",
+      "title": "Wonderful Tonight",
+      "artist": "Eric Clapton",
+      "license": "All rights reserved (local tuning only, never published)",
+      "source_url": null,
+      "is_public": false
+    }
+  ]
+}
