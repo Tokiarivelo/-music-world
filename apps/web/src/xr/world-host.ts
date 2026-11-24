@@ -16,7 +16,11 @@ import {
   DESKTOP_CAMERA_FOV_DEG,
   DESKTOP_CAMERA_TARGET_OFFSET,
   DIORAMA_POSITION,
+  NAV_WHEEL_ZOOM,
 } from './constants';
+import { bindNavigationInput } from './navigation/navigation-input';
+import type { CameraMode, NavigationController, NavigationState } from './navigation/navigation-controller';
+import type { ViewPresetId } from './navigation/orbit-camera';
 import type { MusicScene, WorldClock } from './systems/world-systems';
 import type { WorldControls } from './systems/xr-systems';
 
@@ -33,6 +37,10 @@ export interface WorldScene {
 /** What the host needs from the installed systems. */
 export interface InstalledScene extends Pick<MusicScene, 'setScene'> {
   setControls(controls: WorldControls | null): void;
+  /** Desktop camera navigation (08-navigation-mode); the host binds its input to the canvas. */
+  navigation: NavigationController;
+  /** Called on dispose, after the input is unbound. */
+  disposeNavigation(): void;
 }
 
 export interface WorldHandle {
@@ -45,6 +53,12 @@ export interface WorldHandle {
    * as the 2D player bar. Cheap: does not rebuild the world.
    */
   setControls(controls: WorldControls | null): void;
+  /** Camera commands of the navigation mode (08-navigation-mode requirements 1, 4): never touch the world state. */
+  setCameraMode(mode: CameraMode): void;
+  setViewPreset(id: ViewPresetId): void;
+  resetView(): void;
+  /** Calls `listener(state)` now and whenever the camera mode or selected preset changes. */
+  onNavigationChange(listener: (state: NavigationState) => void): () => void;
   /** Calls `listener(immersive)` now and whenever an XR session starts or ends; returns an unsubscribe function. */
   onSessionChange(listener: (immersive: boolean) => void): () => void;
   isVRSupported(): Promise<boolean>;
@@ -101,12 +115,20 @@ const defaultDeps: WorldHostDeps = {
     const { installMusicSystems } = await import('./systems/world-systems');
     const { installXRSystems } = await import('./systems/xr-systems');
     const { installXRPanel } = await import('./systems/xr-panel-system');
+    const { installNavigation, disposeNavigation } = await import('./systems/navigation-system');
     // `?perf=1` logs draw calls and triangles once per second (04-default-template requirement 7.3).
     const perfLog = typeof location !== 'undefined' && new URLSearchParams(location.search).get('perf') === '1';
     const scene = installMusicSystems(world as IWSDK.World, { perfLog });
     const rig = installXRSystems(world as IWSDK.World, scene.anchorEntity, scene.anchor);
     installXRPanel(world as IWSDK.World, scene.anchorEntity, rig);
+    const navigation = installNavigation(
+      world as IWSDK.World,
+      world.camera,
+      () => world.renderer.domElement.clientHeight || 1,
+    );
     return {
+      navigation,
+      disposeNavigation: () => disposeNavigation(navigation),
       setScene: (plan, clock) => scene.setScene(plan, clock),
       setControls: (controls) => {
         rig.controls = controls;
@@ -164,6 +186,14 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   world.camera.position.set(position.x, position.y, position.z);
   world.camera.lookAt(target.x, target.y, target.z);
   let disposed = false;
+  const nav = scene.navigation;
+  const canvas = world.renderer.domElement;
+  nav.reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const unbind = bindNavigationInput(canvas, nav.input, () => nav.acceptsInput, { wheelPerPixel: NAV_WHEEL_ZOOM });
+  // `touch-action: none` only while exploring, so the cinematic page scrolls as before (requirement 2.4).
+  const offTouch = nav.subscribe((state) => {
+    canvas.style.touchAction = state.mode === 'explore' ? 'none' : '';
+  });
 
   return {
     load({ analysis, template, seed, clock }) {
@@ -173,6 +203,16 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     setControls(controls) {
       if (!disposed) scene.setControls(controls);
     },
+    setCameraMode(mode) {
+      if (!disposed) nav.setMode(mode);
+    },
+    setViewPreset(id) {
+      if (!disposed) nav.setPreset(id);
+    },
+    resetView() {
+      if (!disposed) nav.reset();
+    },
+    onNavigationChange: (listener) => nav.subscribe(listener),
     enterVR: () => world.launchXR(),
     exitVR: () => world.exitXR(),
     onSessionChange(listener) {
@@ -186,6 +226,9 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     dispose() {
       if (disposed) return;
       disposed = true;
+      unbind();
+      offTouch();
+      scene.disposeNavigation();
       if (world.session) world.exitXR();
       world.destroy();
       world.renderer.dispose();

@@ -10,7 +10,7 @@
 - [x] 3. Input: `NavigationInput` reducer (one / two pointers, wheel, keys, blur), `isEditableTarget`,
   `bindNavigationInput` DOM binding (touch-action, context menu, wheel, unbind); tests.
   - _Requirements: 2.1, 2.4, 2.5, 3.1, 3.3, 3.5, 6.3_
-- [ ] 4. `NavigationSystem` + `WorldHandle` commands (`setCameraMode`, `setViewPreset`, `resetView`,
+- [x] 4. `NavigationSystem` + `WorldHandle` commands (`setCameraMode`, `setViewPreset`, `resetView`,
   `onNavigationChange`); XR gating; reduced motion; listeners removed on dispose; tests.
   - _Requirements: 1.1–1.3, 1.5, 4.2–4.4, 5.1, 5.3, 6.1, 6.2_
 - [ ] 5. UI: `NavigationControls` (Explore toggle, presets, reset, hint) and `useNavigationShortcuts` (N, R, 1–4) in

@@ -3,6 +3,7 @@ import { DEMO_ANALYSIS as demo } from '@/engine/__fixtures__/demo-analysis';
 import { buildSpawnPlan } from '@/engine/spawn-plan';
 import { DEFAULT_TEMPLATE } from '@/templates/default';
 import { DESKTOP_CAMERA_AZIMUTH_DEG, DESKTOP_CAMERA_DISTANCE_M, DESKTOP_CAMERA_ELEVATION_DEG } from './constants';
+import { NavigationController } from './navigation/navigation-controller';
 import { createMusicWorld, desktopCameraPose, type WorldHostDeps } from './world-host';
 
 /** Minimal preact-like signal: `subscribe` calls back at once, then on each change. */
@@ -25,7 +26,8 @@ function fakeSignal(initial: string) {
 
 function fakeDeps(withSession = false) {
   const worlds: Array<ReturnType<typeof makeWorld>> = [];
-  const scene = { setScene: vi.fn(), setControls: vi.fn() };
+  const navigation = new NavigationController();
+  const scene = { setScene: vi.fn(), setControls: vi.fn(), navigation, disposeNavigation: vi.fn() };
   function makeWorld(container: HTMLElement) {
     const canvas = document.createElement('canvas');
     container.appendChild(canvas);
@@ -168,5 +170,52 @@ describe('desktop camera (04-default-template requirement 1)', () => {
     expect((Math.atan2(dx, dz) * 180) / Math.PI).toBeCloseTo(DESKTOP_CAMERA_AZIMUTH_DEG, 9);
     expect(DESKTOP_CAMERA_ELEVATION_DEG).toBeGreaterThanOrEqual(25);
     expect(DESKTOP_CAMERA_ELEVATION_DEG).toBeLessThanOrEqual(35);
+  });
+});
+
+describe('WorldHandle navigation commands (08-navigation-mode requirements 1, 4, 6.3)', () => {
+  it('switches modes, selects presets and resets, reporting each change', async () => {
+    const { deps, scene } = fakeDeps();
+    const handle = await createMusicWorld(document.createElement('div'), deps);
+    const seen: Array<[string, string | null]> = [];
+    const off = handle.onNavigationChange((s) => seen.push([s.mode, s.preset]));
+    handle.setCameraMode('explore');
+    handle.setViewPreset('top');
+    handle.resetView();
+    handle.setCameraMode('cinematic');
+    off();
+    handle.setCameraMode('explore');
+    expect(seen).toEqual([
+      ['cinematic', null],
+      ['explore', 'overview'],
+      ['explore', 'top'],
+      ['explore', 'overview'],
+      ['cinematic', null],
+    ]);
+    expect(scene.setScene).not.toHaveBeenCalled();
+    handle.dispose();
+  });
+
+  it('takes pointer input only in the explore mode and unbinds on dispose', async () => {
+    const { deps, scene, worlds } = fakeDeps();
+    const handle = await createMusicWorld(document.createElement('div'), deps);
+    const canvas = worlds[0]!.renderer.domElement;
+    const wheel = (): WheelEvent => {
+      const e = new WheelEvent('wheel', { deltaY: 100, cancelable: true });
+      canvas.dispatchEvent(e);
+      return e;
+    };
+    expect(wheel().defaultPrevented).toBe(false);
+    handle.setCameraMode('explore');
+    expect(canvas.style.touchAction).toBe('none');
+    expect(wheel().defaultPrevented).toBe(true);
+    handle.setCameraMode('cinematic');
+    expect(canvas.style.touchAction).toBe('');
+    handle.setCameraMode('explore');
+    handle.dispose();
+    expect(wheel().defaultPrevented).toBe(false);
+    expect(scene.disposeNavigation).toHaveBeenCalledOnce();
+    handle.setViewPreset('top');
+    expect(scene.navigation.state.preset).toBe('overview');
   });
 });
