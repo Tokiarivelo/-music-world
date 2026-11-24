@@ -68,6 +68,7 @@ const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.m
 
 /** Wraps an angle to (−π, π]. */
 export function wrapAngle(a: number): number {
+  if (a > -Math.PI && a <= Math.PI) return a; // already wrapped: keep it exact (clampPose is idempotent)
   const w = Math.atan2(Math.sin(a), Math.cos(a));
   return w === -Math.PI ? Math.PI : w;
 }

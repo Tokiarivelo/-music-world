@@ -7,7 +7,7 @@
   `pan`, `zoom`, `fly`, `clampPose`, `approachPose`, `VIEW_PRESETS`; unit + property tests (clamps hold after any op
   sequence, camera above the plate, cinematic pose = `desktopCameraPose()`).
   - _Requirements: 1.1, 2.2, 2.3, 3.1, 4.1, 4.4_
-- [ ] 3. Input: `NavigationInput` reducer (one / two pointers, wheel, keys, blur), `isEditableTarget`,
+- [x] 3. Input: `NavigationInput` reducer (one / two pointers, wheel, keys, blur), `isEditableTarget`,
   `bindNavigationInput` DOM binding (touch-action, context menu, wheel, unbind); tests.
   - _Requirements: 2.1, 2.4, 2.5, 3.1, 3.3, 3.5, 6.3_
 - [ ] 4. `NavigationSystem` + `WorldHandle` commands (`setCameraMode`, `setViewPreset`, `resetView`,
