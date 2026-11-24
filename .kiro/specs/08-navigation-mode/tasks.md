@@ -3,7 +3,7 @@
 - [x] 1. Create this spec from the `mitsinjo-grid` `/simulation` viewport (read-only reference), `xr-iwsdk.md`,
   `frontend.md` and `07-xr-mode`.
   - _Requirements: all_
-- [ ] 2. Pure camera math `xr/navigation/orbit-camera.ts`: `OrbitPose`, `poseToCamera`, `cinematicPose`, `orbit`,
+- [x] 2. Pure camera math `xr/navigation/orbit-camera.ts`: `OrbitPose`, `poseToCamera`, `cinematicPose`, `orbit`,
   `pan`, `zoom`, `fly`, `clampPose`, `approachPose`, `VIEW_PRESETS`; unit + property tests (clamps hold after any op
   sequence, camera above the plate, cinematic pose = `desktopCameraPose()`).
   - _Requirements: 1.1, 2.2, 2.3, 3.1, 4.1, 4.4_

@@ -126,3 +126,30 @@ export const VR_PANEL_TEMPLATE_SLOTS = 4;
 /** Hand pinch (07-xr-mode requirement 5, xr-iwsdk.md): press / release thresholds on IWSDK's 0..1 pinch strength. */
 export const PINCH_PRESS = 0.75;
 export const PINCH_RELEASE = 0.6;
+
+/**
+ * Desktop / mobile navigation mode (08-navigation-mode): clamps of the orbit camera around the diorama, input
+ * sensitivities and easing. Angles in degrees, distances in metres.
+ */
+export const NAV_PITCH_MIN_DEG = 5;
+export const NAV_PITCH_MAX_DEG = 85;
+export const NAV_DISTANCE_MIN_M = 0.35;
+export const NAV_DISTANCE_MAX_M = 6;
+/** The orbit target stays within this horizontal distance of the plate centre (per axis). */
+export const NAV_TARGET_RADIUS_M = 0.9;
+/** The orbit target stays between the plate top and this height above it. */
+export const NAV_TARGET_MAX_LIFT_M = 0.6;
+/** Orbit drag sensitivity (radians per CSS pixel). */
+export const NAV_ROTATE_RAD_PER_PX = 0.006;
+/** Wheel zoom: distance × exp(deltaY × this). */
+export const NAV_WHEEL_ZOOM = 0.0015;
+/** Keyboard fly: ground speed in distances per second (× `NAV_FAST_FACTOR` with Shift), turn rate, zoom rate. */
+export const NAV_FLY_SPEED = 0.6;
+export const NAV_FAST_FACTOR = 3;
+export const NAV_TURN_SPEED_RAD = 1.4;
+export const NAV_KEY_ZOOM_RATE = 1.2;
+/** Longest frame step used by keyboard fly and easing (seconds), so a stalled tab does not jump. */
+export const NAV_MAX_STEP_SEC = 0.1;
+/** Preset / cinematic easing: exponential rate per second and wall-time cap (then snap). */
+export const NAV_EASE_PER_SEC = 6;
+export const NAV_EASE_MAX_SEC = 1.5;
