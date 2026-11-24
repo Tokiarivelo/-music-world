@@ -220,3 +220,9 @@ so the 2D page and the VR template picker both list every generated template; no
   `ProviderError(cost_usd=…)` so the spend tracker still counts them. Tested on
   `tests/fixtures/director/muse-chat-completion.json` (hand-written in the documented shape) through
   `httpx.MockTransport`. **Not verified against the live API** (no `META_API_KEY`): see § Human checks.
+- Task 5: `providers/bedrock.py` — `AsyncAnthropicBedrockMantle` (`anthropic[bedrock]` 2.13, `httpx2`), explicit
+  credentials from settings (keys, profile or `AWS_BEARER_TOKEN_BEDROCK`), `max_retries=1`, 30 s, `max_tokens` 8000,
+  `output_config.effort = "low"`, text blocks joined (thinking blocks ignored), `stop_reason` `refusal` → `REFUSED`,
+  `max_tokens` → truncated. The SDK is imported only when Bedrock is configured. Tested on
+  `tests/fixtures/director/bedrock-message.json` through `httpx2.MockTransport` (bearer and SigV4 paths). **Not
+  verified against a live account** (no AWS credentials): see § Human checks.

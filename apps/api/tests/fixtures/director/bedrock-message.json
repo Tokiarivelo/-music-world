@@ -1,0 +1,16 @@
+{
+  "id": "msg_bdrk_fixture0001",
+  "type": "message",
+  "role": "assistant",
+  "model": "anthropic.claude-sonnet-5-5",
+  "content": [
+    {"type": "thinking", "thinking": "", "signature": "fixture-signature"},
+    {
+      "type": "text",
+      "text": "{\"name\": \"Glass Harbor\", \"palette\": {\"background\": \"#040612\", \"terrain\": \"#121a30\", \"primary\": \"#5b7cff\", \"accent\": \"#2ee6d6\", \"secondary\": \"#c86bff\", \"staff\": \"#f2fbff\"}, \"terrain\": {\"style\": \"smooth_plate\", \"mountains\": \"edges\", \"size\": 12}, \"mappings\": [{\"when\": {\"pitch\": \"<48\"}, \"spawn\": \"terrain_ridge\"}, {\"when\": {\"stem\": \"vocals\"}, \"spawn\": \"crystal\", \"colorRole\": \"accent\"}, {\"when\": {}, \"spawn\": \"building\"}], \"fx\": {\"particles\": \"dust\", \"bloom\": 0.9, \"beatPulse\": true, \"chordLinks\": \"light_arc\"}}"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {"input_tokens": 5400, "output_tokens": 820, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0}
+}

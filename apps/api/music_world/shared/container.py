@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 
 import structlog
 from arq.connections import ArqRedis
+from pydantic import SecretStr
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from music_world.analysis.application.use_cases.analysis_cache import AnalysisCache
@@ -73,6 +74,21 @@ def _real_providers(settings: Settings) -> dict[ProviderId, LLMProvider]:
         else:
             key = settings.meta_api_key.get_secret_value()
             providers["muse"] = MuseProvider(key, settings.meta_director_model, settings.meta_base_url)
+    if settings.bedrock_configured and settings.aws_region:
+        from music_world.director.infrastructure.providers.bedrock import BedrockProvider  # SDK loaded only if used
+
+        def secret(value: SecretStr | None) -> str | None:
+            return value.get_secret_value() if value is not None else None
+
+        providers["bedrock"] = BedrockProvider(
+            settings.bedrock_model_id,
+            settings.aws_region,
+            access_key=secret(settings.aws_access_key_id),
+            secret_key=secret(settings.aws_secret_access_key),
+            session_token=secret(settings.aws_session_token),
+            profile=settings.aws_profile,
+            bearer_token=secret(settings.aws_bearer_token_bedrock),
+        )
     return providers
 
 
