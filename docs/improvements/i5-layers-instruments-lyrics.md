@@ -82,3 +82,8 @@ of the VR layers page.
 - Not done: the VR layers page and world-anchored lyrics panel, muting the audio of hidden layers (needs stems served to the
   browser), more instrument types (`htdemucs_6s`), a browser check of the lyrics overlay (the demo song has no lyrics: only
   unit tests), a Quest check.
+
+- VR layers page (2026-11-24, phase I16): two rows of eight chips on the spatial panel, one per layer, in the layer's note
+  color, dimmed when hidden. The chips write the same `layerStore` as the 2D popover and the page mirrors it back to its
+  saved choice. Not verified in IWER or on a Quest (the panel is a little taller, 0.36 m); the world-anchored lyrics panel
+  and muting the audio of hidden layers are still not done.

@@ -20,6 +20,17 @@ export function useWorldControls(player: SongPlayer, title: string, choice: Temp
       template: t('template'),
       recenter: t('recenter'),
       exit: t('exit'),
+      layers: t('layers'),
+      layerNames: {
+        drums: t('layer.drums'),
+        bass: t('layer.bass'),
+        vocals: t('layer.vocals'),
+        other: t('layer.other'),
+        chords: t('layer.chords'),
+        lyrics: t('layer.lyrics'),
+        fx: t('layer.fx'),
+        staff: t('layer.staff'),
+      },
     }),
     [t],
   );
