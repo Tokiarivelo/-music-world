@@ -20,6 +20,10 @@
 - [x] 5. (5.5, P2) Bedrock Claude provider (`anthropic[bedrock]`, `bedrock-mantle` Messages API) and switch; tests on
   fixture responses with mocked HTTP. Human: one real call.
   - _Requirements: 1.1, 1.3, 5.4_
-- [ ] 6. (5.6, P2) ShapeRecipe generation (`music-world.shape.v1`, closed op list, triangle budget checked by
+- [ ] 6. (5.6, P2, skipped in Phase 5: not bounded — new contract, Three.js builder and a Python triangle-count mirror) ShapeRecipe generation (`music-world.shape.v1`, closed op list, triangle budget checked by
   building) — only if everything else is green.
   - _Requirements: 4.1, 4.2_
+- [ ] 7. (human) One real call per provider with credentials (`design.md` § Human checks): Muse with
+  `META_API_KEY`, Bedrock with `AWS_REGION` + credentials and model access; record model id, latency and cost in
+  `design.md`.
+  - _Requirements: 1.1, 1.3, 5.2_
