@@ -1,5 +1,5 @@
 # Music World — root commands. See .kiro/steering/infrastructure.md and testing.md.
-.PHONY: help dev test check schemas schemas-check build deploy logs
+.PHONY: help dev test check schemas schemas-check build deploy check-env logs
 
 API := apps/api
 WEB := apps/web
@@ -35,9 +35,11 @@ build: ## Build Docker images
 	@test -f $(COMPOSE) || { echo "make build: $(COMPOSE) not created yet (01-foundation task 6.1)"; exit 1; }
 	docker compose -f $(COMPOSE) build
 
-deploy: ## Deploy to OVHcloud (skill deploy-ovh)
-	@test -f infra/deploy.sh || { echo "make deploy: infra/deploy.sh not created yet (01-foundation task 6.3)"; exit 1; }
+deploy: ## Deploy to OVHcloud over ssh: DEPLOY_HOST=user@host [DEPLOY_REF=sha] [DEPLOY_DOMAIN=domain] (skill deploy-ovh)
 	bash infra/deploy.sh
+
+check-env: ## Validate a production env file (default infra/.env; ENV_FILE=path), names only
+	bash infra/scripts/check-env.sh $(ENV_FILE)
 
 logs: ## Follow Docker Compose logs
 	docker compose -f $(COMPOSE) logs -f --tail=100

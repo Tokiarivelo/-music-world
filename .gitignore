@@ -49,3 +49,4 @@ weights/
 
 # Database and storage backups (infra/scripts/backup-db.sh)
 infra/backups/
+.deploy-previous

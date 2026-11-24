@@ -15,7 +15,7 @@ if ! body="$(curl -fsS --max-time 10 "$url/api/ready")"; then
   echo "check-health: $url/api/ready failed: ${body:-no response}"
   status=1
 fi
-unhealthy="$(docker compose -f "$ROOT/infra/docker-compose.yml" ps --format '{{.Service}} {{.Status}}' 2>/dev/null |
+unhealthy="$(docker compose -f "$ROOT/infra/docker-compose.yml" ps -a --format '{{.Service}} {{.Status}}' 2>/dev/null |
   grep -vE '\(healthy\)' || true)"
 if [[ -n "$unhealthy" ]]; then
   echo "check-health: containers not healthy:"

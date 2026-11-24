@@ -7,17 +7,22 @@ description: Deploy Music World to the OVHcloud instance with Docker Compose and
 
 Rules: `infrastructure.md`. Deploying is outward-facing: **ask the user before running it**.
 
+First deploy on a new instance (server, DNS, Docker, clone, `infra/.env`, cron): `infra/README.md` § Deploy.
+
 ## Before
 
-1. `make check` passes locally (lint, types, tests, architecture check).
-2. `infra/.env` on the server contains every variable of `infra/.env.example` (compare names only, never print values).
-3. Note the currently deployed commit for rollback (`ssh <host> 'cd music-world && git rev-parse HEAD'`).
+1. `make check` passes locally (lint, types, tests, architecture check); the commit is pushed.
+2. On the server, `infra/scripts/check-env.sh` prints `0 error(s)` (names only, never values; `deploy.sh` runs it
+   too and stops on errors).
+3. `DRY_RUN=1 DEPLOY_HOST=<user@host> make deploy` shows the commit and the server steps.
 
 ## Deploy
 
-4. `make deploy` (runs `infra/deploy.sh`: sync code → `docker compose build` → `alembic upgrade head` in the api
-   container → `docker compose up -d`).
-5. Wait for healthchecks: `docker compose ps` shows every service `healthy`.
+4. `DEPLOY_HOST=<user@host> DEPLOY_DOMAIN=<domain> [DEPLOY_REF=<sha>] make deploy` (runs `infra/deploy.sh`: ssh →
+   checkout the pushed commit → check-env, disk → `docker compose build --pull` → `up -d`; the api runs
+   `alembic upgrade head` before uvicorn → waits until every service is `healthy` → public `/api/ready`). It prints
+   the previous commit for rollback.
+5. On failure it prints the unhealthy services, the last api/worker logs and the rollback command.
 
 ## Verify
 

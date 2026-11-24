@@ -73,7 +73,9 @@ make dev                              # then open https://localhost/play/demo (a
 curl -k https://localhost/api/health  # {"status":"ok",…}
 ```
 
-`make help` lists every target. Production settings: copy `infra/.env.example` to `infra/.env`.
+`make help` lists every target. Production settings: copy `infra/.env.example` to `infra/.env` and validate it
+with `make check-env`. Deploying (`DEPLOY_HOST=user@host make deploy`), backups, restore and uptime checks:
+[`infra/README.md`](infra/README.md).
 Without `S3_*` settings, uploads and stems go to a local directory (`STORAGE_DIR`, a Docker volume in Compose).
 
 Upload a song at `https://localhost/upload`: the page shows the analysis progress per stage, then opens the world at
