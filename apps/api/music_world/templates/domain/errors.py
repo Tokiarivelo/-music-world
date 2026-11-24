@@ -27,3 +27,9 @@ class TemplateNotReportableError(MusicWorldError):
     """Launch templates and the caller's own templates cannot be reported."""
 
     code = "TEMPLATE_NOT_REPORTABLE"
+
+
+class TemplateNotEditableError(MusicWorldError):
+    """Only a draft can be edited: a published (or hidden) template is immutable."""
+
+    code = "TEMPLATE_NOT_EDITABLE"

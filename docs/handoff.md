@@ -85,6 +85,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | 05-ai-world-director 6 | Claude Code (ai-director) | done | phase 10 branch, one commit per sub-task |
 | Improvements I1, I2, I3 | Claude Code (world-builder) | done | all merged (I1 PR #17) |
 | Improvement I4 | Claude Code (world-builder) | in progress | branch `phase-I4-random-scene-colors`; tasks 1–5 and I4b (Contrast, lights) done, see `docs/improvements/i4-random-scene-colors.md` § As built; merged; Neon Nocturne stays the default |
+| 09-template-editor 1 | Claude Code | done | branch `phase-A2-template-editor` (backlog A2): `PUT /api/templates/{id}`; tasks 2–8 free |
 | Roadmap 9.3–9.5 | — | blocked | human: video, Devpost, posts; drafts in `docs/submission.md` |
 
 ## 5. Active pitfalls
@@ -113,5 +114,5 @@ The daily ones. The rest (API, web/XR, tooling): `docs/pitfalls.md`, read the gr
 | 06-template-store | 1–6 done | 7 (human: real e-mail, public URL) | design.md § Human checks, § As built |
 | 07-xr-mode | 1–6 done | 7 (Quest, human) | design.md § Human checks |
 | 08-navigation-mode | 1–6 done | — (human: try it on a phone) | design.md § As built |
-| 09-template-editor | spec written, 0/8 | 1 (`PUT /api/templates/{id}`) | design.md § API addition |
+| 09-template-editor | 1/8 done (API) | 2 (`editor-model.ts`, `editor-validate.ts`) | design.md § API addition |
 | 10-template-moderation | spec written, 0/7 | 1 (`MODERATOR_EMAILS`, session field) | design.md § Moderator check |

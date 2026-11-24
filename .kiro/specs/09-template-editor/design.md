@@ -26,6 +26,10 @@ draft, debounced 300 ms; the audio clock is untouched (`worldStateAt` stays pure
 replaces the draft's document. 404 for another user's template (as for the other routes), 409 when already published.
 Use case `UpdateDraftTemplate` in `templates/application/use_cases`, repository method `update_document`.
 
+As built (task 1): the use case reuses the existing `repo.save` (no separate `update_document`). It keeps the row id
+and recomputes the document id as `<submitted id>-<row suffix>`. A published or hidden template answers 409
+`TEMPLATE_NOT_EDITABLE`. The `publish` field of the body is ignored. Rate limit: the publish limiter.
+
 ## Errors
 
 Server `TEMPLATE_INVALID` details carry `loc` like `["template","palette","staff"]`; the editor maps them to
