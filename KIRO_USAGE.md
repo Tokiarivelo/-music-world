@@ -39,11 +39,11 @@ How the specs were used:
 `.kiro/steering/rules.md` is the single source of truth (index of rule files, skills, agents, workflow and absolute
 rules); 13 rule files in total.
 
-- **Always included:** `product` (vision, default look, MVP scope), `tech` (stack, non-negotiable rules, env table,
+- **Always included:** `product` (vision, default look, MVP scope), `tech` (stack, non-negotiable rules, provider env,
   perf budget), `structure`, `coding-standards`, `handoff`, `documentation` (which doc to update for which change).
 - **File-match:** `architecture` (`apps/api/**`), `api-specs` (routers), `frontend` (`apps/web/src/**`), `xr-iwsdk`
-  (`apps/web/src/xr/**`), `ai-models` (director), `testing` (tests), `infrastructure` (`infra/**`). Agents load only
-  the rules of the area they touch.
+  (`apps/web/src/xr/**`), `ai-models` (director), `testing` (tests), `infrastructure` (`infra/**`), `env` (settings and `.env.example`:
+  moved out of `tech.md` to cut the always-loaded context). Agents load only the rules of the area they touch.
 - Steering is touched by 13 commits: it was corrected as the project learned, in the same commit as the code (e.g. body
   limits and security headers in `infrastructure.md` / `api-specs.md`, the `pnpm -C apps/web exec vitest` command, the
   rule that commits carry no tool attribution).
@@ -86,6 +86,14 @@ Ownership of every task is recorded in `docs/handoff.md` § 4, so two agents nev
 steps), `review-change` and `deploy-ovh` (Phase 8). `shape-kind` was not needed (no new shape kind was added; the
 Halloween template reuses built-in kinds). Skills were corrected in the same commit as the code when a command in them
 turned out wrong (e.g. the `deploy-ovh` steps in Phase 8).
+
+## Token budget and shared agent rules
+
+`docs/token-budget.md` measures what every session loads (≈ 9 k tokens) and lists 18 rules for cheap code generation
+(read by range, run only the touched tests, `/clear` between tasks, never open generated files). One "never read" list
+is enforced for every agent: `.claude/settings.json` (Claude Code), `.cursorignore`, `.geminiignore`,
+`.codeiumignore`, `.aiderignore`, and the rule in `rules.md` for agents that read `AGENTS.md` (Codex, Kiro). Area
+pitfalls moved from the handoff to `docs/pitfalls.md`; tasks an agent can do alone are in `docs/backlog-agent.md`.
 
 ## Handoff between agents
 

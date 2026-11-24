@@ -16,6 +16,7 @@ Rules in `.kiro/steering/infrastructure.md`; deployment steps in the `deploy-ovh
 | `scripts/backup-db.sh` | Postgres dump (+ `--storage`: local object store volume), retention `BACKUP_KEEP` |
 | `scripts/check-disk.sh` | disk alert (default 85 %) with the safe clean-up order |
 | `scripts/check-health.sh` | public `/api/ready` and container health probe |
+| `scripts/smoke-dev.sh` | `make smoke`: health, readiness, home, demo page and demo-song cache header on the running local stack |
 | `cron/music-world.cron` | nightly backup, disk check every 30 min, health every 5 min |
 
 ## Deploy (runbook)

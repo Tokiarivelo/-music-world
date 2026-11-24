@@ -21,18 +21,18 @@ Last reviewed: 2026-11-24 (after the Makefile / Docker / env / token session).
 |---|---|---|---|
 | B1 | `uvx pip-audit` and `pnpm audit --prod` (needs network to the advisory databases only) | `docs/security-review.md` | results recorded there, fixes or accepted risks listed |
 | B2 | Add `pytest-xdist` and make `test-api` run with `-n auto` (measured: 30 s serial, 8 cores available) | `docs/optimization.md` § Tests | `make check-api` faster, no flaky test across 5 runs (needs network once for `uv add --dev pytest-xdist`) |
-| B3 | Lazy-load heavy API imports (`music_world.main` imports in 1.1 s: `shared/container.py` 0.59 s, `accounts.interfaces.http` 0.7 s; find the heavy third-party import with `python -X importtime`) | `docs/optimization.md` § API | `import music_world.main` < 0.6 s, tests green |
+| B3 | ~~Lazy-load heavy API imports~~ | done 2026-11-24 (phase 11) | — | boto3 is now imported only when S3 is configured (−0.3 s cumulative); the rest of the 1.1 s is FastAPI 0.8 s and SQLAlchemy 0.36 s, not avoidable, so the < 0.6 s goal is dropped |
 | B4 | Caching headers in Caddy for `/demo/*` (MP3 922 KB, analysis JSON) and a `Cache-Control: immutable` check on `/_next/static/*`; validate with `docker run caddy caddy validate` | `infrastructure.md` | headers verified with `curl -kI` against `make dev` |
-| B5 | Budget test on the web bundle: fail `make check` if a non-play route loads the IWSDK chunk (6 MB, 1.5 MB gzip) | `frontend.md` | script in `apps/web/scripts/`, wired into `make check-web` |
-| B6 | Trim `docs/handoff.md` § 5 "Active pitfalls" (4 KB read every session): keep only the ones that bite daily, move the rest next to the code they concern | `docs/token-budget.md` | handoff ≤ 100 lines, no information lost (moved, not deleted) |
-| B7 | Run `make prune` and `make clean` once on this laptop (disk is 97 % full) and record what was freed | Makefile | `make disk` before/after in the handoff |
+| B5 | ~~Bundle budget guard~~ | done 2026-11-24 (phase 11) | — | `apps/web/scripts/check-bundle.mjs`: light pages must not load the engine chunk, ≤ 900 KB JS; run by `make bundle-check` and by the web Dockerfile after `next build` |
+| B6 | ~~Trim handoff pitfalls~~ | done 2026-11-24 (phase 11) | — | handoff 11.3 KB → 8.2 KB; 34 pitfalls moved to `docs/pitfalls.md`, 6 daily ones stay |
+| B7 | ~~`make prune` and `make clean` once~~ | done 2026-11-24 (phase 11) | — | disk 89 % (27 GB free); `prune` reclaimed 0 B (nothing dangling); `clean` removed `apps/web/.next` (700 MB). The 4.2 GB of reclaimable images belong to other projects: left alone |
 
 ## C. Documentation and tooling
 
 | # | Task | Done when |
 |---|---|---|
-| C1 | Update `KIRO_USAGE.md` (setup section) with the new `.claude/settings.json`, `env.md` and Makefile targets | section updated |
-| C2 | A `make dev` smoke test script (`infra/scripts/smoke-dev.sh`: up, wait healthy, curl `/api/health` and `/play/demo`, down) for CI-less verification | script + Makefile target `smoke` |
+| C1 | ~~KIRO_USAGE.md setup section~~ | done 2026-11-24 (phase 11) |
+| C2 | ~~Smoke test of the local stack~~ | done 2026-11-24: `make smoke` (`UP=1` starts the stack first) |
 | C3 | Verify the new Dockerfile layer order really avoids the Demucs download on a code-only change (needs network once, ~15 min, ~6 GB disk: free space first with `make prune`) | two consecutive `make build` runs, the second reuses the weights layer |
 
 ## Not here (needs a human)

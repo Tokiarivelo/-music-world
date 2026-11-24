@@ -10,10 +10,6 @@ import shutil
 from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING
 
-import boto3
-from botocore.config import Config
-from botocore.exceptions import ClientError
-
 from music_world.shared.settings import Settings
 
 if TYPE_CHECKING:
@@ -84,6 +80,9 @@ class S3ObjectStore:
     def __init__(self, settings: Settings) -> None:
         if not settings.storage_configured or settings.s3_access_key is None or settings.s3_secret_key is None:
             raise ValueError("S3 storage is not configured")
+        import boto3  # loaded only when S3 is configured: ~0.3 s of API start-up
+        from botocore.config import Config
+
         self._bucket = settings.s3_bucket or ""
         self._client: S3Client = boto3.client(
             "s3",
@@ -109,6 +108,8 @@ class S3ObjectStore:
         )
 
     async def get_bytes(self, key: str) -> bytes | None:
+        from botocore.exceptions import ClientError
+
         def get() -> bytes | None:
             try:
                 return self._client.get_object(Bucket=self._bucket, Key=_check_key(key))["Body"].read()
@@ -127,6 +128,8 @@ class S3ObjectStore:
         return True
 
     async def exists(self, key: str) -> bool:
+        from botocore.exceptions import ClientError
+
         def head() -> bool:
             try:
                 self._client.head_object(Bucket=self._bucket, Key=_check_key(key))

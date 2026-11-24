@@ -9,7 +9,7 @@ below are bytes measured on 2026-11-24; tokens ≈ bytes / 3.8 for this Markdown
 |---|---|---|---|
 | `CLAUDE.md` + `rules.md` | 4.8 KB | every session | tables of rules, skills, agents |
 | Steering `always` files (`product`, `tech`, `structure`, `coding-standards`, `handoff`, `documentation`) | 19.6 KB | every session | `tech.md` was 9.6 KB; the core/accounts env tables (2.5 KB) moved to `env.md` (file-match) |
-| `docs/handoff.md` | 11.3 KB | every session (`/start`) | § 5 pitfalls alone are 4 KB |
+| `docs/handoff.md` | 8.2 KB (was 11.3) | every session (`/start`) | § 5 pitfalls alone are 4 KB |
 | `start` skill | 1.6 KB | every session | |
 | **Fixed cost at session start** | **≈ 37 KB ≈ 9–10 k tokens** | | paid again after every `/clear` and in every sub-agent that loads steering |
 | File-match steering (`architecture`, `frontend`, `ai-models`…) | 1.4–3.6 KB each | only when you touch the area | good as is |
@@ -65,8 +65,7 @@ the same file twice) and **re-writing** (a whole file for a 3-line change). The 
 
 - `always` steering files hold **rules**, not reference data. Tables that restate code (env defaults, settings)
   go in a `fileMatch` file: `env.md` is the example. Target: the always-loaded total stays under 20 KB.
-- `docs/handoff.md` stays ≤ 150 lines (target 100): § 5 keeps only pitfalls that bite daily, the others live next to
-  the code they concern (backlog B6). Old sessions go to `docs/handoff-archive/`, never read by default.
+- `docs/handoff.md` stays ≤ 150 lines (target 100): § 5 keeps only the pitfalls that bite daily; the rest are in `docs/pitfalls.md`, read by area. Old sessions go to `docs/handoff-archive/`, never read by default.
 - Generated files carry a "generated, never read or edit" header and are listed in `.claude/settings.json` `deny`
   and in `.dockerignore` where relevant. A new generated file → add it to both.
 - Specs: design sections get stable `##` headings so an agent can read one range. Prefer a new small file over

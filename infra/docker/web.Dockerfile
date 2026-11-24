@@ -13,7 +13,8 @@ RUN --mount=type=cache,id=music-world-pnpm,target=/pnpm/store pnpm install --fro
 COPY apps/web/ apps/web/
 ENV NEXT_TELEMETRY_DISABLED=1
 # .next/cache (Turbopack / webpack incremental cache) survives between builds: only changed modules are rebuilt.
-RUN --mount=type=cache,id=music-world-next,target=/repo/apps/web/.next/cache pnpm -C apps/web build
+# The build fails when a light page loads the 3D engine or outgrows its budget (scripts/check-bundle.mjs).
+RUN --mount=type=cache,id=music-world-next,target=/repo/apps/web/.next/cache pnpm -C apps/web build && pnpm -C apps/web check-bundle
 
 FROM node:22-alpine
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000

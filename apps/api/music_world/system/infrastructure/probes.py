@@ -3,8 +3,6 @@
 import asyncio
 from typing import TYPE_CHECKING
 
-import boto3
-from botocore.config import Config
 from redis.asyncio import Redis
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -43,6 +41,9 @@ class S3Probe:
         s = self._settings
         if not s.storage_configured or s.s3_access_key is None or s.s3_secret_key is None:
             return "not_configured"
+        import boto3  # lazy: see shared/object_store.py
+        from botocore.config import Config
+
         client: S3Client = boto3.client(
             "s3",
             endpoint_url=s.s3_endpoint,

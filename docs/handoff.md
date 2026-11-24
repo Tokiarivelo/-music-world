@@ -23,17 +23,16 @@ Read docs/handoff.md and continue with the next actions.
   containers (`angaly_*`) may be running — not started by these sessions; leave them alone.
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-24, Claude Code, phase 10 ShapeRecipe + tooling)
+## 2. Last session (2026-11-24, Claude Code, phase 11 quality and performance)
 
-- Phase 10 (branch `phase-10-shape-recipe`, one commit per task): `05-ai-world-director` task 6 done. Contract
-  `music-world.shape.v1` + `WorldTemplate.recipes`, Python triangle mirror, web `recipe-builder.ts` with parity
-  fixtures, structure view renders `recipe:*`, prompt `director-v2`. Store accepts defined recipes. Details:
-  `05-ai-world-director/design.md` § As built (task 6). Not done: Quest 3 check of heavy recipes (human).
-- Tooling merged earlier (PR #10): Makefile (`make help`), build only changed images, env examples, token budget,
-  `docs/optimization.md`, `docs/backlog-agent.md`. New: `WEB_PORT` (apps/web/.env.local or `make dev-web WEB_PORT=3001`)
-  and `make db-password` (old pgdata volume vs changed `POSTGRES_PASSWORD`).
-- Incident: a killed `pnpm` install (pnpm 12 verify-deps) half-broke `node_modules`; repaired with
-  `pnpm install --frozen-lockfile --offline --trust-lockfile`. Never interrupt a running pnpm install.
+- Phase 10 (ShapeRecipe, PR #11) merged, then tooling follow-ups: `NUMBA_CACHE_DIR` (worker failed in Basic Pitch),
+  director default is the `-contributor` Muse model (project decision, upload page warns users; keep `dataNote`),
+  `WEB_PORT`, `make db-password`.
+- Phase 11 (branch `phase-11-quality-perf`, backlog B3–B7, C1, C2): boto3 imported lazily; Caddy caches `/demo/*`;
+  `apps/web/scripts/check-bundle.mjs` (`make bundle-check`, run by the web Dockerfile); pitfalls moved to
+  `docs/pitfalls.md` (handoff 11.3 → 8 KB); `make smoke`; KIRO_USAGE token-budget section; prune/clean run.
+- Left in `docs/backlog-agent.md`: B1 (`pip-audit`, `pnpm audit`) and B2 (`pytest-xdist`) need network; C3 (verify
+  the Dockerfile weights layer is reused) needs network and ~6 GB; A2/A3 need a spec first.
 
 ## 3. Next actions
 
@@ -85,48 +84,15 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 
 ## 5. Active pitfalls
 
-- `xr-check.mjs` ends with a console check that fails on `500` from `/api/*` when no backend runs (not an XR failure).
-- Navigation UI must not sit at the bottom of the canvas: the player bar covers it (controls are top-right).
+The daily ones. The rest (API, web/XR, tooling): `docs/pitfalls.md`, read the group of the area you touch.
 
-- `basic-pitch` 0.4.0 requires TensorFlow < 2.15.1 (no Python 3.12 wheels): `apps/api/pyproject.toml`
-  `override-dependencies` removes it and runs the bundled ONNX model. Do not "fix" that override.
+- pnpm is v12 here: offline installs need `--offline --trust-lockfile`; never interrupt a running install.
 - torch / torchaudio must come from the PyTorch CPU index (`[tool.uv.sources]`); a plain PyPI torch pulls ~3 GB of
   CUDA. Disk on this laptop is ~98 % full: watch `df -h` before adding models or images.
-- Docker worker: librosa/numba needs `NUMBA_CACHE_DIR` (set in the Dockerfile and Compose); without it Basic Pitch fails
-  with "cannot cache function ... no locator available" after minutes of Demucs.
-- Never import analysis infrastructure (torch, librosa) at module level in code the API process loads.
-- `.gitignore` ignores audio except `apps/api/tests/fixtures/*.{wav,mp3,flac}` and `apps/web/public/demo/*.mp3`.
-- Next's route announcer is an empty `role="alert"`: in browser tests select `p[role=alert]`.
-- IWSDK 1.1.0: never run two `World.create` at once — use `createMusicWorld` (queued). Its canvas follows the
-  window: 2D controls must be absolutely positioned above it.
-- Next 16 auto-writes `apps/web/AGENTS.md` on `next dev`; disabled with `agentRules: false` — keep it off.
-- pnpm is v12 here: offline installs need `--offline --trust-lockfile`; `pnpm run` may auto-install first (verify-deps).
-- Do not add a `packageManager` field to `package.json` (corepack download times out here).
-- `three` must stay aliased to the super-three version IWSDK depends on; bump both together.
-- Colors are linear in three.js: use `lightness()` (`xr/palette.ts`) for perceived brightness factors.
-- `bravura-outlines.ts` is generated: rerun `scripts/extract_bravura_glyphs.py`, never edit by hand.
 - Generated TS (`templates/generated`) and `packages/schemas` come from `make schemas` — never edit by hand.
   zod does not re-check pydantic `model_validator`s (analysis invariants, zone bounds).
-- No repo Prettier config: format with `npx prettier --print-width 120 --single-quote` on the files you touch only.
-- Playwright: `executablePath` `~/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome`, `--use-angle=vulkan` to
-  see the world. A scratch script must import `playwright-core` by absolute path (`apps/web/node_modules/...`).
-- IWER: panel clicks need `MW_ANGLE=vulkan` for `xr-check.mjs`. Dev-only globals `window.__mwWorld` /
-  `__mwXRDevice` are read by it; keep them development-only. The VR panel has only 4 template slots.
-- Panel text uses the bundled MSDF Inter font: no U+2212 minus or other missing glyphs (rendered as boxes).
-- Do not `pkill -f "<pattern>"` from the agent shell: it kills the shell itself; keep PIDs.
-- Local API without Docker: `DATABASE_URL=sqlite+aiosqlite:///<file> uv run alembic upgrade head` then uvicorn;
-  `next dev` with `DEV_API_URL`. Sign-in links appear in the api log (`auth.sign_in_link`, console sender).
-- Auth: every web call with a body goes through `apiFetch` (`src/lib/api-client.ts`), or signed-in users get
-  `403 CSRF_FAILED`. Tests use `base_url="https://test"` so the `Secure` cookies are sent.
-- Rate limits (director, sign-in, publish, upload) are in memory per uvicorn worker (2 workers → up to 2×).
 - Director: change any prompt → bump `PROMPT_VERSION`; mock output changes → bump `MOCK_MODEL`.
   `director/infrastructure/default_template.json` must equal the web `neon-nocturne.json` (test).
-- `anthropic` 2.x uses `httpx2`: mock its transport with `httpx2.MockTransport`.
-- Muse and Bedrock adapters, and the SMTP sender, were never run against live services (no credentials).
-- Body limits live in two places (`main.py` `path_limits` and the Caddyfile): a new upload route needs both.
-- New external origin in the web app (CDN, presigned S3 URLs) → extend the Caddy CSP, or it is blocked silently.
-- Production `create_app` raises on `SESSION_COOKIE_SECURE=false` / `http://` `PUBLIC_BASE_URL`: tests that build a
-  production app must pass an https `public_base_url`.
 - Never `docker volume prune` on the server (pgdata, storage, Let's Encrypt certificates).
 - Deadline: Kiroween submission **2026-12-04 14:00 PT**; demo audio must be royalty-free.
 

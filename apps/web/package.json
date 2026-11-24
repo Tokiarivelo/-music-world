@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "check-bundle": "node scripts/check-bundle.mjs",
     "test": "vitest run"
   },
   "dependencies": {
