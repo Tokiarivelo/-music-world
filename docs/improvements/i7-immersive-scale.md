@@ -69,6 +69,8 @@ Motion sickness: keep glide optional and slow. Depends on I2 (environment) and I
 
 ## As built (phase I7, 2026-11-24)
 
+Screenshots over the demo song: `docs/improvements/i7/walk-start.png`, `walk-forward.png`.
+
 - `xr/scale.ts`: `diorama` (1.5 m plate, default on desktop) and `immersive` (80 m plate, plate top = floor, ground, hills,
   fog and far plane ×3). It is view state (`scaleStore`); `worldStateAt` and the plan are untouched.
 - Desktop **Walk** mode (`G`, button "Walk"): `navigation/walk-camera.ts` (pure): eye 1.6 m, WASD / Shift / Q E, drag to look,
@@ -78,4 +80,4 @@ Motion sickness: keep glide optional and slow. Depends on I2 (environment) and I
   right stick 30° snap turn, B / Y toggles the diorama. Reduced motion: 3 m steps instead of gliding. The spatial panel hangs
   in the tracking space, 0.75 m ahead, and follows the plate's moves. Stick seek is off in this scale (panel buttons stay).
 - Not done: teleport arc, vignette while gliding, scale toggle button on the spatial panel, LOD for distant structures,
-  persisted settings (scale, turn style), a browser screenshot of the walk mode, **Quest 3 check** (comfort, scale, fps).
+  persisted settings (scale, turn style), **Quest 3 check** (comfort, scale, fps).
