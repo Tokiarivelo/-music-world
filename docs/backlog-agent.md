@@ -21,7 +21,7 @@ Last reviewed: 2026-11-24 (after the Makefile / Docker / env / token session).
 |---|---|---|---|
 | B1 | `uvx pip-audit` and `pnpm audit --prod` (needs network to the advisory databases only) | `docs/security-review.md` | results recorded there, fixes or accepted risks listed |
 | B2 | Add `pytest-xdist` and make `test-api` run with `-n auto` (measured: 30 s serial, 8 cores available) | `docs/optimization.md` § Tests | `make check-api` faster, no flaky test across 5 runs (needs network once for `uv add --dev pytest-xdist`) |
-| B3 | Lazy-load heavy API imports (`music_world.main` imports in 1.1 s: `shared/container.py` 0.59 s, `accounts.interfaces.http` 0.7 s; find the heavy third-party import with `python -X importtime`) | `docs/optimization.md` § API | `import music_world.main` < 0.6 s, tests green |
+| B3 | ~~Lazy-load heavy API imports~~ | done 2026-11-24 (phase 11) | — | boto3 is now imported only when S3 is configured (−0.3 s cumulative); the rest of the 1.1 s is FastAPI 0.8 s and SQLAlchemy 0.36 s, not avoidable, so the < 0.6 s goal is dropped |
 | B4 | Caching headers in Caddy for `/demo/*` (MP3 922 KB, analysis JSON) and a `Cache-Control: immutable` check on `/_next/static/*`; validate with `docker run caddy caddy validate` | `infrastructure.md` | headers verified with `curl -kI` against `make dev` |
 | B5 | Budget test on the web bundle: fail `make check` if a non-play route loads the IWSDK chunk (6 MB, 1.5 MB gzip) | `frontend.md` | script in `apps/web/scripts/`, wired into `make check-web` |
 | B6 | Trim `docs/handoff.md` § 5 "Active pitfalls" (4 KB read every session): keep only the ones that bite daily, move the rest next to the code they concern | `docs/token-budget.md` | handoff ≤ 100 lines, no information lost (moved, not deleted) |

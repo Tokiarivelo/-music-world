@@ -42,7 +42,7 @@ the repository; "Backlog" points to `docs/backlog-agent.md`.
 | L2 | No `.env.example` for the host-run API or the web app (only `infra/.env.example`); `Settings` reads no file | `apps/api/.env.example` (loaded by `uv run --env-file`, optional), `apps/web/.env.example` (copy to `.env.local`), `infra/.env.example` stays the global one | Applied |
 | L3 | `make check` ran everything serially (≈ 75 s) | split into `check-api`, `check-web`, `arch`, `schemas-check`; `make -j3 check` runs api and web in parallel (measured 46 s vs ≈ 75 s serial, bounded by pytest, all green) | Applied |
 | L4 | pytest is serial on 8 cores | `pytest-xdist` `-n auto` (expected 30 s → ~10 s); needs network once to add the dependency, so not applied | Backlog B2 |
-| L5 | `import music_world.main` takes 1.1 s, paid by every test process, `uvicorn --reload` restart and worker start | find the heavy import (`-X importtime`) and defer it | Backlog B3 |
+| L5 | `import music_world.main` takes ~1.1 s (FastAPI 0.8 s, SQLAlchemy 0.36 s, boto3 0.28 s) | boto3 and botocore are imported only when S3 is configured (`object_store.py`, `probes.py`); FastAPI and SQLAlchemy are required | Applied (−0.1 to −0.3 s) |
 | L6 | Disk 97 % full; stale tool caches and images accumulate | `make disk`, `prune`, `prune-images`, `prune-cache`, `prune-all`, `clean`, `clean-deps`, guarded `prune-volumes` | Applied; run once: backlog B7 |
 
 ### Production runtime and delivery
