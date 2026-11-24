@@ -9,6 +9,7 @@ vi.mock("@/xr/world-host", () => ({
       isVRSupported: async () => false,
       load: vi.fn(),
       setControls: vi.fn(),
+      setPaletteOverride: vi.fn(),
       onSessionChange: () => () => undefined,
       onNavigationChange: () => () => undefined,
       setCameraMode: vi.fn(),
