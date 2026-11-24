@@ -6,12 +6,13 @@ import { EffectsSection } from './EffectsSection';
 import { IdentitySection } from './IdentitySection';
 import { MappingsSection } from './MappingsSection';
 import { PaletteSection } from './PaletteSection';
+import { RecipesSection } from './RecipesSection';
 import { StaffSection } from './StaffSection';
 import { TerrainSection } from './TerrainSection';
 import { ZonesSection } from './ZonesSection';
 
 /** Paths the form has a control for; any other error goes to the form-level alert. */
-const FIELD_PREFIXES = ['name', 'palette.', 'terrain.', 'staff.', 'fx.', 'mappings.', 'zones.'];
+const FIELD_PREFIXES = ['name', 'palette.', 'terrain.', 'staff.', 'fx.', 'mappings.', 'zones.', 'recipes.'];
 
 function isFieldPath(path: string): boolean {
   return FIELD_PREFIXES.some((p) => path === p || path.startsWith(p));
@@ -36,6 +37,7 @@ export function EditorForm(props: SectionProps) {
       <TerrainSection {...props} />
       <StaffSection {...props} />
       <EffectsSection {...props} />
+      <RecipesSection {...props} />
       <MappingsSection {...props} />
       <ZonesSection {...props} />
     </form>

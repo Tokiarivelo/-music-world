@@ -311,7 +311,8 @@ Chaque utilisateur peut publier des templates que les autres utilisent pendant l
   avec les bornes du schéma comme `min` / `max`, validation zod + règles du store à chaque changement, aperçu en direct
   (dernier template valide, 300 ms) sur la chanson de démo ou `?project=<id>`. Brouillon : `POST` puis `PUT
   /api/templates/{id}` (propriétaire, brouillon seulement, 409 sinon) ; publication avec vignette. Les recettes de formes
-  ne sont pas modifiables dans l'éditeur (elles restent telles quelles).
+  sont modifiables (section « Formes » : pièces, empreinte, échelle de hauteur, budget de triangles ; renommer ou
+  supprimer une recette réécrit ses références).
 - Comptes : authentification simple (e-mail + lien magique, ou OAuth GitHub).
 - Templates de lancement : `neon-nocturne` (par défaut, fidèle à l'image) et un template d'Halloween pour le thème Kiroween.
 
@@ -440,7 +441,7 @@ music-world/
 
 **Échéance des crédits Kiro :** demande avant le **1er décembre 2026, 12:00 PT**.
 
-**Après le hackathon :** modèle auto-hébergé (Muse Glimmer), GPU pour Demucs, mode à l'échelle 1 en VR, export vidéo, entrée micro en direct, éditeur de recettes de formes (l'éditeur de templates existe déjà).
+**Après le hackathon :** modèle auto-hébergé (Muse Glimmer), GPU pour Demucs, mode à l'échelle 1 en VR, export vidéo, entrée micro en direct, (l'éditeur de templates et de recettes existe déjà).
 
 ---
 

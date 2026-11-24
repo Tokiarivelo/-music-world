@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase A4 design system, My templates, Nemo Reef)
+> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase A5 recipe editing in the template editor)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -14,7 +14,7 @@ Read docs/handoff.md and continue with the next actions.
 
 - Work from `main`. Push with gh credentials:
   `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
-- Merged: phase 9 docs, `08-navigation-mode` (PR #9), I1–I4b (PRs #15–#19), A2 template editor (PR #21 line).
+- Merged: B4 Caddy cache headers (PR #24), phase A4 (#23), phase 9 docs, `08-navigation-mode` (PR #9), I1–I4b (PRs #15–#19), A2 template editor (PR #21 line).
   Open PRs: #22 `phase-A3-moderation` (spec 10, tasks 1–6) and, stacked on it, `phase-A4-design-system`.
 - Checks at the end of A3: web vitest 348 passed, API 354 passed, ruff / mypy / tsc / eslint clean.
 - No server left running. A `music-world` Compose stack (old images, predates Phase 6) and another project's
@@ -38,8 +38,8 @@ Read docs/handoff.md and continue with the next actions.
   `footprint` (m) and `heightScale` for squat or wide shapes (`engine/recipe-scale.ts`); Nemo sets both per recipe.
 - A personal e-mail was committed in `apps/api/.env.example` by mistake (`062da9c`) and emptied in the next commit; it
   stays in that branch's history. Never put real e-mails in tracked files: set `MODERATOR_EMAILS` in `infra/.env`.
-- Previous session (phase A2): `09-template-editor` 1–8 (`/editor`, `PUT /api/templates/{id}`); not done: recipe
-  editing, Quest check of the editor page. Screenshots: `docs/template-editor/`.
+- Previous session (phase A2): `09-template-editor` 1–8 (`/editor`, `PUT /api/templates/{id}`); recipe editing
+  came in phase A5 (tasks 9–11); not done: Quest check of the editor page. Screenshots: `docs/template-editor/`.
 
 ## 3. Next actions
 
@@ -62,7 +62,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 4. **Human** — roadmap 9.3 video, 9.4 Devpost form, 9.5 posts from the drafts in `docs/submission.md` (checklist at
    its top). Run `uvx pip-audit` / `pnpm audit --prod` once before submitting.
 5. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` — B4 done (Caddy cache headers); see the file for the next free one.
-   Optional: recipe editing in the template editor; `02-music-analysis` 6.1 (Muse Voice); `01-foundation` 6.2/6.3/7.
+   Optional: `02-music-analysis` 6.1 (Muse Voice); `01-foundation` 6.2/6.3/7.
 
 ## 4. Task ownership
 
@@ -122,5 +122,5 @@ The daily ones. The rest (API, web/XR, tooling): `docs/pitfalls.md`, read the gr
 | 06-template-store | 1–6 done | 7 (human: real e-mail, public URL) | design.md § Human checks, § As built |
 | 07-xr-mode | 1–6 done | 7 (Quest, human) | design.md § Human checks |
 | 08-navigation-mode | 1–6 done | — (human: try it on a phone) | design.md § As built |
-| 09-template-editor | 1–8 done | — (follow-up: recipe editing) | design.md § As built |
+| 09-template-editor | 1–11 done | — (recipe editing done, phase A5) | design.md § As built |
 | 10-template-moderation | 6/7 done | 7 (human: review a real hidden template) | design.md § As built |

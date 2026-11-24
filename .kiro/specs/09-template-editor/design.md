@@ -63,3 +63,16 @@ ownership (404 / 409) and validation reuse. Browser: Playwright screenshot of th
 ## Human checks
 
 None required. Optional: try the editor on a phone and on the Quest Browser 2D page.
+
+## As built (recipe editing, phase A5)
+
+- Pure `lib/recipe-model.ts` (add, remove, rename, part and recipe numbers clamped to `consts/recipe.consts.ts`, which
+  mirrors `shape.py`; `recipeTriangles` mirrors `ShapeRecipe.triangle_count`). Renaming rewrites `recipe:<name>` in
+  mappings, zones and scenery; removing turns those references into `crystal`. A duplicate or empty name is kept as typed
+  and reported (`recipeName`), so the user sees it instead of the editor guessing.
+- Validation adds `recipeName` and `recipeBudget` (`recipes.<i>.name`, `recipes.<i>.budget`). The 32 KB template limit
+  still applies, so 16 large recipes can hit `size`.
+- UI: `RecipesSection` > `RecipeEditor` > `PartEditor`. The name is committed on blur or Enter (each keystroke would
+  rewrite references). Only the fields an operation reads are shown (`FIELDS_BY_OP`); `sides` and `taper` appear for a
+  prism or a stack / cluster of prisms. The preview needs no change: it swaps the whole template.
+- Not done: a per-recipe 3D thumbnail, reordering recipes or parts, a Quest check of heavy recipes.

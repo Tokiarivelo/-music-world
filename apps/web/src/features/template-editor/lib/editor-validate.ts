@@ -1,13 +1,15 @@
 import { TemplateSchema, type Template } from '@/templates/generated';
+import { RECIPE_NAME_PATTERN } from '../consts/recipe.consts';
 import {
   BUILTIN_KINDS,
   FORBIDDEN_TEXT,
   MAX_TEMPLATE_BYTES,
   MIN_STAFF_CONTRAST,
 } from '../consts/template-editor.consts';
+import { recipeTriangles } from './recipe-model';
 
 /** `code` is an i18n key suffix (`editor:error.<code>`); `path` is the dotted field path (`palette.staff`). */
-export type EditorErrorCode = 'schema' | 'contrast' | 'name' | 'kind' | 'size' | 'zoneOrder';
+export type EditorErrorCode = 'schema' | 'contrast' | 'name' | 'kind' | 'size' | 'zoneOrder' | 'recipeName' | 'recipeBudget';
 
 export interface EditorError {
   path: string;
@@ -29,6 +31,12 @@ function specErrors(template: Template): EditorError[] {
   const bytes = new TextEncoder().encode(JSON.stringify(template)).length;
   if (bytes > MAX_TEMPLATE_BYTES) errors.push({ path: '', code: 'size' });
   const known = new Set<string>([...BUILTIN_KINDS, ...template.recipes.map((r) => `recipe:${r.name}`)]);
+  const seen = new Set<string>();
+  template.recipes.forEach((recipe, i) => {
+    if (!RECIPE_NAME_PATTERN.test(recipe.name) || seen.has(recipe.name)) errors.push({ path: `recipes.${i}.name`, code: 'recipeName' });
+    seen.add(recipe.name);
+    if (recipeTriangles(recipe) > recipe.budget.maxTriangles) errors.push({ path: `recipes.${i}.budget`, code: 'recipeBudget' });
+  });
   template.mappings.forEach((rule, i) => {
     if (!known.has(rule.spawn)) errors.push({ path: `mappings.${i}.spawn`, code: 'kind' });
   });
