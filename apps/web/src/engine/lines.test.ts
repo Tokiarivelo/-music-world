@@ -75,3 +75,12 @@ describe('voice lines in the plan (I9)', () => {
     expect(buildSpawnPlan(analysis, template, 9, edits)).toEqual(p1);
   });
 });
+
+describe('layer colors', () => {
+  it('gives every layer a distinct hex color, so notes can be told apart by layer', async () => {
+    const { LAYER_COLORS, LAYER_IDS } = await import('./layers');
+    const colors = LAYER_IDS.map((id) => LAYER_COLORS[id]);
+    expect(colors.every((c) => /^#[0-9a-f]{6}$/.test(c))).toBe(true);
+    expect(new Set(colors).size).toBe(colors.length);
+  });
+});

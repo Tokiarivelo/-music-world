@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  LAYER_COLORS,
   LAYER_IDS,
   PRESET_IDS,
   STEM_LAYERS,
@@ -38,17 +39,10 @@ function prefersReducedMotion(): boolean {
   return typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-/** The color a layer wears in the panel: a role of the palette, close to what it shows in the world. */
-const SWATCH: Record<LayerId, keyof Palette> = {
-  drums: "accent",
-  bass: "secondary",
-  vocals: "primary",
-  other: "staff",
-  chords: "accent",
-  lyrics: "staff",
-  fx: "secondary",
-  staff: "staff",
-};
+/** The color a layer wears in the panel: the one its notes have on the 3D staff; the staff shows the template's own. */
+function swatchOf(id: LayerId, palette: Palette): string {
+  return id === "staff" ? palette.staff : LAYER_COLORS[id];
+}
 
 /** "Layers" popover (I5): a toggle per stem, chords, lyrics, effects and staff, presets, and a meter per stem. */
 export function LayersPopover({ hidden, onChange, hasLyrics, palette, activity }: LayersPopoverProps) {
@@ -101,7 +95,7 @@ export function LayersPopover({ hidden, onChange, hasLyrics, palette, activity }
                     onClick={() => onChange(toggleLayer(hidden, id))}
                     type="button"
                   >
-                    <span aria-hidden className="h-4 w-4 shrink-0 rounded-full border border-white/40" style={{ background: palette[SWATCH[id]] }} />
+                    <span aria-hidden className="h-4 w-4 shrink-0 rounded-full border border-white/40" style={{ background: swatchOf(id, palette) }} />
                     <span className="flex-1">{t(`layer.${id}`)}</span>
                     {level !== null && (
                       <span aria-hidden className="h-1.5 w-12 overflow-hidden rounded bg-white/20">
