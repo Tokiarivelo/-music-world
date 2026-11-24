@@ -46,3 +46,17 @@ and in VR.
 
 Vitest for the component; Playwright screenshot at 1280×720 and 390×844; manual: play, click "New song", upload page
 opens, audio stopped.
+
+## As built
+
+- `features/navigation` (`SiteNav`, `NAV_LINKS`); labels are `common` catalog keys `nav*` in `en`, `fr`, `mg`.
+  Rendered at the top of the existing top-left stack of `DemoPlayback` / `ProjectPlayback`, above the director panel,
+  so it cannot overlap the controls (top-right), the language switch (top-centre) or the player bar (bottom).
+- Below `sm` the links hide behind a menu button (`aria-expanded`); the nav is `w-fit` (a full-width nav covered the
+  language switch at 390 px).
+- `scripts/play-layout.mjs` (needs `next dev` on 3125, `MW_ANGLE=vulkan` for the world): bounding-box overlap check at
+  1280×720 and 390×844, fails if a compared element never appears. Both sizes pass.
+- Lifecycle tests: `WorldCanvas.test.tsx` (one dispose per world, also when unmounted before creation; one world per
+  mount) and `use-song-player.test.tsx` (audio stops on unmount).
+- Not done: requirement 7 (`beforeunload` for a dirty template editor) waits for spec `09-template-editor`; requirement
+  5 needs no change (Enter/Exit VR already exists, nothing navigates inside VR).

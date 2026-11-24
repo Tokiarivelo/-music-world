@@ -1,16 +1,21 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useT } from '@/i18n';
-import type { NavigationState } from '@/xr/navigation/navigation-controller';
-import type { ViewPresetId } from '@/xr/navigation/orbit-camera';
-import { createMusicWorld, type WorldControls, type WorldHandle, type WorldScene } from '@/xr/world-host';
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useT } from "@/i18n";
+import type { NavigationState } from "@/xr/navigation/navigation-controller";
+import type { ViewPresetId } from "@/xr/navigation/orbit-camera";
+import {
+  createMusicWorld,
+  type WorldControls,
+  type WorldHandle,
+  type WorldScene,
+} from "@/xr/world-host";
 import {
   INITIAL_NAVIGATION_STATE,
   useNavigationShortcuts,
   type NavigationCommands,
-} from '../hooks/use-navigation-shortcuts';
-import { NavigationControls } from './NavigationControls';
+} from "../hooks/use-navigation-shortcuts";
+import { NavigationControls } from "./NavigationControls";
 
 interface WorldCanvasProps {
   scene?: WorldScene;
@@ -18,14 +23,16 @@ interface WorldCanvasProps {
 }
 
 export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
-  const t = useT('world');
+  const t = useT("world");
   const containerRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<WorldHandle | null>(null);
   const [vrSupported, setVrSupported] = useState(false);
   const [immersive, setImmersive] = useState(false);
   const [failed, setFailed] = useState(false);
   const [handle, setHandle] = useState<WorldHandle | null>(null);
-  const [navigation, setNavigation] = useState<NavigationState>(INITIAL_NAVIGATION_STATE);
+  const [navigation, setNavigation] = useState<NavigationState>(
+    INITIAL_NAVIGATION_STATE,
+  );
 
   useEffect(() => {
     const container = containerRef.current;
@@ -45,7 +52,7 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
         setVrSupported(await created.isVRSupported());
       })
       .catch((error: unknown) => {
-        console.error('[world-view] createMusicWorld failed', error);
+        console.error("[world-view] createMusicWorld failed", error);
         if (!cancelled) setFailed(true);
       });
 
@@ -71,11 +78,12 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
 
   // Camera navigation (08-navigation-mode): the buttons and the keys call the same commands.
   useEffect(() => handle?.onNavigationChange(setNavigation), [handle]);
-  const exploring = navigation.mode === 'explore';
+  const exploring = navigation.mode === "explore";
   const commands = useMemo<NavigationCommands | null>(
     () =>
       handle && {
-        toggleExplore: () => handle.setCameraMode(exploring ? 'cinematic' : 'explore'),
+        toggleExplore: () =>
+          handle.setCameraMode(exploring ? "cinematic" : "explore"),
         selectPreset: (id: ViewPresetId) => handle.setViewPreset(id),
         reset: () => handle.resetView(),
       },
@@ -85,16 +93,29 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
 
   return (
     <div className="fixed inset-0">
-      <div ref={containerRef} aria-label={t('canvasLabel')} className="h-full w-full" role="img" />
-      {failed && <p className="absolute inset-x-0 top-6 text-center">{t('loadError')}</p>}
-      {commands && !immersive && <NavigationControls commands={commands} state={navigation} />}
+      <div
+        ref={containerRef}
+        aria-label={t("canvasLabel")}
+        className="h-full w-full"
+        role="img"
+      />
+      {failed && (
+        <p className="absolute inset-x-0 top-6 text-center">{t("loadError")}</p>
+      )}
+      {commands && !immersive && (
+        <NavigationControls commands={commands} state={navigation} />
+      )}
       {vrSupported && (
         <button
           className="absolute right-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] z-10 rounded-full bg-[var(--mw-accent)] px-6 py-3 font-medium text-black"
-          onClick={() => (immersive ? handleRef.current?.exitVR() : handleRef.current?.enterVR())}
+          onClick={() =>
+            immersive
+              ? handleRef.current?.exitVR()
+              : handleRef.current?.enterVR()
+          }
           type="button"
         >
-          {immersive ? t('exitVR') : t('enterVR')}
+          {immersive ? t("exitVR") : t("enterVR")}
         </button>
       )}
     </div>

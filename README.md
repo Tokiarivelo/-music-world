@@ -26,6 +26,8 @@ world as a template. Anyone can publish templates in a community store.
    diorama with a floating control panel (details in [VR mode](#vr-mode)).
 5. Optional: `/upload` an MP3, WAV or FLAC (≤ 25 MB, ≤ 3 minutes). The page shows the analysis progress per stage
    and then opens your song's world. CPU analysis takes a few minutes per song (Demucs separation dominates).
+6. On the play pages the top-left bar links back to **Home**, **New song** (`/upload`) and **Templates**; on a phone it
+   collapses to one menu button. Leaving a page stops the audio and disposes the world.
 
 ## Run locally
 

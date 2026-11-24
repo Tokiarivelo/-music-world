@@ -7,7 +7,7 @@ convert it to a spec in `.kiro/specs/<NN>-<name>/` (`requirements.md`, `design.m
 
 | Phase | File | Request | Effort | Needs a human |
 |---|---|---|---|---|
-| I1 | [`i1-back-to-upload.md`](i1-back-to-upload.md) | Way back to the upload page from `/play/{id}` | 0.5 day | no |
+| I1 | [`i1-back-to-upload.md`](i1-back-to-upload.md) | Way back to the upload page from `/play/{id}` | 0.5 day | no — **done** (branch `phase-I1-back-to-upload`) |
 | I2 | [`i2-fullscreen-world.md`](i2-fullscreen-world.md) | 3D space fills the whole screen, no black areas | 1–1.5 days | no — **done** (branch `phase-I2-fullscreen-world`) |
 | I3 | [`i3-i18n.md`](i3-i18n.md) | Every text in locale files, multi-language | 2–3 days | translations (fr, mg) — **done** (branch `phase-14-i18n`), review pending |
 | I4 | [`i4-random-scene-colors.md`](i4-random-scene-colors.md) | Brighter scene, random / chosen colors | 1–1.5 days | no |
