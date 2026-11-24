@@ -141,3 +141,15 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
 - Mutation checks, each caught by the property tests: recipe kinds allowed, staff/background contrast rule removed
   (caught only after adding contrast to the oracle), minimum clamp removed, NaN kept, model-provided `id` kept.
 - No Kiro hooks fired (work done outside the Kiro IDE).
+
+### 2026-11-26 — 06-template-store (Claude Code)
+
+- Spec `06-template-store` created from `PROJECT.md` §8 (EARS requirements, design, tasks with requirement refs);
+  tasks 1–6 implemented with the `new-api-module`, `new-web-feature` and `world-template` skills.
+- Property tests (Hypothesis): e-mail normalization (idempotent, never keeps whitespace or control characters), store
+  template ids always valid kebab-case ≤ 60 chars, thumbnail sniffing never crashes on arbitrary bytes.
+- **Finding** (live Playwright check): an anonymous visitor playing another user's store template was offered
+  "Sign in to publish" (republishing someone else's template); the publish button is now limited to templates
+  generated in the session. Second finding: the VR panel has 4 template slots, so store templates listed before the
+  generated ones would have pushed AI worlds out of VR — order changed and the IWER check extended.
+- No Kiro hooks fired (work done outside the Kiro IDE).

@@ -42,4 +42,24 @@ describe('useAiTemplateChoice', () => {
     act(() => hook.result.current.selectTemplate('neon-nocturne'));
     expect(hook.result.current.template.id).toBe('neon-nocturne');
   });
+
+  it('lists the requested store template and generated ones before other store templates, selects it once', () => {
+    const night = { ...NEON_NOCTURNE, id: 'kiroween-pumpkin-night', name: 'Pumpkin Night' };
+    const other = { ...NEON_NOCTURNE, id: 'neon-nocturne-2e3f4a5b' };
+    const d = director([generated('ai-mock-a')]);
+    const hook = renderHook(({ s }) => useAiTemplateChoice(d, s), {
+      initialProps: { s: { templates: [] as (typeof night)[], requestedTemplateId: null as string | null } },
+    });
+    hook.rerender({ s: { templates: [night, other, NEON_NOCTURNE], requestedTemplateId: night.id } });
+    expect(hook.result.current.templates.map((t) => t.id)).toEqual([
+      'neon-nocturne',
+      'kiroween-pumpkin-night',
+      'ai-mock-a',
+      'neon-nocturne-2e3f4a5b',
+    ]);
+    expect(hook.result.current.template.id).toBe('kiroween-pumpkin-night');
+    act(() => hook.result.current.selectTemplate('neon-nocturne'));
+    hook.rerender({ s: { templates: [night, other], requestedTemplateId: night.id } });
+    expect(hook.result.current.template.id).toBe('neon-nocturne');
+  });
 });

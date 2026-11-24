@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { DirectorPanel, useDirector, type DirectorSource } from '@/features/director';
+import { useStoreTemplates } from '@/features/template-store';
 import { WorldView } from '@/features/world-view';
 import { loadAudioUrl } from '../api/project.api';
 import { DEMO_SEED, PLAYER_TEXT } from '../consts/player.consts';
@@ -11,6 +12,7 @@ import { useAiTemplateChoice } from '../hooks/use-ai-template-choice';
 import { useWorldControls } from '../hooks/use-world-controls';
 import { synthesizeSong } from '../lib/synth-song';
 import { PlayerBar } from './PlayerBar';
+import { TemplateActions } from './TemplateActions';
 
 const { analysis } = DEMO_SONG;
 const DEMO_SOURCE: DirectorSource = { kind: 'demo', analysis };
@@ -21,11 +23,13 @@ const DEMO_DEPS: SongPlayerDeps = {
   loadBuffer: () => loadAudioUrl(DEMO_SONG.audioUrl).catch(() => synthesizeSong(analysis.notes, analysis.durationSec)),
 };
 
-/** `/play/demo`: the pre-analysed demo song and its audio, rendered with the default template or an AI-generated one. */
-export function DemoPlayback() {
+/** `/play/demo`: the pre-analysed demo song and its audio, rendered with the default, a store or an AI-generated template
+ * (`?template=<store id>` selects a store template). */
+export function DemoPlayback({ storeTemplateId = null }: { storeTemplateId?: string | null }) {
   const player = useSongPlayer(DEMO_DEPS);
   const director = useDirector(DEMO_SOURCE);
-  const choice = useAiTemplateChoice(director);
+  const store = useStoreTemplates(storeTemplateId);
+  const choice = useAiTemplateChoice(director, store);
   const controls = useWorldControls(player, DEMO_SONG.title, choice);
   const { clock } = player;
   const { template } = choice;
@@ -35,6 +39,9 @@ export function DemoPlayback() {
       <WorldView controls={controls} scene={scene} />
       <div className="absolute left-3 top-3 z-10 max-w-[calc(100%-11rem)] sm:max-w-none">
         <DirectorPanel director={director} template={template} />
+        <div className="mt-2 rounded-lg bg-[var(--mw-bg)]/80 px-3 py-2 empty:hidden">
+          <TemplateActions template={template} generatedHere={director.templates.includes(template)} />
+        </div>
       </div>
       {/* IWSDK sizes its canvas to the window, so the controls float above it. */}
       <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[var(--mw-bg)] to-transparent pt-6">

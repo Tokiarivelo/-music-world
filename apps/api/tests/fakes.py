@@ -8,10 +8,12 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from music_world.accounts.domain.model import LoginToken, Session, User
 from music_world.projects.domain.job import Job
 from music_world.projects.domain.project import Project
 from music_world.schemas.analysis import AnalysisResult
 from music_world.system.application.ports import CheckStatus
+from music_world.templates.domain.model import PageCursor, StoreTemplate, TemplateReport, TemplateStatus
 
 
 class FakeClock:
@@ -140,3 +142,108 @@ def wav_bytes(seconds: float = 0.5, sample_rate: int = 8000, freq: float = 440.0
         w.setframerate(sample_rate)
         w.writeframes(b"".join(struct.pack("<h", s) for s in samples))
     return buf.getvalue()
+
+
+class InMemoryUserRepository:
+    def __init__(self) -> None:
+        self.users: dict[str, User] = {}
+
+    async def get(self, user_id: str) -> User | None:
+        return self.users.get(user_id)
+
+    async def get_by_email(self, email: str) -> User | None:
+        return next((u for u in self.users.values() if u.email == email), None)
+
+    async def add(self, user: User) -> None:
+        self.users[user.id] = user
+
+
+class InMemoryLoginTokenRepository:
+    def __init__(self) -> None:
+        self.tokens: dict[str, tuple[LoginToken, datetime | None]] = {}
+
+    async def add(self, token: LoginToken) -> None:
+        self.tokens[token.token_hash] = (token, None)
+
+    async def consume(self, token_hash: str, now: datetime) -> str | None:
+        entry = self.tokens.get(token_hash)
+        if entry is None or entry[1] is not None or entry[0].expires_at <= now:
+            return None
+        self.tokens[token_hash] = (entry[0], now)
+        return entry[0].email
+
+
+class InMemorySessionRepository:
+    def __init__(self) -> None:
+        self.sessions: dict[str, Session] = {}
+
+    async def add(self, session: Session) -> None:
+        self.sessions[session.token_hash] = session
+
+    async def get(self, token_hash: str) -> Session | None:
+        return self.sessions.get(token_hash)
+
+    async def delete(self, token_hash: str) -> None:
+        self.sessions.pop(token_hash, None)
+
+
+class CapturingEmailSender:
+    def __init__(self, error: Exception | None = None) -> None:
+        self.sent: list[tuple[str, str]] = []
+        self.error = error
+
+    async def send_sign_in_link(self, email: str, link: str) -> None:
+        if self.error is not None:
+            raise self.error
+        self.sent.append((email, link))
+
+    def last_token(self) -> str:
+        from urllib.parse import parse_qs, urlsplit
+
+        return parse_qs(urlsplit(self.sent[-1][1]).query)["token"][0]
+
+
+class InMemoryStoreTemplateRepository:
+    def __init__(self) -> None:
+        self.templates: dict[str, StoreTemplate] = {}
+
+    async def add(self, template: StoreTemplate) -> None:
+        self.templates[template.id] = template
+
+    async def get(self, template_id: str) -> StoreTemplate | None:
+        return self.templates.get(template_id)
+
+    async def save(self, template: StoreTemplate) -> None:
+        self.templates[template.id] = template
+
+    async def delete(self, template_id: str) -> None:
+        self.templates.pop(template_id, None)
+
+    async def list_published(self, after: PageCursor | None, limit: int) -> list[StoreTemplate]:
+        rows = sorted(
+            (t for t in self.templates.values() if t.status is TemplateStatus.PUBLISHED and t.published_at),
+            key=lambda t: (t.published_at, t.id),
+            reverse=True,
+        )
+        if after is not None:
+            rows = [t for t in rows if (t.published_at, t.id) < (after.published_at, after.id)]
+        return rows[:limit]
+
+    async def list_by_owner(self, owner_id: str, limit: int) -> list[StoreTemplate]:
+        rows = [t for t in self.templates.values() if t.owner_id == owner_id]
+        return sorted(rows, key=lambda t: t.created_at, reverse=True)[:limit]
+
+
+class InMemoryReportRepository:
+    def __init__(self) -> None:
+        self.reports: dict[tuple[str, str], TemplateReport] = {}
+
+    async def add(self, report: TemplateReport) -> bool:
+        key = (report.template_id, report.user_id)
+        if key in self.reports:
+            return False
+        self.reports[key] = report
+        return True
+
+    async def count(self, template_id: str) -> int:
+        return sum(1 for t, _ in self.reports if t == template_id)

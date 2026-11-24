@@ -101,6 +101,33 @@ curl -k https://localhost/api/director/providers
 curl -k -X POST https://localhost/api/projects/<projectId>/director -H 'content-type: application/json' -d '{"provider":"muse"}'
 ```
 
+### Accounts
+
+Publishing a template needs an account: on `/sign-in`, enter an e-mail address and open the single-use link (valid
+15 minutes). Without SMTP settings (`AUTH_EMAIL_SENDER=console`, the default) the link is written to the api logs
+(`make logs`, event `auth.sign_in_link`); set `AUTH_EMAIL_SENDER=smtp` and `SMTP_HOST`, `SMTP_PORT`,
+`SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM` in `infra/.env` to send real e-mails. Songs uploaded while signed in are
+private to their owner; songs uploaded signed out stay readable by their link (the demo needs no account).
+
+Signed in, an AI-generated world gets a **Publish to the store** button on the play page: the API validates the
+template again (schema, 32 KB, built-in shapes, readable staff, plain-text name), gives it a unique id and a small
+generated preview image, and lists it in the public gallery.
+
+The gallery at `/templates` (no account needed) lists published templates newest first, after the launch templates
+(the Halloween **Kiroween Pumpkin Night**: pumpkins, tombstones and a haunted town).
+**Use this template** opens `/play/demo?template=<store id>` with it (`/play/<projectId>?template=<store id>` works
+too); the player's template picker, in 2D and in VR, also offers the 12 newest store templates. If the store cannot be
+reached, the player keeps the built-in and AI-generated templates.
+
+Signed-in visitors can **Report** a community template (offensive, spam, does not render, copyright); after
+`TEMPLATE_REPORT_HIDE_THRESHOLD` (default 3) distinct reports it leaves the gallery until reviewed. Uploads are limited
+to `UPLOAD_RATE_LIMIT_PER_HOUR` (default 20) per user or IP, template publication to
+`TEMPLATE_PUBLISH_RATE_LIMIT_PER_HOUR` (default 10) per user.
+
+```bash
+curl -k https://localhost/api/templates?limit=5          # {"items":[…],"nextCursor":…}
+```
+
 ## License
 
 [MIT](LICENSE)

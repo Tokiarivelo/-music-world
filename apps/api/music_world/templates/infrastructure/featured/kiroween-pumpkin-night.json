@@ -1,0 +1,40 @@
+{
+  "schema": "music-world.template.v1",
+  "id": "kiroween-pumpkin-night",
+  "name": "Kiroween Pumpkin Night",
+  "license": "CC-BY-4.0",
+  "palette": {
+    "background": "#0b0612",
+    "terrain": "#1d1226",
+    "primary": "#8a3cff",
+    "accent": "#ff7a1a",
+    "secondary": "#7dff6a",
+    "staff": "#fff4e0"
+  },
+  "terrain": { "style": "cracked_plate", "mountains": "edges", "size": 12 },
+  "staff": {
+    "style": "glowing_lines",
+    "path": "diagonal_curve",
+    "clef": "treble",
+    "glow": 1.0,
+    "lookahead": 4.0,
+    "fallDuration": 0.45
+  },
+  "mappings": [
+    { "when": { "chord": true, "pitch": "<60" }, "spawn": "cluster", "heightFrom": "velocity", "colorRole": "accent" },
+    { "when": { "pitch": "<48" }, "spawn": "crystal", "heightFrom": "duration", "colorRole": "secondary" },
+    { "when": { "pitch": "48-72" }, "spawn": "building", "heightFrom": "velocity" },
+    { "when": { "pitch": ">72" }, "spawn": "spike", "heightFrom": "velocity", "colorRole": "accent" },
+    { "when": {}, "spawn": "building" }
+  ],
+  "zones": [
+    { "kind": "building", "xMin": -0.95, "xMax": -0.15, "zMin": -0.95, "zMax": -0.2 },
+    { "kind": "building", "xMin": -0.95, "xMax": -0.45, "zMin": -0.2, "zMax": 0.5 },
+    { "kind": "spike", "xMin": -0.95, "xMax": -0.1, "zMin": -0.95, "zMax": -0.7 },
+    { "kind": "crystal", "xMin": 0.35, "xMax": 0.95, "zMin": 0.2, "zMax": 0.95 },
+    { "kind": "cluster", "xMin": -0.4, "xMax": 0.3, "zMin": 0.55, "zMax": 0.95 },
+    { "kind": "terrain_ridge", "xMin": 0.72, "xMax": 0.95, "zMin": -0.95, "zMax": 0.15 }
+  ],
+  "budget": { "instancesPerKind": 2000 },
+  "fx": { "particles": "dust", "bloom": 0.8, "beatPulse": true, "chordLinks": "light_arc" }
+}

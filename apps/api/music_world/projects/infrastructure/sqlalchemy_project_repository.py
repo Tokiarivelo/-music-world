@@ -20,6 +20,7 @@ class ProjectRow(Base):
     lrc_text: Mapped[str | None] = mapped_column(Text)
     job_id: Mapped[str | None] = mapped_column(Uuid(as_uuid=False))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    owner_id: Mapped[str | None] = mapped_column(Uuid(as_uuid=False), index=True)
 
 
 def _to_domain(row: ProjectRow) -> Project:
@@ -33,12 +34,14 @@ def _to_domain(row: ProjectRow) -> Project:
         lrc_text=row.lrc_text,
         job_id=str(row.job_id) if row.job_id else None,
         created_at=created,
+        owner_id=str(row.owner_id) if row.owner_id else None,
     )
 
 
 def _apply(row: ProjectRow, p: Project) -> None:
     row.audio_hash, row.audio_key, row.audio_format = p.audio_hash, p.audio_key, p.audio_format
     row.duration_sec, row.lrc_text, row.job_id, row.created_at = p.duration_sec, p.lrc_text, p.job_id, p.created_at
+    row.owner_id = p.owner_id
 
 
 class SqlAlchemyProjectRepository:

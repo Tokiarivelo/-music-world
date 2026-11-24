@@ -12,3 +12,7 @@ class MusicWorldError(Exception):
 
 class NotFoundError(MusicWorldError):
     code = "NOT_FOUND"
+
+
+class RateLimitedError(MusicWorldError):
+    code = "RATE_LIMITED"

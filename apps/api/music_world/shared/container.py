@@ -1,12 +1,33 @@
 """Composition root: the only place where ports are bound to adapters."""
 
+import secrets
+from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 
 import structlog
 from arq.connections import ArqRedis
 from pydantic import SecretStr
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from music_world.accounts.application.ports import (
+    EmailSender,
+    LoginTokenRepository,
+    SessionRepository,
+    UserRepository,
+)
+from music_world.accounts.application.use_cases.sign_in import (
+    RequestMagicLink,
+    ResolveSession,
+    SignOut,
+    VerifyMagicLink,
+)
+from music_world.accounts.infrastructure.email_senders import ConsoleEmailSender, SmtpEmailSender
+from music_world.accounts.infrastructure.sqlalchemy_repositories import (
+    SqlAlchemyLoginTokenRepository,
+    SqlAlchemySessionRepository,
+    SqlAlchemyUserRepository,
+)
 from music_world.analysis.application.use_cases.analysis_cache import AnalysisCache
 from music_world.analysis.application.use_cases.get_project_analysis import GetProjectAnalysis
 from music_world.analysis.infrastructure.project_audio_source import ProjectsAudioSource
@@ -25,6 +46,7 @@ from music_world.director.infrastructure.prompts import DirectorPromptSet
 from music_world.director.infrastructure.providers.mock import MOCK_MODEL, MockProvider
 from music_world.director.infrastructure.providers.muse import MuseProvider, is_contributor_model
 from music_world.projects.application.ports import JobHandler
+from music_world.projects.application.use_cases.check_project_access import CheckProjectAccess
 from music_world.projects.application.use_cases.create_project import CreateProject
 from music_world.projects.application.use_cases.enqueue_job import EnqueueJob
 from music_world.projects.application.use_cases.get_job import GetJob
@@ -45,6 +67,28 @@ from music_world.shared.rate_limit import SlidingWindowLimiter
 from music_world.shared.settings import Settings
 from music_world.system.application.use_cases.check_health import CheckHealth
 from music_world.system.infrastructure.probes import PostgresProbe, RedisProbe, S3Probe
+from music_world.templates.application.ports import (
+    FeaturedCatalog,
+    ReportRepository,
+    StoreTemplateRepository,
+    ThumbnailStore,
+)
+from music_world.templates.application.use_cases.store import (
+    CreateStoreTemplate,
+    DeleteStoreTemplate,
+    GetStoreTemplate,
+    GetThumbnail,
+    ListMyTemplates,
+    ListPublishedTemplates,
+    PublishStoreTemplate,
+    ReportTemplate,
+    SetThumbnail,
+)
+from music_world.templates.infrastructure.featured_catalog import FileFeaturedCatalog
+from music_world.templates.infrastructure.sqlalchemy_store_repository import (
+    SqlAlchemyReportRepository,
+    SqlAlchemyStoreTemplateRepository,
+)
 
 log = structlog.get_logger(__name__)
 
@@ -128,6 +172,118 @@ def build_director(
 
 
 @dataclass
+class AccountServices:
+    request_magic_link: RequestMagicLink
+    verify_magic_link: VerifyMagicLink
+    resolve_session: ResolveSession
+    sign_out: SignOut
+    link_ip_limiter: SlidingWindowLimiter
+    link_email_limiter: SlidingWindowLimiter
+    verify_ip_limiter: SlidingWindowLimiter
+
+
+MAGIC_LINKS_PER_EMAIL_PER_HOUR = 5
+VERIFY_PER_IP_PER_HOUR = 30
+
+
+def new_secret_token() -> str:
+    return secrets.token_urlsafe(32)  # 256 bits
+
+
+def email_sender(settings: Settings) -> EmailSender:
+    if settings.auth_email_sender == "smtp":
+        if not (settings.smtp_host and settings.smtp_from):
+            raise ValueError("AUTH_EMAIL_SENDER=smtp needs SMTP_HOST and SMTP_FROM")
+        return SmtpEmailSender(
+            settings.smtp_host,
+            settings.smtp_port,
+            settings.smtp_from,
+            username=settings.smtp_username,
+            password=settings.smtp_password.get_secret_value() if settings.smtp_password else None,
+            starttls=settings.smtp_starttls,
+            ttl_min=settings.auth_token_ttl_min,
+        )
+    if settings.app_env == "production":
+        log.warning("auth.console_email_sender_in_production")
+    return ConsoleEmailSender()
+
+
+def build_accounts(
+    settings: Settings,
+    users: UserRepository,
+    tokens: LoginTokenRepository,
+    sessions: SessionRepository,
+    sender: EmailSender,
+    *,
+    new_token: Callable[[], str] = new_secret_token,
+    new_id: Callable[[], str] = uuid7,
+    clock: Callable[[], datetime] = utc_now,
+) -> AccountServices:
+    return AccountServices(
+        request_magic_link=RequestMagicLink(
+            tokens,
+            sender,
+            new_token,
+            clock,
+            base_url=settings.public_base_url,
+            ttl=timedelta(minutes=settings.auth_token_ttl_min),
+        ),
+        verify_magic_link=VerifyMagicLink(
+            tokens, users, sessions, new_token, new_id, clock, session_ttl=timedelta(days=settings.session_ttl_days)
+        ),
+        resolve_session=ResolveSession(sessions, users, clock),
+        sign_out=SignOut(sessions),
+        link_ip_limiter=SlidingWindowLimiter(settings.auth_rate_limit_per_hour, 3600.0),
+        link_email_limiter=SlidingWindowLimiter(MAGIC_LINKS_PER_EMAIL_PER_HOUR, 3600.0),
+        verify_ip_limiter=SlidingWindowLimiter(VERIFY_PER_IP_PER_HOUR, 3600.0),
+    )
+
+
+@dataclass
+class TemplateServices:
+    create: CreateStoreTemplate
+    publish: PublishStoreTemplate
+    set_thumbnail: SetThumbnail
+    delete: DeleteStoreTemplate
+    get: GetStoreTemplate
+    get_thumbnail: GetThumbnail
+    list_published: ListPublishedTemplates
+    list_mine: ListMyTemplates
+    report: ReportTemplate
+    publish_limiter: SlidingWindowLimiter
+
+
+def new_object_key() -> str:
+    return secrets.token_hex(16)
+
+
+def build_templates(
+    settings: Settings,
+    repo: StoreTemplateRepository,
+    store: ThumbnailStore,
+    reports: ReportRepository,
+    featured: FeaturedCatalog | None = None,
+    *,
+    new_id: Callable[[], str] = uuid7,
+    clock: Callable[[], datetime] = utc_now,
+) -> TemplateServices:
+    catalog = featured if featured is not None else FileFeaturedCatalog()
+    get = GetStoreTemplate(repo, catalog)
+    return TemplateServices(
+        create=CreateStoreTemplate(repo, new_id, clock),
+        publish=PublishStoreTemplate(repo, clock),
+        set_thumbnail=SetThumbnail(repo, store, new_object_key),
+        delete=DeleteStoreTemplate(repo),
+        get=get,
+        get_thumbnail=GetThumbnail(get, store),
+        list_published=ListPublishedTemplates(repo, catalog),
+        list_mine=ListMyTemplates(repo),
+        report=ReportTemplate(repo, reports, get, clock, hide_threshold=settings.template_report_hide_threshold),
+        publish_limiter=SlidingWindowLimiter(settings.template_publish_rate_limit_per_hour, 3600.0),
+    )
+
+
+@dataclass
 class Container:
     settings: Settings
     enqueue_job: EnqueueJob
@@ -140,6 +296,10 @@ class Container:
     get_project_analysis: GetProjectAnalysis
     get_project_audio: GetProjectAudio
     director: DirectorServices
+    accounts: AccountServices
+    templates: TemplateServices
+    check_project_access: CheckProjectAccess
+    upload_limiter: SlidingWindowLimiter = field(default_factory=lambda: SlidingWindowLimiter(20, 3600.0))
     engine: AsyncEngine | None = None
     redis: ArqRedis | None = None
     handlers: dict[str, JobHandler] = field(default_factory=dict)
@@ -211,6 +371,18 @@ def build_container(settings: Settings, *, with_analysis: bool = False) -> Conta
         get_project_analysis=get_project_analysis,
         get_project_audio=GetProjectAudio(projects, store),
         director=build_director(settings, store, get_project_analysis),
+        accounts=build_accounts(
+            settings,
+            SqlAlchemyUserRepository(sessions),
+            SqlAlchemyLoginTokenRepository(sessions),
+            SqlAlchemySessionRepository(sessions),
+            email_sender(settings),
+        ),
+        templates=build_templates(
+            settings, SqlAlchemyStoreTemplateRepository(sessions), store, SqlAlchemyReportRepository(sessions)
+        ),
+        upload_limiter=SlidingWindowLimiter(settings.upload_rate_limit_per_hour, 3600.0),
+        check_project_access=CheckProjectAccess(projects),
         engine=engine,
         redis=redis,
         handlers=handlers,

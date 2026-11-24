@@ -53,6 +53,23 @@ class Settings(BaseSettings):
     director_audio_hint: bool = False
     director_rate_limit_per_hour: int = 30
 
+    # Accounts and template store (06-template-store). SMTP password stays server side.
+    public_base_url: str = "http://localhost:3000"
+    auth_email_sender: Literal["console", "smtp"] = "console"
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_username: str | None = None
+    smtp_password: SecretStr | None = None
+    smtp_from: str | None = None
+    smtp_starttls: bool = True
+    auth_token_ttl_min: int = 15
+    session_ttl_days: int = 30
+    session_cookie_secure: bool = True
+    auth_rate_limit_per_hour: int = 10
+    template_publish_rate_limit_per_hour: int = 10
+    template_report_hide_threshold: int = 3
+    upload_rate_limit_per_hour: int = 20
+
     @property
     def storage_configured(self) -> bool:
         return bool(self.s3_endpoint and self.s3_bucket and self.s3_access_key and self.s3_secret_key)

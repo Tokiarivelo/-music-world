@@ -42,6 +42,12 @@ class Project:
     lrc_text: str | None
     job_id: str | None
     created_at: datetime
+    owner_id: str | None = None  # None: uploaded without a session, readable by its unguessable id
+
+
+def can_access(project: Project, caller_id: str | None) -> bool:
+    """Owned projects are visible to their owner only (06-template-store requirement 2.2)."""
+    return project.owner_id is None or project.owner_id == caller_id
 
 
 def sniff_audio_format(header: bytes) -> AudioFormat:
