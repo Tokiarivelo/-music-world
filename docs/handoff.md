@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-24 · **Last updated by:** Claude Code (`world-builder`, roadmap Phase 4 — default look)
+> **Date:** 2026-11-25 · **Last updated by:** Claude Code (`world-builder`, roadmap Phase 7 — XR mode)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -12,34 +12,31 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 1. Repository state
 
-- Phase 4 worked on branch `phase-4-default-look` (one commit per `04-default-template` task, `83e471c` … + this
-  handoff), merged into `main` through the PR "Phase 4: default look". Work from `main` (or a new phase branch).
+- Phase 7 worked on branch `phase-7-xr-mode` (one commit per `07-xr-mode` task, `fdfbb68` … + this handoff), merged
+  into `main` through the PR "Phase 7: XR mode". Work from `main` (or a new phase branch).
   Push with gh credentials: `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
 - Uncommitted: none.
-- `make check` green: API pytest 159 passed (3 slow deselected) · web vitest 121 passed (19 files) · ruff, mypy
+- `make check` green: API pytest 159 passed (3 slow deselected) · web vitest 140 passed (24 files) · ruff, mypy
   strict, eslint, tsc clean · schema drift check ok · architecture check ok.
-- Verified on a production build (`pnpm -C apps/web build && pnpm -C apps/web exec next start -p 3124`, headless
-  Chromium + SwiftShader, `/play/demo?perf=1`): 15–16 draw calls, ≈ 72–75 k triangles. Server stopped.
+- IWER check: `MW_ANGLE=vulkan node apps/web/scripts/xr-check.mjs` against `next dev -p 3125` → 27/27 (SwiftShader:
+  21/21, panel clicks skipped). Dev server stopped.
 - A `music-world` Compose stack and another project's containers (`angaly_*`, postgres on 5432) may be running —
   not started by these sessions; leave them alone.
 
-## 2. Last session (2026-11-24, Claude Code as `world-builder`)
+## 2. Last session (2026-11-25, Claude Code as `world-builder`)
 
-- Created spec `04-default-template` (requirements, design, tasks) from `PROJECT.md` §2 and the `world-template`
-  checklist; tasks 1–5 done. `03-world-engine-core` task 6 (side-by-side checkpoint) ticked.
-- Details, measurements and the list of remaining mismatches: `.kiro/specs/04-default-template/design.md`
-  § "As built (Phase 4)".
-- **Deviation**: the staff path (`engine/staff.ts`) now runs near edge → far edge (not corner to corner), which is
-  what the reference shows from its near-isometric camera; template zones moved with it (city left of the staff).
-- Camera: azimuth 27°, elevation 31°, FOV 20°, 2.5 m (`xr/constants.ts`, `desktopCameraPose`). VR unchanged.
-- Terrain: `xr/terrain-field.ts` (pure height field + crack network), baked vertex shading on unlit materials;
-  ridges render as rugged dark mountains.
-- **Bravura**: font + OFL license in `assets/fonts/bravura/`; `scripts/extract_bravura_glyphs.py` generates
-  `xr/glyphs/bravura-outlines.ts`; glyphs are instanced `ShapeGeometry` (not SDF text — `tech.md` updated), with an
-  additive halo per glyph and around the staff lines. G clefs at both ends.
-- City: lit windows via `onBeforeCompile` (`xr/shapes/city-materials.ts`), equalizer needle clusters (additive);
-  decor arcs aligned to the staff, round particles mostly on the arcs; no post-processing bloom.
-- `?perf=1` logs `renderer.info` once per second (`PerfSystem`).
+- Created spec `07-xr-mode` (requirements, design, tasks); tasks 1–6 done, task 7 (Quest 3) is human.
+- Enter / Exit VR (2D button follows `world.visibilityState`), hand tracking optional; on session start the diorama
+  anchor is placed 1.3 m ahead of the head at 0.85 m, facing the user (`xr/xr-placement.ts`); restored on exit.
+- Controllers: A/X play-pause, thumbstick ±5 s, grip recenter (`xr/xr-input-map.ts`, `XRControlSystem`).
+- Spatial panel: `public/ui/xr-panel.uikitml` parsed at runtime by IWSDK `PanelUI`; play, restart, ±10 s, time +
+  progress, template picker (`BUILTIN_TEMPLATES`, one template for now), recenter, Exit VR; hidden on the desktop.
+- Left-hand pinch toggles play (strength 0.75 press / 0.6 release, `xr/pinch.ts`), not while the panel is hovered.
+- **Deviation**: player commands go through `WorldHandle.setControls` (`WorldView` prop `controls`), not `WorldScene`.
+- Multiview: window shader checked by recompiling all programs with super-three's multiview rewrite (`OVR_multiview2`).
+- Steady state: paused frames allocate nothing and upload no instance buffer (clock, staff, fx, panel).
+- Numbers and Quest steps: `.kiro/specs/07-xr-mode/design.md` § Performance, § Human checks (46 draw calls both eyes,
+  ≈ 6.2 ms stereo frame on a GTX 960M in IWER).
 
 ## 3. Next actions
 
@@ -50,8 +47,8 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
    `apps/web/public/demo/`, run `cd apps/api && uv run python scripts/analyze_file.py <mp3> <json>`, replace
    `features/player/demo/neon-nocturne.analysis.json` (+ title/url in `demo-song.ts`); `test_demo_fixture.py`
    checks the hash. Re-check the default look with it (spike colors follow its pitch range).
-2. Roadmap 7a — Enter VR check of the diorama in IWER (skill `xr-verify`), then `03-world-engine-core` task 7 on a
-   Quest 3 (human): fps, glyph readability at 1 m, window shader under multiview.
+2. **Human** — `07-xr-mode` task 7 on a Quest 3: steps in `design.md` § Human checks (fps ≥ 72, multiview windows,
+   pinch, glyphs at 1 m); then tick `03-world-engine-core` task 7.
 3. Roadmap 5 (`ai-director`) — `05-ai-world-director`: generate design + tasks with Kiro; the director reads
    `GET /api/projects/{id}/analysis` (contract `music-world.analysis.v1`).
 4. Roadmap 8 — infra: the API image needs ffmpeg + torch CPU (~1.4 GB more); pre-download Demucs weights at image
@@ -70,9 +67,10 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 | 02-music-analysis 1–5, 6.2, 7–10 | Claude Code (audio-analyst) | done | merged with Phase 3 PR |
 | 02-music-analysis 6.1 | — | blocked | Muse Voice: needs `META_API_KEY` + format check (P2) |
 | 03-world-engine-core 1–6 | Claude Code (world-builder) | done | task 6 with Phase 4 PR |
-| 03-world-engine-core 7 | — | blocked | needs a Quest 3 (human); IWER first check possible |
+| 03-world-engine-core 7 | — | blocked | needs a Quest 3 (human); IWER check done (07-xr-mode design.md) |
 | 04-default-template 1–5 | Claude Code (world-builder) | done | merged with Phase 4 PR |
-| 07-xr-mode 2–6 | Claude Code (world-builder) | in progress | branch `phase-7-xr-mode` |
+| 07-xr-mode 1–6 | Claude Code (world-builder) | done | merged with Phase 7 PR |
+| 07-xr-mode 7 | — | blocked | Quest 3 check (human) |
 | 05-ai-world-director | ai-director | todo | generate design.md + tasks.md with Kiro first; contracts exist |
 
 ## 5. Active pitfalls
@@ -101,6 +99,12 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 - No repo Prettier config: format with `npx prettier --print-width 120 --single-quote` on the files you touch only.
 - Playwright: use `executablePath` `~/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome` with
   `--use-angle=swiftshader`; seek a paused `/play/demo` by filling `input[type=range]`.
+- IWER: while a session runs its layer covers the page (2D buttons not clickable; use the panel). Panel clicks need
+  pointerdown → pointerup within 300 ms: run `xr-check.mjs` with `MW_ANGLE=vulkan` (SwiftShader is too slow).
+- Dev-only globals `window.__mwWorld` / `__mwXRDevice` are read by `xr-check.mjs`; keep them development-only.
+- Panel text uses the bundled MSDF Inter font: no U+2212 minus or other missing glyphs (rendered as boxes).
+- Template picker lists `BUILTIN_TEMPLATES` (`templates/default/index.ts`): add store templates there or pass them
+  to `useTemplateChoice` when `06-template-store` lands.
 - Do not `pkill -f "<pattern>"` from the agent shell: the pattern matches the shell itself and kills it; keep PIDs.
 - No auth yet: project routes are public (accounts context missing); no upload rate limit.
 - Deadline: Kiroween submission **2026-12-04 14:00 PT**; demo audio must be royalty-free.
@@ -115,4 +119,4 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 | 04-default-template | 1–5 done | — (polish P2) | design.md § As built (Phase 4) |
 | 05-ai-world-director | requirements only | create design + tasks | requirements.md |
 | 06-template-store | to create with Kiro | — | PROJECT.md §8 |
-| 07-xr-mode | 1 done | 2 (Enter VR + placement) | design.md § Session, § Placement |
+| 07-xr-mode | 1–6 done | 7 (Quest, human) | design.md § Human checks |

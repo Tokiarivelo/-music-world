@@ -118,3 +118,14 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
   sections, lyrics) caught a silent data loss: `start + (end - start)` rounding (3.5234000000000005 > 3.5234)
   dropped the last note of a song; assembly now uses the validator's 1e-6 tolerance. The slow end-to-end test
   checks determinism (same audio analysed twice from scratch → identical result; Demucs runs with `shifts=0`).
+
+### 2026-11-25 — 07-xr-mode tasks 1–6 (Claude Code, `world-builder`)
+
+- Spec `07-xr-mode` created from `PROJECT.md` §7, `xr-iwsdk.md` and the `xr-verify` skill (7 requirements, EARS).
+- IWSDK 1.1.0 / IWER 2.8.0 APIs checked in the installed typings and sources before use (`visibilityState`,
+  `input.xr.gamepads`, `getPinchStrength`, `PanelUI` runtime `.uikitml` parsing, `Hovered`).
+- Property tests: tabletop placement (distance, height, front edge faces the head for any head pose), yaw extraction
+  independent of pitch/roll, pinch hysteresis (edges alternate, never press below 0.75).
+- New verification tool `apps/web/scripts/xr-check.mjs`: drives IWER from Playwright (27 checks) and recompiles every
+  program with super-three's multiview rewrite on `OVR_multiview2` — the building window shader is multiview-safe.
+- No Kiro hooks fired (work done outside the Kiro IDE).
