@@ -37,7 +37,7 @@ apps/web/src/
 - **Server/client split**: components that touch `window`, Web Audio or IWSDK are client components; the world is
   loaded with `dynamic(..., { ssr: false })`.
 - **Secrets**: the web app never sees LLM keys; it calls `/api/*` only.
-- **UI**: Tailwind CSS, mobile-first (`sm: md: lg:`), checked at 375, 768 and 1280 px. Dark theme by default using the
+- **UI**: follow the skill `design-system` (tokens, recipes, checklist) for every screen; Tailwind CSS, mobile-first (`sm: md: lg:`), checked at 375, 768 and 1280 px. Dark theme by default using the
   palette tokens of the default template (`--mw-bg`, `--mw-primary`, `--mw-accent`, `--mw-secondary`).
 - **Full-screen world**: `WorldCanvas` is `fixed inset-0` (overlays are absolute children, using
   `env(safe-area-inset-*)`); the host resizes the renderer with a `ResizeObserver` (pixel ratio capped at 2) and feeds

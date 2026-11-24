@@ -24,7 +24,7 @@ Rules: `.kiro/steering/frontend.md`, `coding-standards.md`.
 4. **Page**: add or edit `src/app/<route>/page.tsx` so it only composes components imported from the barrel.
 5. **3D**: never render Three.js in React. If the feature affects the world, call the typed command API exported by
    `features/world-view` (e.g. `useWorldCommands()`), which talks to `src/xr/world-host.ts`.
-6. **UI**: Tailwind mobile-first; palette CSS variables (`--mw-*`); keyboard access; check 375 / 768 / 1280 px.
+6. **UI**: load the skill `design-system` first and reuse its recipes; Tailwind mobile-first; palette CSS variables (`--mw-*`); keyboard access; check 375 / 768 / 1280 px.
 7. **Tests**: Vitest + Testing Library for hooks and interactive components (`__tests__/` next to the code).
 8. **Docs**: `README.md` if the feature is user-visible; spec task ticked; handoff updated.
 9. Run `pnpm -C apps/web exec vitest run src/features/<feature>` and `pnpm -C apps/web typecheck`.
