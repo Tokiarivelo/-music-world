@@ -1,6 +1,8 @@
 import {
+  applyContrast,
   generatePalette,
   liftBrightness,
+  lightLevelFor,
   PALETTE_ROLES,
   seedFromNumber,
   type Palette,
@@ -17,9 +19,11 @@ export interface PaletteState {
   locked: readonly PaletteRole[];
   /** Brightness slider in [-1, 1]: lifts background and terrain on top of the colors above; 0 = unchanged. */
   brightness: number;
+  /** Contrast slider in [-1, 1]: base vs neon lightness gap; 0 = unchanged. */
+  contrast: number;
 }
 
-const EMPTY: PaletteState = { seed: null, override: null, locked: [], brightness: 0 };
+const EMPTY: PaletteState = { seed: null, override: null, locked: [], brightness: 0, contrast: 0 };
 const HISTORY_LIMIT = 50;
 const HEX = /^#[0-9a-f]{6}$/;
 
@@ -41,7 +45,7 @@ function safeStorage(): PaletteStorage | null {
 
 function sanitize(value: unknown): PaletteState {
   if (!value || typeof value !== "object") return EMPTY;
-  const raw = value as Partial<{ seed: unknown; override: unknown; locked: unknown; brightness: unknown }>;
+  const raw = value as Partial<{ seed: unknown; override: unknown; locked: unknown; brightness: unknown; contrast: unknown }>;
   const override: PaletteOverride = {};
   if (raw.override && typeof raw.override === "object") {
     for (const role of PALETTE_ROLES) {
@@ -60,13 +64,23 @@ function sanitize(value: unknown): PaletteState {
       typeof raw.brightness === "number" && Number.isFinite(raw.brightness)
         ? Math.max(-1, Math.min(1, raw.brightness))
         : 0,
+    contrast:
+      typeof raw.contrast === "number" && Number.isFinite(raw.contrast)
+        ? Math.max(-1, Math.min(1, raw.contrast))
+        : 0,
   };
 }
 
 /** What the world shows: the template colors, the chosen override, then the brightness lift. `null` = untouched. */
 export function effectiveOverride(templatePalette: Palette, state: PaletteState): PaletteOverride | null {
   const chosen = { ...templatePalette, ...(state.override ?? {}) };
-  return diff(templatePalette, state.brightness === 0 ? chosen : liftBrightness(chosen, state.brightness));
+  const lifted = state.brightness === 0 ? chosen : liftBrightness(chosen, state.brightness);
+  return diff(templatePalette, applyContrast(lifted, state.contrast));
+}
+
+/** Scene light multiplier that goes with the brightness slider (1 = template look). */
+export function effectiveLightLevel(state: PaletteState): number {
+  return lightLevelFor(state.brightness);
 }
 
 /** `?palette=<seed>` → seed (letters and digits only, ≤ 16 characters), else null. */
@@ -98,6 +112,7 @@ export interface PaletteStore {
   setColor(role: PaletteRole, hex: string): void;
   toggleLock(role: PaletteRole): void;
   setBrightness(value: number): void;
+  setContrast(value: number): void;
   undo(): void;
   redo(): void;
   /** "Reset to the template": clears the override, the locks and the saved choice. */
@@ -137,13 +152,14 @@ export function createPaletteStore(options: PaletteStoreOptions): PaletteStore {
       override: diff(templatePalette, generatePalette(linkSeed)),
       locked: [],
       brightness: 0,
+      contrast: 0,
     };
   }
 
   const persist = () => {
     try {
       if (!storage) return;
-      if (state.override || state.locked.length > 0 || state.brightness !== 0) storage.setItem(storageKey(templateId), JSON.stringify(state));
+      if (state.override || state.locked.length > 0 || state.brightness !== 0 || state.contrast !== 0) storage.setItem(storageKey(templateId), JSON.stringify(state));
       else storage.removeItem(storageKey(templateId));
     } catch {
       /* private mode or blocked storage: the choice just does not persist */
@@ -185,6 +201,10 @@ export function createPaletteStore(options: PaletteStoreOptions): PaletteStore {
     setBrightness(value) {
       if (!Number.isFinite(value)) return;
       commit({ ...state, brightness: Math.max(-1, Math.min(1, value)) }, false);
+    },
+    setContrast(value) {
+      if (!Number.isFinite(value)) return;
+      commit({ ...state, contrast: Math.max(-1, Math.min(1, value)) }, false);
     },
     undo() {
       const previous = past.at(-1);

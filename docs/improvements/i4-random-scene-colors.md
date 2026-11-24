@@ -72,6 +72,12 @@ heavier on additive blending: check fps).
   The slider commits 120 ms after it settles because each commit rebuilds the views.
 - Screenshots (template, seeds `4F2A9`, `B7C01`, `19E3D`): `docs/improvements/i4/`. The popover does not overlap the
   player bar or the language switch at 1280×720 and 390×844 (checked with a Playwright script, panel vs slider bar).
-- **Not done:** the **Contrast** slider (requirement 1) and ambient/directional light and renderer exposure tuning
-  (requirement 4, "and exposure"); `Save as my template` (requirement 8, waits for spec `09`); Quest fps check with
-  bright scenes (needs I7 and a headset); the popover is hidden in VR.
+- **I4b (follow-up):** a **Contrast** slider (`applyContrast`: widens or narrows the lightness gap between the dark
+  base and the neon roles, staff keeps 4.5:1) and scene lights: `WorldHandle.setLightLevel` scales the ambient and
+  directional lights (`lightLevelFor(brightness)` = 1 + 0.4 × brightness, bounded 0.5–1.5 for Quest fill rate; no
+  rebuild). The renderer has no tone mapping (`toneMapping` = 0), so `toneMappingExposure` would do nothing and is not
+  used. The Colors button moved to the bottom left and the panel scrolls (`max-h`): at the right it covered Enter VR and
+  Explore. Layout checked at 1280×720, 390×844 and 1024×600 against the nav, AI box, language switch, Enter VR,
+  Explore, Play and the player bar. Screenshots: `docs/improvements/i4/i4b-*.png`.
+- **Not done:** `Save as my template` (requirement 8, waits for spec `09`); Quest fps check with bright scenes (needs
+  I7 and a headset); the popover is hidden in VR.

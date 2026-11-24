@@ -1,10 +1,12 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import {
+  applyContrast,
   contrastRatio,
   generatePalette,
   hexToOklch,
   isAcceptable,
+  lightLevelFor,
   liftBrightness,
   lockMerge,
   oklchToHex,
@@ -62,5 +64,28 @@ describe('palette-generator', () => {
     expect(L).toBeCloseTo(0.6, 1);
     expect(h).toBeGreaterThan(190);
     expect(h).toBeLessThan(210);
+  });
+
+  it('contrast widens or narrows the base/neon gap and keeps staff readable', () => {
+    fc.assert(
+      fc.property(fc.string({ minLength: 1, maxLength: 8 }), fc.double({ min: -1, max: 1, noNaN: true }), (seed, k) => {
+        const p = generatePalette(seed);
+        const q = applyContrast(p, k);
+        for (const r of PALETTE_ROLES) expect(q[r]).toMatch(HEX);
+        expect(contrastRatio(q.staff, q.background)).toBeGreaterThanOrEqual(4.5);
+      }),
+      { numRuns: 500 },
+    );
+    const p = generatePalette('gap');
+    const gap = (x: typeof p) => hexToOklch(x.primary).L - hexToOklch(x.background).L;
+    expect(applyContrast(p, 0)).toBe(p);
+    expect(gap(applyContrast(p, 0.8))).toBeGreaterThan(gap(p));
+    expect(gap(applyContrast(p, -0.8))).toBeLessThan(gap(p));
+  });
+
+  it('light level is 1 at rest and bounded', () => {
+    expect(lightLevelFor(0)).toBe(1);
+    expect(lightLevelFor(9)).toBeCloseTo(1.4);
+    expect(lightLevelFor(-9)).toBeCloseTo(0.6);
   });
 });

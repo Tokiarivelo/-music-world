@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { generatePalette } from "@/xr/palette-generator";
 import {
   createPaletteStore,
+  effectiveLightLevel,
   effectiveOverride,
   paletteLink,
   parsePaletteSeed,
@@ -33,7 +34,7 @@ function make(extra: Partial<Parameters<typeof createPaletteStore>[0]> = {}) {
 
 describe("palette store", () => {
   it("starts on the template colors", () => {
-    expect(make().getState()).toEqual({ seed: null, override: null, locked: [], brightness: 0 });
+    expect(make().getState()).toEqual({ seed: null, override: null, locked: [], brightness: 0, contrast: 0 });
   });
 
   it("randomize is deterministic per seed, keeps locks, and undo/redo walk the history", () => {
@@ -114,6 +115,19 @@ describe("palette store", () => {
     expect(make({ storage }).getState().brightness).toBe(1);
     store.reset();
     expect(make({ storage }).getState().brightness).toBe(0);
+  });
+
+  it("contrast changes the shown colors, persists, and the light level follows brightness", () => {
+    const storage = memory();
+    const store = make({ storage });
+    store.setContrast(0.8);
+    expect(effectiveOverride(TEMPLATE, store.getState())?.background).not.toBe(TEMPLATE.background);
+    expect(make({ storage }).getState().contrast).toBe(0.8);
+    expect(effectiveLightLevel(store.getState())).toBe(1);
+    store.setBrightness(1);
+    expect(effectiveLightLevel(store.getState())).toBeCloseTo(1.4);
+    store.reset();
+    expect(make({ storage }).getState().contrast).toBe(0);
   });
 
   it("parses and builds links safely", () => {

@@ -40,6 +40,11 @@ export const ClockComponent = createComponent(
 
 const CLOCK_PRIORITY = -100;
 const PERF_LOG_INTERVAL_SEC = 1;
+const BASE_AMBIENT = 0.6;
+const BASE_SUN = 1.2;
+/** Light level bounds: brighter scenes cost fill rate on a Quest, so the top stays modest. */
+export const MIN_LIGHT_LEVEL = 0.5;
+export const MAX_LIGHT_LEVEL = 1.5;
 
 function read<T>(entity: Entity, key: 'clock' | 'plan' | 'state' | 'root'): T | null {
   return (entity.getValue(ClockComponent, key) as T | null) ?? null;
@@ -152,6 +157,8 @@ export interface MusicScene {
   readonly anchor: Group;
   readonly anchorEntity: Entity;
   setScene(plan: SpawnPlan, clock: WorldClock): void;
+  /** Multiplies the scene lights (I4b); 1 = the template look. View-only. The renderer has no tone mapping, so no exposure. */
+  setLightLevel(level: number): void;
 }
 
 /** Registers the component and systems and creates the clock entity with the diorama root. */
@@ -175,8 +182,9 @@ export function installMusicSystems(world: World, options: { perfLog?: boolean }
   anchor.position.set(DIORAMA_POSITION.x, DIORAMA_POSITION.y, DIORAMA_POSITION.z);
   const root = new Group();
   root.name = 'music-world';
-  root.add(new AmbientLight(0xffffff, 0.6));
-  const sun = new DirectionalLight(0xc9b8ff, 1.2);
+  const ambient = new AmbientLight(0xffffff, BASE_AMBIENT);
+  root.add(ambient);
+  const sun = new DirectionalLight(0xc9b8ff, BASE_SUN);
   sun.position.set(-4, 10, 6);
   root.add(sun);
   anchor.add(root);
@@ -187,6 +195,11 @@ export function installMusicSystems(world: World, options: { perfLog?: boolean }
     root,
     anchor,
     anchorEntity: entity,
+    setLightLevel(level) {
+      const k = Number.isFinite(level) ? Math.min(MAX_LIGHT_LEVEL, Math.max(MIN_LIGHT_LEVEL, level)) : 1;
+      ambient.intensity = BASE_AMBIENT * k;
+      sun.intensity = BASE_SUN * k;
+    },
     setScene(plan, clock) {
       root.scale.setScalar(DIORAMA_WIDTH_M / plan.template.terrain.size);
       world.scene.background = new Color(plan.template.palette.background);
