@@ -18,7 +18,8 @@ Context and tasks move between agents (Kiro, its custom agents, Claude Code, oth
    (e.g. `03-world-engine-core task 2.2 — design.md § Engine`).
 4. **Task ownership** — table `task | owner agent | status (todo / in progress / blocked / done) | note`.
    An agent only works on tasks it owns or that are unowned; it sets itself as owner before starting.
-5. **Active pitfalls** — things that will bite the next agent; remove those that no longer apply.
+5. **Active pitfalls** — the few that bite every session (≤ 8 lines); everything area-specific goes in `docs/pitfalls.md`.
+   Remove those that no longer apply.
 6. **Open specs** — table `spec | status | next task | section to read`.
 
 Long details (measurements, screenshots, logs, ids) go into the spec `design.md`, `PROJECT.md` or `KIRO_USAGE.md`;

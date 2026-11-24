@@ -16,7 +16,7 @@ description: Write the Music World handoff so another agent or session can conti
    2. Last session — 5–10 bullets: done, decisions, deviations from the spec (and where the spec was updated).
    3. Next actions — ordered: `<spec> task <n>` + files + exact section to read.
    4. Task ownership — `| task | owner | status | note |`; release tasks you will not finish (owner `—`, status `todo`).
-   5. Active pitfalls — add new ones, remove obsolete ones.
+   5. Active pitfalls — daily ones only (≤ 8 lines); area-specific ones go in `docs/pitfalls.md`; remove obsolete ones.
    6. Open specs — `| spec | status | next task | section to read |`.
    Long details go into the spec `design.md`, `PROJECT.md` or `KIRO_USAGE.md`, linked from the handoff.
    Check the file is ≤ 150 lines (`wc -l docs/handoff.md`).
