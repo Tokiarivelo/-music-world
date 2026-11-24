@@ -148,4 +148,44 @@ describe('edit controller (I9)', () => {
     c.pointerDown({ x: -5000, y: -5000 });
     expect(editStore.state.selection).toEqual([]);
   });
+
+  describe('VR ray', () => {
+    const noteWorld = (index: number) => state.notesOnStaff.find((n) => n.index === index)!.position;
+    const rayAt = (target: { x: number; y: number; z: number }) => {
+      const origin = { x: target.x, y: target.y + 0.2, z: target.z + 1.5 };
+      const v = { x: target.x - origin.x, y: target.y - origin.y, z: target.z - origin.z };
+      const len = Math.hypot(v.x, v.y, v.z);
+      return { origin, dir: { x: v.x / len, y: v.y / len, z: v.z / len } };
+    };
+
+    it('the trigger on a note plays and selects it, a ray into empty space is not captured', () => {
+      const { c, synth } = setup();
+      expect(c.rayDown({ origin: { x: 0, y: 50, z: 5 }, dir: { x: 0, y: 1, z: 0 } })).toBe(false);
+      expect(c.rayDown(rayAt(noteWorld(first)))).toBe(true);
+      expect(synth.playNote).toHaveBeenCalledWith(plan.records[first]!.midi, plan.records[first]!.velocity);
+      expect(c.capturing).toBe(true);
+      expect(editStore.state.selection).toEqual([plan.records[first]!.noteId]);
+      c.rayUp();
+      expect(c.capturing).toBe(false);
+    });
+
+    it('hovering with the ray highlights the note and does nothing while disabled', () => {
+      const { c, setPaused } = setup();
+      c.rayMove(rayAt(noteWorld(first)));
+      expect(editStore.state.hover).toBe(plan.records[first]!.noteId);
+      setPaused(false);
+      expect(c.rayDown(rayAt(noteWorld(first)))).toBe(false);
+    });
+
+    it('raising the ray while the trigger is held moves the note up and commits on release', () => {
+      const { c, events } = setup();
+      const p = noteWorld(first);
+      c.rayDown(rayAt(p));
+      c.rayMove(rayAt({ ...p, y: p.y + 0.12 }));
+      expect(editStore.state.ghost).not.toBeNull();
+      c.rayUp();
+      const committed = events.find((e) => e.type === 'committed');
+      expect(committed).toBeDefined();
+    });
+  });
 });

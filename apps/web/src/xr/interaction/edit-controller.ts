@@ -10,7 +10,7 @@ import { staffNotePosition } from '@/engine/staff';
 import type { Vec3 } from '@/engine/types';
 import { worldStateAt, type WorldState } from '@/engine/world-state';
 import { editStore } from '../edit-store';
-import { pickAtScreen, pickables, type Pickable, type Projector, type ScreenPoint } from '../picking';
+import { pickAtRay, pickAtScreen, pickables, type Pickable, type Projector, type ScreenPoint } from '../picking';
 
 export interface NoteMove {
   readonly noteId: string;
@@ -39,6 +39,12 @@ export interface EditDeps {
 export const DRAG_THRESHOLD_PX = 4;
 
 type Mode = 'idle' | 'pressed' | 'dragging';
+
+/** A controller or hand ray in plan coordinates (metres of the plate); `dir` is normalized. */
+export interface PlanRay {
+  readonly origin: Vec3;
+  readonly dir: Vec3;
+}
 
 export class EditController {
   private enabled = false;
@@ -75,7 +81,12 @@ export class EditController {
       if (!additive && editStore.state.selection.length > 0) this.setSelection([]);
       return false;
     }
-    const r = plan.records[index]!;
+    this.down = p;
+    return this.press(plan.records[index]!, additive);
+  }
+
+  /** A press on a note, from the pointer or a ray: plays it, selects it, and arms a drag unless additive. */
+  private press(r: { noteId: string; midi: number; velocity: number }, additive: boolean): boolean {
     this.deps.synth.playNote(r.midi, r.velocity);
     const current = editStore.state.selection;
     if (additive) {
@@ -85,12 +96,60 @@ export class EditController {
     }
     this.mode = 'pressed';
     this.active = r.noteId;
-    this.down = p;
     this.ghostMidi = null;
     // Pressing a selected note keeps the group (it can be dragged together); otherwise it becomes the selection.
     this.setSelection(current.includes(r.noteId) ? [...current.filter((id) => id !== r.noteId), r.noteId] : [r.noteId]);
     editStore.set({ hover: r.noteId });
     return true;
+  }
+
+  private setHover(noteId: string | null): void {
+    if (noteId === editStore.state.hover) return;
+    editStore.set({ hover: noteId });
+    this.deps.emit({ type: 'hover', noteId });
+  }
+
+  private showGhost(midi: number): void {
+    if (midi === this.ghostMidi || this.active === null) return;
+    this.ghostMidi = midi;
+    editStore.set({ ghost: { noteId: this.active, midi } });
+    this.deps.emit({ type: 'moved', noteId: this.active, midi });
+  }
+
+  /** VR: the trigger went down on the ray (additive = the other hand's modifier; unused for now). Returns true when a note was hit. */
+  rayDown(ray: PlanRay, additive = false): boolean {
+    if (!this.enabled) return false;
+    const f = this.frameItems();
+    const index = f ? pickAtRay(f.items, ray.origin, ray.dir) : null;
+    const plan = this.deps.plan();
+    if (index === null || !plan) {
+      if (!additive && editStore.state.selection.length > 0) this.setSelection([]);
+      return false;
+    }
+    return this.press(plan.records[index]!, additive);
+  }
+
+  /** VR: the ray moved (hover while idle, pitch drag while the trigger is held). */
+  rayMove(ray: PlanRay): void {
+    if (!this.enabled) return;
+    if (this.mode === 'idle') {
+      const f = this.frameItems();
+      const plan = this.deps.plan();
+      const index = f ? pickAtRay(f.items, ray.origin, ray.dir) : null;
+      this.setHover(index === null || !plan ? null : plan.records[index]!.noteId);
+      return;
+    }
+    const midi = this.midiAtRay(ray);
+    if (midi === null || this.active === null) return;
+    const r = this.record(this.active);
+    if (!r) return;
+    if (this.mode === 'pressed' && midi === foldMidi(r.midi)) return; // the ray has not left the note's own place
+    this.mode = 'dragging';
+    this.showGhost(midi);
+  }
+
+  rayUp(): void {
+    this.pointerUp();
   }
 
   pointerMove(p: ScreenPoint): void {
@@ -108,10 +167,7 @@ export class EditController {
     if (this.mode === 'pressed' && Math.hypot(p.x - this.down.x, p.y - this.down.y) < DRAG_THRESHOLD_PX) return;
     this.mode = 'dragging';
     const midi = this.midiAt(p);
-    if (midi === null || midi === this.ghostMidi || this.active === null) return;
-    this.ghostMidi = midi;
-    editStore.set({ ghost: { noteId: this.active, midi } });
-    this.deps.emit({ type: 'moved', noteId: this.active, midi });
+    if (midi !== null) this.showGhost(midi);
   }
 
   pointerUp(): void {
@@ -203,6 +259,21 @@ export class EditController {
   private pick(p: ScreenPoint): number | null {
     const f = this.frameItems();
     return f ? pickAtScreen(f.items, this.deps.project, p) : null;
+  }
+
+  /** Pitch under a VR ray: the ray's point at the note's distance, read along the staff's vertical axis. */
+  private midiAtRay(ray: PlanRay): number | null {
+    const f = this.frameItems();
+    if (!f || this.active === null) return null;
+    const r = f.plan.records.find((x) => x.noteId === this.active);
+    if (!r) return null;
+    const onStaff = f.state.notesOnStaff.find((n) => n.index === r.index);
+    const u = onStaff ? onStaff.u : f.plan.staff.playheadU;
+    const base = staffNotePosition(f.plan.staff, u, 0, r.lineY);
+    const t = (base.x - ray.origin.x) * ray.dir.x + (base.y - ray.origin.y) * ray.dir.y + (base.z - ray.origin.z) * ray.dir.z;
+    if (t <= 0) return null;
+    const y = ray.origin.y + ray.dir.y * t;
+    return snapToStaff((y - base.y) / (4 * f.plan.staff.lineGap));
   }
 
   /** Pitch under the pointer: its vertical position along the screen projection of the note's own staff. */

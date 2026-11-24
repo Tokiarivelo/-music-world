@@ -69,3 +69,7 @@ See `docs/improvements/i9-editable-notes.md` § Design. Add an "As built" sectio
   **Why not an LLM for exact notes**: a text model (Muse, Bedrock) cannot hear the audio, so it can only invent notes, and
   the project rule is that algorithms detect notes and LLMs only interpret. What can raise accuracy further is a better
   transcription model or a human fix: the note editor of this phase lets the listener correct a wrong note by hand.
+- Task 8 (VR picking): `XREditRaySystem` reads the right controller's ray space and trigger while immersive and the edit
+  mode is on, and drives `EditController.rayDown / rayMove / rayUp` (the host converts the world ray to the scene root's
+  space). Picking is the angular `pickAtRay`; the drag reads the ray's height at the note's distance and snaps to the staff.
+  Hover works with the ray alone. Not verified in IWER or on a Quest yet; the panel line list is not built.

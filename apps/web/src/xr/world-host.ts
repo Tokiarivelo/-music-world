@@ -48,6 +48,8 @@ export interface WorldScene {
 /** What the host needs from the installed systems. */
 export interface InstalledScene extends Pick<MusicScene, 'setScene' | 'setLightLevel' | 'setScaleMode'> {
   setControls(controls: WorldControls | null): void;
+  /** Right controller ray and trigger drive the note editor (I9 task 8); null turns it off. */
+  setEditRay?(target: { rayDown(r: { origin: Vec3; dir: Vec3 }): boolean; rayMove(r: { origin: Vec3; dir: Vec3 }): void; rayUp(): void } | null): void;
   /** Projects a point of the plan (plate metres) to canvas pixels; null behind the camera (I9 picking). */
   project?(p: Vec3): { x: number; y: number } | null;
   /** Desktop camera navigation (08-navigation-mode); the host binds its input to the canvas. */
@@ -180,6 +182,26 @@ const defaultDeps: WorldHostDeps = {
       setScene: (plan, clock) => scene.setScene(plan, clock),
       setLightLevel: (level) => scene.setLightLevel(level),
       setScaleMode: (mode) => scene.setScaleMode(mode),
+      setEditRay: (target) => {
+        if (!target) {
+          rig.editRay = null;
+          return;
+        }
+        // World-space controller ray → the plan's space (the scene root), direction re-normalized (the root is scaled).
+        const toPlan = (ray: { origin: Vec3; dir: Vec3 }) => {
+          const root = scene.root;
+          root.updateWorldMatrix(true, false);
+          const o = root.worldToLocal(new Vector3(ray.origin.x, ray.origin.y, ray.origin.z));
+          const tip = root.worldToLocal(new Vector3(ray.origin.x + ray.dir.x, ray.origin.y + ray.dir.y, ray.origin.z + ray.dir.z));
+          const d = tip.sub(o).normalize();
+          return { origin: { x: o.x, y: o.y, z: o.z }, dir: { x: d.x, y: d.y, z: d.z } };
+        };
+        rig.editRay = {
+          rayDown: (ray) => target.rayDown(toPlan(ray)),
+          rayMove: (ray) => target.rayMove(toPlan(ray)),
+          rayUp: () => target.rayUp(),
+        };
+      },
       setControls: (controls) => {
         rig.controls = controls;
       },
@@ -391,7 +413,9 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
       scorePlayer.start();
     },
     setEditMode(enabled) {
-      if (!disposed) editor.setEnabled(enabled);
+      if (disposed) return;
+      editor.setEnabled(enabled);
+      scene.setEditRay?.(enabled ? editor : null);
     },
     onNoteEvent(listener) {
       noteListeners.add(listener);

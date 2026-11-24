@@ -21,6 +21,7 @@
 - [x] 10. Note accuracy (asked by the author): diatonic octave-folded staff positions (done with the VR keyboard commit),
   per-stem minimum length, overtone filter, single-voice stems, chroma check against the recording.
   - _Requirements: none (fix of the analysis and the staff display)_
-- [ ] 8. VR picking and drag, IWER check, docs, screenshots.
+- [x] 8. VR picking and drag with the right controller ray and trigger (code and unit tests). Not done: the line list on
+  the spatial panel, the IWER run and the screenshots (need a browser session with the emulator): moved to the Quest check.
   - _Requirements: 1, 3_
 - [ ] 9. (human) Quest 3 check: ray accuracy, drag comfort, tone latency.

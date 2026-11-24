@@ -79,6 +79,13 @@ export interface TemplateChoice {
 }
 
 /** Mutable state shared by the XR systems (one per world). */
+/** What the right-hand ray drives: the note editor, with world-space rays (the host converts to the scene's space). */
+export interface EditRayTarget {
+  rayDown(ray: { origin: { x: number; y: number; z: number }; dir: { x: number; y: number; z: number } }): boolean;
+  rayMove(ray: { origin: { x: number; y: number; z: number }; dir: { x: number; y: number; z: number } }): void;
+  rayUp(): void;
+}
+
 export interface XRRig {
   /** Unscaled diorama transform: position + yaw. */
   readonly anchor: Group;
@@ -90,6 +97,8 @@ export interface XRRig {
   placedScale: ScaleMode;
   /** Player commands; null until the player is ready. */
   controls: WorldControls | null;
+  /** Note editor driven by the right controller's ray and trigger (I9); null while editing is off. */
+  editRay?: EditRayTarget | null;
   /** Spatial panel entity (a pinch while it is hovered is a panel click, not a play toggle). */
   panel: Entity | null;
   /** Immersive scale: where the panel hangs in the tracking space (it stays there while the plate moves). */
@@ -332,6 +341,38 @@ export class XRLocomotionSystem extends createSystem({ rigs: { required: [XRRigC
   }
 }
 
+const rayPos = new Vector3();
+const rayQuat = new Quaternion();
+const rayFwd = new Vector3();
+
+/** Right controller ray + trigger (select) drive note picking and dragging while the editor is on (I9 task 8). */
+export class XREditRaySystem extends createSystem({ rigs: { required: [XRRigComponent] } }) {
+  private down = false;
+
+  update(): void {
+    let rig: XRRig | null = null;
+    for (const entity of this.queries.rigs.entities) rig = readRig(entity) ?? rig;
+    const target = rig?.editRay;
+    if (!rig || !target || !isImmersive(this.world)) {
+      if (this.down) target?.rayUp();
+      this.down = false;
+      return;
+    }
+    const space = this.player.raySpaces.right;
+    space.getWorldPosition(rayPos);
+    space.getWorldQuaternion(rayQuat);
+    rayFwd.set(0, 0, -1).applyQuaternion(rayQuat);
+    const ray = { origin: rayPos, dir: rayFwd };
+    const pad = this.input.xr.gamepads.right;
+    const trigger = !!pad?.getButtonPressed(InputComponent.Trigger);
+    if (trigger && !this.down) this.down = target.rayDown(ray);
+    else if (this.down && !trigger) {
+      target.rayUp();
+      this.down = false;
+    } else target.rayMove(ray);
+  }
+}
+
 /** Registers the XR systems and the rig on the diorama anchor entity. */
 export function installXRSystems(world: World, anchorEntity: Entity, anchor: Group): XRRig {
   const rig: XRRig = { anchor, recenterRequested: false, placed: false, placedScale: 'diorama', controls: null, panel: null, panelWorld: null };
@@ -339,6 +380,7 @@ export function installXRSystems(world: World, anchorEntity: Entity, anchor: Gro
   world.registerSystem(XRPlacementSystem);
   world.registerSystem(XRControlSystem);
   world.registerSystem(XRLocomotionSystem);
+  world.registerSystem(XREditRaySystem);
   anchorEntity.addComponent(XRRigComponent, { rig });
   return rig;
 }
