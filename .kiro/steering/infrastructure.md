@@ -40,6 +40,10 @@ fileMatchPattern: ["infra/**", "**/Dockerfile*", "Makefile"]
   Next.js standalone (`apps/web/server.js` inside the image because tracing root = repo root).
 - Local stack: `make dev` (no `infra/.env` needed; defaults = development, `DOMAIN=localhost`, Caddy local CA, so
   use `curl -k https://localhost/api/health`).
+- Uptime: `restart: unless-stopped`, healthchecks and log rotation (`x-logging`, 5 × 10 MB) on every service; the
+  worker has a 60 s `stop_grace_period`. Server scripts in `infra/scripts/` (`backup-db.sh`, `check-disk.sh`,
+  `check-health.sh`) run from `infra/cron/music-world.cron`; backups go to the git- and Docker-ignored
+  `infra/backups/`. Restore steps: `infra/README.md` § Backups. Never `docker volume prune` on the server.
 - Deployment is scripted in `infra/deploy.sh` and described in the `deploy-ovh` skill. The demo must stay online
   until 2027-01-29 (end of Kiroween judging).
 

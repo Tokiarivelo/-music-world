@@ -15,7 +15,13 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY apps/api/ ./
 RUN uv sync --frozen --no-dev
 
-RUN useradd --system --uid 10001 app && chown -R app /app && mkdir -p /data/storage && chown app /data/storage
+# Pre-download the Demucs weights (~80 MB) so the first analysis does not download them; Basic Pitch ships its ONNX
+# model inside the package. Another DEMUCS_MODEL at run time is downloaded on first use.
+ARG DEMUCS_MODEL=htdemucs
+ENV TORCH_HOME=/opt/models/torch
+RUN python -c "from demucs.pretrained import get_model; get_model('${DEMUCS_MODEL}')"
+
+RUN useradd --system --uid 10001 app && chown -R app /app /opt/models && mkdir -p /data/storage && chown app /data/storage
 USER app
 EXPOSE 8000
 CMD ["uvicorn", "music_world.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
