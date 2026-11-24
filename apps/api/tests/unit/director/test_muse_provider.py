@@ -121,17 +121,16 @@ async def test_timeouts_and_connection_errors() -> None:
         assert info.value.reason == reason
 
 
-def test_contributor_ids_are_refused() -> None:
+def test_contributor_ids_are_the_default_and_can_be_opted_out() -> None:
     assert is_contributor_model("muse-spark-1.3-contributor") and not is_contributor_model("muse-spark-1.3")
     with pytest.raises(ValueError):
-        MuseProvider("sk", "muse-spark-1.3-contributor")
-    with pytest.raises(ValueError):
         MuseProvider("", "muse-spark-1.3")
-    settings = Settings(meta_api_key="sk", meta_director_model="muse-spark-1.3-contributor")  # type: ignore[arg-type]
-    assert "muse" not in _real_providers(settings)
+    assert Settings().meta_director_model == "muse-spark-1.3-contributor"
+    settings = Settings(meta_api_key="sk", meta_director_model="muse-spark-1.3")  # type: ignore[arg-type]
+    assert _real_providers(settings)["muse"].model == "muse-spark-1.3"
 
 
 def test_muse_is_wired_only_with_a_key() -> None:
     assert _real_providers(Settings(meta_api_key=None)) == {}
     providers = _real_providers(Settings(meta_api_key="sk"))  # type: ignore[arg-type]
-    assert providers["muse"].model == "muse-spark-1.3"
+    assert providers["muse"].model == "muse-spark-1.3-contributor"

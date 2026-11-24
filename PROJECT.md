@@ -187,7 +187,7 @@ Le directeur artistique passe par une interface `LLMProvider`. On change de four
 
 **Paroles :** `LYRICS_PROVIDER = muse | lrc | none`.
 
-**Implémentation (05-ai-world-director) :** prompts neutres versionnés (`PROMPT_VERSION = director-v1`), Muse Spark
+**Implémentation (05-ai-world-director) :** prompts neutres versionnés (`PROMPT_VERSION = director-v2`), Muse Spark
 par l'API compatible OpenAI (`/chat/completions`), Claude par **Claude in Amazon Bedrock** (`bedrock-mantle`, modèles
 `anthropic.claude-sonnet-5-5` pour le directeur, `anthropic.claude-opus-5-5` pour les formes). Sortie : nettoyage,
 bornage des nombres, validation pydantic, règles de rendu ; une seconde tentative avec les erreurs, puis le
@@ -195,7 +195,7 @@ fournisseur suivant. Détails : `.kiro/specs/05-ai-world-director/design.md`.
 
 **Ce que les LLM ne font pas ici :** détecter les notes, les accords, le tempo ou la tonalité. Ce travail revient à Basic Pitch et librosa, qui sont précis et déterministes.
 
-**Données des utilisateurs :** ne pas utiliser les variantes `*-contributor` (moins chères, mais Meta entraîne ses modèles sur les échanges) pour l'audio et les paroles des utilisateurs. Les réserver aux données synthétiques de test.
+**Données des utilisateurs (décision du 2026-11-24) :** le director utilise par défaut `muse-spark-1.3-contributor` (moins cher ; Meta peut entraîner ses modèles sur les entrées : résumé texte de la chanson et paroles, jamais le fichier audio). La page d'envoi en avertit l'utilisateur. `META_DIRECTOR_MODEL=muse-spark-1.3` désactive ce choix.
 
 **Garde-fous :**
 - plafond de dépense par analyse ;
@@ -224,7 +224,8 @@ Un LLM ne produit pas de bons maillages (des listes de sommets en texte sont imp
 }
 ```
 
-- Opérations disponibles (liste fermée) : `box`, `prism`, `lathe`, `extrude`, `cluster`, `stack` (étages), `lsystem_tree`, `spike` (pic d'égaliseur), `arch`, `emissive_bands`…
+- Opérations disponibles (liste fermée) : `box`, `prism`, `spike` (pic d'égaliseur), `stack` (étages) et `cluster` (05-ai-world-director, tâche 6). Réservées, non implémentées : `lathe`, `extrude`, `lsystem_tree`, `arch`, `emissive_bands`.
+- Budget : `budget.maxTriangles` ≤ 2000 (défaut 500), vérifié avant construction par `ShapeRecipe.triangle_count` (Python) et par le builder web ; au plus 4 recettes par template, référencées par `recipe:<name>`.
 - Chaque recette est construite une seule fois, puis réutilisée en **`InstancedMesh`** pour toutes les notes qui la déclenchent.
 - Les couleurs viennent de **rôles** de la palette (`primary`, `accent`…), pas de valeurs fixes : la forme suit le template.
 

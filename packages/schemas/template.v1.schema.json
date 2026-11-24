@@ -260,6 +260,179 @@
       "title": "Palette",
       "type": "object"
     },
+    "Part": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "enum": [
+            "box",
+            "prism",
+            "spike",
+            "stack",
+            "cluster"
+          ],
+          "title": "Op",
+          "type": "string"
+        },
+        "of": {
+          "default": "box",
+          "description": "stack and cluster: the primitive that is repeated.",
+          "enum": [
+            "box",
+            "prism",
+            "spike"
+          ],
+          "title": "Of",
+          "type": "string"
+        },
+        "width": {
+          "default": 0.5,
+          "description": "Footprint along x (diameter for prism and spike).",
+          "maximum": 1,
+          "minimum": 0.05,
+          "title": "Width",
+          "type": "number"
+        },
+        "depth": {
+          "default": 0.5,
+          "description": "Footprint along z (box only).",
+          "maximum": 1,
+          "minimum": 0.05,
+          "title": "Depth",
+          "type": "number"
+        },
+        "height": {
+          "default": 0.5,
+          "maximum": 1,
+          "minimum": 0.05,
+          "title": "Height",
+          "type": "number"
+        },
+        "y": {
+          "default": 0,
+          "description": "Height of the part's base above the shape's base.",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Y",
+          "type": "number"
+        },
+        "sides": {
+          "default": 6,
+          "description": "prism, and a repeated prism: number of sides.",
+          "maximum": 12,
+          "minimum": 3,
+          "title": "Sides",
+          "type": "integer"
+        },
+        "taper": {
+          "default": 1,
+          "description": "prism: top radius / bottom radius; 0 ends in a point.",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Taper",
+          "type": "number"
+        },
+        "levels": {
+          "default": 3,
+          "description": "stack: number of floors.",
+          "maximum": 8,
+          "minimum": 2,
+          "title": "Levels",
+          "type": "integer"
+        },
+        "shrink": {
+          "default": 0.8,
+          "description": "stack: width of a floor / width of the one below.",
+          "maximum": 1,
+          "minimum": 0.5,
+          "title": "Shrink",
+          "type": "number"
+        },
+        "count": {
+          "default": 4,
+          "description": "cluster: number of copies.",
+          "maximum": 12,
+          "minimum": 2,
+          "title": "Count",
+          "type": "integer"
+        },
+        "spread": {
+          "default": 0.6,
+          "description": "cluster: radius of the ring of copies (unit square).",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Spread",
+          "type": "number"
+        },
+        "seedOffset": {
+          "default": 0,
+          "description": "cluster: varies the heights and angles.",
+          "maximum": 99,
+          "minimum": 0,
+          "title": "Seedoffset",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "title": "Part",
+      "type": "object"
+    },
+    "ShapeBudget": {
+      "additionalProperties": false,
+      "properties": {
+        "maxTriangles": {
+          "default": 500,
+          "description": "Upper bound of the built geometry; the recipe is rejected when its parts need more.",
+          "maximum": 2000,
+          "minimum": 12,
+          "title": "Maxtriangles",
+          "type": "integer"
+        }
+      },
+      "title": "ShapeBudget",
+      "type": "object"
+    },
+    "ShapeRecipe": {
+      "additionalProperties": false,
+      "description": "Parts of a shape from a closed list of operations, with its own triangle budget.",
+      "properties": {
+        "schema": {
+          "const": "music-world.shape.v1",
+          "default": "music-world.shape.v1",
+          "title": "Schema",
+          "type": "string"
+        },
+        "name": {
+          "description": "Referenced by templates as the kind `recipe:<name>`.",
+          "pattern": "^[a-z0-9_]{1,40}$",
+          "title": "Name",
+          "type": "string"
+        },
+        "parts": {
+          "items": {
+            "$ref": "#/$defs/Part"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Parts",
+          "type": "array"
+        },
+        "budget": {
+          "$ref": "#/$defs/ShapeBudget",
+          "default": {
+            "maxTriangles": 500
+          }
+        }
+      },
+      "required": [
+        "name",
+        "parts"
+      ],
+      "title": "ShapeRecipe",
+      "type": "object"
+    },
     "Staff": {
       "additionalProperties": false,
       "properties": {
@@ -511,6 +684,16 @@
         "beatPulse": true,
         "chordLinks": "light_arc"
       }
+    },
+    "recipes": {
+      "default": [],
+      "description": "Shapes referenced as `recipe:<name>` by mappings and zones.",
+      "items": {
+        "$ref": "#/$defs/ShapeRecipe"
+      },
+      "maxItems": 4,
+      "title": "Recipes",
+      "type": "array"
     },
     "meta": {
       "anyOf": [

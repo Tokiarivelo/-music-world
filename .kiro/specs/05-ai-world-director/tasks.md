@@ -20,9 +20,15 @@
 - [x] 5. (5.5, P2) Bedrock Claude provider (`anthropic[bedrock]`, `bedrock-mantle` Messages API) and switch; tests on
   fixture responses with mocked HTTP. Human: one real call.
   - _Requirements: 1.1, 1.3, 5.4_
-- [ ] 6. (5.6, P2, skipped in Phase 5: not bounded — new contract, Three.js builder and a Python triangle-count mirror) ShapeRecipe generation (`music-world.shape.v1`, closed op list, triangle budget checked by
+- [x] 6. (5.6, P2, skipped in Phase 5: not bounded — new contract, Three.js builder and a Python triangle-count mirror) ShapeRecipe generation (`music-world.shape.v1`, closed op list, triangle budget checked by
   building) — only if everything else is green.
   - _Requirements: 4.1, 4.2_
+  - [x] 6.1 Contract `music-world.shape.v1` (closed ops: box, prism, spike, stack, cluster; bounded numbers; budget ≤ 2000
+    triangles), `WorldTemplate.recipes` (≤ 4), Python `triangle_count`, renderability and store rules, property tests.
+  - [x] 6.2 Web builder `xr/shapes/recipe-builder.ts`: recipe → one BufferGeometry, seeded cluster, parity test with
+    `apps/api/tests/fixtures/shape-recipes.json`.
+  - [x] 6.3 Render `recipe:*` kinds in the structure view (geometry from `template.recipes`), engine and views tests.
+  - [x] 6.4 Director prompt allows recipes (bump `PROMPT_VERSION`), output tests, docs (`PROJECT.md` §6, design), tick.
 - [ ] 7. (human) One real call per provider with credentials (`design.md` § Human checks): Muse with
   `META_API_KEY`, Bedrock with `AWS_REGION` + credentials and model access; record model id, latency and cost in
   `design.md`.

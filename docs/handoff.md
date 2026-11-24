@@ -23,19 +23,17 @@ Read docs/handoff.md and continue with the next actions.
   containers (`angaly_*`) may be running — not started by these sessions; leave them alone.
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-24, Claude Code, tooling and optimization)
+## 2. Last session (2026-11-24, Claude Code, phase 10 ShapeRecipe + tooling)
 
-- Makefile completed (`make help`): `dev-infra`/`dev-api`/`dev-worker`/`dev-web` (host, hot reload), `up`/`down`/`ps`/
-  `shell`, `build`/`rebuild`, `check-api`/`check-web`/`arch`/`lint`/`format`, `disk`, `prune*`, `clean*`.
-  `prune-volumes` needs `CONFIRM=yes` and refuses a production `infra/.env`.
-- `make dev` builds only changed images: `infra/scripts/build-changed.sh` (content hash in `.data/build/`). Tested with
-  a docker shim, **not** with a real image build (no network to PyPI/npm, disk 97 %): backlog C3.
-- Dockerfiles: Demucs weights layer moved before the code, no duplicate `chown -R` layer, cache mounts (uv, pnpm,
-  `.next/cache`); `.dockerignore` extended; `buildx --check` clean. `web` service has `image: music-world-web`.
-- `.env.example` for `apps/api` and `apps/web` (infra's stays the global one); core/accounts env tables moved from
-  `tech.md` to `env.md` (file-match). `.claude/settings.json` denies heavy and generated files.
-- New docs: `docs/optimization.md` (measures, findings), `docs/token-budget.md` (rules), `docs/backlog-agent.md`
-  (tasks needing no human). `make -j3 check` green in 46 s (was ≈ 75 s serial).
+- Phase 10 (branch `phase-10-shape-recipe`, one commit per task): `05-ai-world-director` task 6 done. Contract
+  `music-world.shape.v1` + `WorldTemplate.recipes`, Python triangle mirror, web `recipe-builder.ts` with parity
+  fixtures, structure view renders `recipe:*`, prompt `director-v2`. Store accepts defined recipes. Details:
+  `05-ai-world-director/design.md` § As built (task 6). Not done: Quest 3 check of heavy recipes (human).
+- Tooling merged earlier (PR #10): Makefile (`make help`), build only changed images, env examples, token budget,
+  `docs/optimization.md`, `docs/backlog-agent.md`. New: `WEB_PORT` (apps/web/.env.local or `make dev-web WEB_PORT=3001`)
+  and `make db-password` (old pgdata volume vs changed `POSTGRES_PASSWORD`).
+- Incident: a killed `pnpm` install (pnpm 12 verify-deps) half-broke `node_modules`; repaired with
+  `pnpm install --frozen-lockfile --offline --trust-lockfile`. Never interrupt a running pnpm install.
 
 ## 3. Next actions
 
@@ -75,7 +73,6 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | 07-xr-mode 1–6 | Claude Code (world-builder) | done | merged with Phase 7 PR |
 | 07-xr-mode 7 | — | blocked | Quest 3 check (human) |
 | 05-ai-world-director 1–5 | Claude Code (ai-director) | done | merged with Phase 5 PR |
-| 05-ai-world-director 6 | — | todo | ShapeRecipe (P2), skipped |
 | 05-ai-world-director 7 | — | blocked | real calls need `META_API_KEY` / AWS credentials (human) |
 | 06-template-store 1–6 | Claude Code | done | merged with Phase 6 PR |
 | 06-template-store 7 | — | blocked | real e-mail (SMTP credentials) + public URL (human) |
@@ -83,6 +80,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | Roadmap 8.1–8.3 | — | blocked | scripts + runbook ready; needs instance, domain, keys (human) |
 | Roadmap 9.1, 9.2 | Claude Code (submission docs) | done | `README.md`, `KIRO_USAGE.md` |
 | 08-navigation-mode 1–6 | Claude Code (world-builder) | done | branch `feature-navigation-mode`, one commit per task; PR to open |
+| 05-ai-world-director 6 | Claude Code (ai-director) | done | phase 10 branch, one commit per sub-task |
 | Roadmap 9.3–9.5 | — | blocked | human: video, Devpost, posts; drafts in `docs/submission.md` |
 
 ## 5. Active pitfalls
@@ -94,12 +92,15 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
   `override-dependencies` removes it and runs the bundled ONNX model. Do not "fix" that override.
 - torch / torchaudio must come from the PyTorch CPU index (`[tool.uv.sources]`); a plain PyPI torch pulls ~3 GB of
   CUDA. Disk on this laptop is ~98 % full: watch `df -h` before adding models or images.
+- Docker worker: librosa/numba needs `NUMBA_CACHE_DIR` (set in the Dockerfile and Compose); without it Basic Pitch fails
+  with "cannot cache function ... no locator available" after minutes of Demucs.
 - Never import analysis infrastructure (torch, librosa) at module level in code the API process loads.
 - `.gitignore` ignores audio except `apps/api/tests/fixtures/*.{wav,mp3,flac}` and `apps/web/public/demo/*.mp3`.
 - Next's route announcer is an empty `role="alert"`: in browser tests select `p[role=alert]`.
 - IWSDK 1.1.0: never run two `World.create` at once — use `createMusicWorld` (queued). Its canvas follows the
   window: 2D controls must be absolutely positioned above it.
 - Next 16 auto-writes `apps/web/AGENTS.md` on `next dev`; disabled with `agentRules: false` — keep it off.
+- pnpm is v12 here: offline installs need `--offline --trust-lockfile`; `pnpm run` may auto-install first (verify-deps).
 - Do not add a `packageManager` field to `package.json` (corepack download times out here).
 - `three` must stay aliased to the super-three version IWSDK depends on; bump both together.
 - Colors are linear in three.js: use `lightness()` (`xr/palette.ts`) for perceived brightness factors.
@@ -137,7 +138,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | 02-music-analysis | 1–5, 6.2, 7–10 done | 6.1 (P2, blocked on key) | design.md § As built (Phase 3) |
 | 03-world-engine-core | 1–6 done | 7 (Quest) | design.md § Rendering "As built" |
 | 04-default-template | 1–5 done | — (polish P2) | design.md § As built (Phase 4) |
-| 05-ai-world-director | 1–5 done | 7 (human real calls), 6 (P2) | design.md § Human checks, § As built |
+| 05-ai-world-director | 1–6 done | 7 (human real calls) | design.md § Human checks, § As built |
 | 06-template-store | 1–6 done | 7 (human: real e-mail, public URL) | design.md § Human checks, § As built |
 | 07-xr-mode | 1–6 done | 7 (Quest, human) | design.md § Human checks |
 | 08-navigation-mode | 1–6 done | — (human: try it on a phone) | design.md § As built |

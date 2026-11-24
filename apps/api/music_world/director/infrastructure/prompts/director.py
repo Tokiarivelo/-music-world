@@ -5,14 +5,22 @@ from typing import Any
 
 from music_world.director.application.summary import AnalysisSummary
 
-PROMPT_VERSION = "director-v1"
+PROMPT_VERSION = "director-v2"
 
 # Closed enums repeated in plain words (requirement 2.2); the JSON Schema below is the authority.
 _ENUMS = """Allowed values (closed lists, use nothing else):
 - terrain.style: cracked_plate | smooth_plate; terrain.mountains: edges | none; terrain.size: 4-40
 - staff.path: diagonal_curve | straight; staff.clef: treble | none; staff.glow 0-3; staff.lookahead 1-8;
   staff.fallDuration 0.1-2
-- mappings[].spawn and zones[].kind: terrain_ridge | building | spike | crystal (no recipe: kinds)
+- mappings[].spawn and zones[].kind: terrain_ridge | building | spike | crystal, or "recipe:<name>" for a shape you
+  define in "recipes"
+- recipes (optional, at most 4): {"name": "a_b_1" (lowercase, digits, underscore), "parts": 1-8 items, "budget":
+  {"maxTriangles": 12-2000}}; every "recipe:<name>" used must have a recipe of that name
+- recipe part "op": box | prism | spike | stack | cluster; numbers (footprint is the unit square): width, depth,
+  height 0.05-1, y 0-1 (base height), sides 3-12 and taper 0-1 (prism), levels 2-8 and shrink 0.5-1 (stack),
+  count 2-12 and spread 0-1 (cluster), of: box | prism | spike (what a stack or cluster repeats), seedOffset 0-99
+- triangles: box 12, prism 4*sides (2*sides when taper is 0), spike 4; stack = levels * of; cluster = count * of;
+  the sum over parts must not exceed maxTriangles; keep recipes small (under 300 triangles)
 - mappings[].when: pitch "<a" | ">a" | "a-b" (MIDI 0-127), velocity same syntax with 0-1, chord true | false,
   stem vocals | drums | bass | other; an empty "when" matches every note; the first matching rule wins
 - mappings[].heightFrom: velocity | duration | pitch; mappings[].colorRole: primary | accent | secondary | staff

@@ -44,7 +44,7 @@ from music_world.director.infrastructure.default_template import default_templat
 from music_world.director.infrastructure.object_store_cache import ObjectStoreDirectorCache, ObjectStoreSpendTracker
 from music_world.director.infrastructure.prompts import DirectorPromptSet
 from music_world.director.infrastructure.providers.mock import MOCK_MODEL, MockProvider
-from music_world.director.infrastructure.providers.muse import MuseProvider, is_contributor_model
+from music_world.director.infrastructure.providers.muse import MuseProvider
 from music_world.projects.application.ports import JobHandler
 from music_world.projects.application.use_cases.check_project_access import CheckProjectAccess
 from music_world.projects.application.use_cases.create_project import CreateProject
@@ -113,11 +113,8 @@ def _real_providers(settings: Settings) -> dict[ProviderId, LLMProvider]:
     """Real providers whose credentials are set (keys never leave the server)."""
     providers: dict[ProviderId, LLMProvider] = {}
     if settings.muse_configured and settings.meta_api_key is not None:
-        if is_contributor_model(settings.meta_director_model):
-            log.warning("director.muse_contributor_refused", model=settings.meta_director_model)
-        else:
-            key = settings.meta_api_key.get_secret_value()
-            providers["muse"] = MuseProvider(key, settings.meta_director_model, settings.meta_base_url)
+        key = settings.meta_api_key.get_secret_value()
+        providers["muse"] = MuseProvider(key, settings.meta_director_model, settings.meta_base_url)
     if settings.bedrock_configured and settings.aws_region:
         from music_world.director.infrastructure.providers.bedrock import BedrockProvider  # SDK loaded only if used
 

@@ -106,3 +106,12 @@ def test_thumbnail_rejections() -> None:
 def test_thumbnail_check_never_crashes_on_arbitrary_bytes(data: bytes) -> None:
     with contextlib.suppress(ThumbnailInvalidError, ThumbnailTypeUnsupportedError):
         check_thumbnail(data)
+
+
+def test_store_accepts_defined_shape_recipes_only() -> None:
+    recipe = {"name": "tower", "parts": [{"op": "box"}]}
+    doc = validated_document(template(mappings=[{"when": {}, "spawn": "recipe:tower"}], recipes=[recipe]))
+    assert doc["recipes"][0]["name"] == "tower"
+    with pytest.raises(TemplateInvalidError) as error:
+        validated_document(template(mappings=[{"when": {}, "spawn": "recipe:ghost"}], recipes=[recipe]))
+    assert ["template", "mappings", 0, "spawn"] in [d["loc"] for d in error.value.details]

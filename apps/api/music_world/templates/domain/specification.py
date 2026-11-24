@@ -12,6 +12,7 @@ from typing import Any
 MAX_TEMPLATE_BYTES = 32 * 1024
 BUILTIN_KINDS = frozenset({"terrain_ridge", "building", "spike", "crystal", "cluster"})
 MIN_STAFF_CONTRAST = 0.2
+_KIND_HINT = "use a built-in shape kind or a recipe defined in `recipes`"
 _FORBIDDEN_TEXT = re.compile(r"(://|www\.|data:|javascript:|[<>\x00-\x1f\x7f])", re.IGNORECASE)
 
 
@@ -29,12 +30,13 @@ def store_errors(doc: Mapping[str, Any]) -> list[dict[str, object]]:
     errors: list[dict[str, object]] = []
     if len(json.dumps(doc, separators=(",", ":"))) > MAX_TEMPLATE_BYTES:
         errors.append({"loc": ["template"], "msg": "template is larger than 32 KB"})
+    known = BUILTIN_KINDS | {f"recipe:{r.get('name')}" for r in doc.get("recipes", [])}
     for i, rule in enumerate(doc.get("mappings", [])):
-        if rule.get("spawn") not in BUILTIN_KINDS:
-            errors.append({"loc": ["template", "mappings", i, "spawn"], "msg": "use a built-in shape kind"})
+        if rule.get("spawn") not in known:
+            errors.append({"loc": ["template", "mappings", i, "spawn"], "msg": _KIND_HINT})
     for i, zone in enumerate(doc.get("zones", [])):
-        if zone.get("kind") not in BUILTIN_KINDS:
-            errors.append({"loc": ["template", "zones", i, "kind"], "msg": "use a built-in shape kind"})
+        if zone.get("kind") not in known:
+            errors.append({"loc": ["template", "zones", i, "kind"], "msg": _KIND_HINT})
     palette = doc.get("palette", {})
     if "staff" in palette and "background" in palette:
         contrast = abs(relative_luminance(palette["staff"]) - relative_luminance(palette["background"]))

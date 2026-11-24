@@ -14,6 +14,7 @@ import {
 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { ShapeKind } from '@/engine/types';
+import { buildRecipeGeometry, type ShapeRecipe } from './recipe-builder';
 
 function baseAtZero(geometry: BufferGeometry, height: number): BufferGeometry {
   geometry.translate(0, height / 2, 0);
@@ -115,8 +116,11 @@ function cluster(): BufferGeometry {
   return unitHeight(new IcosahedronGeometry(0.5, 0));
 }
 
-/** Geometry for a kind; `recipe:*` kinds use a box until the ShapeRecipe builder exists. */
-export function buildShapeGeometry(kind: ShapeKind): BufferGeometry {
+/**
+ * Geometry for a kind. `recipe:<name>` kinds are built from the template's `recipes`; a missing, invalid or over-budget
+ * recipe falls back to a box, so a bad template still renders.
+ */
+export function buildShapeGeometry(kind: ShapeKind, recipes: readonly ShapeRecipe[] = []): BufferGeometry {
   switch (kind) {
     case 'building':
       return building();
@@ -128,8 +132,10 @@ export function buildShapeGeometry(kind: ShapeKind): BufferGeometry {
       return crystal();
     case 'cluster':
       return cluster();
-    default:
-      return baseAtZero(new BoxGeometry(1, 1, 1), 1);
+    default: {
+      const recipe = recipes.find((r) => `recipe:${r.name}` === kind);
+      return (recipe && buildRecipeGeometry(recipe)) || baseAtZero(new BoxGeometry(1, 1, 1), 1);
+    }
   }
 }
 

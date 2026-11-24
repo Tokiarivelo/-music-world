@@ -14,7 +14,7 @@ fileMatchPattern: "apps/api/music_world/director/**"
 | Custom shapes (optional) | `muse-wonder-1.0` | shape intent from the template | `ShapeRecipe` JSON |
 
 Bedrock equivalents (Claude in Amazon Bedrock, `bedrock-mantle`): director `anthropic.claude-sonnet-5-5`, shapes
-`anthropic.claude-opus-5-5`. Mock: `mock-director-1`. Current prompt: `PROMPT_VERSION = "director-v1"`
+`anthropic.claude-opus-5-5`. Mock: `mock-director-1`. Current prompt: `PROMPT_VERSION = "director-v2"`
 (`director/infrastructure/prompts/director.py`). Verified facts and sources: spec `05-ai-world-director/design.md`.
 
 ## Provider switch
@@ -45,5 +45,5 @@ Bedrock equivalents (Claude in Amazon Bedrock, `bedrock-mantle`): director `anth
 - Never execute or interpolate model output into code, SQL, shell or HTML.
 - `META_API_KEY` empty, HTTP error, timeout (30 s) or spend cap reached → `MockDirector`, which derives a template
   deterministically from the analysis (minor key → cooler palette, high energy → denser city, etc.).
-- Do not use `*-contributor` model ids with user data.
+- Director default is `muse-spark-1.3-contributor` (project decision, see `tech.md`); keep the upload notice.
 - Lyrics are user content: do not log them in full.

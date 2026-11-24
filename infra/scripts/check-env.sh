@@ -74,7 +74,7 @@ esac
 
 # 6. AI World Director (missing keys only degrade to the mock director).
 for k in META_DIRECTOR_MODEL META_SHAPE_MODEL; do
-  [[ "$(get "$k")" == *contributor* ]] && error "$k must not be a *-contributor model (user data)"
+  [[ "$(get "$k")" == *contributor* ]] && warn "$k is a *-contributor model: Meta may train on the song summary and lyrics (the upload page says so)"
 done
 case "$(get LLM_PROVIDER)" in
   muse) has META_API_KEY || warn "LLM_PROVIDER=muse without META_API_KEY: the mock director answers" ;;
