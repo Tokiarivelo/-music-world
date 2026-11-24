@@ -14,6 +14,7 @@ import {
   Matrix4,
   Mesh,
   MeshBasicMaterial,
+  Object3D,
   PlaneGeometry,
   QuadraticBezierCurve3,
   Quaternion,
@@ -21,10 +22,12 @@ import {
   Vector3,
 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { isRecordShown } from '@/engine/layers';
 import type { SpawnPlan } from '@/engine/spawn-plan';
 import { staffPoint, type StaffPath } from '@/engine/staff';
 import type { GlyphKind } from '@/engine/types';
 import type { WorldState } from '@/engine/world-state';
+import { layerStore } from '../layer-store';
 import {
   CLEF_SCALE,
   GLYPH_CAPACITY_MAX,
@@ -111,6 +114,9 @@ export class StaffView implements WorldView {
   private haloCount = 0;
   private lastT = Number.NaN;
   private readonly curtain: AuroraCurtain | null = null;
+  /** Lines, halo, clef and curtain: hidden with the `staff` layer. */
+  private readonly staffParts: Object3D[] = [];
+  private unsubscribe: () => void = () => {};
 
   constructor(private readonly plan: SpawnPlan) {
     const { palette, staff } = plan.template;
@@ -118,7 +124,9 @@ export class StaffView implements WorldView {
     const glow = new Color(palette.staff).multiplyScalar(staff.glow);
     const material = new MeshBasicMaterial({ color: glow, side: DoubleSide });
     const staffGeometry = buildStaffGeometry(plan.staff, staff.clef === 'treble');
-    this.object.add(new Mesh(staffGeometry, material));
+    const lines = new Mesh(staffGeometry, material);
+    this.staffParts.push(lines);
+    this.object.add(lines);
     this.disposables.push(staffGeometry, material);
 
     // Soft halo of the lines: the same curves as wider, faint additive tubes (fake bloom, requirement 3.1).
@@ -131,12 +139,15 @@ export class StaffView implements WorldView {
       depthWrite: false,
     });
     const haloGeometry = buildStaffGeometry(plan.staff, false, STAFF_HALO_RADIUS);
-    this.object.add(new Mesh(haloGeometry, haloMaterial));
+    const halo = new Mesh(haloGeometry, haloMaterial);
+    this.staffParts.push(halo);
+    this.object.add(halo);
     this.disposables.push(haloGeometry, haloMaterial);
 
     if (staff.style === 'aurora') {
       const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
       this.curtain = createAuroraCurtain(plan.staff, palette, plan.template.terrain.size, staff.glow, reduced);
+      this.staffParts.push(this.curtain.mesh);
       this.object.add(this.curtain.mesh);
       this.disposables.push(this.curtain);
     }
@@ -174,16 +185,23 @@ export class StaffView implements WorldView {
     this.halos.frustumCulled = false;
     this.object.add(this.halos);
     this.disposables.push(quad, haloTexture, glyphHaloMaterial);
+    this.unsubscribe = layerStore.subscribe(() => {
+      this.lastT = Number.NaN;
+    });
   }
 
   update(state: WorldState): void {
     if (state.t === this.lastT) return; // paused: nothing changed, skip the GPU upload
     this.lastT = state.t;
     this.curtain?.update(state.t);
+    const hidden = layerStore.hidden;
+    for (const part of this.staffParts) part.visible = !hidden.has('staff');
     this.counts.clear();
     this.haloCount = 0;
-    for (const n of state.notesOnStaff) this.place(n.glyph, n.position, n.u);
-    for (const f of state.fallingNotes) this.place(f.glyph, f.position, this.plan.staff.playheadU);
+    for (const n of state.notesOnStaff) if (isRecordShown(this.plan, n.index, hidden)) this.place(n.glyph, n.position, n.u);
+    for (const f of state.fallingNotes) {
+      if (isRecordShown(this.plan, f.index, hidden)) this.place(f.glyph, f.position, this.plan.staff.playheadU);
+    }
     for (const [kind, mesh] of this.glyphMeshes) {
       mesh.count = this.counts.get(kind) ?? 0;
       mesh.instanceMatrix.needsUpdate = true;
