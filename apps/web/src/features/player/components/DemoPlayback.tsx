@@ -11,6 +11,7 @@ import { useAiTemplateChoice } from '../hooks/use-ai-template-choice';
 import { useWorldControls } from '../hooks/use-world-controls';
 import { synthesizeSong } from '../lib/synth-song';
 import { PlayerBar } from './PlayerBar';
+import { TemplateActions } from './TemplateActions';
 
 const { analysis } = DEMO_SONG;
 const DEMO_SOURCE: DirectorSource = { kind: 'demo', analysis };
@@ -35,6 +36,9 @@ export function DemoPlayback() {
       <WorldView controls={controls} scene={scene} />
       <div className="absolute left-3 top-3 z-10 max-w-[calc(100%-11rem)] sm:max-w-none">
         <DirectorPanel director={director} template={template} />
+        <div className="mt-2 rounded-lg bg-[var(--mw-bg)]/80 px-3 py-2 empty:hidden">
+          <TemplateActions template={template} />
+        </div>
       </div>
       {/* IWSDK sizes its canvas to the window, so the controls float above it. */}
       <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[var(--mw-bg)] to-transparent pt-6">

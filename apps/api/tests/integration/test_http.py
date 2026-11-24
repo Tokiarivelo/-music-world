@@ -17,7 +17,7 @@ from music_world.projects.application.use_cases.get_project import GetProject
 from music_world.projects.application.use_cases.get_project_audio import GetProjectAudio
 from music_world.projects.application.use_cases.run_job import RunJob
 from music_world.projects.domain.job_kinds import ANALYZE_PROJECT_JOB_KIND
-from music_world.shared.container import Container, build_accounts, build_director
+from music_world.shared.container import Container, build_accounts, build_director, build_templates
 from music_world.shared.settings import Settings
 from music_world.system.application.use_cases.check_health import CheckHealth
 from tests.fakes import (
@@ -30,6 +30,7 @@ from tests.fakes import (
     InMemoryObjectStore,
     InMemoryProjectRepository,
     InMemorySessionRepository,
+    InMemoryStoreTemplateRepository,
     InMemoryUserRepository,
     RecordingQueue,
     SequentialIds,
@@ -74,6 +75,7 @@ def make_container(
             InMemorySessionRepository(),
             sender or CapturingEmailSender(),
         ),
+        templates=build_templates(settings, InMemoryStoreTemplateRepository(), store),
         check_project_access=CheckProjectAccess(projects),
     )
 

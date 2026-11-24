@@ -67,6 +67,19 @@ from music_world.shared.rate_limit import SlidingWindowLimiter
 from music_world.shared.settings import Settings
 from music_world.system.application.use_cases.check_health import CheckHealth
 from music_world.system.infrastructure.probes import PostgresProbe, RedisProbe, S3Probe
+from music_world.templates.application.ports import FeaturedCatalog, StoreTemplateRepository, ThumbnailStore
+from music_world.templates.application.use_cases.store import (
+    CreateStoreTemplate,
+    DeleteStoreTemplate,
+    GetStoreTemplate,
+    GetThumbnail,
+    ListMyTemplates,
+    ListPublishedTemplates,
+    PublishStoreTemplate,
+    SetThumbnail,
+)
+from music_world.templates.infrastructure.featured_catalog import FileFeaturedCatalog
+from music_world.templates.infrastructure.sqlalchemy_store_repository import SqlAlchemyStoreTemplateRepository
 
 log = structlog.get_logger(__name__)
 
@@ -218,6 +231,47 @@ def build_accounts(
 
 
 @dataclass
+class TemplateServices:
+    create: CreateStoreTemplate
+    publish: PublishStoreTemplate
+    set_thumbnail: SetThumbnail
+    delete: DeleteStoreTemplate
+    get: GetStoreTemplate
+    get_thumbnail: GetThumbnail
+    list_published: ListPublishedTemplates
+    list_mine: ListMyTemplates
+    publish_limiter: SlidingWindowLimiter
+
+
+def new_object_key() -> str:
+    return secrets.token_hex(16)
+
+
+def build_templates(
+    settings: Settings,
+    repo: StoreTemplateRepository,
+    store: ThumbnailStore,
+    featured: FeaturedCatalog | None = None,
+    *,
+    new_id: Callable[[], str] = uuid7,
+    clock: Callable[[], datetime] = utc_now,
+) -> TemplateServices:
+    catalog = featured if featured is not None else FileFeaturedCatalog()
+    get = GetStoreTemplate(repo, catalog)
+    return TemplateServices(
+        create=CreateStoreTemplate(repo, new_id, clock),
+        publish=PublishStoreTemplate(repo, clock),
+        set_thumbnail=SetThumbnail(repo, store, new_object_key),
+        delete=DeleteStoreTemplate(repo),
+        get=get,
+        get_thumbnail=GetThumbnail(get, store),
+        list_published=ListPublishedTemplates(repo, catalog),
+        list_mine=ListMyTemplates(repo),
+        publish_limiter=SlidingWindowLimiter(settings.template_publish_rate_limit_per_hour, 3600.0),
+    )
+
+
+@dataclass
 class Container:
     settings: Settings
     enqueue_job: EnqueueJob
@@ -231,6 +285,7 @@ class Container:
     get_project_audio: GetProjectAudio
     director: DirectorServices
     accounts: AccountServices
+    templates: TemplateServices
     check_project_access: CheckProjectAccess
     engine: AsyncEngine | None = None
     redis: ArqRedis | None = None
@@ -310,6 +365,7 @@ def build_container(settings: Settings, *, with_analysis: bool = False) -> Conta
             SqlAlchemySessionRepository(sessions),
             email_sender(settings),
         ),
+        templates=build_templates(settings, SqlAlchemyStoreTemplateRepository(sessions), store),
         check_project_access=CheckProjectAccess(projects),
         engine=engine,
         redis=redis,

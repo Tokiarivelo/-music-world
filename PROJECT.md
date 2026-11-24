@@ -316,7 +316,7 @@ Source de vérité : modèles pydantic dans `apps/api/music_world/schemas/`, enr
 `apps/web/src/templates/generated/`. Schémas exportés : `music-world.analysis.v1`, `music-world.director-providers.v1`,
 `music-world.director-result.v1`, `music-world.health.v1`, `music-world.job.v1`,
 `music-world.job-accepted.v1`, `music-world.project.v1`, `music-world.project-created.v1`, `music-world.session.v1`,
-`music-world.template.v1`.
+`music-world.store-template.v1`, `music-world.store-template-page.v1`, `music-world.template.v1`.
 
 `POST /api/projects` (multipart `audio` + `lyrics` .lrc optionnel) répond `202` avec `ProjectCreated`
 (`projectId`, `jobId` nul si l'analyse du même SHA-256 est déjà en cache, `status`). `GET /api/projects/{id}` renvoie
@@ -335,6 +335,14 @@ Comptes (`06-template-store`) : `POST /api/auth/magic-link` (`{email}`, toujours
 renvoient ou terminent la `Session` (`user` : `{id, email, displayName}` ou nul). Les requêtes POST/PUT/DELETE avec
 session renvoient le cookie `mw_csrf` dans l'en-tête `X-CSRF-Token`. Un projet envoyé connecté appartient à son
 auteur : toute autre personne reçoit `404` sur le projet, son audio, son analyse et le directeur.
+
+Store : `POST /api/templates` (`{template, publish}`, connecté) valide le template (`music-world.template.v1` + règles
+du store : ≤ 32 Ko, formes intégrées uniquement, portée lisible, nom en texte brut) et renvoie `StoreTemplate`
+(`id` UUID, `template` dont l'`id` reçoit un suffixe unique, `status` `draft | published | hidden`, `author.displayName`,
+`featured`, `thumbnailUrl`, `createdAt`, `publishedAt`). `POST /api/templates/{id}/publish`, `PUT|GET
+/api/templates/{id}/thumbnail` (PNG/JPEG/WebP ≤ 128 Ko, ≤ 640 px) et `DELETE /api/templates/{id}` : propriétaire seul,
+`404` sinon. `GET /api/templates` (public, `?cursor=&limit=`) renvoie `StoreTemplatePage` (`items`, `nextCursor`) ;
+`GET /api/templates/mine` les templates de l'appelant.
 
 ### NoteEvent
 

@@ -7,6 +7,7 @@ import music_world.accounts.infrastructure.sqlalchemy_repositories  # noqa: F401
 import music_world.analysis.infrastructure.sqlalchemy_analysis_repository  # noqa: F401
 import music_world.projects.infrastructure.sqlalchemy_job_repository  # noqa: F401
 import music_world.projects.infrastructure.sqlalchemy_project_repository  # noqa: F401
+import music_world.templates.infrastructure.sqlalchemy_store_repository  # noqa: F401
 from music_world.shared.db import Base, create_engine
 from music_world.shared.settings import get_settings
 

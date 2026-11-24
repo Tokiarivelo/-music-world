@@ -13,6 +13,7 @@ from music_world.projects.domain.job import Job
 from music_world.projects.domain.project import Project
 from music_world.schemas.analysis import AnalysisResult
 from music_world.system.application.ports import CheckStatus
+from music_world.templates.domain.model import PageCursor, StoreTemplate, TemplateStatus
 
 
 class FakeClock:
@@ -200,3 +201,34 @@ class CapturingEmailSender:
         from urllib.parse import parse_qs, urlsplit
 
         return parse_qs(urlsplit(self.sent[-1][1]).query)["token"][0]
+
+
+class InMemoryStoreTemplateRepository:
+    def __init__(self) -> None:
+        self.templates: dict[str, StoreTemplate] = {}
+
+    async def add(self, template: StoreTemplate) -> None:
+        self.templates[template.id] = template
+
+    async def get(self, template_id: str) -> StoreTemplate | None:
+        return self.templates.get(template_id)
+
+    async def save(self, template: StoreTemplate) -> None:
+        self.templates[template.id] = template
+
+    async def delete(self, template_id: str) -> None:
+        self.templates.pop(template_id, None)
+
+    async def list_published(self, after: PageCursor | None, limit: int) -> list[StoreTemplate]:
+        rows = sorted(
+            (t for t in self.templates.values() if t.status is TemplateStatus.PUBLISHED and t.published_at),
+            key=lambda t: (t.published_at, t.id),
+            reverse=True,
+        )
+        if after is not None:
+            rows = [t for t in rows if (t.published_at, t.id) < (after.published_at, after.id)]
+        return rows[:limit]
+
+    async def list_by_owner(self, owner_id: str, limit: int) -> list[StoreTemplate]:
+        rows = [t for t in self.templates.values() if t.owner_id == owner_id]
+        return sorted(rows, key=lambda t: t.created_at, reverse=True)[:limit]

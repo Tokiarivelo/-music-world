@@ -109,6 +109,10 @@ Publishing a template needs an account: on `/sign-in`, enter an e-mail address a
 `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM` in `infra/.env` to send real e-mails. Songs uploaded while signed in are
 private to their owner; songs uploaded signed out stay readable by their link (the demo needs no account).
 
+Signed in, an AI-generated world gets a **Publish to the store** button on the play page: the API validates the
+template again (schema, 32 KB, built-in shapes, readable staff, plain-text name), gives it a unique id and a small
+generated preview image, and lists it in the public gallery.
+
 ## License
 
 [MIT](LICENSE)

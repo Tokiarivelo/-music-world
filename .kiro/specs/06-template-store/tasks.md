@@ -10,7 +10,7 @@
   audio, analysis and director routes, director limiter keyed by user; web `features/auth` (sign-in page,
   verification page, account badge, CSRF header). Human: real e-mail (`design.md` § Human checks).
   - _Requirements: 1.1–1.9, 2.1–2.4_
-- [ ] 3. (6.3, P1) Publish a template: `templates` context (store specification, store ids, thumbnail sniffing),
+- [x] 3. (6.3, P1) Publish a template: `templates` context (store specification, store ids, thumbnail sniffing),
   repository + migration, use cases create / publish / thumbnail / get / mine / delete, routes with ownership 404 and
   publication rate limit, contracts `store-template.v1` / `store-template-page.v1`; web publish button on the player
   (any template, AI-generated included) with a generated palette thumbnail.

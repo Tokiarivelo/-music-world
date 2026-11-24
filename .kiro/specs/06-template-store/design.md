@@ -185,3 +185,11 @@ the MVP volume).
   `features/auth` (`SignInForm`, `VerifyMagicLink`, `AccountBadge`, `AccountMenu`, `useSession`), pages `/sign-in`,
   `/auth/verify` (token passed from `searchParams`). The CSRF check runs only when the request carries a valid session
   (an anonymous upload needs no token). A failing SMTP send answers `503 EMAIL_UNAVAILABLE`.
+- Task 3: `apps/api/music_world/templates/` — domain (`model.py`: `StoreTemplate`, `store_template_id`,
+  `PageCursor`; `specification.py`; `thumbnail.py` header sniffing; `errors.py`), application (`validation.py`,
+  `ports.py`, `use_cases/store.py`), infrastructure (`sqlalchemy_store_repository.py`, `featured_catalog.py`),
+  interfaces (`http.py`); contracts `schemas/store.py`; wiring `build_templates` (`Container.templates`). The JSON body
+  of `POST /api/templates` is refused above 64 KB (`Content-Length`) before validation. Web:
+  `features/template-store` (api with per-item zod validation, `usePublishTemplate`, `PublishTemplateButton`,
+  `lib/thumbnail.ts` 256 px WebP/PNG palette preview) and `features/player/components/TemplateActions.tsx` (publish
+  button under the director panel, only for AI-generated templates: built-ins are already in every player).

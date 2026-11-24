@@ -15,6 +15,7 @@ from music_world.shared.http import install_error_handlers
 from music_world.shared.logging import configure_logging
 from music_world.shared.settings import Settings, get_settings
 from music_world.system.interfaces import http as system_http
+from music_world.templates.interfaces import http as templates_http
 
 
 def create_app(
@@ -47,6 +48,7 @@ def create_app(
     app.include_router(analysis_http.router)
     app.include_router(director_http.router)
     app.include_router(accounts_http.router)
+    app.include_router(templates_http.router)
     if settings.app_env == "development":
         app.include_router(jobs_http.demo_router)
     return app

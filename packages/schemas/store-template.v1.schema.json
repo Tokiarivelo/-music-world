@@ -1,0 +1,625 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "music-world.store-template.v1",
+  "$comment": "GENERATED — do not edit. Source: apps/api/music_world/schemas (run `make schemas`).",
+  "$defs": {
+    "Budget": {
+      "additionalProperties": false,
+      "properties": {
+        "instancesPerKind": {
+          "default": 2000,
+          "description": "Cap; extra notes reuse the oldest slot.",
+          "maximum": 2000,
+          "minimum": 1,
+          "title": "Instancesperkind",
+          "type": "integer"
+        }
+      },
+      "title": "Budget",
+      "type": "object"
+    },
+    "Fx": {
+      "additionalProperties": false,
+      "properties": {
+        "particles": {
+          "default": "arcs",
+          "enum": [
+            "arcs",
+            "dust",
+            "none"
+          ],
+          "title": "Particles",
+          "type": "string"
+        },
+        "bloom": {
+          "default": 0.8,
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Bloom",
+          "type": "number"
+        },
+        "beatPulse": {
+          "default": true,
+          "title": "Beatpulse",
+          "type": "boolean"
+        },
+        "chordLinks": {
+          "default": "light_arc",
+          "enum": [
+            "light_arc",
+            "none"
+          ],
+          "title": "Chordlinks",
+          "type": "string"
+        }
+      },
+      "title": "Fx",
+      "type": "object"
+    },
+    "GeneratedBy": {
+      "additionalProperties": false,
+      "description": "Which AI World Director run produced a template (05-ai-world-director requirement 1.4).",
+      "properties": {
+        "provider": {
+          "enum": [
+            "muse",
+            "bedrock",
+            "mock"
+          ],
+          "title": "Provider",
+          "type": "string"
+        },
+        "model": {
+          "pattern": "^[A-Za-z0-9._:-]{1,80}$",
+          "title": "Model",
+          "type": "string"
+        },
+        "promptVersion": {
+          "pattern": "^[A-Za-z0-9._-]{1,40}$",
+          "title": "Promptversion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "model",
+        "promptVersion"
+      ],
+      "title": "GeneratedBy",
+      "type": "object"
+    },
+    "MappingCondition": {
+      "additionalProperties": false,
+      "description": "All present fields must match (AND); an empty condition matches every note.",
+      "properties": {
+        "pitch": {
+          "anyOf": [
+            {
+              "pattern": "^(<\\d{1,3}|>\\d{1,3}|\\d{1,3}-\\d{1,3})$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pitch"
+        },
+        "chord": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "True: only chord notes; false: only notes outside chords.",
+          "title": "Chord"
+        },
+        "stem": {
+          "anyOf": [
+            {
+              "enum": [
+                "vocals",
+                "drums",
+                "bass",
+                "other"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stem"
+        },
+        "velocity": {
+          "anyOf": [
+            {
+              "pattern": "^(<(0(\\.\\d{1,4})?|1(\\.0{1,4})?)|>(0(\\.\\d{1,4})?|1(\\.0{1,4})?)|(0(\\.\\d{1,4})?|1(\\.0{1,4})?)-(0(\\.\\d{1,4})?|1(\\.0{1,4})?))$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Velocity"
+        }
+      },
+      "title": "MappingCondition",
+      "type": "object"
+    },
+    "MappingRule": {
+      "additionalProperties": false,
+      "properties": {
+        "when": {
+          "$ref": "#/$defs/MappingCondition"
+        },
+        "spawn": {
+          "anyOf": [
+            {
+              "enum": [
+                "terrain_ridge",
+                "building",
+                "spike",
+                "crystal",
+                "cluster"
+              ],
+              "type": "string"
+            },
+            {
+              "pattern": "^recipe:[a-z0-9_]{1,40}$",
+              "type": "string"
+            }
+          ],
+          "title": "Spawn"
+        },
+        "heightFrom": {
+          "default": "velocity",
+          "enum": [
+            "velocity",
+            "duration",
+            "pitch"
+          ],
+          "title": "Heightfrom",
+          "type": "string"
+        },
+        "colorRole": {
+          "anyOf": [
+            {
+              "enum": [
+                "primary",
+                "accent",
+                "secondary",
+                "staff"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Default: gradient by pitch inside the zone.",
+          "title": "Colorrole"
+        }
+      },
+      "required": [
+        "when",
+        "spawn"
+      ],
+      "title": "MappingRule",
+      "type": "object"
+    },
+    "Palette": {
+      "additionalProperties": false,
+      "properties": {
+        "background": {
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "title": "Background",
+          "type": "string"
+        },
+        "terrain": {
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "title": "Terrain",
+          "type": "string"
+        },
+        "primary": {
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "title": "Primary",
+          "type": "string"
+        },
+        "accent": {
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "title": "Accent",
+          "type": "string"
+        },
+        "secondary": {
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "title": "Secondary",
+          "type": "string"
+        },
+        "staff": {
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "title": "Staff",
+          "type": "string"
+        }
+      },
+      "required": [
+        "background",
+        "terrain",
+        "primary",
+        "accent",
+        "secondary",
+        "staff"
+      ],
+      "title": "Palette",
+      "type": "object"
+    },
+    "Staff": {
+      "additionalProperties": false,
+      "properties": {
+        "style": {
+          "const": "glowing_lines",
+          "default": "glowing_lines",
+          "title": "Style",
+          "type": "string"
+        },
+        "path": {
+          "default": "diagonal_curve",
+          "enum": [
+            "diagonal_curve",
+            "straight"
+          ],
+          "title": "Path",
+          "type": "string"
+        },
+        "clef": {
+          "default": "treble",
+          "enum": [
+            "treble",
+            "none"
+          ],
+          "title": "Clef",
+          "type": "string"
+        },
+        "glow": {
+          "default": 1.2,
+          "maximum": 3,
+          "minimum": 0,
+          "title": "Glow",
+          "type": "number"
+        },
+        "lookahead": {
+          "default": 4.0,
+          "description": "Seconds a note shows on the staff before onset.",
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Lookahead",
+          "type": "number"
+        },
+        "fallDuration": {
+          "default": 0.35,
+          "description": "Seconds from leaving the staff to landing.",
+          "maximum": 2,
+          "minimum": 0.1,
+          "title": "Fallduration",
+          "type": "number"
+        }
+      },
+      "title": "Staff",
+      "type": "object"
+    },
+    "StoreAuthor": {
+      "additionalProperties": false,
+      "properties": {
+        "displayName": {
+          "description": "Public name (never the e-mail address).",
+          "title": "Displayname",
+          "type": "string"
+        }
+      },
+      "required": [
+        "displayName"
+      ],
+      "title": "StoreAuthor",
+      "type": "object"
+    },
+    "TemplateMeta": {
+      "additionalProperties": false,
+      "properties": {
+        "generatedBy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeneratedBy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Set by the director, never by a model."
+        }
+      },
+      "title": "TemplateMeta",
+      "type": "object"
+    },
+    "Terrain": {
+      "additionalProperties": false,
+      "properties": {
+        "style": {
+          "default": "cracked_plate",
+          "enum": [
+            "cracked_plate",
+            "smooth_plate"
+          ],
+          "title": "Style",
+          "type": "string"
+        },
+        "mountains": {
+          "default": "edges",
+          "enum": [
+            "edges",
+            "none"
+          ],
+          "title": "Mountains",
+          "type": "string"
+        },
+        "size": {
+          "default": 12.0,
+          "description": "Side of the square plate, in metres (desktop scale).",
+          "maximum": 40,
+          "minimum": 4,
+          "title": "Size",
+          "type": "number"
+        }
+      },
+      "title": "Terrain",
+      "type": "object"
+    },
+    "WorldTemplate": {
+      "additionalProperties": false,
+      "description": "Palette, terrain, staff, note-to-shape mappings, layout zones and effects of a world.",
+      "properties": {
+        "schema": {
+          "const": "music-world.template.v1",
+          "title": "Schema",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 60,
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 60,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "license": {
+          "enum": [
+            "CC0-1.0",
+            "CC-BY-4.0",
+            "CC-BY-SA-4.0",
+            "MIT"
+          ],
+          "title": "License",
+          "type": "string"
+        },
+        "palette": {
+          "$ref": "#/$defs/Palette"
+        },
+        "terrain": {
+          "$ref": "#/$defs/Terrain",
+          "default": {
+            "style": "cracked_plate",
+            "mountains": "edges",
+            "size": 12.0
+          }
+        },
+        "staff": {
+          "$ref": "#/$defs/Staff",
+          "default": {
+            "style": "glowing_lines",
+            "path": "diagonal_curve",
+            "clef": "treble",
+            "glow": 1.2,
+            "lookahead": 4.0,
+            "fallDuration": 0.35
+          }
+        },
+        "mappings": {
+          "description": "In order; first match wins.",
+          "items": {
+            "$ref": "#/$defs/MappingRule"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Mappings",
+          "type": "array"
+        },
+        "zones": {
+          "default": [],
+          "description": "Kinds without a zone use the whole plate.",
+          "items": {
+            "$ref": "#/$defs/Zone"
+          },
+          "maxItems": 16,
+          "title": "Zones",
+          "type": "array"
+        },
+        "budget": {
+          "$ref": "#/$defs/Budget",
+          "default": {
+            "instancesPerKind": 2000
+          }
+        },
+        "fx": {
+          "$ref": "#/$defs/Fx",
+          "default": {
+            "particles": "arcs",
+            "bloom": 0.8,
+            "beatPulse": true,
+            "chordLinks": "light_arc"
+          }
+        },
+        "meta": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TemplateMeta"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "schema",
+        "id",
+        "name",
+        "license",
+        "palette",
+        "mappings"
+      ],
+      "title": "WorldTemplate",
+      "type": "object"
+    },
+    "Zone": {
+      "additionalProperties": false,
+      "description": "Rectangle on the plate in normalized coordinates (-1 = left/far edge, 1 = right/near edge).",
+      "properties": {
+        "kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "terrain_ridge",
+                "building",
+                "spike",
+                "crystal",
+                "cluster"
+              ],
+              "type": "string"
+            },
+            {
+              "pattern": "^recipe:[a-z0-9_]{1,40}$",
+              "type": "string"
+            }
+          ],
+          "title": "Kind"
+        },
+        "xMin": {
+          "maximum": 1,
+          "minimum": -1,
+          "title": "Xmin",
+          "type": "number"
+        },
+        "xMax": {
+          "maximum": 1,
+          "minimum": -1,
+          "title": "Xmax",
+          "type": "number"
+        },
+        "zMin": {
+          "maximum": 1,
+          "minimum": -1,
+          "title": "Zmin",
+          "type": "number"
+        },
+        "zMax": {
+          "maximum": 1,
+          "minimum": -1,
+          "title": "Zmax",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "xMin",
+        "xMax",
+        "zMin",
+        "zMax"
+      ],
+      "title": "Zone",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One template of the store: its `music-world.template.v1` document plus publication data.",
+  "properties": {
+    "id": {
+      "description": "Store id (UUID): use it in `/api/templates/{id}` and `?template=`.",
+      "title": "Id",
+      "type": "string"
+    },
+    "template": {
+      "$ref": "#/$defs/WorldTemplate",
+      "description": "Its `id` is unique across the store."
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "published",
+        "hidden"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "author": {
+      "$ref": "#/$defs/StoreAuthor"
+    },
+    "featured": {
+      "description": "Launch template shipped with Music World.",
+      "title": "Featured",
+      "type": "boolean"
+    },
+    "thumbnailUrl": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Same-origin URL of the thumbnail, or null (draw a palette preview).",
+      "title": "Thumbnailurl"
+    },
+    "createdAt": {
+      "format": "date-time",
+      "title": "Createdat",
+      "type": "string"
+    },
+    "publishedAt": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Publishedat"
+    }
+  },
+  "required": [
+    "id",
+    "template",
+    "status",
+    "author",
+    "featured",
+    "thumbnailUrl",
+    "createdAt",
+    "publishedAt"
+  ],
+  "title": "StoreTemplate",
+  "type": "object"
+}
