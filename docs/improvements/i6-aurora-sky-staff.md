@@ -69,3 +69,20 @@ Property tests of the motion, draw-call/triangle tests, Playwright screenshots, 
 Additive curtains plus bloom can wash out on bright palettes (I4): clamp alpha by background luminance. Shader noise
 cost on Quest: measure before adding octaves. "Pretty" is subjective: iterate with 3 reference photos in `assets/`
 (licensed) and agree on the look with the author before task 6.
+
+## As built (phase I6, first slice, 2026-11-24)
+
+- Contract: `staff.style` accepts `aurora` (default stays `glowing_lines`, so `/play/demo` and the reference look are
+  unchanged); schemas regenerated; editor Staff section has a Style select (en, fr, mg).
+- Engine: `engine/rain.ts` (pure): a note falls from the curtain with a vertical ease-in (a drop accelerates) and a
+  horizontal sway from `hash(seed, noteId)` that is zero at both ends, so it lands exactly on its target and a seek gives
+  the same picture. The aurora staff hangs at 14 % of the plate size (classic: 6 %), lines 1.5× apart (`engine/staff.ts`).
+- View: `xr/views/aurora-curtain.ts`: one additive ribbon along the staff (1 152 triangles, 1 draw call, no texture, a few
+  sines in the shaders), song time as the only clock, still with `prefers-reduced-motion`; the five lines and the clef
+  stay as notation.
+- Launch template **Aurora Night** (`featured/aurora-night.json`, store id `…0003`): teal / violet / blue, lookahead 5 s,
+  fall 1.4 s. Screenshot over the demo song (the default look temporarily set to aurora): `docs/improvements/i6/aurora-staff.png`.
+- Not done: trailing streaks on the falling notes, chord arcs coming from the sky, kicks pulsing the curtain, quality
+  tiers for Quest, re-coloring through the I4 palette override (the curtain reads the template palette), the desktop
+  camera is not re-framed for a high staff (it fits because the ratio is modest), a Quest 3 fps check, and agreeing the
+  "pretty" with the author on photos.

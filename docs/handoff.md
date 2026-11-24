@@ -41,6 +41,8 @@ Read docs/handoff.md and continue with the next actions.
 - Previous session (phase A2): `09-template-editor` 1–8 (`/editor`, `PUT /api/templates/{id}`); recipe editing
   came in phase A5 (tasks 9–11); not done: Quest check of the editor page. Screenshots: `docs/template-editor/`.
 
+- Phase I6 (`phase-I6-aurora-sky-staff`, stacked on I7): staff style `aurora`, rain fall, curtain shader, launch template
+  Aurora Night; follow-ups in `docs/improvements/i6-aurora-sky-staff.md` § As built.
 - Phase I7 (`phase-I7-immersive-scale`): immersive scale, Walk mode, VR locomotion; follow-ups listed in
   `docs/improvements/i7-immersive-scale.md` § As built. Quest 3 check is a human task.
 

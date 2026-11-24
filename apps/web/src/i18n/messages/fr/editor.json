@@ -153,5 +153,8 @@
   "part.spread": "Étalement",
   "part.seedOffset": "Variation",
   "error.recipeName": "1 à 40 caractères : a-z, 0-9 et _, différent des autres formes.",
-  "error.recipeBudget": "Les pièces demandent plus de triangles que le budget permet."
+  "error.recipeBudget": "Les pièces demandent plus de triangles que le budget permet.",
+  "staff.style": "Style",
+  "opt.glowing_lines": "Lignes lumineuses",
+  "opt.aurora": "Aurore dans le ciel"
 }
