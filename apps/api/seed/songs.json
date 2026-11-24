@@ -1,5 +1,5 @@
 {
-  "_comment": "Songs seeded by scripts/seed_songs.py. The audio files are not in the repository: pass the folder with --audio-dir. is_public=false songs are analysed for local tuning only and are refused by the seed on any non-local object store.",
+  "_comment": "Songs seeded by scripts/seed_songs.py. The audio files are not in the repository: pass the folder with --audio-dir. is_public=false songs are analysed for local tuning only and are refused by the seed on any non-local object store. excerpt_sec keeps only the first seconds of a song longer than the 180 s analysis limit.",
   "songs": [
     {
       "slug": "luke-bergs-aurora",
@@ -35,7 +35,8 @@
       "artist": "Eric Clapton",
       "license": "All rights reserved (local tuning only, never published)",
       "source_url": null,
-      "is_public": false
+      "is_public": false,
+      "excerpt_sec": 170
     }
   ]
 }

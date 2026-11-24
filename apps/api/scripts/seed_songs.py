@@ -17,7 +17,9 @@ import hashlib
 import json
 import re
 import shutil
+import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 from urllib.parse import urlparse
@@ -94,6 +96,28 @@ async def main(args: argparse.Namespace) -> int:
             print(f"[seed] {entry['slug']}: not public, refused on a remote object store", file=sys.stderr)
             failures += 1
             continue
+        scratch = tempfile.TemporaryDirectory(prefix="mw-seed-")
+        if entry.get(
+            "excerpt_sec"
+        ):  # a song over the analysis limit: keep its first seconds (stream copy, no re-encode)
+            cut = Path(scratch.name) / f"excerpt{path.suffix}"
+            subprocess.run(
+                [
+                    "ffmpeg",
+                    "-v",
+                    "error",
+                    "-y",
+                    "-i",
+                    str(path),
+                    "-t",
+                    str(entry["excerpt_sec"]),
+                    "-c",
+                    "copy",
+                    str(cut),
+                ],
+                check=True,
+            )
+            path = cut
         audio_hash = _hash(path)
         existing = await songs.get_by_slug(entry["slug"])
         result = await analyses.get(audio_hash)
@@ -154,6 +178,7 @@ async def main(args: argparse.Namespace) -> int:
                 created_at=existing.created_at if existing else utc_now(),
             )
         )
+        scratch.cleanup()
         print(f"[seed] {entry['slug']}: {len(result.notes)} notes, {len(result.chords)} chords, key {result.key}, "
               f"{result.tempo_bpm:.0f} BPM, project {project_id}")  # fmt: skip
     await engine.dispose()
