@@ -17,6 +17,9 @@ import {
 } from "../hooks/use-navigation-shortcuts";
 import { usePaletteOverride, usePaletteStore } from "../hooks/use-palette-override";
 import { useHiddenLayers } from "../hooks/use-hidden-layers";
+import { useEditShortcuts } from "../hooks/use-edit-shortcuts";
+import { useNoteEdits } from "../hooks/use-note-edits";
+import { EditToolbar } from "./EditToolbar";
 import { ColorsPopover } from "./ColorsPopover";
 import { LayersPopover } from "./LayersPopover";
 import { LyricsOverlay } from "./LyricsOverlay";
@@ -77,6 +80,8 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
   usePaletteOverride(handle, scene);
   const paletteStore = usePaletteStore(scene);
   const [hiddenLayers, setHiddenLayers] = useHiddenLayers(handle);
+  const noteEdits = useNoteEdits(handle, scene, controls);
+  useEditShortcuts(handle, noteEdits);
   const lyrics = scene?.analysis.lyrics;
   const hasLyrics = !!lyrics && lyrics.length > 0;
 
@@ -125,6 +130,7 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
           templatePalette={scene.template.palette}
         />
       )}
+      {scene && !immersive && controls && <EditToolbar api={noteEdits} />}
       {scene && !immersive && (
         <>
           <LayersPopover

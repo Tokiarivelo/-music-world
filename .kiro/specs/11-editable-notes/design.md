@@ -26,3 +26,10 @@ See `docs/improvements/i9-editable-notes.md` § Design. Add an "As built" sectio
   draw call). `WorldHandle` gains `setEdits` (rebuilds the plan with the same seed), `setEditMode`, `onNoteEvent`,
   `editCommand`; the host binds the controller in the capture phase of the canvas, so a press on a note does not orbit
   the camera. The page enables the mode only while paused (task 6). Time moves are not dragged: time is typed in task 6b.
+- Task 6: `features/world-view/hooks/use-note-edits.ts` owns the document (history of 50, selection, announcements, paused
+  detection from `controls.isPlaying()`, reset on a new analysis); `components/EditToolbar.tsx` (toggle disabled with a
+  reason while playing, undo / redo / reset, lines list with name, color, clef, height, mute, solo, order, duplicate,
+  delete, "Add a line"; note panel with typed pitch, time, duration, velocity, line, color, play, duplicate, reset, delete,
+  "Add a note"; `aria-live` status); `hooks/use-edit-shortcuts.ts` (Tab / arrows select, Up / Down move a step, Enter plays,
+  Delete removes, Ctrl+Z / Ctrl+Shift+Z). Strings `edit.*` in en, fr, mg. Not yet: multi-select and copy / paste (6b),
+  line staves and colors drawn in the world and `colorRole: "line"` (6c).

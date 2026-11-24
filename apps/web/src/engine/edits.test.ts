@@ -151,3 +151,26 @@ describe('edits (I9)', () => {
     );
   });
 });
+
+import { duplicateLine, moveLine, linesOf, noteName } from './edits';
+
+describe('edits: line order and names (I9)', () => {
+  it('names pitches with their octave', () => {
+    expect(noteName(60)).toBe('C4');
+    expect(noteName(69)).toBe('A4');
+    expect(noteName(61)).toBe('C♯4');
+  });
+
+  it('duplicates a line one unit higher and reorders lines', () => {
+    const a = addLine(EMPTY_EDITS, 'A', '#112233')!;
+    const d = duplicateLine(a.edits, a.id, 'A copy')!;
+    const lines = linesOf(d.edits);
+    expect(lines.map((l) => l.name)).toEqual(['Main', 'A', 'A copy']);
+    expect(lines[2]!.color).toBe('#112233');
+    expect(lines[2]!.height).toBe(lines[1]!.height + 1);
+    const moved = moveLine(d.edits, d.id, -1);
+    expect(linesOf(moved).map((l) => l.name)).toEqual(['Main', 'A copy', 'A']);
+    expect(moveLine(d.edits, MAIN_LINE_ID, -1)).toBe(d.edits);
+    expect(duplicateLine(EMPTY_EDITS, 'missing', 'x')).toBeNull();
+  });
+});

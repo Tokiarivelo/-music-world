@@ -289,3 +289,36 @@ export function redo(h: History): History {
 export function resetAll(h: History): History {
   return commit(h, EMPTY_EDITS);
 }
+
+// --- More line operations ---------------------------------------------------------------------------------------------
+
+/** Copies a line's settings into a new line with the given name (its notes stay where they are). */
+export function duplicateLine(edits: LayoutEdits, lineId: string, name: string): { edits: LayoutEdits; id: string } | null {
+  const src = linesOf(edits).find((l) => l.id === lineId);
+  if (!src) return null;
+  const made = addLine(edits, name, src.color);
+  if (!made) return null;
+  return {
+    edits: updateLine(made.edits, made.id, { clef: src.clef, height: src.height + 1, muted: src.muted, solo: false }),
+    id: made.id,
+  };
+}
+
+/** Moves a line one place earlier (-1) or later (+1) in the display order. */
+export function moveLine(edits: LayoutEdits, lineId: string, delta: -1 | 1): LayoutEdits {
+  const ordered = linesOf(edits);
+  const i = ordered.findIndex((l) => l.id === lineId);
+  const j = i + delta;
+  if (i < 0 || j < 0 || j >= ordered.length) return edits;
+  const swapped = ordered.map((l) => ({ ...l }));
+  [swapped[i]!, swapped[j]!] = [swapped[j]!, swapped[i]!];
+  const renumbered = swapped.map((l, k) => ({ ...l, order: k }));
+  return { ...edits, lines: renumbered };
+}
+
+/** Pitch name with octave ("C4" is MIDI 60). */
+export function noteName(midi: number): string {
+  const names = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+  const m = Math.round(midi);
+  return `${names[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`;
+}
