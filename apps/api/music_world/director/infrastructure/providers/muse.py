@@ -27,7 +27,7 @@ MAX_RETRY_AFTER_SEC = 2.0
 
 
 def is_contributor_model(model: str) -> bool:
-    """`*-contributor` ids let Meta train on the inputs: never with user audio or lyrics (requirement 5.3)."""
+    """`*-contributor` ids are cheaper and let Meta train on the inputs (upload page notice, decision 2026-11-24)."""
     return model.strip().lower().endswith("-contributor")
 
 
@@ -43,8 +43,6 @@ class MuseProvider:
     ) -> None:
         if not api_key:
             raise ValueError("META_API_KEY is empty")
-        if is_contributor_model(model):
-            raise ValueError("contributor model ids must not be used with user data")
         self._model, self._backoff = model, backoff_sec
         self._client = httpx.AsyncClient(
             base_url=base_url.rstrip("/"),

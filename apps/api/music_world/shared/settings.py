@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     llm_provider: Literal["muse", "bedrock", "mock"] = "muse"
     meta_api_key: SecretStr | None = None
     meta_base_url: str = "https://api.meta.ai/v1"
-    meta_director_model: str = "muse-spark-1.3"
+    meta_director_model: str = "muse-spark-1.3-contributor"  # cheaper; Meta may train on inputs (see upload notice)
     meta_shape_model: str = "muse-wonder-1.0"
     meta_voice_model: str = "muse-voice-transcribe-1.0"
     meta_spend_cap_usd: float = 1.0

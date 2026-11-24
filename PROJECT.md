@@ -195,7 +195,7 @@ fournisseur suivant. Détails : `.kiro/specs/05-ai-world-director/design.md`.
 
 **Ce que les LLM ne font pas ici :** détecter les notes, les accords, le tempo ou la tonalité. Ce travail revient à Basic Pitch et librosa, qui sont précis et déterministes.
 
-**Données des utilisateurs :** ne pas utiliser les variantes `*-contributor` (moins chères, mais Meta entraîne ses modèles sur les échanges) pour l'audio et les paroles des utilisateurs. Les réserver aux données synthétiques de test.
+**Données des utilisateurs (décision du 2026-11-24) :** le director utilise par défaut `muse-spark-1.3-contributor` (moins cher ; Meta peut entraîner ses modèles sur les entrées : résumé texte de la chanson et paroles, jamais le fichier audio). La page d'envoi en avertit l'utilisateur. `META_DIRECTOR_MODEL=muse-spark-1.3` désactive ce choix.
 
 **Garde-fous :**
 - plafond de dépense par analyse ;

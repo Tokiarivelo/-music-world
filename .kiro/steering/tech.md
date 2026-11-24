@@ -80,7 +80,9 @@ Lyrics transcription is separate: `LYRICS_PROVIDER = muse | lrc | none` (`lrc` =
 | `META_SPEND_CAP_USD` | `1` | Estimated USD per analysis (audio hash), both real providers; over it → mock |
 
 - The API is in public preview: verify model ids, request formats and the voice endpoint in Meta's docs before coding.
-- Do not use `*-contributor` model ids with user audio or lyrics (Meta trains on those inputs).
+- Decision 2026-11-24: the director uses the cheaper `muse-spark-1.3-contributor` by default; Meta may train on the
+  inputs (text summary + lyrics, never the audio file). The upload page must keep telling users (`UPLOAD_TEXT.dataNote`).
+  Voice / shape contributor ids are not verified: keep the standard ids for them. `META_DIRECTOR_MODEL=muse-spark-1.3` opts out.
 - Spark 1.3 audio input is not fully supported: only an optional mood hint, never required.
 - Muse Voice Transcribe is built for speech: always keep the `.lrc` upload and "no lyrics" fallbacks.
 

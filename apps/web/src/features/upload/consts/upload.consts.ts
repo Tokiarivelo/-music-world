@@ -39,6 +39,8 @@ export const UPLOAD_TEXT = {
   progressLabel: 'Analysis progress',
   ready: 'Analysis ready — opening the world…',
   royaltyNote: 'Only upload music you have the rights to use.',
+  dataNote:
+    "To design your world, a text summary of your song (key, tempo, notes, lyrics) is sent to Meta's Muse model, which Meta may use to train its models.",
 } as const;
 
 /** Message keys → user-facing text (API error codes and client-side checks). */

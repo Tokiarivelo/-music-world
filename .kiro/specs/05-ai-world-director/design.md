@@ -30,8 +30,7 @@ director/interfaces/http.py ─► GenerateWorld (application/use_cases/generate
 ## Provider switch (requirement 1)
 
 - Provider ids: `muse | bedrock | mock` (`director/domain/providers.py`). `LLM_PROVIDER` picks the default.
-- A provider is **configured** when its credentials exist: `muse` needs `META_API_KEY` (and a model id that does not
-  end in `-contributor`, requirement 5.3); `bedrock` needs `AWS_REGION` plus AWS credentials
+- A provider is **configured** when its credentials exist: `muse` needs `META_API_KEY`; `bedrock` needs `AWS_REGION` plus AWS credentials
   (`AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY`, or `AWS_PROFILE`, or `AWS_BEARER_TOKEN_BEDROCK`); `mock` always.
 - Chain (`fallback_chain(selected, configured)`): the selected provider if configured, then the other real provider
   if configured, then `mock`. Unknown or unconfigured selections are skipped with reason `NOT_CONFIGURED`.
@@ -129,7 +128,8 @@ zone order, palette hex), (c) is a fixed point (re-parsing gives the same docume
 - Catalogue prices (USD per 1M tokens, input / output): `muse-spark-1.3` 1.25 / 4.25, `muse-wonder-1.0` 4 / 20,
   Bedrock Claude Sonnet 5.5 2 / 10, Claude Opus 5.5 4 / 20 (Anthropic list prices; Bedrock bills separately, so these
   are estimates for the cap). Unknown model → the highest known price.
-- `*-contributor` Muse ids are refused at configuration time (provider reported unconfigured, warning logged).
+- `*-contributor` Muse ids are accepted and are the default director model (decision 2026-11-24, supersedes requirement 5.3):
+  cheaper, Meta may train on the inputs; the upload page says so (`UPLOAD_TEXT.dataNote`).
 - Keys only from env (`SecretStr` settings), never returned by the API or logged; logs carry provider, model,
   durations, token counts, reasons, hashes — never prompts or lyrics.
 - Abuse: the director routes are rate-limited per client IP (`DIRECTOR_RATE_LIMIT_PER_HOUR`, default 30, in-memory,
@@ -183,7 +183,7 @@ so the 2D page and the VR template picker both list every generated template; no
   cache key includes provider + model + prompt version, cache hit skips the provider, timeout.
 - `infrastructure`: Muse and Bedrock adapters against recorded/hand-written fixture responses through mocked HTTP
   (`httpx.MockTransport`, `httpx2.MockTransport`): request shape, parsing, fences, refusal, 429 retry, 5xx, cost;
-  mock provider determinism and validity over generated summaries; contributor ids refused.
+  mock provider determinism and validity over generated summaries; contributor ids accepted.
 - `interfaces`: providers list, project route (404, 409, 200), demo route (hash check), rate limit 429.
 - Web: api parsing, `useDirector`, `DirectorPanel` (selector limited to configured providers, label, error).
 - No test calls a real LLM or the network.

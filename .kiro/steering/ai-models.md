@@ -45,5 +45,5 @@ Bedrock equivalents (Claude in Amazon Bedrock, `bedrock-mantle`): director `anth
 - Never execute or interpolate model output into code, SQL, shell or HTML.
 - `META_API_KEY` empty, HTTP error, timeout (30 s) or spend cap reached → `MockDirector`, which derives a template
   deterministically from the analysis (minor key → cooler palette, high energy → denser city, etc.).
-- Do not use `*-contributor` model ids with user data.
+- Director default is `muse-spark-1.3-contributor` (project decision, see `tech.md`); keep the upload notice.
 - Lyrics are user content: do not log them in full.

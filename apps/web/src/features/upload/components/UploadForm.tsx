@@ -72,6 +72,7 @@ export function UploadForm({ deps }: { deps?: Partial<UploadDeps> }) {
           {upload.phase.kind === 'uploading' ? UPLOAD_TEXT.uploading : UPLOAD_TEXT.submit}
         </button>
         <p className="text-center text-xs opacity-60">{UPLOAD_TEXT.royaltyNote}</p>
+        <p className="text-center text-xs opacity-60">{UPLOAD_TEXT.dataNote}</p>
       </form>
       {upload.phase.kind === 'analysing' && <AnalysisProgress job={upload.job} />}
       {upload.phase.kind === 'ready' && <p role="status">{UPLOAD_TEXT.ready}</p>}
