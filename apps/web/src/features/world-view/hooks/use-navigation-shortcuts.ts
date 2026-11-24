@@ -11,12 +11,14 @@ import { PRESET_KEYS } from "../consts/world-view.consts";
 
 export interface NavigationCommands {
   toggleExplore(): void;
+  /** First-person walk inside the world (I7). */
+  toggleWalk(): void;
   selectPreset(id: ViewPresetId): void;
   reset(): void;
 }
 
 /**
- * `N` toggles the explore mode, `R` resets the view, `1`–`4` select presets (08-navigation-mode requirement 3.2–3.3).
+ * `N` toggles the explore mode, `G` the walk mode, `R` resets the view, `1`–`4` select presets (08-navigation-mode requirement 3.2–3.3).
  * Ignored in text fields, with Ctrl / Alt / Meta, with auto-repeat, and while disabled (VR session).
  */
 export function useNavigationShortcuts(
@@ -29,6 +31,7 @@ export function useNavigationShortcuts(
       if (e.repeat || hasCommandModifier(e) || isEditableTarget(e.target))
         return;
       if (e.code === "KeyN") commands.toggleExplore();
+      else if (e.code === "KeyG") commands.toggleWalk();
       else if (e.code === "KeyR") commands.reset();
       else if (e.code in PRESET_KEYS)
         commands.selectPreset(PRESET_KEYS[e.code as keyof typeof PRESET_KEYS]);

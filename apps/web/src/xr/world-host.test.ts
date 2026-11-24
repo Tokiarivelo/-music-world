@@ -27,7 +27,8 @@ function fakeSignal(initial: string) {
 function fakeDeps(withSession = false) {
   const worlds: Array<ReturnType<typeof makeWorld>> = [];
   const navigation = new NavigationController();
-  const scene = { setScene: vi.fn(), setLightLevel: vi.fn(), setControls: vi.fn(), navigation, disposeNavigation: vi.fn() };
+  const scene = { setScene: vi.fn(), setLightLevel: vi.fn(),
+      setScaleMode: vi.fn(), setControls: vi.fn(), navigation, disposeNavigation: vi.fn() };
   function makeWorld(container: HTMLElement) {
     const canvas = document.createElement('canvas');
     container.appendChild(canvas);

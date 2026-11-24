@@ -96,3 +96,32 @@ describe('NavigationController (08-navigation-mode)', () => {
     expect(c.pose).toEqual(cinematicPose(1));
   });
 });
+
+describe('walk mode (I7)', () => {
+  const bounds = { cx: 0, cz: -30, half: 40 };
+
+  it('starts at the plate edge, walks with the keys and returns to the start on reset', () => {
+    const nav = new NavigationController();
+    nav.configureWalk(bounds, () => []);
+    nav.setMode('walk');
+    expect(nav.state.mode).toBe('walk');
+    expect(nav.consumeWalkCamera()).not.toBeNull();
+    expect(nav.consumeWalkCamera()).toBeNull(); // nothing moved since
+    const start = nav.walkPose!;
+    nav.input.key('KeyW', true);
+    nav.step(0.1, false, 800, 20);
+    expect(nav.walkPose!.z).toBeLessThan(start.z);
+    nav.reset();
+    expect(nav.walkPose).toEqual(start);
+  });
+
+  it('takes no input in a VR session and gives the camera back to the orbit modes', () => {
+    const nav = new NavigationController();
+    nav.configureWalk(bounds, () => []);
+    nav.setMode('walk');
+    expect(nav.step(0.1, true, 800, 20)).toBeNull();
+    nav.setMode('cinematic');
+    expect(nav.consumeWalkCamera()).toBeNull();
+    expect(nav.step(0.1, false, 800, 20)).not.toBeNull();
+  });
+});

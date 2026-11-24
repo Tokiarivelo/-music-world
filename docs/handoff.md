@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase A5 recipe editing in the template editor)
+> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase I7 immersive scale and walk mode)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -40,6 +40,9 @@ Read docs/handoff.md and continue with the next actions.
   stays in that branch's history. Never put real e-mails in tracked files: set `MODERATOR_EMAILS` in `infra/.env`.
 - Previous session (phase A2): `09-template-editor` 1–8 (`/editor`, `PUT /api/templates/{id}`); recipe editing
   came in phase A5 (tasks 9–11); not done: Quest check of the editor page. Screenshots: `docs/template-editor/`.
+
+- Phase I7 (`phase-I7-immersive-scale`): immersive scale, Walk mode, VR locomotion; follow-ups listed in
+  `docs/improvements/i7-immersive-scale.md` § As built. Quest 3 check is a human task.
 
 ## 3. Next actions
 

@@ -20,6 +20,8 @@ import {
 } from './constants';
 import { applyPaletteOverride, type PaletteOverride } from './palette-override';
 import { cinematicDistance } from './navigation/orbit-camera';
+import { obstaclesAt, type Circle } from './navigation/walk-camera';
+import { anchorPlacement, plateWidthM, rootScale } from './scale';
 import { bindNavigationInput } from './navigation/navigation-input';
 import type { CameraMode, NavigationController, NavigationState } from './navigation/navigation-controller';
 import type { ViewPresetId } from './navigation/orbit-camera';
@@ -37,7 +39,7 @@ export interface WorldScene {
 }
 
 /** What the host needs from the installed systems. */
-export interface InstalledScene extends Pick<MusicScene, 'setScene' | 'setLightLevel'> {
+export interface InstalledScene extends Pick<MusicScene, 'setScene' | 'setLightLevel' | 'setScaleMode'> {
   setControls(controls: WorldControls | null): void;
   /** Desktop camera navigation (08-navigation-mode); the host binds its input to the canvas. */
   navigation: NavigationController;
@@ -143,6 +145,7 @@ const defaultDeps: WorldHostDeps = {
       disposeNavigation: () => disposeNavigation(navigation),
       setScene: (plan, clock) => scene.setScene(plan, clock),
       setLightLevel: (level) => scene.setLightLevel(level),
+      setScaleMode: (mode) => scene.setScaleMode(mode),
       setControls: (controls) => {
         rig.controls = controls;
       },
@@ -223,19 +226,39 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   fit();
   const resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(fit) : null;
   resizeObserver?.observe(container);
+  // Scale (I7): the world around the viewer in VR and in the walk mode, the diorama otherwise.
+  let inSession = false;
+  const applyScale = (): void => {
+    scene.setScaleMode(inSession || nav.mode === 'walk' ? 'immersive' : 'diorama');
+  };
   const offSession = world.visibilityState.subscribe((state) => {
+    inSession = state !== NON_IMMERSIVE;
+    applyScale();
     if (state === NON_IMMERSIVE) fit(); // back from XR: restore the window size
   });
+  const offScale = nav.subscribe(applyScale);
   const canvas = world.renderer.domElement;
   nav.reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const unbind = bindNavigationInput(canvas, nav.input, () => nav.acceptsInput, { wheelPerPixel: NAV_WHEEL_ZOOM });
   // `touch-action: none` only while exploring, so the cinematic page scrolls as before (requirement 2.4).
   const offTouch = nav.subscribe((state) => {
-    canvas.style.touchAction = state.mode === 'explore' ? 'none' : '';
+    canvas.style.touchAction = state.mode !== 'cinematic' ? 'none' : '';
   });
 
   let basePlan: SpawnPlan | null = null;
   let baseClock: WorldClock | null = null;
+  // Walk mode: the plate and the structures that have landed (recomputed twice a second at most).
+  const centre = anchorPlacement('immersive');
+  let cache: { plan: SpawnPlan; slot: number; circles: readonly Circle[] } | null = null;
+  nav.configureWalk({ cx: centre.x, cz: centre.z, half: plateWidthM('immersive') / 2 }, () => {
+    if (!basePlan || !baseClock) return [];
+    const slot = Math.floor(baseClock.now() * 2);
+    if (cache?.plan !== basePlan || cache.slot !== slot) {
+      const scale = rootScale('immersive', basePlan.template.terrain.size);
+      cache = { plan: basePlan, slot, circles: obstaclesAt(basePlan, baseClock.now(), scale, centre) };
+    }
+    return cache.circles;
+  });
   let override: PaletteOverride | null = null;
   const show = (): void => {
     if (basePlan && baseClock) scene.setScene(applyPaletteOverride(basePlan, override), baseClock);
@@ -288,6 +311,7 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
       offTouch();
       resizeObserver?.disconnect();
       offSession();
+      offScale();
       scene.disposeNavigation();
       if (world.session) world.exitXR();
       world.destroy();

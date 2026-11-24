@@ -23,6 +23,7 @@ export function NavigationControls({
 }: NavigationControlsProps) {
   const t = useT("world");
   const exploring = state.mode === "explore";
+  const walking = state.mode === "walk";
   return (
     <div
       aria-label={t("nav.group")}
@@ -38,6 +39,23 @@ export function NavigationControls({
         >
           {t("nav.explore")}
         </button>
+        <button
+          aria-pressed={walking}
+          className={`${BUTTON} ${walking ? ACTIVE : IDLE}`}
+          onClick={commands.toggleWalk}
+          type="button"
+        >
+          {t("nav.walk")}
+        </button>
+        {walking && (
+          <button
+            className={`${BUTTON} ${IDLE}`}
+            onClick={commands.reset}
+            type="button"
+          >
+            {t("nav.walkReset")}
+          </button>
+        )}
         {exploring && (
           <>
             <div
@@ -67,9 +85,9 @@ export function NavigationControls({
           </>
         )}
       </div>
-      {exploring && (
+      {(exploring || walking) && (
         <p className="max-w-xs text-right text-xs text-white/70">
-          {t("nav.hint")}
+          {walking ? t("nav.walkHint") : t("nav.hint")}
         </p>
       )}
     </div>

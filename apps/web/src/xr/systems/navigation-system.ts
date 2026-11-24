@@ -35,6 +35,11 @@ export class NavigationSystem extends createSystem({}) {
     const pose = b.controller.step(dt, isImmersive(this.world), b.viewport(), b.camera.fov);
     if (!pose) {
       this.written = null; // rewrite the pose when the session ends (requirement 5.3)
+      const walking = b.controller.consumeWalkCamera();
+      if (walking) {
+        b.camera.position.set(walking.eye.x, walking.eye.y, walking.eye.z);
+        b.camera.lookAt(walking.at.x, walking.at.y, walking.at.z);
+      }
       return;
     }
     if (this.written === pose) return;

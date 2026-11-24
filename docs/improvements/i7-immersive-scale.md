@@ -66,3 +66,16 @@ Quest 3 for comfort. Record fps and draw calls in `design.md` § As built.
 ## Risks
 
 Motion sickness: keep glide optional and slow. Depends on I2 (environment) and I6 (sky scale), so do I2 first.
+
+## As built (phase I7, 2026-11-24)
+
+- `xr/scale.ts`: `diorama` (1.5 m plate, default on desktop) and `immersive` (80 m plate, plate top = floor, ground, hills,
+  fog and far plane ×3). It is view state (`scaleStore`); `worldStateAt` and the plan are untouched.
+- Desktop **Walk** mode (`G`, button "Walk"): `navigation/walk-camera.ts` (pure): eye 1.6 m, WASD / Shift / Q E, drag to look,
+  circle collisions with the structures that have landed (recomputed twice a second), bounds = plate + 25 m margin, so the
+  world is not a closed square: the environment ground continues past the plate edge.
+- VR: the immersive scale is the default in a session (`xr/locomotion.ts`, `XRLocomotionSystem`): left stick glide ≤ 2 m/s,
+  right stick 30° snap turn, B / Y toggles the diorama. Reduced motion: 3 m steps instead of gliding. The spatial panel hangs
+  in the tracking space, 0.75 m ahead, and follows the plate's moves. Stick seek is off in this scale (panel buttons stay).
+- Not done: teleport arc, vignette while gliding, scale toggle button on the spatial panel, LOD for distant structures,
+  persisted settings (scale, turn style), a browser screenshot of the walk mode, **Quest 3 check** (comfort, scale, fps).

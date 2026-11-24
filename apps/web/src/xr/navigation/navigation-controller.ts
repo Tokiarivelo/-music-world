@@ -4,6 +4,7 @@
  * frame and copies the pose to `world.camera`. Never reads the audio clock or the spawn plan (requirement 6.1).
  */
 import { DESKTOP_REFERENCE_ASPECT, NAV_EASE_MAX_SEC } from '../constants';
+import { startPose, look, walk, walkCamera, type Circle, type WalkBounds, type WalkPose } from './walk-camera';
 import { NavigationInput, emptyDelta, type NavigationDelta } from './navigation-input';
 import {
   VIEW_PRESETS,
@@ -17,7 +18,7 @@ import {
   type ViewPresetId,
 } from './orbit-camera';
 
-export type CameraMode = 'cinematic' | 'explore';
+export type CameraMode = 'cinematic' | 'explore' | 'walk';
 
 export interface NavigationState {
   mode: CameraMode;
@@ -50,9 +51,35 @@ export class NavigationController {
     return { mode: this.modeValue, preset: this.presetValue };
   }
 
-  /** Input is taken only in the explore mode and outside XR (the system tells the controller about XR). */
+  /** Input is taken in the explore and walk modes, outside XR (the system tells the controller about XR). */
   get acceptsInput(): boolean {
-    return this.modeValue === 'explore' && !this.immersive;
+    return this.modeValue !== 'cinematic' && !this.immersive;
+  }
+
+  private walkBounds: WalkBounds | null = null;
+  private obstaclesOf: () => readonly Circle[] = () => [];
+  private walkPoseValue: WalkPose | null = null;
+  private walkDirty = false;
+
+  /** The plate the walker stands on and the circles it cannot enter (set by the host, which knows the scale). */
+  configureWalk(bounds: WalkBounds, obstacles: () => readonly Circle[]): void {
+    this.walkBounds = bounds;
+    this.obstaclesOf = obstacles;
+    if (this.modeValue === 'walk') {
+      this.walkPoseValue = startPose(bounds);
+      this.walkDirty = true;
+    }
+  }
+
+  get walkPose(): WalkPose | null {
+    return this.walkPoseValue;
+  }
+
+  /** Camera of the walk mode once per change (null when not walking or nothing moved). */
+  consumeWalkCamera(): ReturnType<typeof walkCamera> | null {
+    if (this.modeValue !== 'walk' || !this.walkPoseValue || !this.walkDirty) return null;
+    this.walkDirty = false;
+    return walkCamera(this.walkPoseValue);
   }
 
   private immersive = false;
@@ -75,7 +102,11 @@ export class NavigationController {
     if (mode === this.modeValue) return;
     this.modeValue = mode;
     this.input.clear();
-    if (mode === 'cinematic') {
+    if (mode === 'walk') {
+      this.presetValue = null;
+      this.walkPoseValue = this.walkBounds ? startPose(this.walkBounds) : null;
+      this.walkDirty = true;
+    } else if (mode === 'cinematic') {
       this.presetValue = null;
       this.moveTo(cinematicPose(this.aspect));
     } else {
@@ -96,9 +127,12 @@ export class NavigationController {
     this.emit();
   }
 
-  /** Back to the overview pose (requirement 4.3), in the current mode. */
+  /** Back to the overview pose (requirement 4.3), in the current mode; in the walk mode, back to the start. */
   reset(): void {
-    if (this.modeValue === 'explore') this.setPreset('overview');
+    if (this.modeValue === 'walk') {
+      this.walkPoseValue = this.walkBounds ? startPose(this.walkBounds) : null;
+      this.walkDirty = true;
+    } else if (this.modeValue === 'explore') this.setPreset('overview');
     else this.moveTo(cinematicPose(this.aspect));
   }
 
@@ -121,6 +155,17 @@ export class NavigationController {
       return null;
     }
     const d = this.input.drain(this.delta);
+    if (this.modeValue === 'walk') {
+      const bounds = this.walkBounds;
+      let w = this.walkPoseValue;
+      if (bounds && w && d.moved) {
+        if (d.orbitX !== 0 || d.orbitY !== 0) w = look(w, d.orbitX, d.orbitY);
+        w = walk(w, d.keys, dtSec, bounds, this.obstaclesOf());
+        this.walkPoseValue = w;
+        this.walkDirty = true;
+      }
+      return null; // the system reads `consumeWalkCamera()`
+    }
     if (this.modeValue === 'explore' && d.moved) {
       // Direct manipulation from the shown pose: no lag behind the pointer, and any running ease stops.
       let p = this.poseValue;
