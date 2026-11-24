@@ -26,12 +26,17 @@ def relative_luminance(hex_color: str) -> float:
 def renderability_errors(doc: Mapping[str, Any]) -> list[str]:
     """Empty when the (already schema-valid) document can be rendered as a director template."""
     errors: list[str] = []
+    known = BUILTIN_KINDS | {f"recipe:{r.get('name')}" for r in doc.get("recipes", [])}
     for i, rule in enumerate(doc.get("mappings", [])):
-        if rule.get("spawn") not in BUILTIN_KINDS:
-            errors.append(f"mappings[{i}].spawn: recipe kinds need a ShapeRecipe; use a built-in kind")
+        if rule.get("spawn") not in known:
+            errors.append(
+                f"mappings[{i}].spawn: a recipe kind needs a ShapeRecipe named in `recipes`; or use a built-in kind"
+            )
     for i, zone in enumerate(doc.get("zones", [])):
-        if zone.get("kind") not in BUILTIN_KINDS:
-            errors.append(f"zones[{i}].kind: use a built-in kind")
+        if zone.get("kind") not in known:
+            errors.append(
+                f"zones[{i}].kind: a recipe kind needs a ShapeRecipe named in `recipes`; or use a built-in kind"
+            )
     palette = doc.get("palette", {})
     if "staff" in palette and "background" in palette:
         contrast = abs(relative_luminance(palette["staff"]) - relative_luminance(palette["background"]))

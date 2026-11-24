@@ -29,6 +29,8 @@ def store_errors(doc: Mapping[str, Any]) -> list[dict[str, object]]:
     errors: list[dict[str, object]] = []
     if len(json.dumps(doc, separators=(",", ":"))) > MAX_TEMPLATE_BYTES:
         errors.append({"loc": ["template"], "msg": "template is larger than 32 KB"})
+    if doc.get("recipes"):
+        errors.append({"loc": ["template", "recipes"], "msg": "shape recipes are not accepted in the store yet"})
     for i, rule in enumerate(doc.get("mappings", [])):
         if rule.get("spawn") not in BUILTIN_KINDS:
             errors.append({"loc": ["template", "mappings", i, "spawn"], "msg": "use a built-in shape kind"})

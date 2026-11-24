@@ -9,8 +9,10 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, Field, StringConstraints, model_validator
 
 from music_world.schemas.base import ContractModel
+from music_world.schemas.shape import ShapeRecipe
 
 SCHEMA_ID = "music-world.template.v1"
+MAX_RECIPES = 4
 
 HexColor = Annotated[str, StringConstraints(pattern=r"^#[0-9a-fA-F]{6}$")]
 
@@ -123,4 +125,14 @@ class WorldTemplate(ContractModel):
     zones: list[Zone] = Field(default=[], max_length=16, description="Kinds without a zone use the whole plate.")
     budget: Budget = Budget()
     fx: Fx = Fx()
+    recipes: list[ShapeRecipe] = Field(
+        default=[], max_length=MAX_RECIPES, description="Shapes referenced as `recipe:<name>` by mappings and zones."
+    )
     meta: TemplateMeta | None = None
+
+    @model_validator(mode="after")
+    def _recipe_names_are_unique(self) -> "WorldTemplate":
+        names = [r.name for r in self.recipes]
+        if len(set(names)) != len(names):
+            raise ValueError("recipes: names must be unique")
+        return self

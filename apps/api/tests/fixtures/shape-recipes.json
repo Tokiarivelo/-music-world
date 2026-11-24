@@ -1,0 +1,36 @@
+[
+  { "name": "single_box", "triangles": 12, "recipe": { "name": "single_box", "parts": [{ "op": "box" }] } },
+  {
+    "name": "pointed_prism",
+    "triangles": 10,
+    "recipe": { "name": "pointed_prism", "parts": [{ "op": "prism", "sides": 5, "taper": 0 }] }
+  },
+  { "name": "spike", "triangles": 4, "recipe": { "name": "spike", "parts": [{ "op": "spike", "height": 1 }] } },
+  {
+    "name": "tower",
+    "triangles": 52,
+    "recipe": {
+      "name": "tower",
+      "parts": [
+        { "op": "stack", "of": "box", "levels": 4, "shrink": 0.8, "height": 0.8 },
+        { "op": "spike", "y": 0.8, "width": 0.2, "height": 0.2 }
+      ]
+    }
+  },
+  {
+    "name": "crystal_cluster",
+    "triangles": 120,
+    "recipe": {
+      "name": "crystal_cluster",
+      "parts": [{ "op": "cluster", "of": "prism", "count": 5, "sides": 6, "taper": 0.5, "spread": 0.8, "seedOffset": 3 }]
+    }
+  },
+  {
+    "name": "ruins",
+    "triangles": 60,
+    "recipe": {
+      "name": "ruins",
+      "parts": [{ "op": "box", "height": 0.3 }, { "op": "cluster", "of": "spike", "count": 12, "spread": 0.5 }]
+    }
+  }
+]
