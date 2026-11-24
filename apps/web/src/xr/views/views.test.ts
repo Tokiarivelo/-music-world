@@ -114,6 +114,32 @@ describe('StaffView (task 4.2)', () => {
   });
 });
 
+describe('recipe kinds (05-ai-world-director task 6.3)', () => {
+  const tower = {
+    name: 'tower',
+    parts: [{ op: 'stack', of: 'box', levels: 4, height: 0.9 }],
+    budget: { maxTriangles: 100 },
+  } as unknown as NonNullable<typeof DEFAULT_TEMPLATE.recipes>[number];
+  const withRecipe = (recipes: (typeof tower)[]) => ({
+    ...DEFAULT_TEMPLATE,
+    mappings: [{ ...DEFAULT_TEMPLATE.mappings[0]!, spawn: 'recipe:tower' }],
+    zones: [],
+    recipes,
+  });
+
+  it('renders a recipe kind with the geometry built from the template recipes', () => {
+    const view = new StructureView(buildSpawnPlan(demo, withRecipe([tower]), 1));
+    const mesh = view.object.children.find((c) => c.name === 'structures:recipe:tower') as InstancedMesh;
+    expect(triangleCount(mesh.geometry)).toBe(48);
+  });
+
+  it('falls back to a box when the recipe is missing or over its budget', () => {
+    expect(triangleCount(buildShapeGeometry('recipe:tower'))).toBe(12);
+    const tight = { ...tower, budget: { maxTriangles: 20 } };
+    expect(triangleCount(buildShapeGeometry('recipe:tower', [tight]))).toBe(12);
+  });
+});
+
 describe('StructureView (task 4.3)', () => {
   it('uses one InstancedMesh per kind and matches the state after any seek', () => {
     const view = new StructureView(plan);

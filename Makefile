@@ -14,6 +14,9 @@ DC := docker compose -f $(COMPOSE)
 # Optional apps/api/.env (copy of apps/api/.env.example) is loaded by uv for the host-run api and worker.
 API_ENV_FILE := $(if $(wildcard $(API)/.env),--env-file .env,)
 SERVICE ?=
+# Port of the host web dev server: WEB_PORT in apps/web/.env.local (make reads it), or `make dev-web WEB_PORT=3001`.
+-include $(WEB)/.env.local
+WEB_PORT ?= 3000
 
 help: ## List targets
 	@grep -hE "^[a-z0-9-]+:.*## " $(MAKEFILE_LIST) | sed -E "s/:.*## /\t/" | expand -t 16
@@ -42,8 +45,8 @@ dev-api: ## API on the host with reload: migrations then uvicorn :8000 (needs de
 dev-worker: ## Analysis worker on the host with reload (needs dev-infra; env: apps/api/.env)
 	cd $(API) && uv run $(API_ENV_FILE) arq music_world.worker.WorkerSettings --watch music_world
 
-dev-web: ## Next.js dev server on :3000 (proxies /api to DEV_API_URL, default http://localhost:8000)
-	pnpm -C $(WEB) dev
+dev-web: ## Next.js dev server on WEB_PORT (default 3000) (proxies /api to DEV_API_URL, default http://localhost:8000)
+	pnpm -C $(WEB) dev -p $(WEB_PORT)
 
 up: ## Start the Docker stack in the background (builds only what changed)
 	@bash infra/scripts/build-changed.sh api

@@ -27,7 +27,7 @@
     triangles), `WorldTemplate.recipes` (≤ 4), Python `triangle_count`, renderability and store rules, property tests.
   - [x] 6.2 Web builder `xr/shapes/recipe-builder.ts`: recipe → one BufferGeometry, seeded cluster, parity test with
     `apps/api/tests/fixtures/shape-recipes.json`.
-  - [ ] 6.3 Render `recipe:*` kinds in the structure view (geometry from `template.recipes`), engine and views tests.
+  - [x] 6.3 Render `recipe:*` kinds in the structure view (geometry from `template.recipes`), engine and views tests.
   - [ ] 6.4 Director prompt allows recipes (bump `PROMPT_VERSION`), output tests, docs (`PROJECT.md` §6, design), tick.
 - [ ] 7. (human) One real call per provider with credentials (`design.md` § Human checks): Muse with
   `META_API_KEY`, Bedrock with `AWS_REGION` + credentials and model access; record model id, latency and cost in

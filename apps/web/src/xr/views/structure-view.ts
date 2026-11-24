@@ -46,7 +46,7 @@ export class StructureView implements WorldView {
       .multiplyScalar(lightness(RIDGE_LIGHT));
     for (const track of plan.tracks) {
       const capacity = Math.min(plan.budget, track.recordIndices.length);
-      const geometry = buildShapeGeometry(track.kind);
+      const geometry = buildShapeGeometry(track.kind, plan.template.recipes);
       const material =
         track.kind === 'building'
           ? buildingMaterial()

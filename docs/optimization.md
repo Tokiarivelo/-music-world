@@ -66,7 +66,7 @@ the repository; "Backlog" points to `docs/backlog-agent.md`.
 
 ```bash
 make dev-infra && make dev-api      # terminal 1, 2 (+ make dev-worker when you analyse a song)
-make dev-web                        # terminal 3: http://localhost:3000/play/demo
+make dev-web                        # terminal 3: http://localhost:3000/play/demo (WEB_PORT=3001 if 3000 is taken)
 make -j3 check                      # before a commit (api and web in parallel)
 make dev                            # full Docker stack before a PR that touches infra or Dockerfiles
 make disk && make prune             # when the disk is above 90 %

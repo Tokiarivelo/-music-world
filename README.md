@@ -54,7 +54,7 @@ cp apps/api/.env.example apps/api/.env          # optional: only to change a def
 make dev-infra                                  # postgres + redis
 make dev-api                                    # terminal 2: migrations, then uvicorn --reload on :8000
 make dev-worker                                 # terminal 3 (only to analyse a song)
-make dev-web                                    # terminal 4: http://localhost:3000/play/demo
+make dev-web                                    # terminal 4: http://localhost:3000/play/demo (other port: WEB_PORT in apps/web/.env.local or make dev-web WEB_PORT=3001)
 ```
 
 **Developer checks:**
