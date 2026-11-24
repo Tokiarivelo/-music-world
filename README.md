@@ -63,6 +63,7 @@ make help                             # every target
 | Default look | *Neon Nocturne*: isometric cracked plate, diagonal glowing staff with Bravura clefs and notes, lit-window city and equalizer spikes, light arcs, particles — matched to the reference image above. | `apps/web/src/templates/default`, `apps/web/src/xr` |
 | AI World Director | Summarizes the analysis (no raw notes, never full lyrics in logs), asks the model for a template, then sanitizes, clamps and validates it. Providers: Meta Muse Spark, Claude on Amazon Bedrock, deterministic mock; fallback chain, cache, per-song spend cap. LLM output is data, never code. | `apps/api/music_world/director`, `apps/web/src/features/director` |
 | Template store | E-mail magic-link accounts, publish an AI-generated template (re-validated, 32 KB, built-in shapes only), public gallery, reports that hide a template at a threshold. Launch template: Halloween **Kiroween Pumpkin Night**. | `apps/api/music_world/templates`, `/templates` |
+| Navigation | On desktop and phone the world opens in the cinematic view; **Explore** (or `N`) unlocks orbit (drag), pan (right-drag, Shift-drag, two fingers), zoom (wheel, pinch), WASD/QE fly, view presets (`1`–`4`: Overview, Staff, City, Top) and reset (`R`). Camera only: never touches the song or the world state. | `apps/web/src/xr/navigation`, `features/world-view` |
 | XR mode | WebXR via IWSDK on Meta Quest: tabletop diorama, controllers, hand pinch, spatial panel with template picker. | `apps/web/src/xr` |
 
 ### VR mode
