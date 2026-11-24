@@ -4,5 +4,14 @@
   "pause": "Pause",
   "template": "Template",
   "recenter": "Recenter",
-  "exit": "Exit VR"
+  "exit": "Exit VR",
+  "layers": "Layers",
+  "layer.drums": "Drums",
+  "layer.bass": "Bass",
+  "layer.vocals": "Vocals",
+  "layer.other": "Other",
+  "layer.chords": "Chords",
+  "layer.lyrics": "Lyrics",
+  "layer.fx": "Effects",
+  "layer.staff": "Staff"
 }

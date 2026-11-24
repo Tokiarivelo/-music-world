@@ -31,6 +31,8 @@
   .primary:hover { background-color: #8a6dff; }
   .label { font-size: 2; color: #8f88c8; }
   .tpl { font-size: 1.9; }
+  .chip { padding-x: 1.6; padding-y: 0.9; border-radius: 1.4; background-color: #241f4a; font-size: 1.8; cursor: pointer; }
+  .chip:hover { background-color: #3a3170; }
 </style>
 <div class="panel" id="mw-panel">
   <div class="row">
@@ -50,6 +52,20 @@
     <button class="btn tpl" id="mw-tpl-1">Template</button>
     <button class="btn tpl" id="mw-tpl-2">Template</button>
     <button class="btn tpl" id="mw-tpl-3">Template</button>
+  </div>
+  <div class="row">
+    <span class="label" id="mw-layers-label">Layers</span>
+    <button class="chip" id="mw-layer-0">Drums</button>
+    <button class="chip" id="mw-layer-1">Bass</button>
+    <button class="chip" id="mw-layer-2">Vocals</button>
+    <button class="chip" id="mw-layer-3">Other</button>
+  </div>
+  <div class="row">
+    <span class="label" id="mw-layers-label2"> </span>
+    <button class="chip" id="mw-layer-4">Chords</button>
+    <button class="chip" id="mw-layer-5">Lyrics</button>
+    <button class="chip" id="mw-layer-6">Effects</button>
+    <button class="chip" id="mw-layer-7">Staff</button>
   </div>
   <div class="row">
     <button class="btn" id="mw-recenter">Recenter</button>

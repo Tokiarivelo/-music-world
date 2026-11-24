@@ -28,6 +28,7 @@ import { IMMERSIVE_PLATE_M, VR_MIN_HEAD_HEIGHT_M, VR_PANEL_OFFSET, VR_PANEL_TILT
 import { SNAP_TURN_RAD, SnapTurn, glide, onPlate, turnAround } from '../locomotion';
 import { anchorPlacement, scaleStore, type ScaleMode } from '../scale';
 import { PinchGesture } from '../pinch';
+import type { LayerId } from '@/engine/layers';
 import { keyboardPad, mergeAxis, mergeStick } from '../keyboard-pad';
 import { VR_SEEK_STEP_SEC } from '../constants';
 import { commandsFromPads, type PadEdges, type XRCommand } from '../xr-input-map';
@@ -62,6 +63,9 @@ export interface PanelLabels {
   template: string;
   recenter: string;
   exit: string;
+  /** Heading of the layers rows and the short name of each layer chip. */
+  layers: string;
+  layerNames: Readonly<Record<LayerId, string>>;
 }
 
 export const DEFAULT_PANEL_LABELS: PanelLabels = {
@@ -70,6 +74,17 @@ export const DEFAULT_PANEL_LABELS: PanelLabels = {
   pause: 'Pause',
   template: 'Template',
   recenter: 'Recenter',
+  layers: 'Layers',
+  layerNames: {
+    drums: 'Drums',
+    bass: 'Bass',
+    vocals: 'Vocals',
+    other: 'Other',
+    chords: 'Chords',
+    lyrics: 'Lyrics',
+    fx: 'Effects',
+    staff: 'Staff',
+  },
   exit: 'Exit VR',
 };
 

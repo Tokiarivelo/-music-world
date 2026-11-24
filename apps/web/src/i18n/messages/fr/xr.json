@@ -4,5 +4,14 @@
   "pause": "Pause",
   "template": "Modèle",
   "recenter": "Recentrer",
-  "exit": "Quitter la VR"
+  "exit": "Quitter la VR",
+  "layers": "Calques",
+  "layer.drums": "Batterie",
+  "layer.bass": "Basse",
+  "layer.vocals": "Voix",
+  "layer.other": "Autres",
+  "layer.chords": "Accords",
+  "layer.lyrics": "Paroles",
+  "layer.fx": "Effets",
+  "layer.staff": "Portée"
 }

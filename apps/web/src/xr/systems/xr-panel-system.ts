@@ -27,6 +27,8 @@ import {
   VR_PANEL_TILT_DEG,
   VR_PANEL_URL,
 } from '../constants';
+import { LAYER_COLORS, LAYER_IDS, toggleLayer, type HiddenLayers } from '@/engine/layers';
+import { layerStore } from '../layer-store';
 import { panelTime, progressPercent } from '../panel-format';
 import { ClockComponent, type WorldClock } from './world-systems';
 import { DEFAULT_PANEL_LABELS, isImmersive, XRRigComponent, type WorldControls, type XRRig } from './xr-systems';
@@ -46,7 +48,11 @@ interface PanelView {
   /** Fixed texts: restart, template label, recenter, exit (re-labelled when the language changes). */
   texts: { restart: UIElement; template: UIElement; recenter: UIElement; exit: UIElement };
   templates: UIElement[];
+  /** One chip per layer (`LAYER_IDS` order) and the label of the first row. */
+  layers: UIElement[];
+  layersLabel: UIElement;
   shown: {
+    hidden: HiddenLayers | null;
     second: number;
     duration: number;
     percent: number;
@@ -107,14 +113,22 @@ export class XRPanelSystem extends createSystem({
       });
       templates.push(button);
     }
+    // Layers (I5): the chips drive the same store as the 2D popover; the page mirrors it back to its saved choice.
+    const layers = LAYER_IDS.map((id, i) => {
+      const chip = el(`mw-layer-${i}`);
+      chip.addEventListener('click', () => layerStore.set(toggleLayer(layerStore.hidden, id)));
+      return chip;
+    });
     return {
+      layers,
+      layersLabel: el('mw-layers-label'),
       title: el('mw-title'),
       time: el('mw-time'),
       progress: el('mw-progress'),
       play: el('mw-play'),
       texts: { restart: el('mw-restart'), template: el('mw-tpl-label'), recenter: el('mw-recenter'), exit: el('mw-exit') },
       templates,
-      shown: { second: -1, duration: -1, percent: -1, playing: null, controls: null, labels: null },
+      shown: { hidden: null, second: -1, duration: -1, percent: -1, playing: null, controls: null, labels: null },
     };
   }
 
@@ -152,6 +166,21 @@ export class XRPanelSystem extends createSystem({
       view.texts.template.setProperties({ text: labels.template });
       view.texts.recenter.setProperties({ text: labels.recenter });
       view.texts.exit.setProperties({ text: labels.exit });
+      view.layersLabel.setProperties({ text: labels.layers });
+      shown.hidden = null; // chip texts follow the language
+    }
+    const hidden = layerStore.hidden;
+    if (hidden !== shown.hidden) {
+      shown.hidden = hidden;
+      const names = labels.layerNames;
+      view.layers.forEach((chip, i) => {
+        const id = LAYER_IDS[i]!;
+        chip.setProperties({
+          text: names[id],
+          color: LAYER_COLORS[id] === '#ffffff' ? '#e8e6ff' : LAYER_COLORS[id], // the staff chip keeps the panel's text color
+          opacity: hidden.has(id) ? 0.4 : 1,
+        });
+      });
     }
     const playing = controls.isPlaying();
     if (playing !== shown.playing) {

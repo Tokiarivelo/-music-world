@@ -4,5 +4,14 @@
   "pause": "Ajanony",
   "template": "Môdely",
   "recenter": "Afindrao",
-  "exit": "Hiala"
+  "exit": "Hiala",
+  "layers": "Sosona",
+  "layer.drums": "Ilay ampongatapaka",
+  "layer.bass": "Basy",
+  "layer.vocals": "Feo",
+  "layer.other": "Hafa",
+  "layer.chords": "Hira miara",
+  "layer.lyrics": "Tononkira",
+  "layer.fx": "Endrika",
+  "layer.staff": "Andalana"
 }
