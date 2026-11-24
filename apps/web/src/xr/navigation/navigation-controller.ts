@@ -3,7 +3,7 @@
  * Framework-free so it is tested without IWSDK; `NavigationSystem` calls {@link NavigationController.step} once per
  * frame and copies the pose to `world.camera`. Never reads the audio clock or the spawn plan (requirement 6.1).
  */
-import { NAV_EASE_MAX_SEC } from '../constants';
+import { DESKTOP_REFERENCE_ASPECT, NAV_EASE_MAX_SEC } from '../constants';
 import { NavigationInput, emptyDelta, type NavigationDelta } from './navigation-input';
 import {
   VIEW_PRESETS,
@@ -56,6 +56,20 @@ export class NavigationController {
   }
 
   private immersive = false;
+  private aspect = DESKTOP_REFERENCE_ASPECT;
+
+  /**
+   * Viewport aspect ratio (I2 requirement 4). When the camera is on the cinematic / overview pose it is re-fitted at
+   * once (a resize is not animated); any other pose is left alone.
+   */
+  setAspect(aspect: number): void {
+    if (!Number.isFinite(aspect) || aspect <= 0 || aspect === this.aspect) return;
+    const onOverview = this.goal === this.poseValue && this.isCinematicGoal();
+    this.aspect = aspect;
+    if (!onOverview) return;
+    this.poseValue = cinematicPose(aspect);
+    this.goal = this.poseValue;
+  }
 
   setMode(mode: CameraMode): void {
     if (mode === this.modeValue) return;
@@ -63,7 +77,7 @@ export class NavigationController {
     this.input.clear();
     if (mode === 'cinematic') {
       this.presetValue = null;
-      this.moveTo(cinematicPose());
+      this.moveTo(cinematicPose(this.aspect));
     } else {
       // Explore starts from where the camera is (requirement 1.2): no jump.
       this.presetValue = this.goal === VIEW_PRESETS.overview || this.isCinematicGoal() ? 'overview' : null;
@@ -78,14 +92,14 @@ export class NavigationController {
       this.input.clear();
     }
     this.presetValue = id;
-    this.moveTo(VIEW_PRESETS[id]);
+    this.moveTo(id === 'overview' ? cinematicPose(this.aspect) : VIEW_PRESETS[id]);
     this.emit();
   }
 
   /** Back to the overview pose (requirement 4.3), in the current mode. */
   reset(): void {
     if (this.modeValue === 'explore') this.setPreset('overview');
-    else this.moveTo(cinematicPose());
+    else this.moveTo(cinematicPose(this.aspect));
   }
 
   subscribe(listener: (state: NavigationState) => void): () => void {
@@ -139,7 +153,7 @@ export class NavigationController {
   }
 
   private isCinematicGoal(): boolean {
-    const c = cinematicPose();
+    const c = cinematicPose(this.aspect);
     const g = this.goal;
     return g.yaw === c.yaw && g.pitch === c.pitch && g.distance === c.distance && g.target.x === c.target.x;
   }

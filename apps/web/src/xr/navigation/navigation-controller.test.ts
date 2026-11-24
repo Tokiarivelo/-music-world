@@ -76,4 +76,23 @@ describe('NavigationController (08-navigation-mode)', () => {
     c.setMode('cinematic');
     expect(seen).toEqual(['cinematic', 'explore']);
   });
+
+  it('re-fits the cinematic pose when the aspect changes, and leaves an explored pose alone', () => {
+    const c = new NavigationController();
+    c.setAspect(9 / 16);
+    expect(c.pose).toEqual(cinematicPose(9 / 16));
+    c.setAspect(16 / 9);
+    expect(c.pose).toEqual(cinematicPose());
+    c.setMode('explore');
+    c.input.pointerDown(1, 100, 100, 0, false);
+    c.input.pointerMove(1, 140, 100);
+    c.input.pointerUp(1);
+    c.step(0.016, false, VIEWPORT, FOV);
+    const moved = c.pose;
+    c.setAspect(1);
+    expect(c.pose).toBe(moved);
+    c.reset();
+    c.step(NAV_EASE_MAX_SEC + 1, false, VIEWPORT, FOV);
+    expect(c.pose).toEqual(cinematicPose(1));
+  });
 });

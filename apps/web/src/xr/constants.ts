@@ -11,8 +11,21 @@ export const DESKTOP_CAMERA_AZIMUTH_DEG = 27;
 export const DESKTOP_CAMERA_ELEVATION_DEG = 31;
 export const DESKTOP_CAMERA_DISTANCE_M = 2.5;
 export const DESKTOP_CAMERA_FOV_DEG = 20;
+/** Aspect ratio the framing above is tuned for (16:9): wider keeps it, narrower moves the camera back (I2). */
+export const DESKTOP_REFERENCE_ASPECT = 16 / 9;
 /** Point the desktop camera looks at, relative to the diorama centre (metres): slightly toward the city. */
 export const DESKTOP_CAMERA_TARGET_OFFSET = { x: 0.0, y: 0.09, z: 0.0 } as const;
+
+/** Environment (I2): sky dome and ground radii, fog range, hill rings and columns, star share of sky cells (metres). */
+export const ENV_SKY_RADIUS_M = 120;
+export const ENV_GROUND_RADIUS_M = 60;
+export const ENV_FOG_NEAR_M = 14;
+export const ENV_FOG_FAR_M = 58;
+export const ENV_HILL_RINGS = 2;
+export const ENV_HILL_COLUMNS = 160;
+export const ENV_STAR_DENSITY = 0.012;
+/** Far plane of the desktop camera: must reach the sky dome. */
+export const CAMERA_FAR_M = 300;
 
 export const PLATE_THICKNESS = 0.35;
 /** Grid cells per side of the plate top height field (2 triangles per cell). */
@@ -20,7 +33,7 @@ export const TERRAIN_GRID = 96;
 /** Plate shading (sRGB-ish multipliers of `palette.terrain`): rim, centre, plate sides. */
 export const PLATE_RIM_LIGHT = 1.0;
 export const PLATE_CENTRE_LIGHT = 1.4;
-export const PLATE_SIDE_LIGHT = 0.55;
+export const PLATE_SIDE_LIGHT = 0.8;
 /** Cool (secondary) tint of the plate centre, like the blue-grey middle of the reference plate. */
 export const PLATE_CENTRE_COOL = 0.025;
 /** Violet tint of the plate near the city (fraction of `palette.primary`). */
@@ -134,7 +147,7 @@ export const PINCH_RELEASE = 0.6;
 export const NAV_PITCH_MIN_DEG = 5;
 export const NAV_PITCH_MAX_DEG = 85;
 export const NAV_DISTANCE_MIN_M = 0.35;
-export const NAV_DISTANCE_MAX_M = 6;
+export const NAV_DISTANCE_MAX_M = 9;
 /** The orbit target stays within this horizontal distance of the plate centre (per axis). */
 export const NAV_TARGET_RADIUS_M = 0.9;
 /** The orbit target stays between the plate top and this height above it. */

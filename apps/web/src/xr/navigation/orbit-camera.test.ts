@@ -1,6 +1,8 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import {
+  DESKTOP_CAMERA_DISTANCE_M,
+  DESKTOP_CAMERA_FOV_DEG,
   DIORAMA_POSITION,
   NAV_DISTANCE_MAX_M,
   NAV_DISTANCE_MIN_M,
@@ -14,6 +16,7 @@ import {
   VIEW_PRESETS,
   VIEW_PRESET_IDS,
   approachPose,
+  cinematicDistance,
   cinematicPose,
   clampPose,
   fly,
@@ -75,6 +78,46 @@ function expectInBounds(p: OrbitPose): void {
   expect(p.yaw).toBeGreaterThan(-Math.PI - 1e-12);
   expect(p.yaw).toBeLessThanOrEqual(Math.PI);
 }
+
+const ASPECTS = [16 / 9, 21 / 9, 4 / 3, 1, 9 / 16] as const;
+const HALF_FOV = Math.tan((DESKTOP_CAMERA_FOV_DEG * Math.PI) / 360);
+
+describe('cinematic camera and aspect ratio (I2 requirement 4)', () => {
+  it('keeps the 16:9 framing and every wider framing exactly', () => {
+    expect(cinematicDistance(16 / 9)).toBe(DESKTOP_CAMERA_DISTANCE_M);
+    expect(cinematicDistance(21 / 9)).toBe(DESKTOP_CAMERA_DISTANCE_M);
+    expect(cinematicDistance()).toBe(DESKTOP_CAMERA_DISTANCE_M);
+    expect(desktopCameraPose(16 / 9)).toEqual(desktopCameraPose());
+  });
+
+  it.each(ASPECTS)('fits the plate width at aspect %f and stays inside the navigation bounds', (aspect) => {
+    const pose = cinematicPose(aspect);
+    expectInBounds(pose);
+    const visibleWidth = 2 * pose.distance * HALF_FOV * aspect;
+    const referenceWidth = 2 * DESKTOP_CAMERA_DISTANCE_M * HALF_FOV * (16 / 9);
+    expect(visibleWidth).toBeGreaterThanOrEqual(referenceWidth - 1e-9);
+  });
+
+  it('moves the camera back monotonically as the view gets narrower', () => {
+    const distances = ASPECTS.map((a) => cinematicDistance(a));
+    for (let i = 1; i < distances.length; i++) expect(distances[i]!).toBeGreaterThanOrEqual(distances[i - 1]!);
+  });
+
+  it('uses the 16:9 framing for degenerate aspects', () => {
+    for (const a of [0, -1, NaN, Infinity]) expect(cinematicDistance(a)).toBe(DESKTOP_CAMERA_DISTANCE_M);
+  });
+
+  it('looks at the same target from the same direction at every aspect', () => {
+    const base = desktopCameraPose();
+    for (const a of ASPECTS) {
+      const p = desktopCameraPose(a);
+      const k = cinematicDistance(a) / DESKTOP_CAMERA_DISTANCE_M;
+      expect(p.target).toEqual(base.target);
+      expect(p.position.x - p.target.x).toBeCloseTo((base.position.x - base.target.x) * k, 9);
+      expect(p.position.y - p.target.y).toBeCloseTo((base.position.y - base.target.y) * k, 9);
+    }
+  });
+});
 
 describe('cinematicPose', () => {
   it('reproduces the desktop isometric camera of the default look', () => {

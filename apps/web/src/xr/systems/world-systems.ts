@@ -14,7 +14,8 @@ import { createComponent, createSystem, Types, type Entity, type World } from '@
 import { AmbientLight, Color, DirectionalLight, Group } from 'three';
 import type { SpawnPlan } from '@/engine/spawn-plan';
 import { worldStateAt, type WorldState } from '@/engine/world-state';
-import { DIORAMA_POSITION, DIORAMA_WIDTH_M } from '../constants';
+import { CAMERA_FAR_M, DIORAMA_POSITION, DIORAMA_WIDTH_M } from '../constants';
+import { EnvironmentView } from '../views/environment-view';
 import { FxView } from '../views/fx-view';
 import { StaffView } from '../views/staff-view';
 import { StructureView } from '../views/structure-view';
@@ -62,8 +63,11 @@ export class ClockSystem extends createSystem({ clocks: { required: [ClockCompon
   }
 }
 
-/** A system that (re)builds one view when the plan changes and feeds it the shared state every frame. */
-function viewSystem(build: (plan: SpawnPlan) => WorldView) {
+/**
+ * A system that (re)builds one view when the plan changes and feeds it the shared state every frame. The view is a
+ * child of the diorama root unless `worldFixed`: then it is a child of the scene (the environment around the user).
+ */
+function viewSystem(build: (plan: SpawnPlan) => WorldView, worldFixed = false) {
   return class extends createSystem({ clocks: { required: [ClockComponent] } }) {
     private view: WorldView | null = null;
     private viewPlan: SpawnPlan | null = null;
@@ -74,6 +78,7 @@ function viewSystem(build: (plan: SpawnPlan) => WorldView) {
 
     private release(): void {
       this.view?.object.removeFromParent();
+      if (worldFixed) this.world.scene.fog = null;
       this.view?.dispose();
       this.view = null;
       this.viewPlan = null;
@@ -89,7 +94,8 @@ function viewSystem(build: (plan: SpawnPlan) => WorldView) {
           this.release();
           this.view = build(plan);
           this.viewPlan = plan;
-          root.add(this.view.object);
+          (worldFixed ? this.world.scene : root).add(this.view.object);
+          if (worldFixed && this.view instanceof EnvironmentView) this.world.scene.fog = this.view.fog;
         }
         this.view?.update(state);
         return; // one music world per IWSDK world
@@ -102,6 +108,7 @@ export const TerrainSystem = viewSystem((plan) => new TerrainView(plan));
 export const StaffSystem = viewSystem((plan) => new StaffView(plan));
 export const StructureSystem = viewSystem((plan) => new StructureView(plan));
 export const FxSystem = viewSystem((plan) => new FxView(plan));
+export const EnvironmentSystem = viewSystem((plan) => new EnvironmentView(plan), true);
 
 /** Snapshot of `renderer.info` (04-default-template requirement 7.3). */
 export interface PerfSample {
@@ -155,6 +162,12 @@ export function installMusicSystems(world: World, options: { perfLog?: boolean }
   world.registerSystem(StaffSystem);
   world.registerSystem(StructureSystem);
   world.registerSystem(FxSystem);
+  world.registerSystem(EnvironmentSystem);
+  // The sky dome is far away: the default far plane would clip it.
+  if (world.camera.far < CAMERA_FAR_M) {
+    world.camera.far = CAMERA_FAR_M;
+    world.camera.updateProjectionMatrix();
+  }
   if (options.perfLog) world.registerSystem(PerfSystem);
 
   const anchor = new Group();
