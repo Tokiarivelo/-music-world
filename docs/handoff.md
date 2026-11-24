@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase A3 moderation queue)
+> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase A4 design system, My templates, Nemo Reef)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -14,29 +14,32 @@ Read docs/handoff.md and continue with the next actions.
 
 - Work from `main`. Push with gh credentials:
   `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
-- Merged: phase 9 docs, `08-navigation-mode` (PR #9), I1–I4b (PRs #15–#19). Phase A2 (template editor, spec
-  `09-template-editor`, 8 tasks, one commit each) is on branch `phase-A2-template-editor`, merged through its PR.
-- `make check` green at the end of A2: web vitest 339 passed (67 files), eslint, tsc; API 335 passed.
+- Merged: phase 9 docs, `08-navigation-mode` (PR #9), I1–I4b (PRs #15–#19), A2 template editor (PR #21 line).
+  Open PRs: #22 `phase-A3-moderation` (spec 10, tasks 1–6) and, stacked on it, `phase-A4-design-system`.
+- Checks at the end of A3: web vitest 348 passed, API 354 passed, ruff / mypy / tsc / eslint clean.
 - No server left running. A `music-world` Compose stack (old images, predates Phase 6) and another project's
   containers (`angaly_*`) may be running — not started by these sessions; leave them alone.
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-24, Claude Code, phase A3 moderation queue)
+## 2. Last session (2026-11-24, Claude Code, phases A3 and A4)
 
-- `10-template-moderation` 1–6 done on `phase-A3-moderation` (one commit per task, PR open, not merged): `MODERATOR_EMAILS`,
-  session `moderator`, migration `0005`, `/api/moderation/*`, web `/moderation`. Req 4.1 label deferred (no "My templates"
-  list in the web app). API 354 passed, web 348 passed, ruff / mypy / tsc / eslint clean. Rules changed: commit every task
-  and open the PR at the end of a phase without asking (`rules.md` step 6).
-- Previous session (phase A2 template editor):
-
-- `09-template-editor` 1–8 done: `PUT /api/templates/{id}` (draft only, owner only, 409 `TEMPLATE_NOT_EDITABLE`), then
-  `features/template-editor` (pure `editor-model` / `editor-validate`, draft store, form, rules and zones editors, live
-  preview, save / publish, sign-in round trip) and `/editor`. "Edit a copy" is on store cards and the play pages.
-- Preview bug caught by `scripts/editor-check.mjs`: the world canvas is `fixed inset-0` and covered the form; fixed with
-  `contain: layout paint` on the preview section. A stale `next dev` on 3125 answered 500 for `/editor`: restart it.
-- Deviations (see `09-template-editor/design.md` § As built): no Zustand (external store like the palette store),
-  `repo.save` reused instead of `update_document`, unsaved document kept in `sessionStorage` (per tab).
-- Not done: recipe editing, Quest check of the editor page. Screenshots: `docs/template-editor/`.
+- A3 `10-template-moderation` 1–6 on `phase-A3-moderation`: `MODERATOR_EMAILS`, session `moderator`, migration `0005`,
+  `/api/moderation/*`, web `/moderation`. Rules changed: commit every task and open the PR at the end of a phase
+  without asking (`rules.md` step 6).
+- A4 on `phase-A4-design-system`: skill `design-system` (tokens and class recipes; read it before any UI change; wired
+  into `rules.md`, `frontend.md`, `new-web-feature`); `MyTemplates` on `/templates` with the "Hidden after reports,
+  under review" label (requirement 4.1 closed); launch template **Nemo Reef** (`featured/nemo-reef.json`, store id
+  `…0002`, listed after Kiroween Pumpkin Night).
+- Template **scenery** (new, contract change): `scenery: [{kind, count}]` stands objects on the plate before the first
+  note (engine `sceneryRecords`, records `[0, sceneryCount)`, placed from the world seed in the zones of their kind);
+  recipes cap 4 → 16 for the store (the AI director stays at 4). **Nemo Reef** now has 16 recipes + 5 native kinds,
+  116 scenery objects, 21 pitch bands. Each Play from the beginning draws a new world seed (`usePlaySeed`, in the demo
+  and project players only; the editor preview keeps one), so the arrangement changes every run. Recipes have
+  `footprint` (m) and `heightScale` for squat or wide shapes (`engine/recipe-scale.ts`); Nemo sets both per recipe.
+- A personal e-mail was committed in `apps/api/.env.example` by mistake (`062da9c`) and emptied in the next commit; it
+  stays in that branch's history. Never put real e-mails in tracked files: set `MODERATOR_EMAILS` in `infra/.env`.
+- Previous session (phase A2): `09-template-editor` 1–8 (`/editor`, `PUT /api/templates/{id}`); not done: recipe
+  editing, Quest check of the editor page. Screenshots: `docs/template-editor/`.
 
 ## 3. Next actions
 
@@ -50,15 +53,15 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 2. **Human** — roadmap 8.1–8.3 deploy, exact steps in `infra/README.md` § Deploy (`DRY_RUN=1` first, then
    `DEPLOY_HOST=ubuntu@<ip> DEPLOY_DOMAIN=<domain> make deploy`), verify per skill `deploy-ovh` § Verify incl. Quest
    Browser Enter VR, install the cron file, run one backup. Then replace `TODO(deploy)` in `README.md` and
-   `docs/submission.md` with the public URL.
+   `docs/submission.md` with the public URL. Add `MODERATOR_EMAILS=` (your address) to `infra/.env` first.
 3. **Human** — checks on the public URL: `06-template-store` task 7 (real e-mail, cross-user), `05-ai-world-director`
    task 7 (real Muse / Bedrock; if Muse rejects `response_format` json_schema, drop it in `providers/muse.py`),
-   `07-xr-mode` task 7 on a Quest 3 (`07-xr-mode/design.md` § Human checks) then tick `03-world-engine-core` task 7.
+   `07-xr-mode` task 7 on a Quest 3 (`07-xr-mode/design.md` § Human checks) then tick `03-world-engine-core` task 7,
+   `10-template-moderation` task 7 (review one real hidden template).
    Update README § Known limitations once done.
 4. **Human** — roadmap 9.3 video, 9.4 Devpost form, 9.5 posts from the drafts in `docs/submission.md` (checklist at
    its top). Run `uvx pip-audit` / `pnpm audit --prod` once before submitting.
-5. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` — next free: A3 done except human task 7 (PR on branch
-   `phase-A3-moderation`), then B4 (Caddy cache headers). Add `MODERATOR_EMAILS=` to `infra/.env` before the next deploy.
+5. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` — next free: B4 (Caddy cache headers).
    Optional: recipe editing in the template editor; `02-music-analysis` 6.1 (Muse Voice); `01-foundation` 6.2/6.3/7.
 
 ## 4. Task ownership
@@ -87,7 +90,9 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | Improvements I1, I2, I3 | Claude Code (world-builder) | done | all merged (I1 PR #17) |
 | Improvement I4 | Claude Code (world-builder) | done | tasks 1–5 and I4b merged (PRs #18, #19); Neon Nocturne stays the default |
 | 09-template-editor 1–8 | Claude Code (world-builder) | done | branch `phase-A2-template-editor` (backlog A2), one commit per task |
-| 10-template-moderation 1–6 | Claude Code | done | branch `phase-A3-moderation`, one commit per task; PR open; task 7 is human |
+| 10-template-moderation 1–6 | Claude Code | done | PR #22 `phase-A3-moderation`, one commit per task; req 4.1 closed in A4 |
+| A4 design-system skill, My templates, Nemo Reef | Claude Code (world-builder) | done | branch `phase-A4-design-system`, stacked on #22 |
+| 10-template-moderation 7 | — | blocked | human: review a real hidden template on the public URL |
 | Roadmap 9.3–9.5 | — | blocked | human: video, Devpost, posts; drafts in `docs/submission.md` |
 
 ## 5. Active pitfalls
@@ -102,6 +107,7 @@ The daily ones. The rest (API, web/XR, tooling): `docs/pitfalls.md`, read the gr
 - Director: change any prompt → bump `PROMPT_VERSION`; mock output changes → bump `MOCK_MODEL`.
   `director/infrastructure/default_template.json` must equal the web `neon-nocturne.json` (test).
 - Never `docker volume prune` on the server (pgdata, storage, Let's Encrypt certificates).
+- Never commit real e-mail addresses or secrets in `.env.example` or docs (the repo is public).
 - Deadline: Kiroween submission **2026-12-04 14:00 PT**; demo audio must be royalty-free.
 
 ## 6. Open specs
@@ -117,4 +123,4 @@ The daily ones. The rest (API, web/XR, tooling): `docs/pitfalls.md`, read the gr
 | 07-xr-mode | 1–6 done | 7 (Quest, human) | design.md § Human checks |
 | 08-navigation-mode | 1–6 done | — (human: try it on a phone) | design.md § As built |
 | 09-template-editor | 1–8 done | — (follow-up: recipe editing) | design.md § As built |
-| 10-template-moderation | 6/7 done | 7 (human: review a real hidden template) | design.md § Moderator check |
+| 10-template-moderation | 6/7 done | 7 (human: review a real hidden template) | design.md § As built |

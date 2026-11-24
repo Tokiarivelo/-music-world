@@ -19,4 +19,6 @@ Rules: `tech.md` (templates are data, perf budget), `xr-iwsdk.md`. Spec: `03-wor
    Halloween template or document it as available.
 6. **Director**: add the enum value and a one-line meaning to the prompt's allowed values; bump `PROMPT_VERSION`.
 7. **Verify** with the `xr-verify` skill (draw calls, fps) and take a screenshot.
-8. **Docs**: `PROJECT.md` §6 (ops list / mapping table).
+8. **Scenery**: a template can stand objects on the plate before the first note with `scenery: [{kind, count}]` (placed from
+   the seed, see `engine/spawn-plan.ts` `sceneryRecords`); any new kind works there without engine changes.
+9. **Docs**: `PROJECT.md` §6 (ops list / mapping table).

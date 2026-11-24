@@ -74,4 +74,19 @@ describe("useSongPlayer (task 5, requirement 5.2)", () => {
     expect(c.isPlaying()).toBe(false);
     expect(ctx.closed).toBe(true);
   });
+
+  it("counts a new run on Play from the start or after the end, not on resume", async () => {
+    const { ctx, hook } = setup();
+    await waitFor(() => expect(hook.result.current.ready).toBe(true));
+    expect(hook.result.current.run).toBe(0);
+    act(() => hook.result.current.toggle()); // first Play
+    expect(hook.result.current.run).toBe(1);
+    ctx.advance(5);
+    act(() => hook.result.current.toggle()); // pause
+    act(() => hook.result.current.toggle()); // resume at 5 s: same run
+    expect(hook.result.current.run).toBe(1);
+    ctx.advance(30); // the song (24 s) ends
+    act(() => hook.result.current.toggle()); // Play after the end
+    expect(hook.result.current.run).toBe(2);
+  });
 });

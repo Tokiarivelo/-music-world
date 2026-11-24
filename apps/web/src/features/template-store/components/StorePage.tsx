@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { AccountBadge, useSession } from '@/features/auth';
 import { useT } from '@/i18n';
+import { MyTemplates } from './MyTemplates';
 import { TemplateGallery } from './TemplateGallery';
 
 /** `/templates`: navigation, account and the gallery (signed-in viewers can report templates). */
@@ -17,6 +18,7 @@ export function StorePage() {
         </Link>
         <AccountBadge session={session} />
       </nav>
+      {session.user !== null && <MyTemplates />}
       <TemplateGallery signedIn={session.user !== null} />
     </>
   );

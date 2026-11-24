@@ -1,0 +1,795 @@
+{
+  "schema": "music-world.template.v1",
+  "id": "nemo-reef",
+  "name": "Nemo Reef",
+  "license": "CC-BY-4.0",
+  "palette": {
+    "background": "#020b1c",
+    "terrain": "#0c2a4a",
+    "primary": "#2fa8ff",
+    "accent": "#ff8a1f",
+    "secondary": "#3ef0d0",
+    "staff": "#e6fbff"
+  },
+  "terrain": {
+    "style": "smooth_plate",
+    "mountains": "edges",
+    "size": 14
+  },
+  "staff": {
+    "style": "glowing_lines",
+    "path": "diagonal_curve",
+    "clef": "treble",
+    "glow": 1.0,
+    "lookahead": 4.0,
+    "fallDuration": 0.5
+  },
+  "mappings": [
+    {
+      "when": {
+        "stem": "drums"
+      },
+      "spawn": "recipe:bubble_column",
+      "heightFrom": "velocity",
+      "colorRole": "secondary"
+    },
+    {
+      "when": {
+        "pitch": "<36"
+      },
+      "spawn": "recipe:whale",
+      "heightFrom": "velocity",
+      "colorRole": "primary"
+    },
+    {
+      "when": {
+        "pitch": "36-39"
+      },
+      "spawn": "recipe:shark",
+      "heightFrom": "duration",
+      "colorRole": "accent"
+    },
+    {
+      "when": {
+        "pitch": "40-43"
+      },
+      "spawn": "recipe:shipwreck",
+      "heightFrom": "pitch",
+      "colorRole": "secondary"
+    },
+    {
+      "when": {
+        "pitch": "44-46"
+      },
+      "spawn": "terrain_ridge",
+      "heightFrom": "velocity",
+      "colorRole": "primary"
+    },
+    {
+      "when": {
+        "pitch": "47-49"
+      },
+      "spawn": "recipe:sea_turtle",
+      "heightFrom": "duration",
+      "colorRole": "accent"
+    },
+    {
+      "when": {
+        "pitch": "50-52"
+      },
+      "spawn": "recipe:treasure_chest",
+      "heightFrom": "pitch",
+      "colorRole": "secondary"
+    },
+    {
+      "when": {
+        "pitch": "53-55"
+      },
+      "spawn": "recipe:anchor",
+      "heightFrom": "velocity",
+      "colorRole": "primary"
+    },
+    {
+      "when": {
+        "pitch": "56-58"
+      },
+      "spawn": "building",
+      "heightFrom": "duration",
+      "colorRole": "accent"
+    },
+    {
+      "when": {
+        "pitch": "59-60"
+      },
+      "spawn": "recipe:octopus",
+      "heightFrom": "pitch",
+      "colorRole": "secondary"
+    },
+    {
+      "when": {
+        "pitch": "61-62"
+      },
+      "spawn": "recipe:seashell",
+      "heightFrom": "velocity",
+      "colorRole": "primary"
+    },
+    {
+      "when": {
+        "pitch": "63-64"
+      },
+      "spawn": "recipe:sea_anemone",
+      "heightFrom": "duration",
+      "colorRole": "accent"
+    },
+    {
+      "when": {
+        "pitch": "65-66"
+      },
+      "spawn": "recipe:crab",
+      "heightFrom": "pitch",
+      "colorRole": "secondary"
+    },
+    {
+      "when": {
+        "pitch": "67-68"
+      },
+      "spawn": "crystal",
+      "heightFrom": "velocity",
+      "colorRole": "primary"
+    },
+    {
+      "when": {
+        "pitch": "69-70"
+      },
+      "spawn": "recipe:coral_fan",
+      "heightFrom": "duration",
+      "colorRole": "accent"
+    },
+    {
+      "when": {
+        "pitch": "71-72"
+      },
+      "spawn": "recipe:starfish",
+      "heightFrom": "pitch",
+      "colorRole": "secondary"
+    },
+    {
+      "when": {
+        "pitch": "73-74"
+      },
+      "spawn": "recipe:seahorse",
+      "heightFrom": "velocity",
+      "colorRole": "primary"
+    },
+    {
+      "when": {
+        "pitch": "75-76"
+      },
+      "spawn": "recipe:clownfish",
+      "heightFrom": "duration",
+      "colorRole": "accent"
+    },
+    {
+      "when": {
+        "pitch": "77-79"
+      },
+      "spawn": "recipe:jellyfish",
+      "heightFrom": "pitch",
+      "colorRole": "secondary"
+    },
+    {
+      "when": {
+        "pitch": "80-83"
+      },
+      "spawn": "recipe:bubble_column",
+      "heightFrom": "velocity",
+      "colorRole": "primary"
+    },
+    {
+      "when": {
+        "pitch": "84-87"
+      },
+      "spawn": "cluster",
+      "heightFrom": "duration",
+      "colorRole": "accent"
+    },
+    {
+      "when": {
+        "pitch": ">87"
+      },
+      "spawn": "spike",
+      "heightFrom": "pitch",
+      "colorRole": "secondary"
+    },
+    {
+      "when": {},
+      "spawn": "recipe:clownfish",
+      "colorRole": "accent"
+    }
+  ],
+  "zones": [],
+  "scenery": [
+    {
+      "kind": "recipe:whale",
+      "count": 2
+    },
+    {
+      "kind": "recipe:shark",
+      "count": 3
+    },
+    {
+      "kind": "recipe:shipwreck",
+      "count": 3
+    },
+    {
+      "kind": "terrain_ridge",
+      "count": 6
+    },
+    {
+      "kind": "recipe:sea_turtle",
+      "count": 6
+    },
+    {
+      "kind": "recipe:treasure_chest",
+      "count": 6
+    },
+    {
+      "kind": "recipe:anchor",
+      "count": 6
+    },
+    {
+      "kind": "building",
+      "count": 6
+    },
+    {
+      "kind": "recipe:octopus",
+      "count": 6
+    },
+    {
+      "kind": "recipe:seashell",
+      "count": 6
+    },
+    {
+      "kind": "recipe:sea_anemone",
+      "count": 6
+    },
+    {
+      "kind": "recipe:crab",
+      "count": 6
+    },
+    {
+      "kind": "crystal",
+      "count": 6
+    },
+    {
+      "kind": "recipe:coral_fan",
+      "count": 6
+    },
+    {
+      "kind": "recipe:starfish",
+      "count": 6
+    },
+    {
+      "kind": "recipe:seahorse",
+      "count": 6
+    },
+    {
+      "kind": "recipe:clownfish",
+      "count": 6
+    },
+    {
+      "kind": "recipe:jellyfish",
+      "count": 6
+    },
+    {
+      "kind": "recipe:bubble_column",
+      "count": 6
+    },
+    {
+      "kind": "cluster",
+      "count": 6
+    },
+    {
+      "kind": "spike",
+      "count": 6
+    }
+  ],
+  "recipes": [
+    {
+      "name": "clownfish",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 0.9,
+          "height": 0.55,
+          "y": 0.2,
+          "sides": 8,
+          "taper": 0.5
+        },
+        {
+          "op": "spike",
+          "width": 0.5,
+          "height": 0.3,
+          "y": 0
+        },
+        {
+          "op": "spike",
+          "width": 0.3,
+          "height": 0.35,
+          "y": 0.65
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.5,
+      "heightScale": 0.5
+    },
+    {
+      "name": "shark",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 0.7,
+          "height": 0.45,
+          "y": 0,
+          "sides": 6,
+          "taper": 0.35
+        },
+        {
+          "op": "spike",
+          "width": 0.8,
+          "height": 0.7,
+          "y": 0.3
+        },
+        {
+          "op": "spike",
+          "width": 0.3,
+          "height": 0.3,
+          "y": 0.0
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.9,
+      "heightScale": 0.6
+    },
+    {
+      "name": "jellyfish",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 0.9,
+          "height": 0.35,
+          "y": 0.65,
+          "sides": 10,
+          "taper": 0.35
+        },
+        {
+          "op": "cluster",
+          "of": "prism",
+          "width": 0.14,
+          "height": 0.6,
+          "y": 0,
+          "sides": 4,
+          "count": 7,
+          "spread": 0.45,
+          "seedOffset": 3
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.5,
+      "heightScale": 0.8
+    },
+    {
+      "name": "octopus",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 0.7,
+          "height": 0.4,
+          "y": 0.6,
+          "sides": 10,
+          "taper": 0.6
+        },
+        {
+          "op": "cluster",
+          "of": "prism",
+          "width": 0.16,
+          "height": 0.6,
+          "y": 0,
+          "sides": 4,
+          "count": 8,
+          "spread": 0.65,
+          "seedOffset": 5
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.6,
+      "heightScale": 0.6
+    },
+    {
+      "name": "sea_turtle",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 1,
+          "height": 0.35,
+          "y": 0.3,
+          "sides": 8,
+          "taper": 0.5
+        },
+        {
+          "op": "box",
+          "width": 0.25,
+          "depth": 0.25,
+          "height": 0.3,
+          "y": 0.65
+        },
+        {
+          "op": "cluster",
+          "of": "box",
+          "width": 0.28,
+          "depth": 0.28,
+          "height": 0.12,
+          "y": 0.22,
+          "count": 4,
+          "spread": 0.8,
+          "seedOffset": 2
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.8,
+      "heightScale": 0.3
+    },
+    {
+      "name": "starfish",
+      "parts": [
+        {
+          "op": "cluster",
+          "of": "spike",
+          "width": 0.4,
+          "height": 0.45,
+          "y": 0,
+          "count": 5,
+          "spread": 0.55,
+          "seedOffset": 1
+        },
+        {
+          "op": "prism",
+          "width": 0.4,
+          "height": 0.3,
+          "y": 0,
+          "sides": 5,
+          "taper": 0.7
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.6,
+      "heightScale": 0.15
+    },
+    {
+      "name": "seashell",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 0.9,
+          "height": 0.55,
+          "y": 0,
+          "sides": 12,
+          "taper": 0.45
+        },
+        {
+          "op": "spike",
+          "width": 0.3,
+          "height": 0.3,
+          "y": 0.55
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.5,
+      "heightScale": 0.3
+    },
+    {
+      "name": "shipwreck",
+      "parts": [
+        {
+          "op": "box",
+          "width": 0.95,
+          "depth": 0.6,
+          "height": 0.3,
+          "y": 0
+        },
+        {
+          "op": "box",
+          "width": 0.5,
+          "depth": 0.4,
+          "height": 0.3,
+          "y": 0.3
+        },
+        {
+          "op": "prism",
+          "width": 0.08,
+          "height": 0.5,
+          "y": 0.5,
+          "sides": 4,
+          "taper": 1
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 1.1,
+      "heightScale": 0.5
+    },
+    {
+      "name": "treasure_chest",
+      "parts": [
+        {
+          "op": "box",
+          "width": 0.9,
+          "depth": 0.6,
+          "height": 0.35,
+          "y": 0
+        },
+        {
+          "op": "prism",
+          "width": 0.9,
+          "height": 0.2,
+          "y": 0.35,
+          "sides": 6,
+          "taper": 0.8
+        },
+        {
+          "op": "cluster",
+          "of": "spike",
+          "width": 0.18,
+          "height": 0.3,
+          "y": 0.55,
+          "count": 5,
+          "spread": 0.3,
+          "seedOffset": 4
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.6,
+      "heightScale": 0.3
+    },
+    {
+      "name": "anchor",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 0.1,
+          "height": 0.9,
+          "y": 0,
+          "sides": 4,
+          "taper": 1
+        },
+        {
+          "op": "box",
+          "width": 0.6,
+          "depth": 0.1,
+          "height": 0.1,
+          "y": 0.6
+        },
+        {
+          "op": "box",
+          "width": 0.4,
+          "depth": 0.1,
+          "height": 0.08,
+          "y": 0.9
+        },
+        {
+          "op": "cluster",
+          "of": "spike",
+          "width": 0.3,
+          "height": 0.3,
+          "y": 0,
+          "count": 2,
+          "spread": 0.7
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.5,
+      "heightScale": 0.8
+    },
+    {
+      "name": "sea_anemone",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 0.6,
+          "height": 0.25,
+          "y": 0,
+          "sides": 8,
+          "taper": 0.8
+        },
+        {
+          "op": "cluster",
+          "of": "spike",
+          "width": 0.15,
+          "height": 0.7,
+          "y": 0.2,
+          "count": 12,
+          "spread": 0.45,
+          "seedOffset": 6
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.6,
+      "heightScale": 0.4
+    },
+    {
+      "name": "coral_fan",
+      "parts": [
+        {
+          "op": "stack",
+          "of": "box",
+          "width": 0.9,
+          "depth": 0.12,
+          "height": 0.9,
+          "y": 0,
+          "levels": 5,
+          "shrink": 0.88
+        },
+        {
+          "op": "prism",
+          "width": 0.9,
+          "height": 0.1,
+          "y": 0.9,
+          "sides": 10,
+          "taper": 0.5
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.8,
+      "heightScale": 0.7
+    },
+    {
+      "name": "seahorse",
+      "parts": [
+        {
+          "op": "stack",
+          "of": "prism",
+          "width": 0.5,
+          "height": 0.8,
+          "y": 0,
+          "sides": 6,
+          "levels": 6,
+          "shrink": 0.85
+        },
+        {
+          "op": "spike",
+          "width": 0.2,
+          "height": 0.2,
+          "y": 0.8
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.3,
+      "heightScale": 0.7
+    },
+    {
+      "name": "whale",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 1,
+          "height": 0.6,
+          "y": 0.1,
+          "sides": 10,
+          "taper": 0.6
+        },
+        {
+          "op": "spike",
+          "width": 0.5,
+          "height": 0.4,
+          "y": 0.7
+        },
+        {
+          "op": "cluster",
+          "of": "spike",
+          "width": 0.08,
+          "height": 0.3,
+          "y": 0.7,
+          "count": 3,
+          "spread": 0.2
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 1.4,
+      "heightScale": 0.8
+    },
+    {
+      "name": "crab",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 1,
+          "height": 0.25,
+          "y": 0.15,
+          "sides": 8,
+          "taper": 0.8
+        },
+        {
+          "op": "cluster",
+          "of": "prism",
+          "width": 0.08,
+          "height": 0.3,
+          "y": 0,
+          "sides": 4,
+          "count": 6,
+          "spread": 0.8
+        },
+        {
+          "op": "cluster",
+          "of": "spike",
+          "width": 0.15,
+          "height": 0.2,
+          "y": 0.4,
+          "count": 2,
+          "spread": 0.25
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.6,
+      "heightScale": 0.2
+    },
+    {
+      "name": "bubble_column",
+      "parts": [
+        {
+          "op": "cluster",
+          "of": "prism",
+          "width": 0.3,
+          "height": 0.3,
+          "y": 0,
+          "sides": 12,
+          "count": 9,
+          "spread": 0.7,
+          "seedOffset": 7
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.5,
+      "heightScale": 0.8
+    }
+  ],
+  "budget": {
+    "instancesPerKind": 300
+  },
+  "fx": {
+    "particles": "dust",
+    "bloom": 0.9,
+    "beatPulse": true,
+    "chordLinks": "light_arc"
+  }
+}

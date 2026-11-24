@@ -199,7 +199,7 @@ export function worldStateAt(plan: SpawnPlan, t: number): WorldState {
     notesOnStaff,
     fallingNotes,
     structures,
-    spawnedCount,
+    spawnedCount: Math.max(0, spawnedCount - plan.sceneryCount),
     arcs,
     pulses: {
       kick: plan.template.fx.beatPulse ? decayFrom(plan.kicks, t) : 0,

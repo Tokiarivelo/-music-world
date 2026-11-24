@@ -35,6 +35,7 @@ for the area they touch.
 |---|---|
 | `start` | Beginning of every session, after a context reset, "what's next?" |
 | `handoff` | End of session, context at ~70–80 %, change of agent |
+| `design-system` | Before building or restyling any web UI: tokens, layout, component recipes, a11y, i18n |
 | `new-web-feature` | Adding a feature under `apps/web/src/features/` |
 | `new-api-module` | Adding a backend bounded context or use case |
 | `analysis-stage` | Adding or changing a music analysis stage |

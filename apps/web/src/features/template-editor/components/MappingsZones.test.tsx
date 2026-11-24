@@ -70,7 +70,7 @@ describe('mappings and zones editors', () => {
   });
 
   it('lists recipe kinds read-only and keeps the recipes untouched', () => {
-    const recipe = { schema: 'music-world.shape.v1' as const, name: 'tower', parts: [{ op: 'box' as const, of: 'box' as const, width: 0.5, depth: 0.5, height: 0.5, y: 0, sides: 6, taper: 1, levels: 3, shrink: 0.8, count: 4, spread: 0.6, seedOffset: 0 }], budget: { maxTriangles: 500 } };
+    const recipe = { schema: 'music-world.shape.v1' as const, name: 'tower', parts: [{ op: 'box' as const, of: 'box' as const, width: 0.5, depth: 0.5, height: 0.5, y: 0, sides: 6, taper: 1, levels: 3, shrink: 0.8, count: 4, spread: 0.6, seedOffset: 0 }], budget: { maxTriangles: 500 }, footprint: 0.25, heightScale: 1 };
     const store = setup({ ...NEON_NOCTURNE, recipes: [recipe] });
     expect(screen.getAllByRole('option', { name: 'Recipe: tower' }).length).toBeGreaterThan(0);
     fireEvent.change(screen.getByLabelText('Shape (1)'), { target: { value: 'recipe:tower' } });

@@ -5,6 +5,8 @@ import type { AudioBufferLike, AudioClock, AudioContextLike } from '../interface
 import { AudioPlayer } from '../lib/audio-player';
 
 /** Clock used before the song is decoded: the world shows t = 0. */
+/** A Play pressed this close to the start (or at the end) begins a new run of the song. */
+const NEW_RUN_WITHIN_SEC = 0.5;
 const IDLE_CLOCK: AudioClock = { now: () => 0, isPlaying: () => false, rate: () => 1 };
 
 export interface SongPlayer {
@@ -13,6 +15,8 @@ export interface SongPlayer {
   ready: boolean;
   playing: boolean;
   duration: number;
+  /** Number of times the song was started from its beginning (first Play, or Play after the end): 0 before. */
+  run: number;
   toggle(): void;
   seek(sec: number): void;
   seekBy(deltaSec: number): void;
@@ -32,6 +36,7 @@ export function useSongPlayer(deps: SongPlayerDeps): SongPlayer {
   const [ready, setReady] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
+  const [run, setRun] = useState(0);
   const depsRef = useRef(deps);
 
   const [clock] = useState<AudioClock>(() => ({
@@ -69,6 +74,8 @@ export function useSongPlayer(deps: SongPlayerDeps): SongPlayer {
       setPlaying(false);
     } else {
       void ctxRef.current?.resume(); // autoplay policy: resume inside the user gesture
+      const at = player.now();
+      if (at < NEW_RUN_WITHIN_SEC || at >= player.duration()) setRun((r) => r + 1);
       player.play();
       setPlaying(true);
     }
@@ -80,5 +87,5 @@ export function useSongPlayer(deps: SongPlayerDeps): SongPlayer {
     if (player) player.seek(player.now() + delta);
   }, []);
 
-  return { clock, ready, playing, duration, toggle, seek, seekBy };
+  return { clock, ready, playing, duration, run, toggle, seek, seekBy };
 }

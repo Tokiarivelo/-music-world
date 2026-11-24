@@ -225,7 +225,7 @@ Un LLM ne produit pas de bons maillages (des listes de sommets en texte sont imp
 ```
 
 - Opérations disponibles (liste fermée) : `box`, `prism`, `spike` (pic d'égaliseur), `stack` (étages) et `cluster` (05-ai-world-director, tâche 6). Réservées, non implémentées : `lathe`, `extrude`, `lsystem_tree`, `arch`, `emissive_bands`.
-- Budget : `budget.maxTriangles` ≤ 2000 (défaut 500), vérifié avant construction par `ShapeRecipe.triangle_count` (Python) et par le builder web ; au plus 4 recettes par template, référencées par `recipe:<name>`.
+- Budget : `budget.maxTriangles` ≤ 2000 (défaut 500), vérifié avant construction par `ShapeRecipe.triangle_count` (Python) et par le builder web ; au plus 16 recettes par template (4 pour un template généré par le directeur IA), référencées par `recipe:<name>`.
 - Chaque recette est construite une seule fois, puis réutilisée en **`InstancedMesh`** pour toutes les notes qui la déclenchent.
 - Les couleurs viennent de **rôles** de la palette (`primary`, `accent`…), pas de valeurs fixes : la forme suit le template.
 
@@ -298,6 +298,7 @@ Chaque utilisateur peut publier des templates que les autres utilisent pendant l
 - Conditions `when` (toutes optionnelles, combinées en ET) : `pitch` et `velocity` (`<a`, `>a` stricts, `a-b` inclusif),
   `chord` (booléen), `stem`. `spawn` : `terrain_ridge | building | spike | crystal | cluster | recipe:<nom>`.
 - Les accords sont toujours reliés par un arc lumineux (`fx.chordLinks`), indépendamment des mappings.
+- **Décor** (`scenery`, ≤ 24 entrées `{kind, count ≤ 60}`, ≤ 400 objets au total) : des objets déjà posés sur la plaque à t = 0, sans note, entièrement développés. Leur position vient de la graine du monde, dans les zones de leur `kind` : une autre graine réorganise toute la scène. Ils partagent le budget `instancesPerKind` de leur `kind` ; `spawnedCount` ne les compte pas. Chaque Play depuis le début (premier Play, ou Play après la fin) tire une nouvelle graine (`usePlaySeed`) : décor et notes sont réorganisés à chaque lecture ; pause et reprise gardent la graine. Une recette règle son échelle avec `footprint` (0,1–1,5 m, défaut 0,25) et `heightScale` (0,1–2, défaut 1) pour être large et basse (tortue, épave) ou fine et haute. Exemple : `nemo-reef` (16 recettes + 5 formes natives, 116 objets).
 
 ### Règles
 

@@ -379,6 +379,43 @@
       "title": "Part",
       "type": "object"
     },
+    "SceneryItem": {
+      "additionalProperties": false,
+      "description": "`count` objects of `kind` that stand on the plate from the first frame (no note needed).\n\nTheir positions come from the world seed inside the zones of their kind (the whole plate when it has none), so a\nnew seed rearranges them. They share the instance budget of their kind with the notes.",
+      "properties": {
+        "kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "terrain_ridge",
+                "building",
+                "spike",
+                "crystal",
+                "cluster"
+              ],
+              "type": "string"
+            },
+            {
+              "pattern": "^recipe:[a-z0-9_]{1,40}$",
+              "type": "string"
+            }
+          ],
+          "title": "Kind"
+        },
+        "count": {
+          "maximum": 60,
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "count"
+      ],
+      "title": "SceneryItem",
+      "type": "object"
+    },
     "ShapeBudget": {
       "additionalProperties": false,
       "properties": {
@@ -424,6 +461,22 @@
           "default": {
             "maxTriangles": 500
           }
+        },
+        "footprint": {
+          "default": 0.25,
+          "description": "Side of the unit footprint in metres on the plate: wide shapes (a whale, a wreck) use more.",
+          "maximum": 1.5,
+          "minimum": 0.1,
+          "title": "Footprint",
+          "type": "number"
+        },
+        "heightScale": {
+          "default": 1,
+          "description": "Multiplies the instance height (0.5 to 1.5 m by default): below 1 makes a squat shape.",
+          "maximum": 2,
+          "minimum": 0.1,
+          "title": "Heightscale",
+          "type": "number"
         }
       },
       "required": [
@@ -644,12 +697,22 @@
         },
         "recipes": {
           "default": [],
-          "description": "Shapes referenced as `recipe:<name>` by mappings and zones.",
+          "description": "Shapes referenced as `recipe:<name>` by mappings, zones and scenery.",
           "items": {
             "$ref": "#/$defs/ShapeRecipe"
           },
-          "maxItems": 4,
+          "maxItems": 16,
           "title": "Recipes",
+          "type": "array"
+        },
+        "scenery": {
+          "default": [],
+          "description": "Objects present before the first note (an ocean full of fish, a forest…), placed from the seed.",
+          "items": {
+            "$ref": "#/$defs/SceneryItem"
+          },
+          "maxItems": 24,
+          "title": "Scenery",
           "type": "array"
         },
         "meta": {

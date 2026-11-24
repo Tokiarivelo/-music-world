@@ -13,6 +13,7 @@ import { useT } from "@/i18n";
 import { SiteNav } from "@/features/navigation";
 import { DEMO_SEED } from "../consts/player.consts";
 import { DEMO_SONG } from "../demo/demo-song";
+import { usePlaySeed } from "../hooks/use-play-seed";
 import { useSongPlayer, type SongPlayerDeps } from "../hooks/use-song-player";
 import { useAiTemplateChoice } from "../hooks/use-ai-template-choice";
 import { useWorldControls } from "../hooks/use-world-controls";
@@ -47,9 +48,10 @@ export function DemoPlayback({
   const controls = useWorldControls(player, DEMO_SONG.title, choice);
   const { clock } = player;
   const { template } = choice;
+  const seed = usePlaySeed(player.run, DEMO_SEED);
   const scene = useMemo(
-    () => ({ analysis, template, seed: DEMO_SEED, clock }),
-    [template, clock],
+    () => ({ analysis, template, seed, clock }),
+    [template, seed, clock],
   );
   return (
     <div className="relative h-dvh w-full">

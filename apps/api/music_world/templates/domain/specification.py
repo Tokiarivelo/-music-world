@@ -37,6 +37,9 @@ def store_errors(doc: Mapping[str, Any]) -> list[dict[str, object]]:
     for i, zone in enumerate(doc.get("zones", [])):
         if zone.get("kind") not in known:
             errors.append({"loc": ["template", "zones", i, "kind"], "msg": _KIND_HINT})
+    for i, item in enumerate(doc.get("scenery", [])):
+        if item.get("kind") not in known:
+            errors.append({"loc": ["template", "scenery", i, "kind"], "msg": _KIND_HINT})
     palette = doc.get("palette", {})
     if "staff" in palette and "background" in palette:
         contrast = abs(relative_luminance(palette["staff"]) - relative_luminance(palette["background"]))

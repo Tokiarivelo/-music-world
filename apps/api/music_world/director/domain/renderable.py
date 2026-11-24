@@ -10,6 +10,7 @@ from typing import Any
 
 BUILTIN_KINDS = frozenset({"terrain_ridge", "building", "spike", "crystal", "cluster"})
 MAX_TEMPLATE_BYTES = 32 * 1024
+AI_MAX_RECIPES = 4
 MIN_STAFF_CONTRAST = 0.2
 
 
@@ -37,6 +38,11 @@ def renderability_errors(doc: Mapping[str, Any]) -> list[str]:
             errors.append(
                 f"zones[{i}].kind: a recipe kind needs a ShapeRecipe named in `recipes`; or use a built-in kind"
             )
+    for i, item in enumerate(doc.get("scenery", [])):
+        if item.get("kind") not in known:
+            errors.append(f"scenery[{i}].kind: a recipe kind needs a ShapeRecipe named in `recipes`")
+    if len(doc.get("recipes", [])) > AI_MAX_RECIPES:
+        errors.append(f"recipes: at most {AI_MAX_RECIPES} for a generated template")
     palette = doc.get("palette", {})
     if "staff" in palette and "background" in palette:
         contrast = abs(relative_luminance(palette["staff"]) - relative_luminance(palette["background"]))

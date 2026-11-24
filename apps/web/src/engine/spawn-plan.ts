@@ -11,6 +11,11 @@ import {
   MIN_GROW_SEC,
   QUARTER_MIN_BEATS,
   RECIPE_HEIGHT,
+  SCENERY_LANDED_AT,
+  SCENERY_VELOCITY_MAX,
+  SCENERY_VELOCITY_MIN,
+  PIANO_HIGH_MIDI,
+  PIANO_LOW_MIDI,
   STAFF_BOTTOM_MIDI,
   STAFF_TOP_MIDI,
   STAFF_U_MAX,
@@ -18,6 +23,8 @@ import {
 } from './constants';
 import { pitchFraction, placeNote, zonesFor, type ZoneRect } from './layout';
 import { mapNote, type MappedNote } from './mapping';
+import { noteStream, uniform } from './prng';
+import { recipeScale } from './recipe-scale';
 import { buildStaffPath, type StaffPath } from './staff';
 import type { ColorRole, EngineAnalysis, GlyphKind, NoteEvent, ShapeKind, Vec3, WorldTemplate } from './types';
 
@@ -76,6 +83,8 @@ export interface SpawnPlan {
   readonly energy: { readonly times: readonly number[]; readonly values: readonly number[] };
   readonly staff: StaffPath;
   readonly budget: number;
+  /** Records `[0, sceneryCount)` are template scenery (standing before the first note), the rest are notes. */
+  readonly sceneryCount: number;
   readonly lookahead: number;
   readonly fallDuration: number;
   readonly template: WorldTemplate;
@@ -120,8 +129,52 @@ function sortedUnique(values: readonly number[]): number[] {
   return [...new Set(values.filter(Number.isFinite))].sort((a, b) => a - b);
 }
 
-function kindSize(kind: ShapeKind): { base: number; extra: number } {
-  return kind.startsWith('recipe:') ? RECIPE_HEIGHT : (KIND_HEIGHT[kind] ?? RECIPE_HEIGHT);
+function kindSize(kind: ShapeKind, template: WorldTemplate): { base: number; extra: number } {
+  if (!kind.startsWith('recipe:')) return KIND_HEIGHT[kind] ?? RECIPE_HEIGHT;
+  const { heightScale } = recipeScale(template, kind);
+  return { base: RECIPE_HEIGHT.base * heightScale, extra: RECIPE_HEIGHT.extra * heightScale };
+}
+
+/**
+ * Template scenery as records that landed long before t = 0: same placement rule as a note (seeded, inside the zones of
+ * its kind) with a random pitch column, so a new seed rearranges the whole scene. Pure, deterministic per seed.
+ */
+function sceneryRecords(
+  template: WorldTemplate,
+  seed: number,
+  fallDuration: number,
+  zonesOf: (kind: ShapeKind) => ZoneRect[],
+): Omit<SpawnRecord, 'index' | 'slot'>[] {
+  const records: Omit<SpawnRecord, 'index' | 'slot'>[] = [];
+  let n = 0;
+  for (const item of template.scenery) {
+    for (let i = 0; i < item.count; i += 1, n += 1) {
+      const id = `scenery:${n}:${item.kind}`;
+      const rng = noteStream(seed, `${id}:attributes`);
+      const midi = Math.floor(uniform(rng, PIANO_LOW_MIDI, PIANO_HIGH_MIDI));
+      const velocity = uniform(rng, SCENERY_VELOCITY_MIN, SCENERY_VELOCITY_MAX);
+      const size = kindSize(item.kind, template);
+      records.push({
+        noteId: id,
+        kind: item.kind,
+        onset: SCENERY_LANDED_AT - fallDuration,
+        duration: 0,
+        velocity,
+        midi,
+        staffU: STAFF_U_MIN,
+        glyph: 'quarter',
+        landAt: SCENERY_LANDED_AT,
+        growSec: MIN_GROW_SEC,
+        target: placeNote(seed, id, midi, null, zonesOf(item.kind)),
+        height: size.base + size.extra * rng(),
+        emissive: EMISSIVE_BASE + EMISSIVE_VELOCITY_SCALE * velocity,
+        colorRole: null,
+        colorT: rng(),
+        groupId: null,
+      });
+    }
+  }
+  return records;
 }
 
 export function buildSpawnPlan(analysis: EngineAnalysis, template: WorldTemplate, seed: number): SpawnPlan {
@@ -131,16 +184,30 @@ export function buildSpawnPlan(analysis: EngineAnalysis, template: WorldTemplate
   const chordIds = new Set(analysis.chords.map((c) => c.id));
   const zoneCache = new Map<ShapeKind, ZoneRect[]>();
   const trackIndices = new Map<ShapeKind, number[]>();
-
-  const records = notes.map((note, index): SpawnRecord => {
-    const mapped = mapNote(note, template);
-    const zones = zoneCache.get(mapped.kind) ?? zonesFor(mapped.kind, template);
-    zoneCache.set(mapped.kind, zones);
-    const indices = trackIndices.get(mapped.kind) ?? [];
-    trackIndices.set(mapped.kind, indices);
+  const zonesOf = (kind: ShapeKind): ZoneRect[] => {
+    const cached = zoneCache.get(kind) ?? zonesFor(kind, template);
+    zoneCache.set(kind, cached);
+    return cached;
+  };
+  const claimSlot = (kind: ShapeKind, index: number): number => {
+    const indices = trackIndices.get(kind) ?? [];
+    trackIndices.set(kind, indices);
     const slot = indices.length % budget;
     indices.push(index);
-    const size = kindSize(mapped.kind);
+    return slot;
+  };
+
+  const scenery = sceneryRecords(template, seed, fallDuration, zonesOf).map(
+    (r, index): SpawnRecord => ({ ...r, index, slot: claimSlot(r.kind, index) }),
+  );
+  const first = scenery.length;
+
+  const noteRecords = notes.map((note, i): SpawnRecord => {
+    const index = first + i;
+    const mapped = mapNote(note, template);
+    const zones = zonesOf(mapped.kind);
+    const slot = claimSlot(mapped.kind, index);
+    const size = kindSize(mapped.kind, template);
     const velocity = clamp(note.velocity, 0, 1);
     return {
       index,
@@ -163,6 +230,7 @@ export function buildSpawnPlan(analysis: EngineAnalysis, template: WorldTemplate
       groupId: note.chordId !== null && chordIds.has(note.chordId) ? note.chordId : null,
     };
   });
+  const records = [...scenery, ...noteRecords];
 
   const tracks = [...trackIndices.entries()].map(([kind, recordIndices]) => ({
     kind,
@@ -209,6 +277,7 @@ export function buildSpawnPlan(analysis: EngineAnalysis, template: WorldTemplate
     energy: { times: energy.map((e) => e.time), values: energy.map((e) => e.value) },
     staff: buildStaffPath(template),
     budget,
+    sceneryCount: first,
     lookahead,
     fallDuration,
     template,

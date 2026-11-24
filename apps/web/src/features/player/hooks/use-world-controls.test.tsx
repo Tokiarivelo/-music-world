@@ -11,6 +11,7 @@ function fakePlayer(): SongPlayer {
     ready: true,
     playing: true,
     duration: 120,
+    run: 1,
     toggle: vi.fn(),
     seek: vi.fn(),
     seekBy: vi.fn(),
