@@ -16,7 +16,7 @@ export function SiteNav() {
   return (
     <nav
       aria-label={t("navLabel")}
-      className="flex flex-wrap items-center gap-1 rounded-full bg-[var(--mw-bg)]/80 px-1 py-1"
+      className="flex w-fit flex-wrap items-center gap-1 rounded-full bg-[var(--mw-bg)]/80 px-1 py-1"
     >
       <button
         aria-controls="site-nav-links"
