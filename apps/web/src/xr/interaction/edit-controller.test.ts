@@ -1,0 +1,124 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { makeTemplate } from '@/engine/__fixtures__/templates';
+import { buildSpawnPlan } from '@/engine/spawn-plan';
+import type { EngineAnalysis, NoteEvent } from '@/engine/types';
+import { worldStateAt } from '@/engine/world-state';
+import { editStore } from '../edit-store';
+import { DRAG_THRESHOLD_PX, EditController, type NoteEditEvent } from './edit-controller';
+
+const note = (id: string, time: number, midi: number): NoteEvent => ({
+  id, time, duration: 0.5, midi, velocity: 0.7, stem: 'other', chordId: null,
+});
+const analysis: EngineAnalysis = {
+  durationSec: 20, tempoBpm: 120, beats: [], chords: [], energy: [],
+  notes: [note('a', 3, 64), note('b', 3.5, 71)],
+};
+const plan = buildSpawnPlan(analysis, makeTemplate({}), 1);
+const T = 2.5;
+const state = worldStateAt(plan, T);
+const project = (p: { x: number; y: number; z: number }) => ({ x: p.x * 40, y: -p.y * 400 });
+
+function setup() {
+  const events: NoteEditEvent[] = [];
+  const synth = { playNote: vi.fn(() => true) };
+  let paused = true;
+  const c = new EditController({
+    plan: () => plan,
+    now: () => T,
+    hidden: () => new Set(),
+    project,
+    synth,
+    emit: (e) => events.push(e),
+  });
+  c.setEnabled(paused);
+  return { c, events, synth, setPaused: (p: boolean) => { paused = p; c.setEnabled(p); } };
+}
+const screenOf = (index: number) => project(state.notesOnStaff.find((n) => n.index === index)!.position);
+const first = state.notesOnStaff[0]!.index;
+
+describe('edit controller (I9)', () => {
+  beforeEach(() => editStore.reset());
+
+  it('there are notes to pick in the test frame', () => {
+    expect(state.notesOnStaff.length).toBeGreaterThan(0);
+  });
+
+  it('does nothing while disabled (playing): no capture, no sound', () => {
+    const { c, synth, setPaused } = setup();
+    setPaused(false);
+    expect(c.pointerDown(screenOf(first))).toBe(false);
+    expect(synth.playNote).not.toHaveBeenCalled();
+    expect(c.capturing).toBe(false);
+  });
+
+  it('hover highlights, click plays the pitch and selects without moving it', () => {
+    const { c, events, synth } = setup();
+    const s = screenOf(first);
+    c.pointerMove(s);
+    expect(editStore.state.hover).toBe(first);
+    expect(c.pointerDown(s)).toBe(true);
+    expect(c.capturing).toBe(true);
+    expect(synth.playNote).toHaveBeenCalledWith(plan.records[first]!.midi, plan.records[first]!.velocity);
+    c.pointerUp();
+    expect(c.capturing).toBe(false);
+    expect(events.some((e) => e.type === 'committed')).toBe(false);
+    expect(editStore.state.selected).toBe(first);
+  });
+
+  it('a press on empty space is not captured (the camera keeps it)', () => {
+    const { c } = setup();
+    expect(c.pointerDown({ x: -5000, y: -5000 })).toBe(false);
+    expect(c.capturing).toBe(false);
+  });
+
+  it('dragging up snaps to a higher pitch, shows a ghost, commits on release and plays it', () => {
+    const { c, events, synth } = setup();
+    const s = screenOf(first);
+    const oldMidi = plan.records[first]!.midi;
+    c.pointerDown(s);
+    c.pointerMove({ x: s.x, y: s.y - DRAG_THRESHOLD_PX - 1 }); // beyond the threshold, tiny move
+    c.pointerMove({ x: s.x, y: s.y - 120 });
+    expect(editStore.state.ghost?.index).toBe(first);
+    const ghost = editStore.state.ghost!.midi;
+    expect(ghost).toBeGreaterThan(oldMidi);
+    c.pointerUp();
+    expect(events.at(-1)).toEqual({ type: 'committed', noteId: plan.records[first]!.noteId, midi: ghost });
+    expect(synth.playNote).toHaveBeenLastCalledWith(ghost, plan.records[first]!.velocity);
+    expect(editStore.state.ghost).toBeNull();
+  });
+
+  it('Esc cancels the drag and commits nothing', () => {
+    const { c, events } = setup();
+    const s = screenOf(first);
+    c.pointerDown(s);
+    c.pointerMove({ x: s.x, y: s.y - 150 });
+    c.cancel();
+    c.pointerUp();
+    expect(events.some((e) => e.type === 'committed')).toBe(false);
+    expect(events.at(-1)).toEqual({ type: 'cancelled' });
+    expect(editStore.state.ghost).toBeNull();
+  });
+
+  it('disabling mid-drag aborts it and clears the view state', () => {
+    const { c, setPaused } = setup();
+    const s = screenOf(first);
+    c.pointerDown(s);
+    c.pointerMove({ x: s.x, y: s.y - 150 });
+    setPaused(false);
+    expect(c.capturing).toBe(false);
+    expect(editStore.state).toMatchObject({ enabled: false, selected: null, ghost: null });
+  });
+
+  it('keyboard: select next, nudge one step up, play', () => {
+    const { c, events, synth } = setup();
+    c.selectRelative(1);
+    expect(editStore.state.selected).not.toBeNull();
+    const idx = editStore.state.selected!;
+    c.nudge(1);
+    const e = events.at(-1)!;
+    expect(e).toMatchObject({ type: 'committed', noteId: plan.records[idx]!.noteId });
+    expect((e as { midi: number }).midi).toBeGreaterThan(plan.records[idx]!.midi);
+    c.playSelected();
+    expect(synth.playNote).toHaveBeenLastCalledWith(plan.records[idx]!.midi, plan.records[idx]!.velocity);
+  });
+});

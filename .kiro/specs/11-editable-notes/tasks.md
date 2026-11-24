@@ -8,7 +8,7 @@
   - _Requirements: 4, 5_
 - [x] 4. `xr/audio/note-synth.ts` + `xr/picking.ts` with tests.
   - _Requirements: 1, 2, 10, 12_
-- [ ] 5. Edit controller (hover, click-to-play, drag, ghost, snap, cancel, paused only) + highlight.
+- [x] 5. Edit controller (hover, click-to-play, drag, ghost, snap, cancel, paused only) + highlight.
   - _Requirements: 1, 2, 3_
 - [ ] 6. `EditToolbar`, lines, undo/redo/reset, keyboard, live region, strings (en, fr, mg).
   - _Requirements: 4, 7, 11_

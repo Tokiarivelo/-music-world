@@ -19,3 +19,10 @@ See `docs/improvements/i9-editable-notes.md` § Design. Add an "As built" sectio
 - Task 4: `xr/audio/note-synth.ts` (`NoteSynth`, triangle voice, 0.5 s, pool of 8 with oldest stolen, lazy `AudioContext`
   injected for tests, `midiToHz`); `xr/picking.ts` (pure: `pickables` honours hidden layers, `pickAtScreen` with a
   24 px radius over a caller-supplied projector, `pickAtRay` with a 0.04 rad cone for VR). Neither is wired yet (task 5).
+- Task 5: `xr/interaction/edit-controller.ts` (states idle / pressed / dragging; hover, press plays the pitch, drag snaps
+  pitch along the screen projection of the note's own staff, release commits, Esc cancels; keyboard `selectRelative`,
+  `nudge`, `playSelected`). `xr/edit-store.ts` is the view state (hover, selected, ghost) read by `StaffView`, which adds
+  one halo for the selected note and one ghost glyph + halo for the drag target (capacity +1 glyph, +2 halos, no extra
+  draw call). `WorldHandle` gains `setEdits` (rebuilds the plan with the same seed), `setEditMode`, `onNoteEvent`,
+  `editCommand`; the host binds the controller in the capture phase of the canvas, so a press on a note does not orbit
+  the camera. The page enables the mode only while paused (task 6). Time moves are not dragged: time is typed in task 6b.

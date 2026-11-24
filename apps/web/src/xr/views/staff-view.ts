@@ -24,9 +24,11 @@ import {
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { isRecordShown } from '@/engine/layers';
 import type { SpawnPlan } from '@/engine/spawn-plan';
-import { staffPoint, type StaffPath } from '@/engine/staff';
+import { staffNotePosition, staffPoint, type StaffPath } from '@/engine/staff';
+import { staffUOf as staffUOfMidi } from '@/engine/spawn-plan';
 import type { GlyphKind } from '@/engine/types';
 import type { WorldState } from '@/engine/world-state';
+import { editStore } from '../edit-store';
 import { layerStore } from '../layer-store';
 import {
   CLEF_SCALE,
@@ -108,6 +110,7 @@ export class StaffView implements WorldView {
   private readonly q = new Quaternion();
   private readonly pos = new Vector3();
   private readonly scale: Vector3;
+  private readonly markScale = new Vector3();
   private readonly up = new Vector3(0, 1, 0);
   /** Reused per update (07-xr-mode requirement 6.2: no steady-state allocation). */
   private readonly counts = new Map<GlyphKind, number>();
@@ -159,7 +162,7 @@ export class StaffView implements WorldView {
       const total = plan.records.filter((r) => r.glyph === kind).length;
       if (total === 0) continue;
       const geometry = buildGlyphGeometry(kind);
-      const mesh = new InstancedMesh(geometry, material, Math.min(total, GLYPH_CAPACITY_MAX));
+      const mesh = new InstancedMesh(geometry, material, Math.min(total, GLYPH_CAPACITY_MAX) + 1);
       mesh.count = 0;
       mesh.frustumCulled = false; // instances move every frame; the bounding sphere would be stale
       this.glyphMeshes.set(kind, mesh);
@@ -180,14 +183,20 @@ export class StaffView implements WorldView {
       side: DoubleSide,
     });
     const quad = new PlaneGeometry(HALO_SIZE.w, HALO_SIZE.h).translate(HALO_SIZE.x, HALO_SIZE.y, -0.01);
-    this.halos = new InstancedMesh(quad, glyphHaloMaterial, Math.max(1, capacity));
+    this.halos = new InstancedMesh(quad, glyphHaloMaterial, Math.max(1, capacity) + 2);
     this.halos.count = 0;
     this.halos.frustumCulled = false;
     this.object.add(this.halos);
     this.disposables.push(quad, haloTexture, glyphHaloMaterial);
-    this.unsubscribe = layerStore.subscribe(() => {
+    const redraw = () => {
       this.lastT = Number.NaN;
-    });
+    };
+    const offLayers = layerStore.subscribe(redraw);
+    const offEdit = editStore.subscribe(redraw);
+    this.unsubscribe = () => {
+      offLayers();
+      offEdit();
+    };
   }
 
   update(state: WorldState): void {
@@ -202,12 +211,44 @@ export class StaffView implements WorldView {
     for (const f of state.fallingNotes) {
       if (isRecordShown(this.plan, f.index, hidden)) this.place(f.glyph, f.position, this.plan.staff.playheadU);
     }
+    this.placeEditMarks(state);
     for (const [kind, mesh] of this.glyphMeshes) {
       mesh.count = this.counts.get(kind) ?? 0;
       mesh.instanceMatrix.needsUpdate = true;
     }
     this.halos.count = this.haloCount;
     this.halos.instanceMatrix.needsUpdate = true;
+  }
+
+  /** Editor marks (I9): a larger halo behind the hovered / selected note and a ghost glyph at the drag target. */
+  private placeEditMarks(state: WorldState): void {
+    const edit = editStore.state;
+    if (!edit.enabled) return;
+    const mark = (index: number | null, midi: number | null, scale: number): void => {
+      if (index === null) return;
+      const r = this.plan.records[index];
+      if (!r) return;
+      const n = state.notesOnStaff.find((x) => x.index === index);
+      const f = state.fallingNotes.find((x) => x.index === index);
+      const base = n?.position ?? f?.position;
+      if (!base) return;
+      const u = n ? n.u : this.plan.staff.playheadU;
+      const staffU = midi === null ? r.staffU : staffUOfMidi(midi);
+      const position = staffNotePosition(this.plan.staff, u, staffU, r.lineY);
+      this.q.setFromAxisAngle(this.up, staffHeading(this.plan.staff, u));
+      this.m.compose(this.pos.set(position.x, position.y, position.z), this.q, this.markScale.setScalar(this.scale.x * scale));
+      if (midi !== null) {
+        const mesh = this.glyphMeshes.get(r.glyph);
+        const c = this.counts.get(r.glyph) ?? 0;
+        if (mesh && c < mesh.instanceMatrix.count) {
+          mesh.setMatrixAt(c, this.m);
+          this.counts.set(r.glyph, c + 1);
+        }
+      }
+      if (this.haloCount < this.halos.instanceMatrix.count) this.halos.setMatrixAt(this.haloCount++, this.m);
+    };
+    mark(edit.selected ?? edit.hover, null, 1.35);
+    if (edit.ghost) mark(edit.ghost.index, edit.ghost.midi, 1);
   }
 
   private place(glyph: GlyphKind, position: { x: number; y: number; z: number }, u: number): void {
@@ -232,6 +273,7 @@ export class StaffView implements WorldView {
   }
 
   dispose(): void {
+    this.unsubscribe();
     for (const d of this.disposables) d.dispose();
   }
 }
