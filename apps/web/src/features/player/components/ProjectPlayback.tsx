@@ -2,12 +2,13 @@
 
 import { useMemo } from 'react';
 import type { Analysis } from '@/templates/generated';
+import { DirectorPanel, useDirector, type DirectorSource } from '@/features/director';
 import { WorldView } from '@/features/world-view';
 import { loadProjectAudio } from '../api/project.api';
 import { PLAYER_ERRORS, PLAYER_TEXT } from '../consts/player.consts';
 import { useProjectAnalysis } from '../hooks/use-project-analysis';
 import { useSongPlayer } from '../hooks/use-song-player';
-import { useTemplateChoice } from '../hooks/use-template-choice';
+import { useAiTemplateChoice } from '../hooks/use-ai-template-choice';
 import { useWorldControls } from '../hooks/use-world-controls';
 import { seedFromHash } from '../lib/seed';
 import { PlayerBar } from './PlayerBar';
@@ -18,7 +19,9 @@ function ProjectWorld({ projectId, analysis }: { projectId: string; analysis: An
     [projectId],
   );
   const player = useSongPlayer(deps);
-  const choice = useTemplateChoice();
+  const source = useMemo<DirectorSource>(() => ({ kind: 'project', projectId }), [projectId]);
+  const director = useDirector(source);
+  const choice = useAiTemplateChoice(director);
   const controls = useWorldControls(player, PLAYER_TEXT.projectTitle, choice);
   const { clock } = player;
   const { template } = choice;
@@ -29,6 +32,9 @@ function ProjectWorld({ projectId, analysis }: { projectId: string; analysis: An
   return (
     <div className="relative h-dvh w-full">
       <WorldView controls={controls} scene={scene} />
+      <div className="absolute left-3 top-3 z-10 max-w-[calc(100%-11rem)] sm:max-w-none">
+        <DirectorPanel director={director} template={template} />
+      </div>
       {/* IWSDK sizes its canvas to the window, so the controls float above it. */}
       <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[var(--mw-bg)] to-transparent pt-6">
         <PlayerBar player={player} />
@@ -40,7 +46,7 @@ function ProjectWorld({ projectId, analysis }: { projectId: string; analysis: An
   );
 }
 
-/** `/play/<projectId>`: an uploaded song's analysis and audio, rendered with the default template. */
+/** `/play/<projectId>`: an uploaded song's analysis and audio, rendered with the default template or an AI-generated one. */
 export function ProjectPlayback({ projectId }: { projectId: string }) {
   const state = useProjectAnalysis(projectId);
   if (state.kind === 'ready') return <ProjectWorld projectId={projectId} analysis={state.analysis} />;

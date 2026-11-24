@@ -24,7 +24,7 @@ export function PlayerBar({ player }: PlayerBarProps) {
       const target = event.target as HTMLElement | null;
       if (
         target &&
-        ['INPUT', 'TEXTAREA', 'BUTTON'].includes(target.tagName) &&
+        ['INPUT', 'TEXTAREA', 'BUTTON', 'SELECT'].includes(target.tagName) &&
         event.key !== 'ArrowLeft' &&
         event.key !== 'ArrowRight'
       ) {
