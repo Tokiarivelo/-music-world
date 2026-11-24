@@ -43,4 +43,4 @@ inclusion: always
 ## Commits
 
 Conventional style with the spec as scope: `feat(03-world-engine-core): 2.2 worldStateAt phases`. One task per
-commit. Never commit generated build output, `.env`, audio fixtures larger than 2 MB, or model weights.
+commit, committed without asking; the phase ends with a PR (see `rules.md` workflow step 6). Never commit generated build output, `.env`, audio fixtures larger than 2 MB, or model weights.

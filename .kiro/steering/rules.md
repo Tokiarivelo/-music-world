@@ -60,7 +60,12 @@ Master plan and priorities (P0/P1/P2, cut line, token rules): `docs/roadmap.md` 
 3. **Implement** following the rule files of the touched area.
 4. **Test** the touched area (see `testing.md`); all tests must pass before the task is ticked.
 5. **Document** in the same change (see `documentation.md`).
-6. **Tick** the task in `tasks.md`; commit `<spec>: <task number> <summary>` only when the user asks for commits.
+6. **Tick** the task in `tasks.md`, then commit it right away without asking: one commit per task
+   (`<spec>: <task number> <summary>`) on the phase branch (`phase-<id>-<slug>`, from the latest `main`; never commit on
+   `main`). Commit everything that belongs to the change, always. If GPG signing fails, use
+   `git -c commit.gpgsign=false commit`.
+   When the last task of the phase is committed and tests pass, push the branch and open a PR to `main` without asking
+   (push command in `docs/handoff.md` § 1). Do not merge it unless the user asks.
 7. **Handoff**: run the `handoff` skill before stopping or switching agent.
 
 ## Absolute rules (summary — details in `tech.md`)
