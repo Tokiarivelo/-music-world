@@ -1,8 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { NavigationState } from '@/xr/navigation/navigation-controller';
+import type { ViewPresetId } from '@/xr/navigation/orbit-camera';
 import { createMusicWorld, type WorldControls, type WorldHandle, type WorldScene } from '@/xr/world-host';
 import { WORLD_VIEW_TEXT } from '../consts/world-view.consts';
+import {
+  INITIAL_NAVIGATION_STATE,
+  useNavigationShortcuts,
+  type NavigationCommands,
+} from '../hooks/use-navigation-shortcuts';
+import { NavigationControls } from './NavigationControls';
 
 interface WorldCanvasProps {
   scene?: WorldScene;
@@ -16,6 +24,7 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
   const [immersive, setImmersive] = useState(false);
   const [failed, setFailed] = useState(false);
   const [handle, setHandle] = useState<WorldHandle | null>(null);
+  const [navigation, setNavigation] = useState<NavigationState>(INITIAL_NAVIGATION_STATE);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -59,10 +68,25 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
   // The 2D button follows the XR session (07-xr-mode requirement 1.3).
   useEffect(() => handle?.onSessionChange(setImmersive), [handle]);
 
+  // Camera navigation (08-navigation-mode): the buttons and the keys call the same commands.
+  useEffect(() => handle?.onNavigationChange(setNavigation), [handle]);
+  const exploring = navigation.mode === 'explore';
+  const commands = useMemo<NavigationCommands | null>(
+    () =>
+      handle && {
+        toggleExplore: () => handle.setCameraMode(exploring ? 'cinematic' : 'explore'),
+        selectPreset: (id: ViewPresetId) => handle.setViewPreset(id),
+        reset: () => handle.resetView(),
+      },
+    [handle, exploring],
+  );
+  useNavigationShortcuts(commands, !immersive);
+
   return (
     <div className="relative h-full w-full">
       <div ref={containerRef} aria-label={WORLD_VIEW_TEXT.canvasLabel} className="h-full w-full" role="img" />
       {failed && <p className="absolute inset-x-0 top-6 text-center">{WORLD_VIEW_TEXT.loadError}</p>}
+      {commands && !immersive && <NavigationControls commands={commands} state={navigation} />}
       {vrSupported && (
         <button
           className="absolute right-4 top-4 z-10 rounded-full bg-[var(--mw-accent)] px-6 py-3 font-medium text-black"
