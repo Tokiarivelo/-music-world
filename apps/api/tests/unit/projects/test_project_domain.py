@@ -60,11 +60,11 @@ def test_sniffing_never_crashes_and_only_returns_known_formats(header: bytes) ->
 
 def test_size_and_duration_limits_are_inclusive() -> None:
     check_audio_size(MAX_AUDIO_BYTES)
-    check_audio_duration(180.0)
+    check_audio_duration(1800.0)
     with pytest.raises(AudioTooLargeError):
         check_audio_size(MAX_AUDIO_BYTES + 1)
     with pytest.raises(AudioTooLongError):
-        check_audio_duration(180.01)
+        check_audio_duration(1800.01)
 
 
 def test_lrc_must_be_small_utf8_text() -> None:

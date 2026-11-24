@@ -17,7 +17,9 @@ from music_world.projects.domain.errors import (
 
 # Requirement 1.1 / 1.2 limits.
 MAX_AUDIO_BYTES = 25 * 1024 * 1024
-MAX_AUDIO_SECONDS = 180.0
+# Sanity bound only (the 25 MB size limit comes first for compressed audio): a song longer than the analysed
+# 5 minutes is accepted, analysed on its first 5 minutes and played whole with generic notes after that.
+MAX_AUDIO_SECONDS = 1800.0
 MAX_LRC_BYTES = 64 * 1024
 # Bytes needed by `sniff_audio_format`.
 SNIFF_BYTES = 12

@@ -26,4 +26,4 @@
 
 The note-quality numbers (`analysis/domain/quality.py`) are proxies (share of note duration inside the estimated key,
 notes per second per stem). They go the right way when spurious notes are removed but are not a transcription score; the
-only real check is to listen. A song longer than 180 s is analysed on its first 170 s (`excerpt_sec` in the manifest).
+only real check is to listen. Songs up to 5 minutes are analysed whole; a longer one is analysed on its first 5 minutes only and plays whole with generic notes after that (`engine/generic-notes.ts`: one note per beat from the pitch classes the song used). A song over 30 minutes is refused.

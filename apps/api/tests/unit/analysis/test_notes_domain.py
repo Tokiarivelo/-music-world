@@ -34,7 +34,7 @@ def test_filter_keeps_order_and_only_long_loud_notes(notes: list[RawNote], min_v
     assert len(kept) == sum(1 for n in notes if n.duration >= MIN_NOTE_DURATION_SEC and n.velocity >= min_velocity)
 
 
-@given(st.lists(notes_st, max_size=60), st.floats(min_value=1, max_value=180))
+@given(st.lists(notes_st, max_size=60), st.floats(min_value=1, max_value=300))
 def test_fit_to_song_yields_valid_notes_inside_the_song(notes: list[RawNote], duration: float) -> None:
     for n in fit_to_song(notes, duration):
         assert n.time >= 0 and n.time + n.duration <= duration + 1e-9

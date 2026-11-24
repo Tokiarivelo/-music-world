@@ -14,7 +14,7 @@ from music_world.schemas.base import ContractModel
 
 SCHEMA_ID = "music-world.analysis.v1"
 
-MAX_DURATION_SEC = 180.0
+MAX_DURATION_SEC = 300.0  # the analysed part of a song; a longer song is cut (the player adds generic notes)
 # Float slack when comparing times to the song bounds (seconds).
 TIME_EPSILON = 1e-6
 # Requirement 5.1: chord notes start within 60 ms of each other.

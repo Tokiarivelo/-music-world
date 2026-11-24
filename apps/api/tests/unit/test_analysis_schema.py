@@ -18,7 +18,7 @@ HASH = "sha256:" + "ab" * 32
 
 @st.composite
 def valid_results(draw: st.DrawFn) -> dict[str, Any]:
-    duration = draw(st.floats(min_value=1.0, max_value=180.0))
+    duration = draw(st.floats(min_value=1.0, max_value=300.0))
     raw = draw(
         st.lists(
             st.tuples(

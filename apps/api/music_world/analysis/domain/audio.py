@@ -3,9 +3,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from music_world.analysis.domain.errors import AudioTooLongError
-
-MAX_DURATION_SEC = 180.0
+# Only the first five minutes of a song are analysed (decoder cut); the rest plays with generic notes in the world.
+MAX_DURATION_SEC = 300.0
 # Demucs htdemucs works at 44.1 kHz stereo; every stage reads this mix.
 MIX_SAMPLE_RATE = 44100
 MIX_CHANNELS = 2
@@ -21,8 +20,3 @@ class DecodedAudio:
     sample_rate: int
     channels: int
     duration_sec: float
-
-
-def check_duration(duration_sec: float) -> None:
-    if duration_sec > MAX_DURATION_SEC:
-        raise AudioTooLongError(f"audio is longer than {MAX_DURATION_SEC:.0f} seconds")

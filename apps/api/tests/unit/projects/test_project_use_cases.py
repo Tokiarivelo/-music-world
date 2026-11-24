@@ -92,7 +92,7 @@ async def test_failed_job_makes_the_project_failed(song: Path) -> None:
     ("content", "probe", "error"),
     [
         (b"OggS" + b"\x00" * 100, FakeAudioProbe(), AudioFormatUnsupportedError),
-        (wav_bytes(), FakeAudioProbe(181.0), AudioTooLongError),
+        (wav_bytes(), FakeAudioProbe(1801.0), AudioTooLongError),
         (wav_bytes(), FakeAudioProbe(AudioUnreadableError("bad")), AudioUnreadableError),
     ],
 )

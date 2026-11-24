@@ -64,7 +64,7 @@ describe('translator', () => {
   it('translates, falls back to en and maps API error codes', () => {
     const fr = createTranslator('fr', 'upload');
     expect(fr('submit')).toBe('Analyser');
-    expect(fr.error('AUDIO_TOO_LONG')).toContain('3 minutes');
+    expect(fr.error('AUDIO_TOO_LONG')).toContain('30 minutes');
     expect(fr.error('NOT_A_CODE')).toBe(fr.error('UNKNOWN'));
     expect(fr.error(null)).toBe(fr.error('UNKNOWN'));
   });

@@ -1,6 +1,6 @@
 {
   "title": "Transformez une chanson en monde",
-  "intro": "Envoyez un fichier MP3, WAV ou FLAC (25 Mo et 3 minutes maximum). Ajoutez les paroles synchronisées au format .lrc si vous les avez.",
+  "intro": "Envoyez un fichier MP3, WAV ou FLAC (25 Mo maximum ; les 5 premières minutes sont analysées, une chanson plus longue se joue ensuite avec des notes génériques). Ajoutez les paroles synchronisées au format .lrc si vous les avez.",
   "audioLabel": "Chanson",
   "lrcLabel": "Paroles synchronisées (.lrc, facultatif)",
   "submit": "Analyser",
@@ -24,7 +24,7 @@
   "errors.CLIENT_LRC_TOO_LARGE": "Le fichier de paroles dépasse 64 Ko.",
   "errors.AUDIO_TOO_LARGE": "Ce fichier dépasse 25 Mo.",
   "errors.AUDIO_FORMAT_UNSUPPORTED": "Ce fichier n'est pas un fichier MP3, WAV ou FLAC.",
-  "errors.AUDIO_TOO_LONG": "Cette chanson dure plus de 3 minutes.",
+  "errors.AUDIO_TOO_LONG": "Cette chanson dure plus de 30 minutes.",
   "errors.AUDIO_UNREADABLE": "Ce fichier audio n'a pas pu être lu.",
   "errors.LRC_INVALID": "Le fichier de paroles doit être un texte UTF-8.",
   "errors.AUDIO_DECODE_FAILED": "Ce fichier audio n'a pas pu être décodé.",

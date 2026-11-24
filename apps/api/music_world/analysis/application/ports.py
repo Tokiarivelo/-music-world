@@ -15,7 +15,7 @@ from music_world.schemas.analysis import AnalysisResult
 
 
 class AudioDecoder(Protocol):
-    """Decodes any accepted upload to a 44.1 kHz stereo WAV; raises `AudioDecodeError` / `AudioTooLongError`."""
+    """Decodes an upload to a 44.1 kHz stereo WAV (first `MAX_DURATION_SEC` s); raises `AudioDecodeError`."""
 
     async def decode(self, source: Path, target: Path) -> DecodedAudio: ...
 
