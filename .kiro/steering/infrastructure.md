@@ -58,6 +58,6 @@ fileMatchPattern: ["infra/**", "**/Dockerfile*", "Makefile"]
 - Image builds go through `infra/scripts/build-changed.sh`: a content hash of the sources decides, the Docker layer
   cache does the rest. Keep Dockerfile layers ordered by change frequency (deps → weights → code).
 - Root `docker-compose.yml` only `include`s `infra/docker-compose.yml` with `infra/.env`; edit the services in `infra/`.
-- `infra/docker-compose.dev.yml` (dev-infra only) publishes Postgres and Redis on 127.0.0.1; never used in production.
+- `infra/docker-compose.dev.yml` (`make dev`, `up`, `dev-infra`) publishes Postgres and Redis on 127.0.0.1 and runs Garage, the local S3 store (`garage-up` creates its bucket and key; containers reach it at `http://garage:3900`); never used in production, which uses Cloudflare R2.
 - Env example files: `infra/.env.example` (global: Docker stack + production), `apps/api/.env.example` (host API and
   worker, loaded by `uv run --env-file`), `apps/web/.env.example` (Next dev, copy to `.env.local`).

@@ -11,7 +11,7 @@ from music_world.shared.settings import Settings
 from music_world.system.application.ports import CheckStatus
 
 if TYPE_CHECKING:
-    from mypy_boto3_s3 import S3Client
+    pass
 
 
 class PostgresProbe:
@@ -41,16 +41,8 @@ class S3Probe:
         s = self._settings
         if not s.storage_configured or s.s3_access_key is None or s.s3_secret_key is None:
             return "not_configured"
-        import boto3  # lazy: see shared/object_store.py
-        from botocore.config import Config
+        from music_world.shared.object_store import build_s3_client
 
-        client: S3Client = boto3.client(
-            "s3",
-            endpoint_url=s.s3_endpoint,
-            region_name=s.s3_region,
-            aws_access_key_id=s.s3_access_key.get_secret_value(),
-            aws_secret_access_key=s.s3_secret_key.get_secret_value(),
-            config=Config(connect_timeout=1.5, read_timeout=1.5, retries={"max_attempts": 1}),
-        )
+        client = build_s3_client(s, connect_timeout=1.5, read_timeout=1.5, retries=1)
         await asyncio.to_thread(client.head_bucket, Bucket=s.s3_bucket or "")
         return "ok"

@@ -1,6 +1,8 @@
 """Object storage adapters (shared kernel). Contexts declare the subset they need as a port.
 
-- `S3ObjectStore`: OVHcloud Object Storage (S3 API), used when the `S3_*` settings are complete.
+- `S3ObjectStore`: any S3-compatible store, used when the `S3_*` settings are complete: Garage in local development
+  (`make dev-infra`), Cloudflare R2 once deployed (endpoint `https://<account>.r2.cloudflarestorage.com`, region
+  `auto`).
 - `LocalObjectStore`: a directory on disk (`STORAGE_DIR`), for development and tests while no bucket exists.
 Keys are relative POSIX paths (`audio/<hash>.mp3`, `stems/<hash>/vocals.flac`, …).
 """
@@ -24,6 +26,37 @@ def _check_key(key: str) -> str:
     if not key or path.is_absolute() or ".." in path.parts:
         raise ValueError(f"invalid object key: {key!r}")
     return key
+
+
+def build_s3_client(
+    settings: Settings,
+    *,
+    connect_timeout: float = _TIMEOUT_SECONDS,
+    read_timeout: float = _TIMEOUT_SECONDS,
+    retries: int = _RETRIES,
+) -> "S3Client":
+    """One boto3 client for Garage and R2: path-style addressing (Garage has no per-bucket DNS name) and checksums only
+    when an operation requires them (R2 rejects the default CRC32 trailer of recent botocore versions)."""
+    if not settings.storage_configured or settings.s3_access_key is None or settings.s3_secret_key is None:
+        raise ValueError("S3 storage is not configured")
+    import boto3  # loaded only when S3 is configured: ~0.3 s of API start-up
+    from botocore.config import Config
+
+    return boto3.client(
+        "s3",
+        endpoint_url=settings.s3_endpoint,
+        region_name=settings.s3_region or "auto",
+        aws_access_key_id=settings.s3_access_key.get_secret_value(),
+        aws_secret_access_key=settings.s3_secret_key.get_secret_value(),
+        config=Config(
+            connect_timeout=connect_timeout,
+            read_timeout=read_timeout,
+            retries={"max_attempts": retries, "mode": "standard"},
+            s3={"addressing_style": "path"},
+            request_checksum_calculation="when_required",
+            response_checksum_validation="when_required",
+        ),
+    )
 
 
 class LocalObjectStore:
@@ -78,24 +111,8 @@ class LocalObjectStore:
 
 class S3ObjectStore:
     def __init__(self, settings: Settings) -> None:
-        if not settings.storage_configured or settings.s3_access_key is None or settings.s3_secret_key is None:
-            raise ValueError("S3 storage is not configured")
-        import boto3  # loaded only when S3 is configured: ~0.3 s of API start-up
-        from botocore.config import Config
-
         self._bucket = settings.s3_bucket or ""
-        self._client: S3Client = boto3.client(
-            "s3",
-            endpoint_url=settings.s3_endpoint,
-            region_name=settings.s3_region,
-            aws_access_key_id=settings.s3_access_key.get_secret_value(),
-            aws_secret_access_key=settings.s3_secret_key.get_secret_value(),
-            config=Config(
-                connect_timeout=_TIMEOUT_SECONDS,
-                read_timeout=_TIMEOUT_SECONDS,
-                retries={"max_attempts": _RETRIES, "mode": "standard"},
-            ),
-        )
+        self._client: S3Client = build_s3_client(settings)
 
     async def put_file(self, key: str, path: Path, content_type: str) -> None:
         await asyncio.to_thread(

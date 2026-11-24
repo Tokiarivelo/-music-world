@@ -9,7 +9,7 @@ Rules in `.kiro/steering/infrastructure.md`; deployment steps in the `deploy-ovh
 | `Caddyfile` | HTTPS, `/api/*` → api, rest → web, body limits, cache headers (`/demo/*`, `/_next/static/*`), security headers and CSP |
 | `docker/` | `api.Dockerfile` (api + worker, ffmpeg, Demucs weights pre-downloaded), `web.Dockerfile` |
 | `.env.example` | every variable; copy to `infra/.env` on the server (never committed). Host-run API and web have their own: `apps/api/.env.example`, `apps/web/.env.example` |
-| `docker-compose.dev.yml` | `make dev-infra` only: publishes Postgres and Redis on 127.0.0.1 for the host-run API and worker |
+| `docker-compose.dev.yml` | `make dev`, `up`, `dev-infra`: publishes Postgres and Redis on 127.0.0.1 and runs Garage (local S3) |
 | `scripts/build-changed.sh` | builds an image only when its sources changed (content hash in `.data/build/`); used by `make dev`, `up`, `build` |
 | `deploy.sh` | `make deploy`: ssh to the server, checkout a pushed commit, check env and disk, build, up, wait healthy |
 | `scripts/check-env.sh` | fails fast on missing or unsafe production settings (names only, never values) |
@@ -29,7 +29,7 @@ Nothing below has run yet: it needs the OVHcloud instance, a domain and the keys
    Security group / firewall: inbound 22, 80, 443 (TCP) and 443 (UDP, HTTP/3); outbound 443 (LLM APIs, S3) and 587
    (SMTP).
 2. DNS: an A (and AAAA if IPv6) record `DOMAIN → instance IP`. Wait until `dig +short <domain>` answers.
-3. Optional bucket: OVHcloud Object Storage (S3 API), private, with an S3 user → the five `S3_*` values. Without it
+3. Optional bucket: Cloudflare R2 (S3 API), private, with an R2 API token (object read and write on that bucket) → the five `S3_*` values (`S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com`, `S3_REGION=auto`). Locally the same settings point at Garage (`make dev-infra && make garage-init`). Without it
    uploads stay in the `storage` volume (back it up with `--storage`).
 4. On the server: install Docker Engine + Compose plugin (`curl -fsSL https://get.docker.com | sh`), add the user to
    the `docker` group, `sudo systemctl enable docker`, then

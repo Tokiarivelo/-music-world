@@ -4,7 +4,7 @@ from pathlib import Path
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from music_world.director.application.summary import ENERGY_POINTS, summarize
+from music_world.director.application.summary import ENERGY_POINTS, MAX_LYRICS_CHARS, summarize
 from music_world.director.application.template_output import parse_template, template_json_schema
 from music_world.director.domain.demo import DEMO_AUDIO_HASH
 from music_world.director.infrastructure.default_template import default_template
@@ -40,7 +40,7 @@ def test_lyrics_are_truncated_in_the_summary() -> None:
     doc["lyrics"] = [LyricSegment(start=i, end=i + 0.5, text="la " * 100).model_dump() for i in range(9)]
     doc["lyricsSource"] = "lrc"
     summary = summarize(AnalysisResult.model_validate(doc))
-    assert len(summary.lyrics) == 1500 and summary.lyric_lines == 9
+    assert len(summary.lyrics) == MAX_LYRICS_CHARS and summary.lyric_lines == 9
 
 
 def test_prompts_carry_schema_and_enums_and_repair_lists_errors() -> None:
