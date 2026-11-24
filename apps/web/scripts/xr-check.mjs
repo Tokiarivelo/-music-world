@@ -119,6 +119,41 @@ try {
   await page.getByRole('button', { name: 'Exit VR' }).waitFor({ timeout: 30000 });
   check('session: immersive-vr started, 2D button reads Exit VR', true);
   await frames(20);
+
+  // I7: a session starts in the immersive scale (80 m plate, plate top = floor, viewer inside its near edge).
+  const immersive = await anchorPose();
+  check(
+    'immersive: the plate top is the floor and the viewer stands inside its near edge',
+    near(immersive.x, 0) && near(immersive.y, 0) && near(immersive.z, -30) && near(immersive.yaw, 0),
+    JSON.stringify(immersive),
+  );
+  const scaleNow = await page.evaluate(() => globalThis.__mwWorld.scene.getObjectByName('music-world').scale.x);
+  check('immersive: the world is much larger than the table-top diorama', scaleNow > 1, `scale ${scaleNow.toFixed(2)}`);
+  // Left stick forward glides: the plate moves against the head direction, at most 2 m/s.
+  const t0 = await page.evaluate(() => performance.now());
+  await page.evaluate(() => globalThis.__mwXRDevice.controllers.left.updateAxes('thumbstick', 0, -1));
+  await frames(30);
+  await page.evaluate(() => globalThis.__mwXRDevice.controllers.left.updateAxes('thumbstick', 0, 0));
+  const seconds = ((await page.evaluate(() => performance.now())) - t0) / 1000;
+  const glided = await anchorPose();
+  const moved = Math.hypot(glided.x - immersive.x, glided.z - immersive.z);
+  check(
+    'locomotion: left stick glides the viewer, at most 2 m/s',
+    moved > 0.05 && moved <= 2 * seconds + 0.1,
+    `${moved.toFixed(2)} m in ${seconds.toFixed(2)} s`,
+  );
+  const beforeTurn = await anchorPose();
+  await flick('right', 1);
+  const afterTurn = await anchorPose();
+  check(
+    'locomotion: right stick turns by a 30° snap',
+    near(Math.abs(afterTurn.yaw - beforeTurn.yaw), Math.PI / 6, 0.02),
+    `${(afterTurn.yaw - beforeTurn.yaw).toFixed(3)} rad`,
+  );
+  await shot('immersive');
+  // B / Y goes back to the table-top diorama, placed in front of the head.
+  await press('right', 'b-button');
+  await frames(20);
   const placed = await anchorPose();
   const expected = {
     x: HEAD.x - Math.sin(HEAD.yaw) * VR_DIORAMA_DISTANCE_M,

@@ -81,3 +81,14 @@ Screenshots over the demo song: `docs/improvements/i7/walk-start.png`, `walk-for
   in the tracking space, 0.75 m ahead, and follows the plate's moves. Stick seek is off in this scale (panel buttons stay).
 - Not done: teleport arc, vignette while gliding, scale toggle button on the spatial panel, LOD for distant structures,
   persisted settings (scale, turn style), **Quest 3 check** (comfort, scale, fps).
+
+### IWER check (2026-11-24, `MW_ANGLE=vulkan node apps/web/scripts/xr-check.mjs`)
+
+- A session starts immersive (plate top = floor, scale ×6.67), the left stick glides (0.62 m in 0.33 s ≤ 2 m/s), the right
+  stick snaps 30°, B returns to the table-top diorama, and the old checks still pass. 46 draw calls (< 100), no leak.
+  Screenshot: `docs/improvements/i7/vr-immersive-iwer.png`. SwiftShader is too slow for this script (screenshot timeouts): use `MW_ANGLE=vulkan`.
+- Meta docs (design/locomotion-comfort-usability, hz-iwsdk-webxr): walking 1.4 m/s, running 2.8 m/s; vignette recommended
+  during slide; snap turn is the comfort default; IWSDK ships its own locomotor (`features.locomotion`: teleport, slide, turn,
+  `comfortAssistLevel`) that moves `world.player`. We kept our own system (the plate moves around the head) so the panel and
+  the scale toggle stay simple; switching to the IWSDK locomotor (teleport + vignette for free, needs a
+  `LocomotionEnvironment` floor) is the way to close the teleport and vignette gaps.
