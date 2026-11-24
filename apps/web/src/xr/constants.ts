@@ -16,13 +16,24 @@ export const DESKTOP_REFERENCE_ASPECT = 16 / 9;
 /** Point the desktop camera looks at, relative to the diorama centre (metres): slightly toward the city. */
 export const DESKTOP_CAMERA_TARGET_OFFSET = { x: 0.0, y: 0.09, z: 0.0 } as const;
 
+/** Environment (I2): sky dome and ground radii, fog range, hill rings and columns, star share of sky cells (metres). */
+export const ENV_SKY_RADIUS_M = 120;
+export const ENV_GROUND_RADIUS_M = 60;
+export const ENV_FOG_NEAR_M = 14;
+export const ENV_FOG_FAR_M = 58;
+export const ENV_HILL_RINGS = 2;
+export const ENV_HILL_COLUMNS = 160;
+export const ENV_STAR_DENSITY = 0.012;
+/** Far plane of the desktop camera: must reach the sky dome. */
+export const CAMERA_FAR_M = 300;
+
 export const PLATE_THICKNESS = 0.35;
 /** Grid cells per side of the plate top height field (2 triangles per cell). */
 export const TERRAIN_GRID = 96;
 /** Plate shading (sRGB-ish multipliers of `palette.terrain`): rim, centre, plate sides. */
 export const PLATE_RIM_LIGHT = 1.0;
 export const PLATE_CENTRE_LIGHT = 1.4;
-export const PLATE_SIDE_LIGHT = 0.55;
+export const PLATE_SIDE_LIGHT = 0.8;
 /** Cool (secondary) tint of the plate centre, like the blue-grey middle of the reference plate. */
 export const PLATE_CENTRE_COOL = 0.025;
 /** Violet tint of the plate near the city (fraction of `palette.primary`). */
