@@ -5,7 +5,7 @@ from typing import Any
 
 from music_world.director.application.summary import AnalysisSummary
 
-PROMPT_VERSION = "director-v2"
+PROMPT_VERSION = "director-v3"
 
 # Closed enums repeated in plain words (requirement 2.2); the JSON Schema below is the authority.
 _ENUMS = """Allowed values (closed lists, use nothing else):
@@ -22,7 +22,8 @@ _ENUMS = """Allowed values (closed lists, use nothing else):
 - triangles: box 12, prism 4*sides (2*sides when taper is 0), spike 4; stack = levels * of; cluster = count * of;
   the sum over parts must not exceed maxTriangles; keep recipes small (under 300 triangles)
 - mappings[].when: pitch "<a" | ">a" | "a-b" (MIDI 0-127), velocity same syntax with 0-1, chord true | false,
-  stem vocals | drums | bass | other; an empty "when" matches every note; the first matching rule wins
+  stem vocals | drums | bass | other, line "main" (only that value); an empty "when" matches every note; the first
+  matching rule wins
 - mappings[].heightFrom: velocity | duration | pitch; mappings[].colorRole: primary | accent | secondary | staff
 - zones: rectangles in normalized plate coordinates -1..1 with xMin < xMax and zMin < zMax
 - fx.particles: arcs | dust | none; fx.bloom 0-2; fx.beatPulse true | false; fx.chordLinks: light_arc | none

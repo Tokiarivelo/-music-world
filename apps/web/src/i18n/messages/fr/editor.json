@@ -80,6 +80,7 @@
   "role.accent": "Accent",
   "role.secondary": "Secondaire",
   "role.staff": "Portée",
+  "role.line": "Ligne de voix",
   "zone.title": "Zone {n}",
   "zone.kind": "Forme",
   "zone.xMin": "Bord gauche",

@@ -1,0 +1,27 @@
+# Implementation Plan
+
+- [x] 1. `engine/edits.ts`: `LayoutEdits`, `applyEdits`, `stepPitch`, `snapToStaff`, undo/redo history; property tests.
+  - _Requirements: 3, 5, 7, 13_
+- [x] 2. Contract: `music-world.edits.v1` schema, `when.line` in the template, director prompt + `PROMPT_VERSION`.
+  - _Requirements: 5, 6, 13_
+- [x] 3. `engine/staff.ts` multi-line staves + `SpawnRecord.line`; one-line plan unchanged.
+  - _Requirements: 4, 5_
+- [x] 4. `xr/audio/note-synth.ts` + `xr/picking.ts` with tests.
+  - _Requirements: 1, 2, 10, 12_
+- [x] 5. Edit controller (hover, click-to-play, drag, ghost, snap, cancel, paused only) + highlight.
+  - _Requirements: 1, 2, 3_
+- [x] 6. `EditToolbar`, lines, undo/redo/reset, keyboard, live region, strings (en, fr, mg).
+  - _Requirements: 4, 7, 11_
+- [x] 6b. Per-note properties panel, multi-select, add/duplicate/delete.
+  - _Requirements: 13, 14_
+- [x] 6c. Per-line properties and `colorRole: "line"`.
+  - _Requirements: 15_
+- [x] 7. Persistence (browser, then `PUT /api/projects/{id}/edits`), "Play my edits".
+  - _Requirements: 8, 9_
+- [x] 10. Note accuracy (asked by the author): diatonic octave-folded staff positions (done with the VR keyboard commit),
+  per-stem minimum length, overtone filter, single-voice stems, chroma check against the recording.
+  - _Requirements: none (fix of the analysis and the staff display)_
+- [x] 8. VR picking and drag with the right controller ray and trigger (code and unit tests). Not done: the line list on
+  the spatial panel, the IWER run and the screenshots (need a browser session with the emulator): moved to the Quest check.
+  - _Requirements: 1, 3_
+- [ ] 9. (human) Quest 3 check: ray accuracy, drag comfort, tone latency.

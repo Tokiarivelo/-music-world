@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase I7 immersive scale and walk mode)
+> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase I9 editable notes)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -12,7 +12,7 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 1. Repository state
 
-- Work from `main`. Push with gh credentials:
+- Branch `phase-I9-editable-notes` (PR to `main` opened at the end of the phase); otherwise work from `main`. Push with gh credentials:
   `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
 - Merged: B4 Caddy cache headers (PR #24), phase A4 (#23), phase 9 docs, `08-navigation-mode` (PR #9), I1–I4b (PRs #15–#19), A2 template editor (PR #21 line).
   Open PRs: #22 `phase-A3-moderation` (spec 10, tasks 1–6) and, stacked on it, `phase-A4-design-system`.
@@ -21,30 +21,20 @@ Read docs/handoff.md and continue with the next actions.
   containers (`angaly_*`) may be running — not started by these sessions; leave them alone.
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-24, Claude Code, phases A3 and A4)
+## 2. Last session (2026-11-24, Claude Code, phase I9 editable notes)
 
-- A3 `10-template-moderation` 1–6 on `phase-A3-moderation`: `MODERATOR_EMAILS`, session `moderator`, migration `0005`,
-  `/api/moderation/*`, web `/moderation`. Rules changed: commit every task and open the PR at the end of a phase
-  without asking (`rules.md` step 6).
-- A4 on `phase-A4-design-system`: skill `design-system` (tokens and class recipes; read it before any UI change; wired
-  into `rules.md`, `frontend.md`, `new-web-feature`); `MyTemplates` on `/templates` with the "Hidden after reports,
-  under review" label (requirement 4.1 closed); launch template **Nemo Reef** (`featured/nemo-reef.json`, store id
-  `…0002`, listed after Kiroween Pumpkin Night).
-- Template **scenery** (new, contract change): `scenery: [{kind, count}]` stands objects on the plate before the first
-  note (engine `sceneryRecords`, records `[0, sceneryCount)`, placed from the world seed in the zones of their kind);
-  recipes cap 4 → 16 for the store (the AI director stays at 4). **Nemo Reef** now has 16 recipes + 5 native kinds,
-  116 scenery objects, 21 pitch bands. Each Play from the beginning draws a new world seed (`usePlaySeed`, in the demo
-  and project players only; the editor preview keeps one), so the arrangement changes every run. Recipes have
-  `footprint` (m) and `heightScale` for squat or wide shapes (`engine/recipe-scale.ts`); Nemo sets both per recipe.
-- A personal e-mail was committed in `apps/api/.env.example` by mistake (`062da9c`) and emptied in the next commit; it
-  stays in that branch's history. Never put real e-mails in tracked files: set `MODERATOR_EMAILS` in `infra/.env`.
-- Previous session (phase A2): `09-template-editor` 1–8 (`/editor`, `PUT /api/templates/{id}`); recipe editing
-  came in phase A5 (tasks 9–11); not done: Quest check of the editor page. Screenshots: `docs/template-editor/`.
-
-- Phase I6 (`phase-I6-aurora-sky-staff`, stacked on I7): staff style `aurora`, rain fall, curtain shader, launch template
-  Aurora Night; follow-ups in `docs/improvements/i6-aurora-sky-staff.md` § As built.
-- Phase I7 (`phase-I7-immersive-scale`): immersive scale, Walk mode, VR locomotion; follow-ups listed in
-  `docs/improvements/i7-immersive-scale.md` § As built. Quest 3 check is a human task.
+- `11-editable-notes` tasks 1–8 and 10 on `phase-I9-editable-notes`, one commit per task: edit model and history
+  (`engine/edits.ts`), contract (`when.line`, `colorRole: "line"`, `music-world.edits.v1`), voice-line staves, note synth
+  and picking, edit controller, toolbar, per-note and per-line properties, persistence (browser and
+  `GET/PUT /api/projects/{id}/edits`, migration `0006`), "Play my edits" (`ScorePlayer`), VR ray + trigger picking.
+- Task 10 (note accuracy, asked by the author): staff positions are diatonic and octave-folded (the old clamp piled bass
+  notes on one height); analysis drops overtones, enforces one voice for vocals and bass, per-stem minimum length, and
+  checks quiet notes against the mix chroma. Applies to new analyses only. Not measured on a reference recording.
+  An LLM cannot hear audio, so it is not used for notes (rule: algorithms detect, LLMs interpret).
+- VR keyboard (`xr/keyboard-pad.ts`): W A S D glide, arrows or Q E snap turn, Space play, `[` `]` seek, R recenter, G or B
+  scale; documented in `07-xr-mode/design.md`. The score player is driven by the frame loop (no timer).
+- Not done: line list on the VR panel, IWER run, screenshots, README / `PROJECT.md` §6/§7 mention, task 9 (Quest check).
+- The handoff above (sections 1, 3–6) still describes the A3/A4 state; the roadmap items are unchanged.
 
 ## 3. Next actions
 
@@ -97,6 +87,8 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | 09-template-editor 1–8 | Claude Code (world-builder) | done | branch `phase-A2-template-editor` (backlog A2), one commit per task |
 | 10-template-moderation 1–6 | Claude Code | done | PR #22 `phase-A3-moderation`, one commit per task; req 4.1 closed in A4 |
 | A4 design-system skill, My templates, Nemo Reef | Claude Code (world-builder) | done | branch `phase-A4-design-system`, stacked on #22 |
+| 11-editable-notes 1–8, 10 | Claude Code | done | branch `phase-I9-editable-notes`, one commit per task; 8 partly (panel line list, IWER, screenshots open) |
+| 11-editable-notes 9 | — | blocked | Quest 3 check (human): ray accuracy, drag comfort, tone latency |
 | 10-template-moderation 7 | — | blocked | human: review a real hidden template on the public URL |
 | Roadmap 9.3–9.5 | — | blocked | human: video, Devpost, posts; drafts in `docs/submission.md` |
 
@@ -129,3 +121,4 @@ The daily ones. The rest (API, web/XR, tooling): `docs/pitfalls.md`, read the gr
 | 08-navigation-mode | 1–6 done | — (human: try it on a phone) | design.md § As built |
 | 09-template-editor | 1–11 done | — (recipe editing done, phase A5) | design.md § As built |
 | 10-template-moderation | 6/7 done | 7 (human: review a real hidden template) | design.md § As built |
+| 11-editable-notes | 1–8, 10 done | 9 (Quest, human); VR panel line list | design.md § As built |

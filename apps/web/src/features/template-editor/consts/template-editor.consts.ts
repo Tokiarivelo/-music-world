@@ -16,7 +16,7 @@ export const FALLBACK_ID = 'my-template';
 
 export const BUILTIN_KINDS = ['terrain_ridge', 'building', 'spike', 'crystal', 'cluster'] as const;
 export const HEIGHT_SOURCES = ['velocity', 'duration', 'pitch'] as const;
-export const COLOR_ROLES = ['primary', 'accent', 'secondary', 'staff'] as const;
+export const COLOR_ROLES = ['primary', 'accent', 'secondary', 'staff', 'line'] as const;
 export const STEMS = ['vocals', 'drums', 'bass', 'other'] as const;
 
 /** Numeric bounds of the schema (`music-world.template.v1`): every number control uses them. */

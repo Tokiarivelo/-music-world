@@ -7,8 +7,9 @@
  * we do it here), `visibilityState` (signal, `'non-immersive'` outside XR), `xr.features.handTracking`.
  */
 import type * as IWSDK from '@iwsdk/core';
+import { EMPTY_EDITS, type LayoutEdits } from '@/engine/edits';
 import { buildSpawnPlan, type SpawnPlan } from '@/engine/spawn-plan';
-import type { EngineAnalysis, WorldTemplate } from '@/engine/types';
+import type { EngineAnalysis, Vec3, WorldTemplate } from '@/engine/types';
 import {
   DESKTOP_CAMERA_AZIMUTH_DEG,
   DESKTOP_CAMERA_ELEVATION_DEG,
@@ -23,6 +24,10 @@ import { cinematicDistance } from './navigation/orbit-camera';
 import { obstaclesAt, type Circle } from './navigation/walk-camera';
 import { activityAt, type Activity, type HiddenLayers } from '@/engine/layers';
 import { layerStore } from './layer-store';
+import { EditController, type NoteEditEvent } from './interaction/edit-controller';
+import { NoteSynth } from './audio/note-synth';
+import { keyboardPad } from './keyboard-pad';
+import { ScorePlayer, type ScoreNote } from './audio/score-player';
 import { anchorPlacement, plateWidthM, rootScale } from './scale';
 import { bindNavigationInput } from './navigation/navigation-input';
 import type { CameraMode, NavigationController, NavigationState } from './navigation/navigation-controller';
@@ -43,11 +48,21 @@ export interface WorldScene {
 /** What the host needs from the installed systems. */
 export interface InstalledScene extends Pick<MusicScene, 'setScene' | 'setLightLevel' | 'setScaleMode'> {
   setControls(controls: WorldControls | null): void;
+  /** Right controller ray and trigger drive the note editor (I9 task 8); null turns it off. */
+  setEditRay?(target: { rayDown(r: { origin: Vec3; dir: Vec3 }): boolean; rayMove(r: { origin: Vec3; dir: Vec3 }): void; rayUp(): void } | null): void;
+  /** Projects a point of the plan (plate metres) to canvas pixels; null behind the camera (I9 picking). */
+  project?(p: Vec3): { x: number; y: number } | null;
   /** Desktop camera navigation (08-navigation-mode); the host binds its input to the canvas. */
   navigation: NavigationController;
   /** Called on dispose, after the input is unbound. */
   disposeNavigation(): void;
 }
+
+export type EditCommand =
+  | { type: 'select'; direction: 1 | -1 }
+  | { type: 'nudge'; steps: number }
+  | { type: 'play' }
+  | { type: 'cancel' };
 
 export interface WorldHandle {
   /** Replaces the song, template, seed or clock (typed command API, frontend.md). */
@@ -61,6 +76,19 @@ export interface WorldHandle {
   setLightLevel(level: number): void;
   /** Layers the viewer switched off (I5): view-only, no rebuild, redrawn at once even while paused. */
   setHiddenLayers(hidden: HiddenLayers): void;
+  /**
+   * Note edits on top of the analysis (I9): rebuilds the plan with the same seed, so the scenery does not move. The
+   * document and its history live in the page; the world only displays it.
+   */
+  setEdits(edits: LayoutEdits): void;
+  /** Turns the note editor on (only while the song is paused: the page decides) or off. */
+  setEditMode(enabled: boolean): void;
+  /** Hover, selection, drag and commit events of the editor. Returns an unsubscribe function. */
+  onNoteEvent(listener: (event: NoteEditEvent) => void): () => void;
+  /** "Play my edits": plays these notes with the synth in step with the song clock; `null` stops it. */
+  setScore(notes: readonly ScoreNote[] | null): void;
+  /** Keyboard commands of the editor (requirement 11): select, nudge the pitch, play. */
+  editCommand(command: EditCommand): void;
   /** What each stem plays now, for the meters of the layers panel (null before a song is loaded). */
   activity(): Activity | null;
   enterVR(): void;
@@ -138,6 +166,8 @@ const defaultDeps: WorldHostDeps = {
     const { installNavigation, disposeNavigation } = await import('./systems/navigation-system');
     // `?perf=1` logs draw calls and triangles once per second (04-default-template requirement 7.3).
     const perfLog = typeof location !== 'undefined' && new URLSearchParams(location.search).get('perf') === '1';
+    const { Vector3 } = await import('three');
+    const tmp = new Vector3();
     const scene = installMusicSystems(world as IWSDK.World, { perfLog });
     const rig = installXRSystems(world as IWSDK.World, scene.anchorEntity, scene.anchor);
     installXRPanel(world as IWSDK.World, scene.anchorEntity, rig);
@@ -152,8 +182,36 @@ const defaultDeps: WorldHostDeps = {
       setScene: (plan, clock) => scene.setScene(plan, clock),
       setLightLevel: (level) => scene.setLightLevel(level),
       setScaleMode: (mode) => scene.setScaleMode(mode),
+      setEditRay: (target) => {
+        if (!target) {
+          rig.editRay = null;
+          return;
+        }
+        // World-space controller ray → the plan's space (the scene root), direction re-normalized (the root is scaled).
+        const toPlan = (ray: { origin: Vec3; dir: Vec3 }) => {
+          const root = scene.root;
+          root.updateWorldMatrix(true, false);
+          const o = root.worldToLocal(new Vector3(ray.origin.x, ray.origin.y, ray.origin.z));
+          const tip = root.worldToLocal(new Vector3(ray.origin.x + ray.dir.x, ray.origin.y + ray.dir.y, ray.origin.z + ray.dir.z));
+          const d = tip.sub(o).normalize();
+          return { origin: { x: o.x, y: o.y, z: o.z }, dir: { x: d.x, y: d.y, z: d.z } };
+        };
+        rig.editRay = {
+          rayDown: (ray) => target.rayDown(toPlan(ray)),
+          rayMove: (ray) => target.rayMove(toPlan(ray)),
+          rayUp: () => target.rayUp(),
+        };
+      },
       setControls: (controls) => {
         rig.controls = controls;
+      },
+      project: (p) => {
+        const root = scene.root;
+        root.updateWorldMatrix(true, false);
+        tmp.set(p.x, p.y, p.z).applyMatrix4(root.matrixWorld).project((world as IWSDK.World).camera);
+        if (tmp.z > 1 || tmp.z < -1) return null;
+        const el = world.renderer.domElement;
+        return { x: ((tmp.x + 1) / 2) * el.clientWidth, y: ((1 - tmp.y) / 2) * el.clientHeight };
       },
     };
   },
@@ -245,7 +303,65 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   const offScale = nav.subscribe(applyScale);
   const canvas = world.renderer.domElement;
   nav.reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const unbind = bindNavigationInput(canvas, nav.input, () => nav.acceptsInput, { wheelPerPixel: NAV_WHEEL_ZOOM });
+  let loaded: { analysis: EngineAnalysis; template: WorldTemplate; seed: number } | null = null;
+  let edits: LayoutEdits = EMPTY_EDITS;
+  const noteListeners = new Set<(event: NoteEditEvent) => void>();
+  const synth = new NoteSynth();
+  const projector = scene.project;
+  const scorePlayer = new ScorePlayer(synth, {
+    now: () => baseClock?.now() ?? 0,
+    isPlaying: () => baseClock?.isPlaying?.() ?? false,
+    rate: () => baseClock?.rate?.() ?? 1,
+  });
+  const editor = new EditController({
+    plan: () => basePlan,
+    now: () => baseClock?.now() ?? 0,
+    hidden: () => layerStore.hidden,
+    project: (p) => (projector ? projector(p) : null),
+    synth,
+    emit: (event) => noteListeners.forEach((l) => l(event)),
+  });
+  const local = (e: PointerEvent) => {
+    const r = canvas.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  };
+  // Capture phase: a press on a note belongs to the editor, so the camera does not orbit (requirement 1).
+  const onDown = (e: PointerEvent): void => {
+    if (e.button === 0 && editor.pointerDown(local(e), e.shiftKey)) {
+      e.stopImmediatePropagation();
+      canvas.setPointerCapture?.(e.pointerId);
+    }
+  };
+  const onMove = (e: PointerEvent): void => {
+    editor.pointerMove(local(e));
+    if (editor.capturing) e.stopImmediatePropagation();
+  };
+  const onUp = (e: PointerEvent): void => {
+    if (editor.capturing) e.stopImmediatePropagation();
+    editor.pointerUp();
+  };
+  const onKey = (e: KeyboardEvent): void => {
+    if (e.key === 'Escape') editor.cancel();
+  };
+  canvas.addEventListener('pointerdown', onDown, true);
+  canvas.addEventListener('pointermove', onMove, true);
+  canvas.addEventListener('pointerup', onUp, true);
+  canvas.addEventListener('pointercancel', onUp, true);
+  globalThis.addEventListener?.('keydown', onKey);
+  const detachKeyboard = keyboardPad.attach(window, () => inSession);
+  const unbindNav = bindNavigationInput(canvas, nav.input, () => nav.acceptsInput, { wheelPerPixel: NAV_WHEEL_ZOOM });
+  const unbind = (): void => {
+    unbindNav();
+    detachKeyboard();
+    canvas.removeEventListener('pointerdown', onDown, true);
+    canvas.removeEventListener('pointermove', onMove, true);
+    canvas.removeEventListener('pointerup', onUp, true);
+    canvas.removeEventListener('pointercancel', onUp, true);
+    globalThis.removeEventListener?.('keydown', onKey);
+    editor.setEnabled(false);
+    scorePlayer.stop();
+    synth.dispose();
+  };
   // `touch-action: none` only while exploring, so the cinematic page scrolls as before (requirement 2.4).
   const offTouch = nav.subscribe((state) => {
     canvas.style.touchAction = state.mode !== 'cinematic' ? 'none' : '';
@@ -265,9 +381,15 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     }
     return cache.circles;
   });
+  const withFrameHook = (c: WorldClock): WorldClock => ({
+    now: () => c.now(),
+    isPlaying: c.isPlaying ? () => c.isPlaying!() : undefined,
+    rate: c.rate ? () => c.rate!() : undefined,
+    onFrame: () => scorePlayer.frame(),
+  });
   let override: PaletteOverride | null = null;
   const show = (): void => {
-    if (basePlan && baseClock) scene.setScene(applyPaletteOverride(basePlan, override), baseClock);
+    if (basePlan && baseClock) scene.setScene(applyPaletteOverride(basePlan, override), withFrameHook(baseClock));
   };
 
   return {
@@ -275,9 +397,42 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
       if (disposed) return;
       // A color choice belongs to one template: a different template starts from its own colors.
       if (basePlan && basePlan.template.id !== template.id) override = null;
-      basePlan = buildSpawnPlan(analysis, template, seed);
+      loaded = { analysis, template, seed };
+      basePlan = buildSpawnPlan(analysis, template, seed, edits);
       baseClock = clock;
       show();
+    },
+    setEdits(next) {
+      if (disposed) return;
+      edits = next;
+      if (!loaded) return;
+      basePlan = buildSpawnPlan(loaded.analysis, loaded.template, loaded.seed, edits);
+      show();
+    },
+    setScore(notes) {
+      if (disposed) return;
+      if (notes === null) {
+        scorePlayer.stop();
+        return;
+      }
+      scorePlayer.setScore(notes);
+      scorePlayer.start();
+    },
+    setEditMode(enabled) {
+      if (disposed) return;
+      editor.setEnabled(enabled);
+      scene.setEditRay?.(enabled ? editor : null);
+    },
+    onNoteEvent(listener) {
+      noteListeners.add(listener);
+      return () => noteListeners.delete(listener);
+    },
+    editCommand(command) {
+      if (disposed) return;
+      if (command.type === 'select') editor.selectRelative(command.direction);
+      else if (command.type === 'nudge') editor.nudge(command.steps);
+      else if (command.type === 'play') editor.playSelected();
+      else editor.cancel();
     },
     setLightLevel(level) {
       if (!disposed) scene.setLightLevel(level);

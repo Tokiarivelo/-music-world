@@ -20,6 +20,13 @@ export const MIN_GROW_SEC = 0.2;
 /** Treble staff: bottom line E4, top line F5. `staffU` 0 = bottom line, 1 = top line. */
 export const STAFF_BOTTOM_MIDI = 64;
 export const STAFF_TOP_MIDI = 77;
+/**
+ * Pitches the staff can show without ledger lines: F3 (6 steps below the bottom line) to E6 (14 steps above it), the
+ * `STAFF_U_MIN` / `STAFF_U_MAX` range. A note outside it is drawn in the same pitch class inside the window (octave
+ * folding, as an 8va sign would), so a bass line does not pile up at the bottom edge.
+ */
+export const STAFF_DISPLAY_LOW_MIDI = 53;
+export const STAFF_DISPLAY_HIGH_MIDI = 88;
 export const STAFF_U_MIN = -0.75;
 export const STAFF_U_MAX = 1.75;
 /** Fraction of the staff where the playhead sits (notes slide from u = 1 down to it). */

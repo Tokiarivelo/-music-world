@@ -22,7 +22,7 @@ BuiltinShapeKind = Literal["terrain_ridge", "building", "spike", "crystal", "clu
 RecipeShapeKind = Annotated[str, StringConstraints(pattern=r"^recipe:[a-z0-9_]{1,40}$")]
 ShapeKind = BuiltinShapeKind | RecipeShapeKind
 
-ColorRole = Literal["primary", "accent", "secondary", "staff"]
+ColorRole = Literal["primary", "accent", "secondary", "staff", "line"]
 Stem = Literal["vocals", "drums", "bass", "other"]
 License = Literal["CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "MIT"]
 
@@ -62,6 +62,9 @@ class MappingCondition(ContractModel):
     pitch: PitchRange | None = None
     chord: bool | None = Field(default=None, description="True: only chord notes; false: only notes outside chords.")
     stem: Stem | None = None
+    line: str | None = Field(
+        default=None, pattern=r"^[a-z0-9-]{1,32}$", description="Voice line id (user edits); `main` is the original."
+    )
     velocity: VelocityRange | None = None
 
 

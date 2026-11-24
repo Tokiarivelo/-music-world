@@ -160,3 +160,23 @@ Script result: 27/27 checks with `MW_ANGLE=vulkan`, 21/21 (+ panel clicks skippe
    `session.updateTargetFrameRate(90)` and keep it only if 90 holds. Check the building windows render in both eyes
    (multiview) and glyph readability at 1 m.
 5. Record date, device, fps, draw calls here and in `docs/handoff.md`; then tick `03-world-engine-core` task 7.
+
+## Keyboard in VR (2026-11-24)
+
+The keyboard also works during an immersive session (emulator on a desktop, or a Quest with a Bluetooth keyboard), through
+`xr/keyboard-pad.ts`. It follows the IWER emulator's mapping (source: the IWSDK testing guide of the Meta docs: `W A S D`
+= left thumbstick, arrows = right thumbstick, `Q` / `E` = left trigger / squeeze, `Left Shift` + `W A S D` moves the
+emulated headset) and adds the commands a headset without controllers needs:
+
+| Keys | Action |
+|---|---|
+| `W A S D` | glide in the immersive scale (left stick) |
+| `←` `→` or `Q` `E` | snap turn 30° (right stick) |
+| `Space` | play / pause |
+| `[` `]` | seek back / forward 5 s |
+| `R` | recenter the spatial panel |
+| `G` or `B` | diorama ↔ world around you (the B / Y button) |
+
+Controller sticks and keys are merged by taking the larger value per axis, so in the emulator, where the same keys also move
+the emulated sticks, nothing moves twice. Outside a session the keys belong to the page (the desktop navigation keys are
+unchanged) and Space is not captured. Text fields and Ctrl / Alt / Meta shortcuts are ignored.

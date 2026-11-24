@@ -54,6 +54,7 @@ from music_world.projects.application.use_cases.enqueue_job import EnqueueJob
 from music_world.projects.application.use_cases.get_job import GetJob
 from music_world.projects.application.use_cases.get_project import GetProject
 from music_world.projects.application.use_cases.get_project_audio import GetProjectAudio
+from music_world.projects.application.use_cases.project_edits import GetProjectEdits, SaveProjectEdits
 from music_world.projects.application.use_cases.run_job import RunJob
 from music_world.projects.domain.job_kinds import ANALYZE_PROJECT_JOB_KIND, DEMO_JOB_KIND
 from music_world.projects.infrastructure.arq_job_queue import ArqJobQueue
@@ -321,6 +322,8 @@ class Container:
     accounts: AccountServices
     templates: TemplateServices
     check_project_access: CheckProjectAccess
+    get_project_edits: GetProjectEdits
+    save_project_edits: SaveProjectEdits
     upload_limiter: SlidingWindowLimiter = field(default_factory=lambda: SlidingWindowLimiter(20, 3600.0))
     engine: AsyncEngine | None = None
     redis: ArqRedis | None = None
@@ -342,6 +345,7 @@ def _analysis_handler(
     from music_world.analysis.infrastructure.basic_pitch_transcriber import BasicPitchTranscriber
     from music_world.analysis.infrastructure.demucs_separator import DemucsSeparator
     from music_world.analysis.infrastructure.ffmpeg_decoder import FfmpegDecoder
+    from music_world.analysis.infrastructure.librosa_chroma import LibrosaChromaAnalyzer
     from music_world.analysis.infrastructure.librosa_rhythm import LibrosaRhythmAnalyzer
     from music_world.analysis.infrastructure.librosa_structure import LibrosaStructureAnalyzer
     from music_world.analysis.infrastructure.null_lyrics import NoLyricsTranscriber
@@ -359,6 +363,7 @@ def _analysis_handler(
         LibrosaStructureAnalyzer(),
         NoLyricsTranscriber(),
         min_velocity=settings.analysis_min_velocity,
+        chroma=LibrosaChromaAnalyzer(),
     )
     return AnalyzeProjectJobHandler(projects, analyze)
 
@@ -409,6 +414,8 @@ def build_container(settings: Settings, *, with_analysis: bool = False) -> Conta
         ),
         upload_limiter=SlidingWindowLimiter(settings.upload_rate_limit_per_hour, 3600.0),
         check_project_access=CheckProjectAccess(projects),
+        get_project_edits=GetProjectEdits(projects),
+        save_project_edits=SaveProjectEdits(projects),
         engine=engine,
         redis=redis,
         handlers=handlers,

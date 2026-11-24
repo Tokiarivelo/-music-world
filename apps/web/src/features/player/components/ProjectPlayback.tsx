@@ -11,7 +11,7 @@ import {
 } from "@/features/director";
 import { useStoreTemplates } from "@/features/template-store";
 import { WorldView } from "@/features/world-view";
-import { loadProjectAudio } from "../api/project.api";
+import { loadProjectAudio, projectEditsRemote } from "../api/project.api";
 import { useProjectAnalysis } from "../hooks/use-project-analysis";
 import { usePlaySeed } from "../hooks/use-play-seed";
 import { useSongPlayer } from "../hooks/use-song-player";
@@ -52,13 +52,14 @@ function ProjectWorld({
   const { clock } = player;
   const { template } = choice;
   const seed = usePlaySeed(player.run, seedFromHash(analysis.audioHash));
+  const editsRemote = useMemo(() => projectEditsRemote(projectId), [projectId]);
   const scene = useMemo(
     () => ({ analysis, template, seed, clock }),
     [analysis, template, seed, clock],
   );
   return (
     <div className="relative h-dvh w-full">
-      <WorldView controls={controls} scene={scene} />
+      <WorldView controls={controls} editsKey={analysis.audioHash} editsRemote={editsRemote} onScoreMode={player.setMuted} scene={scene} />
       <div className="absolute left-3 top-3 z-10 max-w-[calc(100%-11rem)] sm:max-w-none">
         <SiteNav />
         <div className="mt-2" />

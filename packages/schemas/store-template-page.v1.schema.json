@@ -136,6 +136,20 @@
           "default": null,
           "title": "Stem"
         },
+        "line": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9-]{1,32}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Voice line id (user edits); `main` is the original.",
+          "title": "Line"
+        },
         "velocity": {
           "anyOf": [
             {
@@ -195,7 +209,8 @@
                 "primary",
                 "accent",
                 "secondary",
-                "staff"
+                "staff",
+                "line"
               ],
               "type": "string"
             },

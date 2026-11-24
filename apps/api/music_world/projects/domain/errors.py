@@ -21,6 +21,10 @@ class ProjectNotFoundError(NotFoundError):
     code = "PROJECT_NOT_FOUND"
 
 
+class EditsTooLargeError(MusicWorldError):
+    code = "EDITS_TOO_LARGE"
+
+
 class AudioTooLargeError(MusicWorldError):
     code = "AUDIO_TOO_LARGE"
 

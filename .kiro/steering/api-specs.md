@@ -9,7 +9,8 @@ fileMatchPattern: "apps/api/music_world/*/interfaces/**"
   request/response models. OpenAPI is served at `/api/docs` (disabled in production unless `API_DOCS=true`).
 - Routers are thin: parse and validate → call one use case → map domain errors. No business logic, no SDK calls.
 - Prefix: everything under `/api`. Resource names are plural nouns: `/api/projects`, `/api/templates`,
-  `/api/projects/{id}/analysis`, `/api/projects/{id}/director`, `/api/jobs/{id}`.
+  `/api/projects/{id}/analysis`, `/api/projects/{id}/director`, `/api/projects/{id}/edits` (the signed-in owner's note
+  edits, `music-world.edits.v1`, ≤ 64 KB, 404 for anyone else), `/api/jobs/{id}`.
 - Error body is always `{ "error": { "code": "TEMPLATE_INVALID", "message": "…", "details": [...] } }`.
   Codes are stable UPPER_SNAKE strings defined in the domain.
 - Auth: `Depends(current_user)` on every non-public route. Public routes: `/api/health`, `GET /api/templates`

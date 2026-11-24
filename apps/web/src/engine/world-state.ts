@@ -13,7 +13,7 @@ import { hashSeed } from './prng';
 import { rainPosition } from './rain';
 import type { SpawnPlan, SpawnRecord } from './spawn-plan';
 import { staffNotePosition } from './staff';
-import type { ColorRole, GlyphKind, ShapeKind, Vec3 } from './types';
+import type { GlyphKind, PaletteRole, ShapeKind, Vec3 } from './types';
 
 export interface NoteOnStaff {
   readonly index: number;
@@ -41,7 +41,8 @@ export interface StructureState {
   readonly position: Vec3;
   readonly height: number;
   readonly emissive: number;
-  readonly colorRole: ColorRole | null;
+  readonly colorRole: PaletteRole | null;
+  readonly structureHex: string | null;
   readonly colorT: number;
 }
 
@@ -124,7 +125,7 @@ function energyAt(times: readonly number[], values: readonly number[], t: number
 }
 
 function fallPosition(plan: SpawnPlan, r: SpawnRecord, progress: number): Vec3 {
-  const from = staffNotePosition(plan.staff, plan.staff.playheadU, r.staffU);
+  const from = staffNotePosition(plan.staff, plan.staff.playheadU, r.staffU, r.lineY);
   if (plan.template.staff.style === 'aurora') {
     return rainPosition(from, r.target, hashSeed(plan.seed, r.noteId), progress, plan.template.terrain.size);
   }
@@ -147,7 +148,7 @@ export function worldStateAt(plan: SpawnPlan, t: number): WorldState {
     const ahead = (r.onset - t) / lookahead; // (0, 1]
     if (ahead >= 1) continue; // appears strictly after onset - lookahead
     const u = staff.playheadU + ahead * (1 - staff.playheadU);
-    notesOnStaff.push({ index: i, glyph: r.glyph, u, position: staffNotePosition(staff, u, r.staffU) });
+    notesOnStaff.push({ index: i, glyph: r.glyph, u, position: staffNotePosition(staff, u, r.staffU, r.lineY) });
   }
 
   const fallingNotes: FallingNote[] = [];
@@ -179,6 +180,7 @@ export function worldStateAt(plan: SpawnPlan, t: number): WorldState {
         height: r.height * growth,
         emissive: r.emissive,
         colorRole: r.colorRole,
+        structureHex: r.structureHex,
         colorT: r.colorT,
       });
     }

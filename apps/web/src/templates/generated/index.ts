@@ -3,6 +3,7 @@
 export * from './analysis-v1';
 export * from './director-providers-v1';
 export * from './director-result-v1';
+export * from './edits-v1';
 export * from './health-v1';
 export * from './job-accepted-v1';
 export * from './job-v1';

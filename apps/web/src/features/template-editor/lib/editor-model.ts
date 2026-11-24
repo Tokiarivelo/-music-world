@@ -67,7 +67,7 @@ export function setNumber(template: Template, field: Exclude<NumberField, 'zone.
 
 export function newRule(): Rule {
   return {
-    when: { pitch: null, chord: null, stem: null, velocity: null },
+    when: { pitch: null, chord: null, stem: null, line: null, velocity: null },
     spawn: 'crystal',
     heightFrom: 'velocity',
     colorRole: null,

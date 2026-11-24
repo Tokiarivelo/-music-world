@@ -5,6 +5,7 @@ import { analysisArb } from './__fixtures__/analyses';
 import { makeTemplate, templateArb } from './__fixtures__/templates';
 import { zonesFor } from './layout';
 import { mapNote } from './mapping';
+import { foldMidi } from './edits';
 import { buildSpawnPlan, glyphOf, staffUOf } from './spawn-plan';
 import type { EngineAnalysis } from './types';
 
@@ -125,10 +126,23 @@ describe('note glyph and staff position', () => {
     expect(glyphOf(0.1, 120)).toBe('sixteenth');
   });
 
-  it('places E4 on the bottom line and F5 on the top line, clamped for ledger notes', () => {
+  it('places E4 on the bottom line and F5 on the top line, every note on a line or a space', () => {
     expect(staffUOf(64)).toBe(0);
     expect(staffUOf(77)).toBe(1);
-    expect(staffUOf(0)).toBe(-0.75);
-    expect(staffUOf(127)).toBe(1.75);
+    expect(staffUOf(71)).toBe(0.5); // B4, the middle line
+    expect(staffUOf(65)).toBe(0.125); // F4, the first space
+    expect(staffUOf(66)).toBe(0.125); // F♯4 shares the place of F4
+  });
+
+  it('folds notes outside the staff window by octaves instead of piling them up at its edge', () => {
+    for (let midi = 0; midi <= 127; midi += 1) {
+      const u = staffUOf(midi);
+      expect(u).toBeGreaterThanOrEqual(-0.75);
+      expect(u).toBeLessThanOrEqual(1.75);
+      expect(foldMidi(midi) % 12).toBe(midi % 12); // the pitch class is kept
+      if (midi >= 53 && midi <= 88) expect(foldMidi(midi)).toBe(midi); // inside the window nothing moves
+    }
+    expect(staffUOf(40)).toBe(staffUOf(64)); // E2 of a bass is drawn as E4: its pitch class is kept
+    expect(new Set([28, 31, 33, 36].map(staffUOf)).size).toBe(4); // distinct bass pitches stay distinct
   });
 });

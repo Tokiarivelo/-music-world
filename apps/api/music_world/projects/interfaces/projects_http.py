@@ -7,15 +7,17 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Request, Response, UploadFile, status
+from fastapi import Path as PathParam
 
 from music_world.projects.application.use_cases.create_project import CreateProject
 from music_world.projects.application.use_cases.get_project import GetProject
 from music_world.projects.application.use_cases.get_project_audio import GetProjectAudio
+from music_world.projects.application.use_cases.project_edits import GetProjectEdits, SaveProjectEdits
 from music_world.projects.domain.errors import AudioTooLargeError, LyricsFileInvalidError
 from music_world.projects.domain.project import MAX_AUDIO_BYTES, MAX_LRC_BYTES
 from music_world.projects.interfaces.mappers import project_to_contract
-from music_world.schemas import Project, ProjectCreated
-from music_world.shared.auth import AccessibleProjectId, CurrentCaller
+from music_world.schemas import LayoutEdits, Project, ProjectCreated
+from music_world.shared.auth import AccessibleProjectId, CurrentCaller, SignedInCaller
 from music_world.shared.errors import RateLimitedError
 from music_world.shared.http import ERROR_RESPONSES
 from music_world.shared.rate_limit import SlidingWindowLimiter
@@ -37,6 +39,16 @@ def _get_project_audio(request: Request) -> GetProjectAudio:
 
 def _get_project(request: Request) -> GetProject:
     use_case: GetProject = request.app.state.container.get_project
+    return use_case
+
+
+def _get_edits(request: Request) -> GetProjectEdits:
+    use_case: GetProjectEdits = request.app.state.container.get_project_edits
+    return use_case
+
+
+def _save_edits(request: Request) -> SaveProjectEdits:
+    use_case: SaveProjectEdits = request.app.state.container.save_project_edits
     return use_case
 
 
@@ -116,3 +128,36 @@ async def get_project_audio(
     audio = await use_case.execute(project_id)
     # Content-addressed audio never changes: cache it for a day in the browser.
     return Response(audio.data, media_type=audio.content_type, headers={"Cache-Control": "private, max-age=86400"})
+
+
+@router.get(
+    "/{project_id}/edits",
+    response_model=LayoutEdits,
+    response_model_by_alias=True,
+    response_model_exclude_none=True,
+    summary="Get the signed-in owner's note edits of a project (empty when there are none)",
+    responses={code: ERROR_RESPONSES[code] for code in (401, 404)},
+)
+async def get_project_edits(
+    project_id: Annotated[str, PathParam(max_length=64)],
+    caller: SignedInCaller,
+    use_case: Annotated[GetProjectEdits, Depends(_get_edits)],
+) -> LayoutEdits:
+    return await use_case.execute(project_id, caller.user_id or "")
+
+
+@router.put(
+    "/{project_id}/edits",
+    response_model=LayoutEdits,
+    response_model_by_alias=True,
+    response_model_exclude_none=True,
+    summary="Replace the owner's note edits of a project (schema-validated, at most 64 KB)",
+    responses={code: ERROR_RESPONSES[code] for code in (401, 403, 404, 413, 422)},
+)
+async def put_project_edits(
+    project_id: Annotated[str, PathParam(max_length=64)],
+    body: LayoutEdits,
+    caller: SignedInCaller,
+    use_case: Annotated[SaveProjectEdits, Depends(_save_edits)],
+) -> LayoutEdits:
+    return await use_case.execute(project_id, caller.user_id or "", body)

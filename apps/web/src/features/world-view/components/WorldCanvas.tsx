@@ -17,6 +17,10 @@ import {
 } from "../hooks/use-navigation-shortcuts";
 import { usePaletteOverride, usePaletteStore } from "../hooks/use-palette-override";
 import { useHiddenLayers } from "../hooks/use-hidden-layers";
+import { useEditShortcuts } from "../hooks/use-edit-shortcuts";
+import { useNoteEdits } from "../hooks/use-note-edits";
+import { EditToolbar } from "./EditToolbar";
+import type { EditsRemote } from "../lib/edits-storage";
 import { ColorsPopover } from "./ColorsPopover";
 import { LayersPopover } from "./LayersPopover";
 import { LyricsOverlay } from "./LyricsOverlay";
@@ -25,9 +29,12 @@ import { NavigationControls } from "./NavigationControls";
 interface WorldCanvasProps {
   scene?: WorldScene;
   controls?: WorldControls;
+  editsKey?: string;
+  editsRemote?: EditsRemote;
+  onScoreMode?(on: boolean): void;
 }
 
-export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
+export default function WorldCanvas({ scene, controls, editsKey, editsRemote, onScoreMode }: WorldCanvasProps) {
   const t = useT("world");
   const containerRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<WorldHandle | null>(null);
@@ -77,6 +84,12 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
   usePaletteOverride(handle, scene);
   const paletteStore = usePaletteStore(scene);
   const [hiddenLayers, setHiddenLayers] = useHiddenLayers(handle);
+  const persistence = useMemo(
+    () => ({ key: editsKey, remote: editsRemote, onScoreMode }),
+    [editsKey, editsRemote, onScoreMode],
+  );
+  const noteEdits = useNoteEdits(handle, scene, controls, persistence);
+  useEditShortcuts(handle, noteEdits);
   const lyrics = scene?.analysis.lyrics;
   const hasLyrics = !!lyrics && lyrics.length > 0;
 
@@ -125,6 +138,7 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
           templatePalette={scene.template.palette}
         />
       )}
+      {scene && !immersive && controls && <EditToolbar api={noteEdits} />}
       {scene && !immersive && (
         <>
           <LayersPopover

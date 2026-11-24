@@ -1,5 +1,5 @@
 import { Color } from 'three';
-import type { ColorRole, WorldTemplate } from '@/engine/types';
+import type { PaletteRole, WorldTemplate } from '@/engine/types';
 
 type Palette = WorldTemplate['palette'];
 
@@ -12,14 +12,14 @@ export function gradientColor(palette: Palette, t: number, target = new Color())
   return c < 0.5 ? target.copy(a).lerp(b, c * 2) : target.copy(b).lerp(d, (c - 0.5) * 2);
 }
 
-export function roleColor(palette: Palette, role: ColorRole, target = new Color()): Color {
+export function roleColor(palette: Palette, role: PaletteRole, target = new Color()): Color {
   return target.set(palette[role]);
 }
 
 /** Instance color: palette role or gradient, multiplied by the emissive intensity (unlit neon materials). */
 export function structureColor(
   palette: Palette,
-  role: ColorRole | null,
+  role: PaletteRole | null,
   t: number,
   emissive: number,
   target = new Color(),

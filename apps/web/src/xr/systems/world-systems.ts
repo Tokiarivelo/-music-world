@@ -25,6 +25,11 @@ import type { WorldView } from '../views/world-view';
 /** The only time source of the world: `AudioClock.now()` from the player (tech.md rule 4). */
 export interface WorldClock {
   now(): number;
+  /** Present on the player's clock: the score player ("Play my edits") follows pauses and the playback rate. */
+  isPlaying?(): boolean;
+  rate?(): number;
+  /** Called once per frame (the score player schedules its notes from it). */
+  onFrame?(): void;
 }
 
 export const ClockComponent = createComponent(
@@ -58,6 +63,7 @@ export class ClockSystem extends createSystem({ clocks: { required: [ClockCompon
       const clock = read<WorldClock>(entity, 'clock');
       const plan = read<SpawnPlan>(entity, 'plan');
       if (!clock || !plan) continue;
+      clock.onFrame?.();
       const t = clock.now();
       const state = read<WorldState>(entity, 'state');
       // Paused: same plan and t give the same state (worldStateAt is pure), so keep it and allocate nothing.

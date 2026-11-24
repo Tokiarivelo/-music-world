@@ -44,12 +44,13 @@ export function inRange(value: number, r: NumericRange): boolean {
   return aboveMin && belowMax;
 }
 
-export function ruleMatches(rule: MappingRule, note: NoteEvent): boolean {
+export function ruleMatches(rule: MappingRule, note: NoteEvent, line = 'main'): boolean {
   const w = rule.when;
   if (w.pitch != null && !inRange(note.midi, parseRange(w.pitch))) return false;
   if (w.velocity != null && !inRange(note.velocity, parseRange(w.velocity))) return false;
   if (w.chord != null && w.chord !== (note.chordId !== null)) return false;
   if (w.stem != null && w.stem !== note.stem) return false;
+  if (w.line != null && w.line !== line) return false;
   return true;
 }
 
@@ -63,8 +64,8 @@ export interface MappedNote {
   readonly pitchRange: NumericRange | null;
 }
 
-export function mapNote(note: NoteEvent, template: WorldTemplate): MappedNote {
-  const index = template.mappings.findIndex((rule) => ruleMatches(rule, note));
+export function mapNote(note: NoteEvent, template: WorldTemplate, line = 'main'): MappedNote {
+  const index = template.mappings.findIndex((rule) => ruleMatches(rule, note, line));
   const rule = template.mappings[index];
   if (rule === undefined) {
     return { kind: FALLBACK_KIND, ruleIndex: -1, heightFrom: 'velocity', colorRole: null, pitchRange: null };

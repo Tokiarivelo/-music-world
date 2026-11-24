@@ -333,3 +333,9 @@ repository:
 - Skills used: `start`, `handoff`. `SiteNav` on both play pages, three catalogs updated, lifecycle tests.
   `scripts/play-layout.mjs` found a layout overlap that unit tests could not (nav stretched over the language switch).
   No hooks fired (outside the Kiro IDE).
+
+### 2026-11-24 — Phase I9 editable notes (Claude Code)
+
+- Skills used: `start`, `handoff`. Spec `11-editable-notes` tasks 1–8 and 10, one commit per task. Property tests
+  (edit history round trip, monophony never overlaps) and `scripts/agents/validate-architecture.sh` caught a timer in the
+  score player (replaced by the frame loop). No hooks fired (outside the Kiro IDE).

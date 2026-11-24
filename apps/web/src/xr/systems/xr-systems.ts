@@ -28,6 +28,8 @@ import { IMMERSIVE_PLATE_M, VR_MIN_HEAD_HEIGHT_M, VR_PANEL_OFFSET, VR_PANEL_TILT
 import { SNAP_TURN_RAD, SnapTurn, glide, onPlate, turnAround } from '../locomotion';
 import { anchorPlacement, scaleStore, type ScaleMode } from '../scale';
 import { PinchGesture } from '../pinch';
+import { keyboardPad, mergeAxis, mergeStick } from '../keyboard-pad';
+import { VR_SEEK_STEP_SEC } from '../constants';
 import { commandsFromPads, type PadEdges, type XRCommand } from '../xr-input-map';
 import { tabletopPose, yawFromQuaternion } from '../xr-placement';
 
@@ -77,6 +79,13 @@ export interface TemplateChoice {
 }
 
 /** Mutable state shared by the XR systems (one per world). */
+/** What the right-hand ray drives: the note editor, with world-space rays (the host converts to the scene's space). */
+export interface EditRayTarget {
+  rayDown(ray: { origin: { x: number; y: number; z: number }; dir: { x: number; y: number; z: number } }): boolean;
+  rayMove(ray: { origin: { x: number; y: number; z: number }; dir: { x: number; y: number; z: number } }): void;
+  rayUp(): void;
+}
+
 export interface XRRig {
   /** Unscaled diorama transform: position + yaw. */
   readonly anchor: Group;
@@ -88,6 +97,8 @@ export interface XRRig {
   placedScale: ScaleMode;
   /** Player commands; null until the player is ready. */
   controls: WorldControls | null;
+  /** Note editor driven by the right controller's ray and trigger (I9); null while editing is off. */
+  editRay?: EditRayTarget | null;
   /** Spatial panel entity (a pinch while it is hovered is a panel click, not a play toggle). */
   panel: Entity | null;
   /** Immersive scale: where the panel hangs in the tracking space (it stays there while the plate moves). */
@@ -210,11 +221,13 @@ export class XRControlSystem extends createSystem({ rigs: { required: [XRRigComp
 
   update(): void {
     if (!isImmersive(this.world)) {
+      keyboardPad.clear();
       this.pinch.reset();
       return;
     }
     this.updatePinch();
     const { left, right } = this.input.xr.gamepads;
+    this.runKeyboard();
     const leftEdge = readPad(left, InputComponent.X_Button, this.pads[0]);
     const rightEdge = readPad(right, InputComponent.A_Button, this.pads[1]);
     if (scaleStore.mode === 'immersive') {
@@ -229,6 +242,23 @@ export class XRControlSystem extends createSystem({ rigs: { required: [XRRigComp
     for (const entity of this.queries.rigs.entities) {
       const rig = readRig(entity);
       if (rig) for (const command of commandsFromPads(this.pads)) runCommand(rig, command);
+    }
+  }
+
+  /** Keyboard twin of the controller buttons (see `keyboard-pad.ts`): play / pause, seek, recenter, scale. */
+  private runKeyboard(): void {
+    for (const edge of keyboardPad.takeEdges()) {
+      if (edge === 'scale') {
+        scaleStore.set(scaleStore.mode === 'immersive' ? 'diorama' : 'immersive');
+        continue;
+      }
+      for (const entity of this.queries.rigs.entities) {
+        const rig = readRig(entity);
+        if (!rig) continue;
+        if (edge === 'toggle') runCommand(rig, { kind: 'toggle' });
+        else if (edge === 'recenter') runCommand(rig, { kind: 'recenter' });
+        else runCommand(rig, { kind: 'seek', deltaSec: edge === 'seekBack' ? -VR_SEEK_STEP_SEC : VR_SEEK_STEP_SEC });
+      }
     }
   }
 
@@ -280,6 +310,8 @@ export class XRLocomotionSystem extends createSystem({ rigs: { required: [XRRigC
         toggle = !!pad.buttons[SCALE_TOGGLE_BUTTON]?.pressed;
       }
     }
+    glideStick = mergeStick(glideStick, keyboardPad.stick());
+    turnX = mergeAxis(turnX, keyboardPad.turn());
     if (toggle && !this.toggleHeld) scaleStore.set(scaleStore.mode === 'immersive' ? 'diorama' : 'immersive');
     this.toggleHeld = toggle;
     if (scaleStore.mode !== 'immersive') return;
@@ -309,6 +341,38 @@ export class XRLocomotionSystem extends createSystem({ rigs: { required: [XRRigC
   }
 }
 
+const rayPos = new Vector3();
+const rayQuat = new Quaternion();
+const rayFwd = new Vector3();
+
+/** Right controller ray + trigger (select) drive note picking and dragging while the editor is on (I9 task 8). */
+export class XREditRaySystem extends createSystem({ rigs: { required: [XRRigComponent] } }) {
+  private down = false;
+
+  update(): void {
+    let rig: XRRig | null = null;
+    for (const entity of this.queries.rigs.entities) rig = readRig(entity) ?? rig;
+    const target = rig?.editRay;
+    if (!rig || !target || !isImmersive(this.world)) {
+      if (this.down) target?.rayUp();
+      this.down = false;
+      return;
+    }
+    const space = this.player.raySpaces.right;
+    space.getWorldPosition(rayPos);
+    space.getWorldQuaternion(rayQuat);
+    rayFwd.set(0, 0, -1).applyQuaternion(rayQuat);
+    const ray = { origin: rayPos, dir: rayFwd };
+    const pad = this.input.xr.gamepads.right;
+    const trigger = !!pad?.getButtonPressed(InputComponent.Trigger);
+    if (trigger && !this.down) this.down = target.rayDown(ray);
+    else if (this.down && !trigger) {
+      target.rayUp();
+      this.down = false;
+    } else target.rayMove(ray);
+  }
+}
+
 /** Registers the XR systems and the rig on the diorama anchor entity. */
 export function installXRSystems(world: World, anchorEntity: Entity, anchor: Group): XRRig {
   const rig: XRRig = { anchor, recenterRequested: false, placed: false, placedScale: 'diorama', controls: null, panel: null, panelWorld: null };
@@ -316,6 +380,7 @@ export function installXRSystems(world: World, anchorEntity: Entity, anchor: Gro
   world.registerSystem(XRPlacementSystem);
   world.registerSystem(XRControlSystem);
   world.registerSystem(XRLocomotionSystem);
+  world.registerSystem(XREditRaySystem);
   anchorEntity.addComponent(XRRigComponent, { rig });
   return rig;
 }
