@@ -78,6 +78,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 | 05-ai-world-director 1–5 | Claude Code (ai-director) | done | merged with Phase 5 PR |
 | 05-ai-world-director 6 | — | todo | ShapeRecipe (P2), skipped |
 | 05-ai-world-director 7 | — | blocked | real calls need `META_API_KEY` / AWS credentials (human) |
+| 06-template-store 1–6 | Claude Code | in progress | Phase 6 branch `phase-6-template-store` |
 
 ## 5. Active pitfalls
 
