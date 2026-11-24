@@ -29,6 +29,8 @@ import { staffUOf as staffUOfMidi } from '@/engine/spawn-plan';
 import type { GlyphKind } from '@/engine/types';
 import type { WorldState } from '@/engine/world-state';
 import { editStore } from '../edit-store';
+import { LAYER_COLORS } from '@/engine/layers';
+import type { Stem } from '@/engine/types';
 import { layerStore } from '../layer-store';
 import {
   CLEF_SCALE,
@@ -108,6 +110,11 @@ export function buildGlyphGeometry(kind: GlyphKind): BufferGeometry {
   return noteGlyphGeometry(kind);
 }
 
+/** A note's glyph color: its own (or its line's) color, else the color of its layer; scenery has none. */
+function hexOf(r: { colorHex: string | null; stem: Stem | null }): string | null {
+  return r.colorHex ?? (r.stem ? LAYER_COLORS[r.stem] : null);
+}
+
 export class StaffView implements WorldView {
   readonly object = new Group();
   private readonly glyphMeshes = new Map<GlyphKind, InstancedMesh>();
@@ -183,7 +190,7 @@ export class StaffView implements WorldView {
     // Own colors (I9): when any note has one, glyphs use a white material and an instance color per note, so the default
     // glow color is unchanged for the others. Plans without custom colors keep the single shared material.
     this.glow = glow;
-    this.tinted = plan.records.some((r) => r.colorHex !== null);
+    this.tinted = true; // every note carries its layer color (or its own), see `hexOf`
     let glyphMaterial: MeshBasicMaterial = material;
     if (this.tinted) {
       glyphMaterial = new MeshBasicMaterial({ color: 0xffffff, side: DoubleSide });
@@ -241,9 +248,9 @@ export class StaffView implements WorldView {
     for (const part of this.staffParts) part.visible = !hidden.has('staff');
     this.counts.clear();
     this.haloCount = 0;
-    for (const n of state.notesOnStaff) if (isRecordShown(this.plan, n.index, hidden)) this.place(n.glyph, n.position, n.u, this.plan.records[n.index]!.colorHex);
+    for (const n of state.notesOnStaff) if (isRecordShown(this.plan, n.index, hidden)) this.place(n.glyph, n.position, n.u, hexOf(this.plan.records[n.index]!));
     for (const f of state.fallingNotes) {
-      if (isRecordShown(this.plan, f.index, hidden)) this.place(f.glyph, f.position, this.plan.staff.playheadU, this.plan.records[f.index]!.colorHex);
+      if (isRecordShown(this.plan, f.index, hidden)) this.place(f.glyph, f.position, this.plan.staff.playheadU, hexOf(this.plan.records[f.index]!));
     }
     this.placeEditMarks(state);
     for (const [kind, mesh] of this.glyphMeshes) {
@@ -276,7 +283,7 @@ export class StaffView implements WorldView {
         const c = this.counts.get(r.glyph) ?? 0;
         if (mesh && c < mesh.instanceMatrix.count) {
           mesh.setMatrixAt(c, this.m);
-          if (this.tinted) mesh.setColorAt(c, this.colorOf(r.colorHex));
+          if (this.tinted) mesh.setColorAt(c, this.colorOf(hexOf(r)));
           this.counts.set(r.glyph, c + 1);
         }
       }

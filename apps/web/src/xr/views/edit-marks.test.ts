@@ -49,10 +49,12 @@ describe('StaffView note colors (I9)', () => {
   const glyphMeshes = (view: StaffView) =>
     view.object.children.filter((c): c is InstancedMesh => c instanceof InstancedMesh && c.geometry.getAttribute('position') !== undefined);
 
-  it('keeps the shared material and no instance color when no note has its own color', () => {
+  it('tints a note without its own color with the color of its layer', () => {
     const view = new StaffView(plan);
     view.update(state);
-    expect(glyphMeshes(view).every((m) => m.instanceColor === null)).toBe(true);
+    const meshes = glyphMeshes(view).filter((m) => m.count > 0);
+    expect(meshes.length).toBeGreaterThan(0);
+    expect(meshes.some((m) => m.instanceColor !== null)).toBe(true); // the halo mesh has none
     view.dispose();
   });
 

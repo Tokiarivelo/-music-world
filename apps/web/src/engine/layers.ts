@@ -9,6 +9,21 @@ export const STEM_LAYERS = ['drums', 'bass', 'vocals', 'other'] as const satisfi
 export const LAYER_IDS = [...STEM_LAYERS, 'chords', 'lyrics', 'fx', 'staff'] as const;
 export type LayerId = (typeof LAYER_IDS)[number];
 
+/**
+ * One distinct color per layer: the swatch in the layers panel and the tint of that layer's notes on the 3D staff, so a
+ * note can be told apart by what plays it. A note's own color or its line's color (I9) wins over this one.
+ */
+export const LAYER_COLORS: Readonly<Record<LayerId, string>> = {
+  drums: '#ff9a3c',
+  bass: '#3c8dff',
+  vocals: '#ff4fa8',
+  other: '#4be3a0',
+  chords: '#ffe14a',
+  lyrics: '#f2f2ff',
+  fx: '#b98cff',
+  staff: '#ffffff', // the panel shows the template's staff color instead
+};
+
 /** The layers the viewer has switched off (empty = everything shown). */
 export type HiddenLayers = ReadonlySet<LayerId>;
 
