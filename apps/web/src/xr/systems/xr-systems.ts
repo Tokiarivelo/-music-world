@@ -42,11 +42,32 @@ export interface WorldControls {
   duration(): number;
   /** Shown in the spatial panel. */
   title: string;
+  /** Resolved panel texts in the current language (the engine stays framework-free); English when absent. */
+  labels?: PanelLabels;
   /** Template picker (07-xr-mode requirement 4.3). */
   templates: readonly TemplateChoice[];
   templateId: string;
   selectTemplate(id: string): void;
 }
+
+/** Texts of the spatial panel's fixed buttons (I3 requirement 8). */
+export interface PanelLabels {
+  restart: string;
+  play: string;
+  pause: string;
+  template: string;
+  recenter: string;
+  exit: string;
+}
+
+export const DEFAULT_PANEL_LABELS: PanelLabels = {
+  restart: 'Restart',
+  play: 'Play',
+  pause: 'Pause',
+  template: 'Template',
+  recenter: 'Recenter',
+  exit: 'Exit VR',
+};
 
 export interface TemplateChoice {
   id: string;
