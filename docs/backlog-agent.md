@@ -11,8 +11,8 @@ Last reviewed: 2026-11-24 (after the Makefile / Docker / env / token session).
 | # | Task | Priority | Load first | Done when |
 |---|---|---|---|---|
 | A1 | ~~`05-ai-world-director` task 6: ShapeRecipe~~ | done 2026-11-24 (phase 10) | — | follow-ups: Quest 3 check of heavy recipes, dedicated shape-model call (see design.md § As built, task 6) |
-| A2 | Template editor in the web app (edit a template's zones and colours, validate with the zod schema, publish through the existing store API) | P2, no spec yet | skill `new-web-feature`; create a spec first | spec `09-template-editor` with tasks, then tasks ticked |
-| A3 | Review UI for hidden templates (reports ≥ `TEMPLATE_REPORT_HIDE_THRESHOLD`) | P2, no spec yet | skill `new-api-module` + `new-web-feature` | spec, endpoints with auth, page, tests |
+| A2 | Template editor: spec `09-template-editor` written (8 tasks); implement task by task | P2 | skill `new-web-feature`; spec tasks | tasks ticked |
+| A3 | Moderation queue: spec `10-template-moderation` written (7 tasks, task 7 human); implement task by task | P2 | skill `new-api-module` + `new-web-feature` | tasks ticked |
 | A4 | ~~Fix the stale navigation-PR line in `docs/handoff.md`~~ | done 2026-11-24 | — | done |
 
 ## B. Quality, security and performance tasks
