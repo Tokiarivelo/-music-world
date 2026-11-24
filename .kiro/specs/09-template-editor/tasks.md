@@ -7,7 +7,7 @@
   - _Requirements: 2.2, 2.3, 3.1, 3.2, 6.3_
 - [x] 3. `useTemplateDraft` store and loading (`?from=`, default, error fallback); tests.
   - _Requirements: 1.1–1.3, 5.3_
-- [ ] 4. Form sections (Identity, Palette, Terrain, Staff, Effects) with bounds from the schema; Testing Library tests.
+- [x] 4. Form sections (Identity, Palette, Terrain, Staff, Effects) with bounds from the schema; Testing Library tests.
   - _Requirements: 2.1, 2.2, 3.1, 6.1_
 - [ ] 5. Mappings and zones editors (order, add, remove, limits, recipe kinds read-only); tests.
   - _Requirements: 2.1, 2.3, 2.4_
