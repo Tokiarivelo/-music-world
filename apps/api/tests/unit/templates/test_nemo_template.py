@@ -11,12 +11,23 @@ from tests.fakes import StaticProbe
 from tests.integration.test_http import LifespanManager, make_container
 
 
+def test_nemo_has_every_ocean_object_standing_before_the_first_note() -> None:
+    [nemo] = [t for t in FileFeaturedCatalog().all() if t.id == NEMO_STORE_ID]
+    template = WorldTemplate.model_validate(nemo.document)
+    assert len(template.recipes) == 16 and all(r.triangle_count() <= r.budget.max_triangles for r in template.recipes)
+    standing = {item.kind for item in template.scenery}
+    assert standing == BUILTIN_KINDS | {f"recipe:{r.name}" for r in template.recipes}  # all 21 kinds are on the plate
+    assert {rule.spawn for rule in template.mappings} <= standing  # notes spawn more of the same kinds
+    assert sum(item.count for item in template.scenery) <= 400
+
+
 def test_nemo_template_is_featured_valid_and_ocean_coloured() -> None:
     [nemo] = [t for t in FileFeaturedCatalog().all() if t.id == NEMO_STORE_ID]
     template = WorldTemplate.model_validate(nemo.document)
     assert nemo.featured and nemo.author_name == "Music World" and template.id == "nemo-reef"
     assert store_errors(nemo.document) == [] and template.license == "CC-BY-4.0"
-    assert {rule.spawn for rule in template.mappings} <= BUILTIN_KINDS
+    recipe_kinds = {f"recipe:{r.name}" for r in template.recipes}
+    assert {rule.spawn for rule in template.mappings} <= BUILTIN_KINDS | recipe_kinds
     assert template.mappings[-1].when.model_dump(exclude_none=True) == {}
     assert template.palette.accent == "#ff8a1f"  # clownfish orange
     assert relative_luminance(template.palette.background) < 0.01  # deep water
