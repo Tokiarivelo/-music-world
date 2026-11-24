@@ -59,7 +59,7 @@ def make_container(
     get_project = GetProject(projects, repo, cache)
     store = InMemoryObjectStore()
     analysis = GetProjectAnalysis(ProjectsAudioSource(get_project), analysis_repo)
-    enqueue = EnqueueJob(repo, RecordingQueue(), {"demo", ANALYZE_PROJECT_JOB_KIND}, ids, clock)
+    enqueue = EnqueueJob(repo, RecordingQueue(), {"demo", ANALYZE_PROJECT_JOB_KIND, "search_lyrics"}, ids, clock)
     return Container(
         settings=settings,
         enqueue_job=enqueue,

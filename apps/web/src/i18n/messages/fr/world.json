@@ -104,5 +104,10 @@
   "edit.live.disabled": "Modification des notes désactivée",
   "edit.playMine": "Écouter mes modifications",
   "edit.live.playMineOn": "Votre partition modifiée remplace la chanson",
-  "edit.live.playMineOff": "Retour à la chanson d'origine"
+  "edit.live.playMineOff": "Retour à la chanson d'origine",
+  "layers.searchLyrics": "Rechercher les paroles",
+  "layers.searching": "Recherche des paroles…",
+  "layers.lyricsNotFound": "Aucune parole trouvée pour ce morceau.",
+  "layers.lyricsFailed": "La recherche des paroles a échoué. Réessayez plus tard.",
+  "layers.noVoice": "Aucune voix détectée dans ce morceau : ajoutez un fichier .lrc à l’envoi."
 }

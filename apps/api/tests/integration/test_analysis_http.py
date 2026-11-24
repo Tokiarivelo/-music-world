@@ -82,3 +82,20 @@ async def test_unknown_project_analysis_is_404() -> None:
         for pid in ("00000000-0000-7000-8000-000000000999", "nope"):
             response = await c.get(f"/api/projects/{pid}/analysis")
             assert (response.status_code, response.json()["error"]["code"]) == (404, "PROJECT_NOT_FOUND")
+
+
+async def test_lyrics_search_is_409_before_the_analysis_and_queues_a_job_after() -> None:
+    analyses, hold = InMemoryAnalysisRepository(), []
+    audio = wav_bytes()
+    c = _client(analyses, hold)
+    async with c, LifespanManager(c):
+        created = (await c.post("/api/projects", files={"audio": ("a.wav", audio, "audio/wav")})).json()
+        early = await c.post(f"/api/projects/{created['projectId']}/lyrics-search")
+        assert (early.status_code, early.json()["error"]["code"]) == (409, "ANALYSIS_NOT_READY")
+        await analyses.save(
+            AnalysisResult.model_validate({**_base(), "audioHash": "sha256:" + hashlib.sha256(audio).hexdigest()})
+        )
+        queued = await c.post(f"/api/projects/{created['projectId']}/lyrics-search")
+        missing = await c.post("/api/projects/00000000-0000-7000-8000-000000000000/lyrics-search")
+    assert queued.status_code == 202 and queued.json()["jobId"] and queued.json()["projectId"] == created["projectId"]
+    assert missing.status_code == 404

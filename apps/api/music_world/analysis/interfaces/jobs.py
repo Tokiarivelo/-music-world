@@ -4,10 +4,25 @@ import structlog
 
 from music_world.analysis.application.ports import ProgressReporter, ProjectAudioSource
 from music_world.analysis.application.use_cases.analyze_audio import AnalyzeAudio, AnalyzeAudioInput
+from music_world.analysis.application.use_cases.search_lyrics import SearchLyrics
 from music_world.analysis.domain.errors import AudioMissingError
 from music_world.projects.domain.job import Job
 
 log = structlog.get_logger(__name__)
+
+
+class SearchLyricsJobHandler:
+    """`search_lyrics`: finds the lyrics of an analysed project and maps them to its timeline."""
+
+    def __init__(self, search: SearchLyrics) -> None:
+        self._search = search
+
+    async def run(self, job: Job, report: ProgressReporter) -> None:
+        if job.subject_id is None:
+            raise AudioMissingError("lyrics search without a project")
+        await report(0.1, "lyrics")
+        found = await self._search.execute(job.subject_id)
+        log.info("analysis.lyrics_search_done", lines=found)
 
 
 class AnalyzeProjectJobHandler:

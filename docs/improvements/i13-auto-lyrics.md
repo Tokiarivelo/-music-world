@@ -28,3 +28,13 @@ applied when the analysis is read):
 First use downloads the Whisper model (about 150 MB for `base`) from the Hugging Face hub; without network the step
 returns no lyrics and the analysis still succeeds. A song analysed without lyrics under one `.lrc` choice is cached by
 audio hash: a later upload of the same audio without an `.lrc` reuses that analysis.
+
+## "Search lyrics" button (phase I17)
+
+A song without lyrics no longer only says "add a .lrc". When the analysis shows a singing voice (at least 8 notes in the
+vocals stem) the layers panel offers **Search lyrics**. It calls `POST /api/projects/{id}/lyrics-search` (409 until the
+analysis is ready), which queues the `search_lyrics` job: `LyricsFinder` (online catalog, then Whisper on the stored vocal
+stem; shared with the analysis pipeline and cached the same way), then the stored analysis is updated with the timed
+lines and `lyricsSource` (`lrclib` or `whisper`), so the lyrics are mapped to the song's timeline. The page follows the
+job and reloads the analysis; "no lyrics found" and "failed" are shown in the panel. The explicit request uses speech
+recognition even when `LYRICS_ASR` is off. Without a detected voice the panel says so; the demo page keeps the old hint.

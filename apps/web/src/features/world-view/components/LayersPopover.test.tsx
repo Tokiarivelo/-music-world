@@ -85,3 +85,36 @@ describe("LayersPopover (I5)", () => {
     expect(screen.queryByRole("region", { name: "Layers" })).toBeNull();
   });
 });
+
+describe("LayersPopover lyrics search", () => {
+  const open = (lyricsSearch?: { voice: boolean; status: "idle" | "searching" | "notFound" | "failed"; start(): void }) => {
+    render(<LayersPopover activity={() => null} hasLyrics={false} hidden={NOTHING_HIDDEN} lyricsSearch={lyricsSearch} onChange={vi.fn()} palette={palette} />);
+    fireEvent.click(screen.getByRole("button", { name: "Layers" }));
+  };
+
+  it("offers a search button when the song has a voice but no lyrics, and starts it", () => {
+    const start = vi.fn();
+    open({ voice: true, status: "idle", start });
+    fireEvent.click(screen.getByRole("button", { name: "Search lyrics" }));
+    expect(start).toHaveBeenCalledOnce();
+  });
+
+  it("disables the button while searching and reports a miss or a failure", () => {
+    open({ voice: true, status: "searching", start: vi.fn() });
+    expect((screen.getByRole("button", { name: "Searching lyrics…" }) as HTMLButtonElement).disabled).toBe(true);
+    cleanup();
+    open({ voice: true, status: "notFound", start: vi.fn() });
+    expect(screen.getByRole("status").textContent).toContain("No lyrics found");
+    cleanup();
+    open({ voice: true, status: "failed", start: vi.fn() });
+    expect(screen.getByRole("alert").textContent).toContain("failed");
+  });
+
+  it("says no voice was detected, or keeps the .lrc hint when no search exists (demo)", () => {
+    open({ voice: false, status: "idle", start: vi.fn() });
+    expect(screen.getByText(/No voice detected/)).toBeTruthy();
+    cleanup();
+    open(undefined);
+    expect(screen.getByText(/add a .lrc file/)).toBeTruthy();
+  });
+});
