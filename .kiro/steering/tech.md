@@ -74,7 +74,7 @@ Lyrics transcription is separate: `LYRICS_PROVIDER = muse | lrc | none` (`lrc` =
 |---|---|---|
 | `META_API_KEY` | — | Server only. Empty → provider skipped. |
 | `META_BASE_URL` | `https://api.meta.ai/v1` | |
-| `META_DIRECTOR_MODEL` | `muse-spark-1.3` | Music summary + lyrics → `WorldTemplate` JSON |
+| `META_DIRECTOR_MODEL` | `muse-spark-1.3-contributor` | Music summary + lyrics → `WorldTemplate` JSON |
 | `META_SHAPE_MODEL` | `muse-wonder-1.0` | Optional: `ShapeRecipe` generation |
 | `META_VOICE_MODEL` | `muse-voice-transcribe-1.0` | Lyrics from the Demucs vocal stem |
 | `META_SPEND_CAP_USD` | `1` | Estimated USD per analysis (audio hash), both real providers; over it → mock |

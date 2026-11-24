@@ -36,18 +36,18 @@ def make(
 
 
 async def test_selected_provider_result_is_validated_stamped_and_cached() -> None:
-    muse = FakeProvider("muse", [valid_llm_template()], model="muse-spark-1.3")
+    muse = FakeProvider("muse", [valid_llm_template()], model="muse-spark-1.3-contributor")
     use_case, cache, spend = make({"muse": muse})
     result = await use_case.execute(GenerateWorldCommand(small_analysis()))
     assert (result.provider, result.model, result.requested_provider, result.cached) == (
         "muse",
-        "muse-spark-1.3",
+        "muse-spark-1.3-contributor",
         "muse",
         False,
     )
     assert result.template["meta"]["generatedBy"] == {
         "provider": "muse",
-        "model": "muse-spark-1.3",
+        "model": "muse-spark-1.3-contributor",
         "promptVersion": PROMPT_VERSION,
     }
     assert result.template["id"].startswith("ai-muse-")
