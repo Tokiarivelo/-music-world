@@ -381,9 +381,15 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     }
     return cache.circles;
   });
+  const withFrameHook = (c: WorldClock): WorldClock => ({
+    now: () => c.now(),
+    isPlaying: c.isPlaying ? () => c.isPlaying!() : undefined,
+    rate: c.rate ? () => c.rate!() : undefined,
+    onFrame: () => scorePlayer.frame(),
+  });
   let override: PaletteOverride | null = null;
   const show = (): void => {
-    if (basePlan && baseClock) scene.setScene(applyPaletteOverride(basePlan, override), baseClock);
+    if (basePlan && baseClock) scene.setScene(applyPaletteOverride(basePlan, override), withFrameHook(baseClock));
   };
 
   return {

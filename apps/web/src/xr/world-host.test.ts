@@ -72,7 +72,7 @@ describe('setPaletteOverride', () => {
     expect(scene.setScene.mock.calls[0]![0].template.palette.background).toBe('#112233');
     handle.setPaletteOverride(null);
     expect(scene.setScene.mock.calls[1]![0].template.palette).toEqual(DEFAULT_TEMPLATE.palette);
-    expect(scene.setScene.mock.calls[1]![1]).toBe(clock);
+    expect((scene.setScene.mock.calls[1]![1] as { now(): number }).now()).toBe(3);
     handle.setPaletteOverride({ accent: '#abcdef' });
     handle.load({ analysis: demo, template: { ...DEFAULT_TEMPLATE, id: 'other' }, seed: 1, clock });
     expect(scene.setScene.mock.calls[3]![0].template.palette.accent).toBe(DEFAULT_TEMPLATE.palette.accent);
@@ -191,7 +191,7 @@ describe('WorldHandle.load', () => {
     expect(scene.setScene).toHaveBeenCalledOnce();
     const [plan, passedClock] = scene.setScene.mock.calls[0]!;
     expect(plan).toEqual(buildSpawnPlan(demo, DEFAULT_TEMPLATE, 1));
-    expect(passedClock).toBe(clock);
+    expect((passedClock as { now(): number }).now()).toBe(0);
     handle.load({ analysis: demo, template: DEFAULT_TEMPLATE, seed: 1, clock });
     handle.dispose();
     handle.load({ analysis: demo, template: DEFAULT_TEMPLATE, seed: 1, clock });

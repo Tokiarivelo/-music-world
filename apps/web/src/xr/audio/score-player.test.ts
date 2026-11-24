@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { SCORE_TICK_MS, ScorePlayer, type ScoreNote } from './score-player';
+import { ScorePlayer, type ScoreNote } from './score-player';
 
 afterEach(() => vi.useRealTimers());
 
@@ -69,12 +69,13 @@ describe('score player (I9)', () => {
     expect(s.played.at(-1)!.midi).toBe(72);
   });
 
-  it('start and stop control the timer', () => {
-    vi.useFakeTimers();
+  it('frames schedule only between start and stop', () => {
     const s = setup(0.9);
+    s.player.frame();
+    expect(s.played.length).toBe(0);
     s.player.start();
     expect(s.player.running).toBe(true);
-    vi.advanceTimersByTime(SCORE_TICK_MS);
+    s.player.frame();
     expect(s.played.length).toBeGreaterThan(0);
     s.player.stop();
     expect(s.player.running).toBe(false);

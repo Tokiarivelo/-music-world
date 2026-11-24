@@ -183,7 +183,7 @@ export function foldMidi(midi: number): number {
 
 /**
  * Vertical position of a pitch on the staff (0 = bottom line E4, 1 = top line F5): the diatonic step of its natural
- * (a sharp shares the place of the note below, as in a key-less score), octave-folded into the displayable window.
+ * (a sharp shares the place of the note below, as in a key-less score), octave-folded into the displayable range.
  * Lines and spaces are 0.125 apart, so every note sits on a line or in a space, like written music.
  */
 export function staffUOfSnapped(midi: number): number {

@@ -21,14 +21,13 @@ export interface ScoreSynth {
   playAt(midi: number, velocity: number, seconds: number, delay: number): boolean;
 }
 
-export const SCORE_TICK_MS = 100;
 export const SCORE_WINDOW_SEC = 0.35;
 
 export class ScorePlayer {
   private notes: readonly ScoreNote[] = [];
   private cursor = 0;
   private lastNow = 0;
-  private timer: ReturnType<typeof setInterval> | null = null;
+  private active = false;
 
   constructor(
     private readonly synth: ScoreSynth,
@@ -42,18 +41,22 @@ export class ScorePlayer {
   }
 
   start(): void {
-    if (this.timer) return;
+    if (this.active) return;
     this.seekTo(this.clock.now());
-    this.timer = setInterval(() => this.tick(), SCORE_TICK_MS);
+    this.active = true;
   }
 
   stop(): void {
-    if (this.timer) clearInterval(this.timer);
-    this.timer = null;
+    this.active = false;
   }
 
   get running(): boolean {
-    return this.timer !== null;
+    return this.active;
+  }
+
+  /** Called once per rendered frame by the world's clock system (no timer: the audio clock is the only time source). */
+  frame(): void {
+    if (this.active) this.tick();
   }
 
   /** Schedules the notes whose onset falls in the next window; notes already passed are never played. */
