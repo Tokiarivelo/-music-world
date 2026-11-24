@@ -1,6 +1,6 @@
 # Music World — root commands. See .kiro/steering/infrastructure.md and testing.md. `make help` lists the targets.
 .PHONY: help install \
-	dev dev-infra dev-api dev-worker dev-web up down restart ps logs shell \
+	dev dev-local dev-redis dev-infra dev-api dev-worker dev-web up down restart ps logs shell \
 	build build-api build-web rebuild \
 	test test-api test-web check check-api check-web bundle-check arch lint format schemas schemas-check \
 	deploy check-env db-password \
@@ -19,6 +19,10 @@ PYTEST_WORKERS ?= 4
 # Port of the host web dev server: WEB_PORT in apps/web/.env.local (make reads it), or `make dev-web WEB_PORT=3001`.
 -include $(WEB)/.env.local
 WEB_PORT ?= 3000
+API_PORT ?= 8000
+# `make dev-local` (no Docker): SQLite file under apps/api/.data instead of Postgres.
+LOCAL_DB ?= sqlite+aiosqlite:///.data/dev.db
+HAS_REDIS := $(shell command -v redis-server 2>/dev/null)
 
 help: ## List targets
 	@grep -hE "^[a-z0-9-]+:.*## " $(MAKEFILE_LIST) | sed -E "s/:.*## /\t/" | expand -t 16
@@ -37,12 +41,20 @@ dev: ## Full stack in Docker (production-like). Builds an image only if its sour
 	@bash infra/scripts/build-changed.sh web
 	$(DC) up --no-build
 
+dev-local: ## Everything on the host, no Docker: API (SQLite) + web, plus Redis and the worker when redis-server is installed
+	@mkdir -p $(API)/.data
+	@test -n "$(HAS_REDIS)" || echo "make dev-local: redis-server not found: uploads are not analysed (demo, editor, store, sign-in work). Install redis-server or use make dev-infra"
+	DATABASE_URL=$(LOCAL_DB) $(MAKE) -j4 --output-sync=line dev-api dev-web $(if $(HAS_REDIS),dev-redis dev-worker)
+
+dev-redis: ## Redis on the host (needs redis-server): 127.0.0.1:6379, no persistence
+	redis-server --bind 127.0.0.1 --port 6379 --save "" --appendonly no
+
 dev-infra: ## Postgres + Redis only, published on 127.0.0.1 (then dev-api, dev-worker, dev-web on the host)
 	$(DC) -f $(COMPOSE_DEV) up -d --wait postgres redis
 
-dev-api: ## API on the host with reload: migrations then uvicorn :8000 (needs dev-infra; env: apps/api/.env)
+dev-api: ## API on the host with reload: migrations then uvicorn on API_PORT (default 8000) (needs dev-infra; env: apps/api/.env)
 	cd $(API) && uv run $(API_ENV_FILE) alembic upgrade head
-	cd $(API) && uv run $(API_ENV_FILE) uvicorn music_world.main:create_app --factory --reload --port 8000
+	cd $(API) && uv run $(API_ENV_FILE) uvicorn music_world.main:create_app --factory --reload --port $(API_PORT)
 
 dev-worker: ## Analysis worker on the host with reload (needs dev-infra; env: apps/api/.env)
 	cd $(API) && uv run $(API_ENV_FILE) arq music_world.worker.WorkerSettings --watch music_world
