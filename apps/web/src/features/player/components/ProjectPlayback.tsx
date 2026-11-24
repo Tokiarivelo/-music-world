@@ -13,6 +13,7 @@ import { useStoreTemplates } from "@/features/template-store";
 import { WorldView } from "@/features/world-view";
 import { loadProjectAudio } from "../api/project.api";
 import { useProjectAnalysis } from "../hooks/use-project-analysis";
+import { usePlaySeed } from "../hooks/use-play-seed";
 import { useSongPlayer } from "../hooks/use-song-player";
 import { useAiTemplateChoice } from "../hooks/use-ai-template-choice";
 import { useWorldControls } from "../hooks/use-world-controls";
@@ -50,14 +51,10 @@ function ProjectWorld({
   const controls = useWorldControls(player, t("projectTitle"), choice);
   const { clock } = player;
   const { template } = choice;
+  const seed = usePlaySeed(player.run, seedFromHash(analysis.audioHash));
   const scene = useMemo(
-    () => ({
-      analysis,
-      template,
-      seed: seedFromHash(analysis.audioHash),
-      clock,
-    }),
-    [analysis, template, clock],
+    () => ({ analysis, template, seed, clock }),
+    [analysis, template, seed, clock],
   );
   return (
     <div className="relative h-dvh w-full">
