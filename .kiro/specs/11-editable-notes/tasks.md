@@ -6,7 +6,7 @@
   - _Requirements: 5, 6, 13_
 - [x] 3. `engine/staff.ts` multi-line staves + `SpawnRecord.line`; one-line plan unchanged.
   - _Requirements: 4, 5_
-- [ ] 4. `xr/audio/note-synth.ts` + `xr/picking.ts` with tests.
+- [x] 4. `xr/audio/note-synth.ts` + `xr/picking.ts` with tests.
   - _Requirements: 1, 2, 10, 12_
 - [ ] 5. Edit controller (hover, click-to-play, drag, ghost, snap, cancel, paused only) + highlight.
   - _Requirements: 1, 2, 3_

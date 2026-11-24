@@ -16,3 +16,6 @@ See `docs/improvements/i9-editable-notes.md` § Design. Add an "As built" sectio
   `lineOffsetY` in `engine/staff.ts`, 6 gaps per `height` unit) and `colorHex`; `SpawnPlan.lines` lists the voice lines with
   their offset. `staffNotePosition` takes an optional `yOffset`. `when.line` is matched in `mapping.ts` (default `main`).
   With no edits the plan is equal to the old one (test). Rendering of extra staff lines and `colorHex` is task 5/6c.
+- Task 4: `xr/audio/note-synth.ts` (`NoteSynth`, triangle voice, 0.5 s, pool of 8 with oldest stolen, lazy `AudioContext`
+  injected for tests, `midiToHz`); `xr/picking.ts` (pure: `pickables` honours hidden layers, `pickAtScreen` with a
+  24 px radius over a caller-supplied projector, `pickAtRay` with a 0.04 rad cone for VR). Neither is wired yet (task 5).
