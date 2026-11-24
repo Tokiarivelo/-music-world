@@ -1,17 +1,19 @@
 'use client';
 
 import { useMemo } from 'react';
+import { DirectorPanel, useDirector, type DirectorSource } from '@/features/director';
 import { WorldView } from '@/features/world-view';
 import { loadAudioUrl } from '../api/project.api';
 import { DEMO_SEED, PLAYER_TEXT } from '../consts/player.consts';
 import { DEMO_SONG } from '../demo/demo-song';
 import { useSongPlayer, type SongPlayerDeps } from '../hooks/use-song-player';
-import { useTemplateChoice } from '../hooks/use-template-choice';
+import { useAiTemplateChoice } from '../hooks/use-ai-template-choice';
 import { useWorldControls } from '../hooks/use-world-controls';
 import { synthesizeSong } from '../lib/synth-song';
 import { PlayerBar } from './PlayerBar';
 
 const { analysis } = DEMO_SONG;
+const DEMO_SOURCE: DirectorSource = { kind: 'demo', analysis };
 
 const DEMO_DEPS: SongPlayerDeps = {
   createContext: () => new AudioContext(),
@@ -19,10 +21,11 @@ const DEMO_DEPS: SongPlayerDeps = {
   loadBuffer: () => loadAudioUrl(DEMO_SONG.audioUrl).catch(() => synthesizeSong(analysis.notes, analysis.durationSec)),
 };
 
-/** `/play/demo`: the pre-analysed demo song and its audio, rendered with the default template. */
+/** `/play/demo`: the pre-analysed demo song and its audio, rendered with the default template or an AI-generated one. */
 export function DemoPlayback() {
   const player = useSongPlayer(DEMO_DEPS);
-  const choice = useTemplateChoice();
+  const director = useDirector(DEMO_SOURCE);
+  const choice = useAiTemplateChoice(director);
   const controls = useWorldControls(player, DEMO_SONG.title, choice);
   const { clock } = player;
   const { template } = choice;
@@ -30,6 +33,9 @@ export function DemoPlayback() {
   return (
     <div className="relative h-dvh w-full">
       <WorldView controls={controls} scene={scene} />
+      <div className="absolute left-3 top-3 z-10 max-w-[calc(100%-11rem)] sm:max-w-none">
+        <DirectorPanel director={director} template={template} />
+      </div>
       {/* IWSDK sizes its canvas to the window, so the controls float above it. */}
       <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[var(--mw-bg)] to-transparent pt-6">
         <PlayerBar player={player} />

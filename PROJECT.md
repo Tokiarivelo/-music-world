@@ -5,7 +5,7 @@
 > **Contexte :** projet développé avec **Kiro** pour le hackathon **Kiroween 2026** (catégorie visée : **Frankenstein**).
 > Soumission avant le **4 décembre 2026, 14:00 PT**. Les documents Kiro (`.kiro/`) sont en anglais, comme l'exigent les règles.
 
-Dernière mise à jour : 24 novembre 2026.
+Dernière mise à jour : 25 novembre 2026.
 
 ---
 
@@ -187,6 +187,12 @@ Le directeur artistique passe par une interface `LLMProvider`. On change de four
 
 **Paroles :** `LYRICS_PROVIDER = muse | lrc | none`.
 
+**Implémentation (05-ai-world-director) :** prompts neutres versionnés (`PROMPT_VERSION = director-v1`), Muse Spark
+par l'API compatible OpenAI (`/chat/completions`), Claude par **Claude in Amazon Bedrock** (`bedrock-mantle`, modèles
+`anthropic.claude-sonnet-5-5` pour le directeur, `anthropic.claude-opus-5-5` pour les formes). Sortie : nettoyage,
+bornage des nombres, validation pydantic, règles de rendu ; une seconde tentative avec les erreurs, puis le
+fournisseur suivant. Détails : `.kiro/specs/05-ai-world-director/design.md`.
+
 **Ce que les LLM ne font pas ici :** détecter les notes, les accords, le tempo ou la tonalité. Ce travail revient à Basic Pitch et librosa, qui sont précis et déterministes.
 
 **Données des utilisateurs :** ne pas utiliser les variantes `*-contributor` (moins chères, mais Meta entraîne ses modèles sur les échanges) pour l'audio et les paroles des utilisateurs. Les réserver aux données synthétiques de test.
@@ -307,7 +313,8 @@ Chaque utilisateur peut publier des templates que les autres utilisent pendant l
 
 Source de vérité : modèles pydantic dans `apps/api/music_world/schemas/`, enregistrés dans `EXPORTED`.
 `make schemas` produit `packages/schemas/*.schema.json` puis les types TS + validateurs zod dans
-`apps/web/src/templates/generated/`. Schémas exportés : `music-world.analysis.v1`, `music-world.health.v1`, `music-world.job.v1`,
+`apps/web/src/templates/generated/`. Schémas exportés : `music-world.analysis.v1`, `music-world.director-providers.v1`,
+`music-world.director-result.v1`, `music-world.health.v1`, `music-world.job.v1`,
 `music-world.job-accepted.v1`, `music-world.project.v1`, `music-world.project-created.v1`, `music-world.template.v1`.
 
 `POST /api/projects` (multipart `audio` + `lyrics` .lrc optionnel) répond `202` avec `ProjectCreated`
@@ -315,6 +322,12 @@ Source de vérité : modèles pydantic dans `apps/api/music_world/schemas/`, enr
 `Project` (`status` : `analyzing | ready | failed`, job d'analyse). `GET /api/projects/{id}/analysis` renvoie l'`AnalysisResult`
 (409 `ANALYSIS_NOT_READY` pendant l'analyse ; le `.lrc` de l'utilisateur remplace les paroles transcrites) et
 `GET /api/projects/{id}/audio` le fichier audio pour la lecture.
+
+Directeur IA : `GET /api/director/providers` renvoie `DirectorProviders` (`default`, `providers[]` avec `configured`).
+`POST /api/projects/{id}/director` (`{provider?}`) et `POST /api/director/demo` (`{analysis, provider?}`, analyse du
+morceau de démo uniquement) renvoient `DirectorResult` : `template`, `provider`, `model`, `requestedProvider`, `cached`,
+`fallbacks[]` (`{provider, reason}`). Le template gagne un champ optionnel `meta.generatedBy = {provider, model,
+promptVersion}` (ajout compatible, le schéma reste v1), toujours écrit par le serveur, jamais par le modèle.
 
 ### NoteEvent
 

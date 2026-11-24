@@ -129,3 +129,15 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
 - New verification tool `apps/web/scripts/xr-check.mjs`: drives IWER from Playwright (27 checks) and recompiles every
   program with super-three's multiview rewrite on `OVR_multiview2` — the building window shader is multiview-safe.
 - No Kiro hooks fired (work done outside the Kiro IDE).
+
+### 2026-11-25 — 05-ai-world-director (Claude Code, `ai-director`)
+
+- Spec design + tasks generated from `requirements.md`, `PROJECT.md` §5–§6, `ai-models.md` and the `llm-provider`
+  skill; provider facts verified in the Meta Model API and Claude-in-Bedrock docs (links in `design.md`).
+- Property test (Hypothesis) "any provider JSON is rejected or a renderable template", with an oracle written from the
+  web engine's rules. **Finding:** the first near-valid strategy produced 0 % renderable documents (Hypothesis shrinks
+  toward index 0, which picked the invalid branch) — the property held vacuously. Fixed the bias, then checked with
+  `--hypothesis-show-statistics` (~20 % renderable).
+- Mutation checks, each caught by the property tests: recipe kinds allowed, staff/background contrast rule removed
+  (caught only after adding contrast to the oracle), minimum clamp removed, NaN kept, model-provided `id` kept.
+- No Kiro hooks fired (work done outside the Kiro IDE).

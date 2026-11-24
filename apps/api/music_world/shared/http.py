@@ -29,6 +29,7 @@ ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
     413: {"model": ErrorBody, "description": "Payload too large"},
     415: {"model": ErrorBody, "description": "Unsupported media type"},
     422: {"model": ErrorBody, "description": "Invalid request"},
+    429: {"model": ErrorBody, "description": "Too many requests"},
 }
 
 # Domain error codes that are not 409 by default.
@@ -40,6 +41,8 @@ _STATUS_BY_CODE: dict[str, int] = {
     "AUDIO_TOO_LONG": 422,
     "AUDIO_UNREADABLE": 422,
     "LRC_INVALID": 422,
+    "DEMO_ANALYSIS_MISMATCH": 422,
+    "RATE_LIMITED": 429,
 }
 
 

@@ -1,0 +1,24 @@
+{
+  "id": "chatcmpl-fixture-0001",
+  "object": "chat.completion",
+  "created": 1764028800,
+  "model": "muse-spark-1.3",
+  "choices": [
+    {
+      "index": 0,
+      "finish_reason": "stop",
+      "message": {
+        "role": "assistant",
+        "refusal": null,
+        "content": "{\"name\": \"Violet Rain\", \"palette\": {\"background\": \"#06041a\", \"terrain\": \"#191233\", \"primary\": \"#9b5cff\", \"accent\": \"#ff5fc8\", \"secondary\": \"#3fd7f0\", \"staff\": \"#eef8ff\"}, \"terrain\": {\"style\": \"cracked_plate\", \"mountains\": \"edges\", \"size\": 14}, \"staff\": {\"glow\": 1.4, \"lookahead\": 4.5}, \"mappings\": [{\"when\": {\"pitch\": \"<50\"}, \"spawn\": \"terrain_ridge\"}, {\"when\": {\"pitch\": \"50-74\"}, \"spawn\": \"building\", \"heightFrom\": \"velocity\"}, {\"when\": {\"pitch\": \">74\"}, \"spawn\": \"spike\", \"colorRole\": \"accent\"}, {\"when\": {}, \"spawn\": \"building\"}], \"fx\": {\"particles\": \"arcs\", \"bloom\": 1.0}}"
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 5210,
+    "completion_tokens": 640,
+    "total_tokens": 5850,
+    "prompt_tokens_details": {"cached_tokens": 0},
+    "completion_tokens_details": {"reasoning_tokens": 0}
+  }
+}

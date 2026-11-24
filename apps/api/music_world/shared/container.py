@@ -2,13 +2,28 @@
 
 from dataclasses import dataclass, field
 
+import structlog
 from arq.connections import ArqRedis
+from pydantic import SecretStr
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from music_world.analysis.application.use_cases.analysis_cache import AnalysisCache
 from music_world.analysis.application.use_cases.get_project_analysis import GetProjectAnalysis
 from music_world.analysis.infrastructure.project_audio_source import ProjectsAudioSource
 from music_world.analysis.infrastructure.sqlalchemy_analysis_repository import SqlAlchemyAnalysisRepository
+from music_world.director.application.ports import LLMProvider, ProjectAnalyses
+from music_world.director.application.use_cases.generate_world import (
+    GenerateDemoWorld,
+    GenerateProjectWorld,
+    GenerateWorld,
+)
+from music_world.director.application.use_cases.list_providers import ListProviders
+from music_world.director.domain.providers import ProviderId, default_provider
+from music_world.director.infrastructure.default_template import default_template
+from music_world.director.infrastructure.object_store_cache import ObjectStoreDirectorCache, ObjectStoreSpendTracker
+from music_world.director.infrastructure.prompts import DirectorPromptSet
+from music_world.director.infrastructure.providers.mock import MOCK_MODEL, MockProvider
+from music_world.director.infrastructure.providers.muse import MuseProvider, is_contributor_model
 from music_world.projects.application.ports import JobHandler
 from music_world.projects.application.use_cases.create_project import CreateProject
 from music_world.projects.application.use_cases.enqueue_job import EnqueueJob
@@ -26,9 +41,90 @@ from music_world.shared.clock import utc_now
 from music_world.shared.db import create_engine, create_session_factory
 from music_world.shared.ids import uuid7
 from music_world.shared.object_store import ObjectStoreAdapter, build_object_store
+from music_world.shared.rate_limit import SlidingWindowLimiter
 from music_world.shared.settings import Settings
 from music_world.system.application.use_cases.check_health import CheckHealth
 from music_world.system.infrastructure.probes import PostgresProbe, RedisProbe, S3Probe
+
+log = structlog.get_logger(__name__)
+
+
+@dataclass
+class DirectorServices:
+    generate_world: GenerateWorld
+    generate_project_world: GenerateProjectWorld
+    generate_demo_world: GenerateDemoWorld
+    list_providers: ListProviders
+    limiter: SlidingWindowLimiter
+    providers: dict[ProviderId, LLMProvider] = field(default_factory=dict)
+
+    async def close(self) -> None:
+        for provider in self.providers.values():
+            closer = getattr(provider, "aclose", None)
+            if closer is not None:
+                await closer()
+
+
+def _real_providers(settings: Settings) -> dict[ProviderId, LLMProvider]:
+    """Real providers whose credentials are set (keys never leave the server)."""
+    providers: dict[ProviderId, LLMProvider] = {}
+    if settings.muse_configured and settings.meta_api_key is not None:
+        if is_contributor_model(settings.meta_director_model):
+            log.warning("director.muse_contributor_refused", model=settings.meta_director_model)
+        else:
+            key = settings.meta_api_key.get_secret_value()
+            providers["muse"] = MuseProvider(key, settings.meta_director_model, settings.meta_base_url)
+    if settings.bedrock_configured and settings.aws_region:
+        from music_world.director.infrastructure.providers.bedrock import BedrockProvider  # SDK loaded only if used
+
+        def secret(value: SecretStr | None) -> str | None:
+            return value.get_secret_value() if value is not None else None
+
+        providers["bedrock"] = BedrockProvider(
+            settings.bedrock_model_id,
+            settings.aws_region,
+            access_key=secret(settings.aws_access_key_id),
+            secret_key=secret(settings.aws_secret_access_key),
+            session_token=secret(settings.aws_session_token),
+            profile=settings.aws_profile,
+            bearer_token=secret(settings.aws_bearer_token_bedrock),
+        )
+    return providers
+
+
+def build_director(
+    settings: Settings,
+    store: ObjectStoreAdapter,
+    analyses: ProjectAnalyses,
+    providers: dict[ProviderId, LLMProvider] | None = None,
+) -> DirectorServices:
+    """Provider chain: selected → other configured real provider → mock (always present)."""
+    real = _real_providers(settings) if providers is None else providers
+    chain: dict[ProviderId, LLMProvider] = {**real, "mock": MockProvider()}
+    default = default_provider(settings.llm_provider, chain)
+    generate = GenerateWorld(
+        chain,
+        DirectorPromptSet(),
+        ObjectStoreDirectorCache(store),
+        ObjectStoreSpendTracker(store),
+        default_template(),
+        default_provider=default,
+        spend_cap_usd=settings.meta_spend_cap_usd,
+        timeout_sec=settings.director_timeout_sec,
+    )
+    models: dict[ProviderId, str] = {
+        "muse": settings.meta_director_model,
+        "bedrock": settings.bedrock_model_id,
+        "mock": MOCK_MODEL,
+    }
+    return DirectorServices(
+        generate_world=generate,
+        generate_project_world=GenerateProjectWorld(analyses, generate),
+        generate_demo_world=GenerateDemoWorld(generate),
+        list_providers=ListProviders(models, set(chain), default),
+        limiter=SlidingWindowLimiter(settings.director_rate_limit_per_hour, 3600.0),
+        providers=chain,
+    )
 
 
 @dataclass
@@ -43,11 +139,13 @@ class Container:
     analysis_cache: AnalysisCache
     get_project_analysis: GetProjectAnalysis
     get_project_audio: GetProjectAudio
+    director: DirectorServices
     engine: AsyncEngine | None = None
     redis: ArqRedis | None = None
     handlers: dict[str, JobHandler] = field(default_factory=dict)
 
     async def close(self) -> None:
+        await self.director.close()
         if self.redis is not None:
             await self.redis.aclose()
         if self.engine is not None:
@@ -100,6 +198,7 @@ def build_container(settings: Settings, *, with_analysis: bool = False) -> Conta
     project_audio = ProjectsAudioSource(get_project)
     if with_analysis:
         handlers[ANALYZE_PROJECT_JOB_KIND] = _analysis_handler(settings, store, analyses, project_audio)
+    get_project_analysis = GetProjectAnalysis(project_audio, analyses)
     return Container(
         settings=settings,
         enqueue_job=enqueue_job,
@@ -109,8 +208,9 @@ def build_container(settings: Settings, *, with_analysis: bool = False) -> Conta
         create_project=CreateProject(projects, store, FfprobeAudioProbe(), analysis_cache, enqueue_job, uuid7, utc_now),
         get_project=get_project,
         analysis_cache=analysis_cache,
-        get_project_analysis=GetProjectAnalysis(project_audio, analyses),
+        get_project_analysis=get_project_analysis,
         get_project_audio=GetProjectAudio(projects, store),
+        director=build_director(settings, store, get_project_analysis),
         engine=engine,
         redis=redis,
         handlers=handlers,

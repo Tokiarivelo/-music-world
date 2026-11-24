@@ -6,6 +6,8 @@ from httpx import ASGITransport, AsyncClient
 from music_world.analysis.application.use_cases.analysis_cache import AnalysisCache
 from music_world.analysis.application.use_cases.get_project_analysis import GetProjectAnalysis
 from music_world.analysis.infrastructure.project_audio_source import ProjectsAudioSource
+from music_world.director.application.ports import LLMProvider
+from music_world.director.domain.providers import ProviderId
 from music_world.main import create_app
 from music_world.projects.application.use_cases.create_project import CreateProject
 from music_world.projects.application.use_cases.enqueue_job import EnqueueJob
@@ -14,7 +16,7 @@ from music_world.projects.application.use_cases.get_project import GetProject
 from music_world.projects.application.use_cases.get_project_audio import GetProjectAudio
 from music_world.projects.application.use_cases.run_job import RunJob
 from music_world.projects.domain.job_kinds import ANALYZE_PROJECT_JOB_KIND
-from music_world.shared.container import Container
+from music_world.shared.container import Container, build_director
 from music_world.shared.settings import Settings
 from music_world.system.application.use_cases.check_health import CheckHealth
 from tests.fakes import (
@@ -37,6 +39,7 @@ def make_container(
     postgres: StaticProbe,
     probe: FakeAudioProbe | None = None,
     analyses: InMemoryAnalysisRepository | None = None,
+    providers: dict[ProviderId, LLMProvider] | None = None,
 ) -> Container:
     repo, clock, ids = InMemoryJobRepository(), FakeClock(), SequentialIds()
     projects = InMemoryProjectRepository()
@@ -44,6 +47,7 @@ def make_container(
     cache = AnalysisCache(analysis_repo)
     get_project = GetProject(projects, repo, cache)
     store = InMemoryObjectStore()
+    analysis = GetProjectAnalysis(ProjectsAudioSource(get_project), analysis_repo)
     enqueue = EnqueueJob(repo, RecordingQueue(), {"demo", ANALYZE_PROJECT_JOB_KIND}, ids, clock)
     return Container(
         settings=settings,
@@ -54,8 +58,9 @@ def make_container(
         create_project=CreateProject(projects, store, probe or FakeAudioProbe(), cache, enqueue, ids, clock),
         get_project=get_project,
         analysis_cache=cache,
-        get_project_analysis=GetProjectAnalysis(ProjectsAudioSource(get_project), analysis_repo),
+        get_project_analysis=analysis,
         get_project_audio=GetProjectAudio(projects, store),
+        director=build_director(settings, store, analysis, providers),
     )
 
 
