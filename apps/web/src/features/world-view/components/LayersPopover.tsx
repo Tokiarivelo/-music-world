@@ -31,6 +31,12 @@ const BUTTON =
   "disabled:opacity-40";
 const ACTIVE = "bg-[var(--mw-accent)] text-black";
 export const METER_INTERVAL_MS = 100;
+/** Reduced motion (I5 task 5): the meters update a few times a second instead of ten, with no CSS transition. */
+export const METER_INTERVAL_REDUCED_MS = 500;
+
+function prefersReducedMotion(): boolean {
+  return typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
 
 /** The color a layer wears in the panel: a role of the palette, close to what it shows in the world. */
 const SWATCH: Record<LayerId, keyof Palette> = {
@@ -52,7 +58,8 @@ export function LayersPopover({ hidden, onChange, hasLyrics, palette, activity }
 
   useEffect(() => {
     if (!open) return;
-    const id = setInterval(() => setLevels(activity()), METER_INTERVAL_MS);
+    const every = prefersReducedMotion() ? METER_INTERVAL_REDUCED_MS : METER_INTERVAL_MS;
+    const id = setInterval(() => setLevels(activity()), every);
     return () => clearInterval(id);
   }, [open, activity]);
 
@@ -62,7 +69,7 @@ export function LayersPopover({ hidden, onChange, hasLyrics, palette, activity }
       {open && (
         <section
           aria-label={t("layers.title")}
-          className="max-h-[calc(100vh-17rem)] w-72 max-w-full space-y-3 overflow-y-auto rounded-2xl border border-white/20 bg-black/70 p-4 text-sm text-white backdrop-blur"
+          className="max-h-[calc(100vh-21rem)] w-72 max-w-full space-y-3 overflow-y-auto rounded-2xl border border-white/20 bg-black/70 p-4 text-sm text-white backdrop-blur"
           onKeyDown={(e) => {
             if (e.key === "Escape") setOpen(false);
           }}

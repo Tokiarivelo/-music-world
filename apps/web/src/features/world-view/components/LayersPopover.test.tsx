@@ -59,6 +59,26 @@ describe("LayersPopover (I5)", () => {
     expect(activity).toHaveBeenCalled();
   });
 
+  it("polls the meters less often with reduced motion", () => {
+    vi.useFakeTimers();
+    const original = globalThis.matchMedia;
+    globalThis.matchMedia = ((q: string) => ({ matches: q.includes("reduce"), media: q })) as never;
+    try {
+      const activity = vi.fn(() => ({ drums: 0, bass: 0, vocals: 0, other: 0 }));
+      setup(NOTHING_HIDDEN, true, activity);
+      act(() => {
+        vi.advanceTimersByTime(450);
+      });
+      expect(activity).not.toHaveBeenCalled();
+      act(() => {
+        vi.advanceTimersByTime(100);
+      });
+      expect(activity).toHaveBeenCalledOnce();
+    } finally {
+      globalThis.matchMedia = original;
+    }
+  });
+
   it("closes with Escape", () => {
     setup();
     fireEvent.keyDown(screen.getByRole("region", { name: "Layers" }), { key: "Escape" });
