@@ -37,7 +37,7 @@ export interface WorldScene {
 }
 
 /** What the host needs from the installed systems. */
-export interface InstalledScene extends Pick<MusicScene, 'setScene'> {
+export interface InstalledScene extends Pick<MusicScene, 'setScene' | 'setLightLevel'> {
   setControls(controls: WorldControls | null): void;
   /** Desktop camera navigation (08-navigation-mode); the host binds its input to the canvas. */
   navigation: NavigationController;
@@ -53,6 +53,8 @@ export interface WorldHandle {
    * template, never touches the clock or the audio; the views are rebuilt from the same plan data.
    */
   setPaletteOverride(override: PaletteOverride | null): void;
+  /** Scene lights multiplier (I4b), 1 = the template look; view-only, no rebuild. */
+  setLightLevel(level: number): void;
   enterVR(): void;
   exitVR(): void;
   /**
@@ -140,6 +142,7 @@ const defaultDeps: WorldHostDeps = {
       navigation,
       disposeNavigation: () => disposeNavigation(navigation),
       setScene: (plan, clock) => scene.setScene(plan, clock),
+      setLightLevel: (level) => scene.setLightLevel(level),
       setControls: (controls) => {
         rig.controls = controls;
       },
@@ -246,6 +249,9 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
       basePlan = buildSpawnPlan(analysis, template, seed);
       baseClock = clock;
       show();
+    },
+    setLightLevel(level) {
+      if (!disposed) scene.setLightLevel(level);
     },
     setPaletteOverride(next) {
       if (disposed) return;

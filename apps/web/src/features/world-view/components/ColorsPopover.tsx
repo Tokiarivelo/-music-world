@@ -23,10 +23,6 @@ export function ColorsPopover({ store, templatePalette }: ColorsPopoverProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const state = useSyncExternalStore(store.subscribe, store.getState, store.getState);
-  // The slider follows the finger at once; the world (views are rebuilt) is updated once it settles.
-  const [draft, setDraft] = useState<number | null>(null);
-  const settle = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useEffect(() => () => clearTimeout(settle.current), []);
   const colors = { ...templatePalette, ...(state.override ?? {}) };
 
   const copy = async () => {
@@ -40,11 +36,11 @@ export function ColorsPopover({ store, templatePalette }: ColorsPopoverProps) {
   };
 
   return (
-    <div className="absolute bottom-28 right-4 z-10 flex max-w-[calc(100%-2rem)] flex-col items-end gap-2">
+    <div className="absolute bottom-28 left-4 z-10 flex max-w-[calc(100%-2rem)] flex-col items-start gap-2">
       {open && (
         <section
           aria-label={t("colors.title")}
-          className="w-72 max-w-full space-y-3 rounded-2xl border border-white/20 bg-black/70 p-4 text-sm text-white backdrop-blur"
+          className="max-h-[calc(100vh-17rem)] w-72 max-w-full space-y-3 overflow-y-auto rounded-2xl border border-white/20 bg-black/70 p-4 text-sm text-white backdrop-blur"
           onKeyDown={(e) => {
             if (e.key === "Escape") setOpen(false);
           }}
@@ -95,26 +91,16 @@ export function ColorsPopover({ store, templatePalette }: ColorsPopoverProps) {
               );
             })}
           </ul>
-          <label className="flex items-center gap-3">
-            <span className="w-24">{t("colors.brightness")}</span>
-            <input
-              className="flex-1"
-              max={1}
-              min={-1}
-              onChange={(e) => {
-                const value = Number(e.target.value);
-                setDraft(value);
-                clearTimeout(settle.current);
-                settle.current = setTimeout(() => {
-                  store.setBrightness(value);
-                  setDraft(null);
-                }, 120);
-              }}
-              step={0.05}
-              type="range"
-              value={draft ?? state.brightness}
-            />
-          </label>
+          <ColorSlider
+            label={t("colors.brightness")}
+            onCommit={store.setBrightness}
+            value={state.brightness}
+          />
+          <ColorSlider
+            label={t("colors.contrast")}
+            onCommit={store.setContrast}
+            value={state.contrast}
+          />
           <button className={BUTTON} onClick={store.reset} type="button">
             {t("colors.reset")}
           </button>
@@ -129,5 +115,34 @@ export function ColorsPopover({ store, templatePalette }: ColorsPopoverProps) {
         {t("colors.open")}
       </button>
     </div>
+  );
+}
+
+/** The slider follows the finger at once; the world (views are rebuilt) is updated once it settles. */
+function ColorSlider({ label, value, onCommit }: { label: string; value: number; onCommit: (value: number) => void }) {
+  const [draft, setDraft] = useState<number | null>(null);
+  const settle = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(settle.current), []);
+  return (
+    <label className="flex items-center gap-3">
+      <span className="w-24">{label}</span>
+      <input
+        className="flex-1"
+        max={1}
+        min={-1}
+        onChange={(e) => {
+          const next = Number(e.target.value);
+          setDraft(next);
+          clearTimeout(settle.current);
+          settle.current = setTimeout(() => {
+            onCommit(next);
+            setDraft(null);
+          }, 120);
+        }}
+        step={0.05}
+        type="range"
+        value={draft ?? value}
+      />
+    </label>
   );
 }

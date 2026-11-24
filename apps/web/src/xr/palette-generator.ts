@@ -211,3 +211,32 @@ export function liftBrightness(palette: Palette, amount: number): Palette {
   }
   return { ...palette, background, terrain: scale(palette.terrain, 0.7) };
 }
+
+const NEON_ROLES = ['primary', 'accent', 'secondary', 'staff'] as const;
+
+/**
+ * Contrast: `amount` in [-1, 1] widens (+) or narrows (-) the lightness gap between the dark base (background,
+ * terrain) and the neon roles. Staff vs background keeps its 4.5:1 label contrast whatever the amount.
+ */
+export function applyContrast(palette: Palette, amount: number): Palette {
+  const k = Math.max(-1, Math.min(1, amount));
+  if (k === 0) return palette;
+  const shift = (hex: string, delta: number, lo: number, hi: number) => {
+    const { L, C, h } = hexToOklch(hex);
+    return oklchToHex(Math.min(hi, Math.max(lo, L + delta)), C, h);
+  };
+  const next: Palette = { ...palette };
+  next.background = shift(palette.background, -0.12 * k, 0.08, 0.7);
+  next.terrain = shift(palette.terrain, -0.1 * k, 0.1, 0.75);
+  for (const role of NEON_ROLES) next[role] = shift(palette[role], 0.1 * k, 0.3, 0.98);
+  for (let i = 0; i < 20 && contrastRatio(next.staff, next.background) < MIN_LABEL_CONTRAST; i++) {
+    next.background = shift(next.background, -0.03, 0.04, 0.7);
+  }
+  return next;
+}
+
+/** Light level for a brightness in [-1, 1]: multiplies the scene lights, capped for Quest fill rate. */
+export function lightLevelFor(brightness: number): number {
+  const k = Math.max(-1, Math.min(1, brightness));
+  return 1 + 0.4 * k;
+}

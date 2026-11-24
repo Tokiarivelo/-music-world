@@ -27,7 +27,7 @@ function fakeSignal(initial: string) {
 function fakeDeps(withSession = false) {
   const worlds: Array<ReturnType<typeof makeWorld>> = [];
   const navigation = new NavigationController();
-  const scene = { setScene: vi.fn(), setControls: vi.fn(), navigation, disposeNavigation: vi.fn() };
+  const scene = { setScene: vi.fn(), setLightLevel: vi.fn(), setControls: vi.fn(), navigation, disposeNavigation: vi.fn() };
   function makeWorld(container: HTMLElement) {
     const canvas = document.createElement('canvas');
     container.appendChild(canvas);
@@ -77,6 +77,19 @@ describe('setPaletteOverride', () => {
     expect(scene.setScene.mock.calls[3]![0].template.palette.accent).toBe(DEFAULT_TEMPLATE.palette.accent);
     expect(DEFAULT_TEMPLATE.palette.accent).not.toBe('#abcdef');
     handle.dispose();
+  });
+});
+
+describe('setLightLevel', () => {
+  it('forwards the level without rebuilding the world, and not after dispose', async () => {
+    const { deps, scene } = fakeDeps();
+    const handle = await createMusicWorld(document.createElement('div'), deps);
+    handle.setLightLevel(1.3);
+    expect(scene.setLightLevel).toHaveBeenCalledWith(1.3);
+    expect(scene.setScene).not.toHaveBeenCalled();
+    handle.dispose();
+    handle.setLightLevel(0.8);
+    expect(scene.setLightLevel).toHaveBeenCalledOnce();
   });
 });
 

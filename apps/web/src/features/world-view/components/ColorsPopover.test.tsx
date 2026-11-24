@@ -65,6 +65,9 @@ describe("ColorsPopover brightness", () => {
     expect(store.getState().brightness).toBe(0);
     vi.advanceTimersByTime(130);
     expect(store.getState().brightness).toBe(0.6);
+    fireEvent.change(screen.getByLabelText("Contrast"), { target: { value: "-0.4" } });
+    vi.advanceTimersByTime(130);
+    expect(store.getState().contrast).toBe(-0.4);
     vi.useRealTimers();
   });
 });
