@@ -37,39 +37,10 @@ Do **not** add: React Three Fiber / Drei (conflicts with IWSDK's renderer), Esse
 6. **Templates are data.** No JS, no external URLs. 3D assets are `ShapeRecipe`s (closed op list) or validated GLB.
 7. **Secrets stay on the server.** `META_API_KEY` is read only by the Python API. Never prefix it with `NEXT_PUBLIC_`.
 
-## Core environment variables (`music_world.shared.settings`)
+## Environment variables
 
-| Env var | Default | Use |
-|---|---|---|
-| `APP_ENV` | `development` | `development` enables `/api/docs` and `POST /api/jobs/demo`; `production` disables both |
-| `APP_VERSION` | package version | Reported by `/api/health` |
-| `LOG_LEVEL` | `INFO` | structlog JSON level |
-| `API_DOCS` | `false` | Force `/api/docs` on outside development |
-| `DATABASE_URL` | `postgresql+asyncpg://music_world:music_world@localhost:5432/music_world` | Postgres (asyncpg driver) |
-| `REDIS_URL` | `redis://localhost:6379/0` | arq queue |
-| `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | — | OVHcloud Object Storage; health reports `not_configured` while unset |
-| `STORAGE_DIR` | `.data/storage` | Local object store (uploads, stems, stage checkpoints) used while the `S3_*` settings are incomplete |
-| `ANALYSIS_MIN_VELOCITY` | `0.25` | Notes below this velocity (0–1) are dropped (requirement 3.3) |
-| `DEMUCS_MODEL` | `htdemucs` | Demucs pretrained model name used by the worker |
-| `LYRICS_PROVIDER` | `muse` | `muse` (Muse Voice on the vocal stem, skipped without `META_API_KEY`), `lrc` (user file only), `none` |
-| `DEV_API_URL` | `http://localhost:8000` | Web dev server only (`pnpm dev` without Caddy): where `/api/*` is proxied |
-| `DOMAIN` | `localhost` | Compose/Caddy only: public domain (Let's Encrypt), `localhost` = Caddy local CA |
-| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | `music_world` | Compose only: postgres credentials, used to build `DATABASE_URL` |
-
-## Accounts and template store env (`06-template-store`)
-
-| Env var | Default | Use |
-|---|---|---|
-| `PUBLIC_BASE_URL` | `http://localhost:3000` (Compose: `https://$DOMAIN`) | Web origin: sign-in links, production `Origin` check on `/api/auth/*` |
-| `AUTH_EMAIL_SENDER` | `console` | `console` (link logged by the api, development) or `smtp` |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_STARTTLS` | —, `587`, —, —, —, `true` | SMTP sender (password server only, 10 s timeout, one retry) |
-| `AUTH_TOKEN_TTL_MIN` | `15` | Sign-in link lifetime (single use, stored hashed) |
-| `SESSION_TTL_DAYS` | `30` | Session cookie lifetime (`mw_session`, httpOnly, SameSite=Lax) |
-| `SESSION_COOKIE_SECURE` | `true` | `Secure` attribute of `mw_session` / `mw_csrf` |
-| `AUTH_RATE_LIMIT_PER_HOUR` | `10` | Sign-in links per client IP (plus 5 per address) |
-| `TEMPLATE_PUBLISH_RATE_LIMIT_PER_HOUR` | `10` | Store templates created per user |
-| `TEMPLATE_REPORT_HIDE_THRESHOLD` | `3` | Distinct reports that hide a store template |
-| `UPLOAD_RATE_LIMIT_PER_HOUR` | `20` | Song uploads per user or client IP |
+Core, accounts and template-store variables: `env.md` (loaded when you touch settings, `.env.example` or `infra/`).
+Provider variables (Bedrock, Muse) are below. Code defaults: `apps/api/music_world/shared/settings.py`.
 
 ## LLM providers (switchable)
 

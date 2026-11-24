@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./node_modules/**)",
+      "Read(./**/node_modules/**)",
+      "Read(./apps/api/.venv/**)",
+      "Read(./apps/web/.next/**)",
+      "Read(./.data/**)",
+      "Read(./docs/handoff-archive/**)",
+      "Read(./pnpm-lock.yaml)",
+      "Read(./apps/api/uv.lock)",
+      "Read(./packages/schemas/*.schema.json)",
+      "Read(./apps/web/src/templates/generated/**)",
+      "Read(./apps/web/src/xr/glyphs/bravura-outlines.ts)",
+      "Read(./apps/web/src/features/player/demo/neon-nocturne.analysis.json)",
+      "Read(./apps/web/src/engine/__fixtures__/demo-analysis.json)",
+      "Read(./.env)",
+      "Read(./infra/.env)",
+      "Read(./apps/api/.env)",
+      "Read(./apps/web/.env.local)"
+    ]
+  }
+}
