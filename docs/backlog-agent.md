@@ -25,7 +25,7 @@ Last reviewed: 2026-11-24 (after the Makefile / Docker / env / token session).
 | B4 | Caching headers in Caddy for `/demo/*` (MP3 922 KB, analysis JSON) and a `Cache-Control: immutable` check on `/_next/static/*`; validate with `docker run caddy caddy validate` | `infrastructure.md` | headers verified with `curl -kI` against `make dev` |
 | B5 | ~~Bundle budget guard~~ | done 2026-11-24 (phase 11) | — | `apps/web/scripts/check-bundle.mjs`: light pages must not load the engine chunk, ≤ 900 KB JS; run by `make bundle-check` and by the web Dockerfile after `next build` |
 | B6 | ~~Trim handoff pitfalls~~ | done 2026-11-24 (phase 11) | — | handoff 11.3 KB → 8.2 KB; 34 pitfalls moved to `docs/pitfalls.md`, 6 daily ones stay |
-| B7 | Run `make prune` and `make clean` once on this laptop (disk is 97 % full) and record what was freed | Makefile | `make disk` before/after in the handoff |
+| B7 | ~~`make prune` and `make clean` once~~ | done 2026-11-24 (phase 11) | — | disk 89 % (27 GB free); `prune` reclaimed 0 B (nothing dangling); `clean` removed `apps/web/.next` (700 MB). The 4.2 GB of reclaimable images belong to other projects: left alone |
 
 ## C. Documentation and tooling
 

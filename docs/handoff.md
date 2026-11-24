@@ -23,17 +23,16 @@ Read docs/handoff.md and continue with the next actions.
   containers (`angaly_*`) may be running — not started by these sessions; leave them alone.
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-24, Claude Code, phase 10 ShapeRecipe + tooling)
+## 2. Last session (2026-11-24, Claude Code, phase 11 quality and performance)
 
-- Phase 10 (branch `phase-10-shape-recipe`, one commit per task): `05-ai-world-director` task 6 done. Contract
-  `music-world.shape.v1` + `WorldTemplate.recipes`, Python triangle mirror, web `recipe-builder.ts` with parity
-  fixtures, structure view renders `recipe:*`, prompt `director-v2`. Store accepts defined recipes. Details:
-  `05-ai-world-director/design.md` § As built (task 6). Not done: Quest 3 check of heavy recipes (human).
-- Tooling merged earlier (PR #10): Makefile (`make help`), build only changed images, env examples, token budget,
-  `docs/optimization.md`, `docs/backlog-agent.md`. New: `WEB_PORT` (apps/web/.env.local or `make dev-web WEB_PORT=3001`)
-  and `make db-password` (old pgdata volume vs changed `POSTGRES_PASSWORD`).
-- Incident: a killed `pnpm` install (pnpm 12 verify-deps) half-broke `node_modules`; repaired with
-  `pnpm install --frozen-lockfile --offline --trust-lockfile`. Never interrupt a running pnpm install.
+- Phase 10 (ShapeRecipe, PR #11) merged, then tooling follow-ups: `NUMBA_CACHE_DIR` (worker failed in Basic Pitch),
+  director default is the `-contributor` Muse model (project decision, upload page warns users; keep `dataNote`),
+  `WEB_PORT`, `make db-password`.
+- Phase 11 (branch `phase-11-quality-perf`, backlog B3–B7, C1, C2): boto3 imported lazily; Caddy caches `/demo/*`;
+  `apps/web/scripts/check-bundle.mjs` (`make bundle-check`, run by the web Dockerfile); pitfalls moved to
+  `docs/pitfalls.md` (handoff 11.3 → 8 KB); `make smoke`; KIRO_USAGE token-budget section; prune/clean run.
+- Left in `docs/backlog-agent.md`: B1 (`pip-audit`, `pnpm audit`) and B2 (`pytest-xdist`) need network; C3 (verify
+  the Dockerfile weights layer is reused) needs network and ~6 GB; A2/A3 need a spec first.
 
 ## 3. Next actions
 
