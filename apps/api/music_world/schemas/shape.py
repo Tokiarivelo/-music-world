@@ -22,8 +22,8 @@ RecipeName = Annotated[str, StringConstraints(pattern=r"^[a-z0-9_]{1,40}$")]
 Op = Literal["box", "prism", "spike", "stack", "cluster"]
 Primitive = Literal["box", "prism", "spike"]
 
-MAX_TRIANGLES_CAP = 1000
-DEFAULT_MAX_TRIANGLES = 500
+MAX_TRIANGLES_CAP = 600  # = SHAPE_TRIANGLE_BUDGET of the web renderer (xr/constants.ts)
+DEFAULT_MAX_TRIANGLES = 300
 SPIKE_SIDES = 4  # a spike is an open 4-sided cone
 
 
