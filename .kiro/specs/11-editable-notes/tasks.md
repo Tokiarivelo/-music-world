@@ -1,0 +1,23 @@
+# Implementation Plan
+
+- [x] 1. `engine/edits.ts`: `LayoutEdits`, `applyEdits`, `stepPitch`, `snapToStaff`, undo/redo history; property tests.
+  - _Requirements: 3, 5, 7, 13_
+- [ ] 2. Contract: `music-world.edits.v1` schema, `when.line` in the template, director prompt + `PROMPT_VERSION`.
+  - _Requirements: 5, 6, 13_
+- [ ] 3. `engine/staff.ts` multi-line staves + `SpawnRecord.line`; one-line plan unchanged.
+  - _Requirements: 4, 5_
+- [ ] 4. `xr/audio/note-synth.ts` + `xr/picking.ts` with tests.
+  - _Requirements: 1, 2, 10, 12_
+- [ ] 5. Edit controller (hover, click-to-play, drag, ghost, snap, cancel, paused only) + highlight.
+  - _Requirements: 1, 2, 3_
+- [ ] 6. `EditToolbar`, lines, undo/redo/reset, keyboard, live region, strings (en, fr, mg).
+  - _Requirements: 4, 7, 11_
+- [ ] 6b. Per-note properties panel, multi-select, add/duplicate/delete.
+  - _Requirements: 13, 14_
+- [ ] 6c. Per-line properties and `colorRole: "line"`.
+  - _Requirements: 15_
+- [ ] 7. Persistence (browser, then `PUT /api/projects/{id}/edits`), "Play my edits".
+  - _Requirements: 8, 9_
+- [ ] 8. VR picking and drag, IWER check, docs, screenshots.
+  - _Requirements: 1, 3_
+- [ ] 9. (human) Quest 3 check: ray accuracy, drag comfort, tone latency.
