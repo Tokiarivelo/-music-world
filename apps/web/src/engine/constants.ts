@@ -44,6 +44,14 @@ export const KIND_HEIGHT: Readonly<Record<string, { base: number; extra: number 
 };
 export const RECIPE_HEIGHT = { base: 0.5, extra: 1.0 };
 
+/**
+ * Scenery (template `scenery`) is already standing at t = 0: its records landed this long before the song starts, so it
+ * is fully grown and never visible on the staff or in the air.
+ */
+export const SCENERY_LANDED_AT = -3600;
+export const SCENERY_VELOCITY_MIN = 0.35;
+export const SCENERY_VELOCITY_MAX = 0.9;
+
 /** Duration (beats) that maps to the full `duration` height factor. */
 export const DURATION_FULL_BEATS = 4;
 /** Emissive intensity = base + scale × velocity (requirement 3.5). */

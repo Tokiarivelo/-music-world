@@ -12,7 +12,9 @@ from music_world.schemas.base import ContractModel
 from music_world.schemas.shape import ShapeRecipe
 
 SCHEMA_ID = "music-world.template.v1"
-MAX_RECIPES = 4
+MAX_RECIPES = 16  # the AI World Director is held to 4 (director/domain/renderable.py)
+MAX_SCENERY_ITEMS = 24
+MAX_SCENERY_TOTAL = 400
 
 HexColor = Annotated[str, StringConstraints(pattern=r"^#[0-9a-fA-F]{6}$")]
 
@@ -86,6 +88,16 @@ class Zone(ContractModel):
         return self
 
 
+class SceneryItem(ContractModel):
+    """`count` objects of `kind` that stand on the plate from the first frame (no note needed).
+
+    Their positions come from the world seed inside the zones of their kind (the whole plate when it has none), so a
+    new seed rearranges them. They share the instance budget of their kind with the notes."""
+
+    kind: ShapeKind
+    count: int = Field(ge=1, le=60)
+
+
 class Budget(ContractModel):
     instances_per_kind: int = Field(default=2000, ge=1, le=2000, description="Cap; extra notes reuse the oldest slot.")
 
@@ -126,7 +138,14 @@ class WorldTemplate(ContractModel):
     budget: Budget = Budget()
     fx: Fx = Fx()
     recipes: list[ShapeRecipe] = Field(
-        default=[], max_length=MAX_RECIPES, description="Shapes referenced as `recipe:<name>` by mappings and zones."
+        default=[],
+        max_length=MAX_RECIPES,
+        description="Shapes referenced as `recipe:<name>` by mappings, zones and scenery.",
+    )
+    scenery: list[SceneryItem] = Field(
+        default=[],
+        max_length=MAX_SCENERY_ITEMS,
+        description="Objects present before the first note (an ocean full of fish, a forest…), placed from the seed.",
     )
     meta: TemplateMeta | None = None
 
@@ -135,4 +154,10 @@ class WorldTemplate(ContractModel):
         names = [r.name for r in self.recipes]
         if len(set(names)) != len(names):
             raise ValueError("recipes: names must be unique")
+        return self
+
+    @model_validator(mode="after")
+    def _scenery_total_is_bounded(self) -> "WorldTemplate":
+        if sum(item.count for item in self.scenery) > MAX_SCENERY_TOTAL:
+            raise ValueError(f"scenery: at most {MAX_SCENERY_TOTAL} objects in total")
         return self

@@ -84,7 +84,7 @@ def test_template_carries_recipes_with_unique_names() -> None:
     with pytest.raises(ValidationError, match="unique"):
         WorldTemplate.model_validate(_template(recipes=[recipe, recipe]))
     with pytest.raises(ValidationError):
-        WorldTemplate.model_validate(_template(recipes=[recipe | {"name": f"t{i}"} for i in range(5)]))
+        WorldTemplate.model_validate(_template(recipes=[recipe | {"name": f"t{i}"} for i in range(17)]))
 
 
 def test_renderability_accepts_only_defined_recipe_kinds() -> None:
@@ -97,3 +97,23 @@ def test_renderability_accepts_only_defined_recipe_kinds() -> None:
     assert any("recipe" in e for e in renderability_errors(ghost))
     zone = defined | {"zones": [{"kind": "recipe:ghost", "xMin": -1, "xMax": 1, "zMin": -1, "zMax": 1}]}
     assert any(e.startswith("zones[0].kind") for e in renderability_errors(zone))
+
+
+def test_scenery_is_bounded_and_needs_known_kinds() -> None:
+    recipe = FIXTURES[3]["recipe"]
+    scenery = [{"kind": "building", "count": 5}, {"kind": "recipe:tower", "count": 3}]
+    ok = _template(recipes=[recipe], scenery=scenery)
+    assert [s.count for s in WorldTemplate.model_validate(ok).scenery] == [5, 3]
+    assert renderability_errors(ok) == []
+    assert renderability_errors(_template(scenery=[{"kind": "recipe:nope", "count": 1}]))
+    with pytest.raises(ValidationError):
+        WorldTemplate.model_validate(_template(scenery=[{"kind": "building", "count": 0}]))
+    with pytest.raises(ValidationError, match="at most"):
+        WorldTemplate.model_validate(_template(scenery=[{"kind": "building", "count": 60}] * 8))
+
+
+def test_a_generated_template_keeps_at_most_four_recipes() -> None:
+    recipe = FIXTURES[3]["recipe"]
+    five = _template(recipes=[recipe | {"name": f"t{i}"} for i in range(5)])
+    assert WorldTemplate.model_validate(five)  # the store accepts up to 16
+    assert any("at most 4" in e for e in renderability_errors(five))
