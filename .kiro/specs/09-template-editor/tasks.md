@@ -26,6 +26,6 @@
 - [x] 10. `RecipesSection` and `RecipeEditor` / `PartEditor` components (op-specific fields, live triangle meter,
   limits 16 recipes and 8 parts); Testing Library tests.
   - _Requirements: 7.1–7.5_
-- [ ] 11. English, French and Malagasy strings, error messages, README and `PROJECT.md` §8, browser check
+- [x] 11. English, French and Malagasy strings, error messages, README and `PROJECT.md` §8, browser check
   (screenshot), handoff, tick.
   - _Requirements: 7.5, 7.6_
