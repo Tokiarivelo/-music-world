@@ -23,7 +23,7 @@ Last reviewed: 2026-11-24 (after the Makefile / Docker / env / token session).
 | B2 | Add `pytest-xdist` and make `test-api` run with `-n auto` (measured: 30 s serial, 8 cores available) | `docs/optimization.md` § Tests | `make check-api` faster, no flaky test across 5 runs (needs network once for `uv add --dev pytest-xdist`) |
 | B3 | ~~Lazy-load heavy API imports~~ | done 2026-11-24 (phase 11) | — | boto3 is now imported only when S3 is configured (−0.3 s cumulative); the rest of the 1.1 s is FastAPI 0.8 s and SQLAlchemy 0.36 s, not avoidable, so the < 0.6 s goal is dropped |
 | B4 | Caching headers in Caddy for `/demo/*` (MP3 922 KB, analysis JSON) and a `Cache-Control: immutable` check on `/_next/static/*`; validate with `docker run caddy caddy validate` | `infrastructure.md` | headers verified with `curl -kI` against `make dev` |
-| B5 | Budget test on the web bundle: fail `make check` if a non-play route loads the IWSDK chunk (6 MB, 1.5 MB gzip) | `frontend.md` | script in `apps/web/scripts/`, wired into `make check-web` |
+| B5 | ~~Bundle budget guard~~ | done 2026-11-24 (phase 11) | — | `apps/web/scripts/check-bundle.mjs`: light pages must not load the engine chunk, ≤ 900 KB JS; run by `make bundle-check` and by the web Dockerfile after `next build` |
 | B6 | Trim `docs/handoff.md` § 5 "Active pitfalls" (4 KB read every session): keep only the ones that bite daily, move the rest next to the code they concern | `docs/token-budget.md` | handoff ≤ 100 lines, no information lost (moved, not deleted) |
 | B7 | Run `make prune` and `make clean` once on this laptop (disk is 97 % full) and record what was freed | Makefile | `make disk` before/after in the handoff |
 

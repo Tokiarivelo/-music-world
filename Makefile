@@ -2,7 +2,7 @@
 .PHONY: help install \
 	dev dev-infra dev-api dev-worker dev-web up down restart ps logs shell \
 	build build-api build-web rebuild \
-	test test-api test-web check check-api check-web arch lint format schemas schemas-check \
+	test test-api test-web check check-api check-web bundle-check arch lint format schemas schemas-check \
 	deploy check-env db-password \
 	disk prune prune-images prune-cache prune-all prune-volumes clean clean-deps
 
@@ -102,6 +102,9 @@ check: schemas-check check-api check-web arch ## Lint + types + tests + architec
 
 check-api: test-api ## Lint, format check, types and tests of the API
 	cd $(API) && uv run ruff check . && uv run ruff format --check . && uv run mypy
+
+bundle-check: ## Build the web app and check the bundle budget (the 3D engine stays out of the light pages)
+	pnpm -C $(WEB) build && pnpm -C $(WEB) check-bundle
 
 check-web: schemas-check test-web ## Lint, types and tests of the web app
 	@if [ -f $(WEB)/package.json ]; then pnpm -C $(WEB) lint && pnpm -C $(WEB) typecheck; fi

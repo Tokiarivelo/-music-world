@@ -50,7 +50,7 @@ the repository; "Backlog" points to `docs/backlog-agent.md`.
 | # | Finding | Action | Status |
 |---|---|---|---|
 | P1 | Web output is standalone (41 MB), Turbopack build, `poweredByHeader` off | nothing to do | OK |
-| P2 | The 6 MB IWSDK + three chunk is **lazy** (`dynamic(..., { ssr: false })` in `WorldView`): `/`, `/sign-in`, `/templates`, `/upload` load 10 small chunks only. IWER (the emulator) is **absent** from the production bundle (checked: no `metaQuest3` string) | keep; add a CI-less budget guard so a refactor cannot pull IWSDK into the shared chunks | Backlog B5 |
+| P2 | The 6 MB IWSDK + three chunk is **lazy** (`dynamic(..., { ssr: false })` in `WorldView`): `/`, `/sign-in`, `/templates`, `/upload` load 10 small chunks only. IWER (the emulator) is **absent** from the production bundle (checked: no `metaQuest3` string) | keep; `apps/web/scripts/check-bundle.mjs` fails the build (`make bundle-check`, web Dockerfile) when a light page loads the engine or exceeds 900 KB of JS | Applied |
 | P3 | `/play/*` downloads ~1.5 MB gzip of JS plus a 922 KB demo MP3; Caddy already does `encode zstd gzip`, Next sets immutable headers on `/_next/static` | add `Cache-Control` for `/demo/*`; verify headers with `curl -kI` | Backlog B4 |
 | P4 | `uvicorn --workers 2` loads two copies of the app; rate limits are per worker (known) | acceptable for one demo instance; revisit only if memory is tight (worker + Demucs need 4 GB+) | No change |
 | P5 | Post-deploy image growth on a 40 GB disk | `infra/README.md` already says `docker image prune -f` + `docker builder prune -f`; `make prune` is the same on a dev machine. Never `prune-volumes` on the server (the target refuses when `infra/.env` is production) | Applied |

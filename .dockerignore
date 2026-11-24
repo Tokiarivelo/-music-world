@@ -20,5 +20,5 @@ infra/backups
 assets
 scripts
 apps/api/tests
-apps/web/scripts
+apps/web/scripts/xr-check.mjs
 **/*.md

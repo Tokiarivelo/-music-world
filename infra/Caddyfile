@@ -29,6 +29,11 @@
 		max_size 1MiB
 	}
 
+	# The demo song and its assets never change under the same name: let browsers keep them for a day (Next sends
+	# max-age=0 for public files). `>` applies the header after the upstream response.
+	@demo path /demo/*
+	header @demo >Cache-Control "public, max-age=86400"
+
 	handle /api/* {
 		# Caddy replaces any client X-Forwarded-For (no trusted_proxies): the API trusts it only from Caddy.
 		reverse_proxy api:8000
