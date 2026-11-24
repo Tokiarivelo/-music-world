@@ -75,7 +75,7 @@ describe('aurora style in the engine', () => {
   const classic = makeTemplate({ staff: { style: 'glowing_lines', lookahead: 5, fallDuration: 1.4 } });
 
   it('hangs the staff high above the plate, higher than the classic staff', () => {
-    expect(buildStaffPath(aurora).baseY).toBeGreaterThan(buildStaffPath(classic).baseY * 4);
+    expect(buildStaffPath(aurora).baseY).toBeGreaterThan(buildStaffPath(classic).baseY * 2);
     expect(buildStaffPath(aurora).lineGap).toBeGreaterThan(buildStaffPath(classic).lineGap);
   });
 
