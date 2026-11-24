@@ -104,5 +104,10 @@
   "edit.live.disabled": "Note editing off",
   "edit.playMine": "Play my edits",
   "edit.live.playMineOn": "Playing your edited score instead of the song",
-  "edit.live.playMineOff": "Playing the original song"
+  "edit.live.playMineOff": "Playing the original song",
+  "layers.searchLyrics": "Search lyrics",
+  "layers.searching": "Searching lyrics…",
+  "layers.lyricsNotFound": "No lyrics found for this song.",
+  "layers.lyricsFailed": "The lyrics search failed. Try again later.",
+  "layers.noVoice": "No voice detected in this song: add a .lrc file when you upload it."
 }

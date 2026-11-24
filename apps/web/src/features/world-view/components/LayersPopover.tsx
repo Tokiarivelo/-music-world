@@ -15,6 +15,7 @@ import {
 } from "@/engine/layers";
 import { useT } from "@/i18n";
 import type { Palette } from "@/xr/palette-generator";
+import type { LyricsSearch } from "../lib/lyrics-search";
 
 interface LayersPopoverProps {
   hidden: HiddenLayers;
@@ -22,6 +23,8 @@ interface LayersPopoverProps {
   /** Whether the song has lyrics: without them the Lyrics toggle is disabled and says why. */
   hasLyrics: boolean;
   palette: Palette;
+  /** Offered instead of the "add a .lrc" hint when the song has a voice (project pages only). */
+  lyricsSearch?: LyricsSearch;
   /** Polled for the activity meters (about 10 times a second while the panel is open). */
   activity(): Activity | null;
 }
@@ -45,7 +48,7 @@ function swatchOf(id: LayerId, palette: Palette): string {
 }
 
 /** "Layers" popover (I5): a toggle per stem, chords, lyrics, effects and staff, presets, and a meter per stem. */
-export function LayersPopover({ hidden, onChange, hasLyrics, palette, activity }: LayersPopoverProps) {
+export function LayersPopover({ hidden, onChange, hasLyrics, palette, activity, lyricsSearch }: LayersPopoverProps) {
   const t = useT("world");
   const [open, setOpen] = useState(false);
   const [levels, setLevels] = useState<Activity | null>(null);
@@ -103,7 +106,26 @@ export function LayersPopover({ hidden, onChange, hasLyrics, palette, activity }
                       </span>
                     )}
                   </button>
-                  {disabled && <p className="px-2 text-xs text-white/70">{t("layers.noLyrics")}</p>}
+                  {disabled && (
+                    <div className="space-y-1 px-2 text-xs text-white/80">
+                      {lyricsSearch?.voice ? (
+                        <>
+                          <button
+                            className={`${BUTTON} w-full`}
+                            disabled={lyricsSearch.status === "searching"}
+                            onClick={lyricsSearch.start}
+                            type="button"
+                          >
+                            {t(lyricsSearch.status === "searching" ? "layers.searching" : "layers.searchLyrics")}
+                          </button>
+                          {lyricsSearch.status === "notFound" && <p role="status">{t("layers.lyricsNotFound")}</p>}
+                          {lyricsSearch.status === "failed" && <p role="alert">{t("layers.lyricsFailed")}</p>}
+                        </>
+                      ) : (
+                        <p>{t(lyricsSearch ? "layers.noVoice" : "layers.noLyrics")}</p>
+                      )}
+                    </div>
+                  )}
                 </li>
               );
             })}

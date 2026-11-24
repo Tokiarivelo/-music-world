@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useT } from "@/i18n";
 import { SiteNav } from "@/features/navigation";
 import type { Analysis } from "@/templates/generated";
@@ -13,6 +13,7 @@ import {
 import { useStoreTemplates } from "@/features/template-store";
 import { WorldView } from "@/features/world-view";
 import { loadProjectAudio, projectEditsRemote } from "../api/project.api";
+import { useLyricsSearch } from "../hooks/use-lyrics-search";
 import { useProjectAnalysis } from "../hooks/use-project-analysis";
 import { usePlaySeed } from "../hooks/use-play-seed";
 import { useSongPlayer } from "../hooks/use-song-player";
@@ -30,7 +31,7 @@ interface ProjectWorldProps {
 
 function ProjectWorld({
   projectId,
-  analysis,
+  analysis: initial,
   storeTemplateId,
 }: ProjectWorldProps) {
   const t = useT("player");
@@ -42,6 +43,10 @@ function ProjectWorld({
     [projectId],
   );
   const player = useSongPlayer(deps);
+  // The lyrics search updates the analysis of this page (the stored one is updated by the job).
+  const [found, setFound] = useState<Analysis | null>(null);
+  const analysis = found ?? initial;
+  const lyricsSearch = useLyricsSearch(projectId, analysis, setFound);
   const source = useMemo<DirectorSource>(
     () => ({ kind: "project", projectId }),
     [projectId],
@@ -66,7 +71,7 @@ function ProjectWorld({
   );
   return (
     <div className="relative h-dvh w-full">
-      <WorldView controls={controls} editsKey={analysis.audioHash} editsRemote={editsRemote} onScoreMode={player.setMuted} scene={scene} />
+      <WorldView controls={controls} editsKey={analysis.audioHash} editsRemote={editsRemote} lyricsSearch={analysis.lyrics.length === 0 ? lyricsSearch : undefined} onScoreMode={player.setMuted} scene={scene} />
       <div className="absolute left-3 top-3 z-10 max-w-[calc(100%-11rem)] sm:max-w-none">
         <SiteNav />
         <div className="mt-2" />

@@ -22,6 +22,7 @@ import { useNoteEdits } from "../hooks/use-note-edits";
 import { EditToolbar } from "./EditToolbar";
 import type { EditsRemote } from "../lib/edits-storage";
 import { ColorsPopover } from "./ColorsPopover";
+import type { LyricsSearch } from "../lib/lyrics-search";
 import { LayersPopover } from "./LayersPopover";
 import { LyricsOverlay } from "./LyricsOverlay";
 import { NavigationControls } from "./NavigationControls";
@@ -32,9 +33,10 @@ interface WorldCanvasProps {
   editsKey?: string;
   editsRemote?: EditsRemote;
   onScoreMode?(on: boolean): void;
+  lyricsSearch?: LyricsSearch;
 }
 
-export default function WorldCanvas({ scene, controls, editsKey, editsRemote, onScoreMode }: WorldCanvasProps) {
+export default function WorldCanvas({ scene, controls, editsKey, editsRemote, onScoreMode, lyricsSearch }: WorldCanvasProps) {
   const t = useT("world");
   const containerRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<WorldHandle | null>(null);
@@ -145,6 +147,7 @@ export default function WorldCanvas({ scene, controls, editsKey, editsRemote, on
             activity={() => handle?.activity() ?? null}
             hasLyrics={hasLyrics}
             hidden={hiddenLayers}
+            lyricsSearch={lyricsSearch}
             onChange={setHiddenLayers}
             palette={scene.template.palette}
           />

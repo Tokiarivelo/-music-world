@@ -1,4 +1,4 @@
-import { AnalysisSchema, type Analysis } from '@/templates/generated';
+import { AnalysisSchema, JobSchema, ProjectCreatedSchema, type Analysis, type Job } from '@/templates/generated';
 import { apiFetch, apiJson } from '@/lib/api-client';
 import { ApiError, apiErrorFrom } from '@/lib/api-error';
 import type { EditsRemote } from '@/features/world-view';
@@ -47,4 +47,21 @@ export function projectEditsRemote(projectId: string): EditsRemote {
       }).catch(guard);
     },
   };
+}
+
+/** `POST /api/projects/{id}/lyrics-search`: looks the lyrics up online, then transcribes the voice; returns the job id. */
+export async function startLyricsSearch(projectId: string): Promise<string> {
+  const url = `/api/projects/${encodeURIComponent(projectId)}/lyrics-search`;
+  const created = ProjectCreatedSchema.parse(await apiJson(url, { method: 'POST' }));
+  if (created.jobId === null) throw new ApiError('UNKNOWN', 500);
+  return created.jobId;
+}
+
+/** `GET /api/jobs/{id}`. */
+export async function getJobStatus(jobId: string): Promise<Job> {
+  const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}`, { cache: 'no-store' }).catch(() => {
+    throw new ApiError('NETWORK', 0);
+  });
+  if (!response.ok) throw await apiErrorFrom(response);
+  return JobSchema.parse(await response.json());
 }

@@ -56,7 +56,7 @@ from music_world.projects.application.use_cases.get_project import GetProject
 from music_world.projects.application.use_cases.get_project_audio import GetProjectAudio
 from music_world.projects.application.use_cases.project_edits import GetProjectEdits, SaveProjectEdits
 from music_world.projects.application.use_cases.run_job import RunJob
-from music_world.projects.domain.job_kinds import ANALYZE_PROJECT_JOB_KIND, DEMO_JOB_KIND
+from music_world.projects.domain.job_kinds import ANALYZE_PROJECT_JOB_KIND, DEMO_JOB_KIND, SEARCH_LYRICS_JOB_KIND
 from music_world.projects.infrastructure.arq_job_queue import ArqJobQueue
 from music_world.projects.infrastructure.demo_job_handler import DemoJobHandler
 from music_world.projects.infrastructure.ffprobe_audio_probe import FfprobeAudioProbe
@@ -337,6 +337,26 @@ class Container:
             await self.engine.dispose()
 
 
+def _lyrics_search_handler(
+    settings: Settings, store: ObjectStoreAdapter, repo: SqlAlchemyAnalysisRepository, projects: ProjectsAudioSource
+) -> JobHandler:
+    """The "search lyrics" job: an explicit request, so speech recognition is used even when `LYRICS_ASR` is off."""
+    from music_world.analysis.application.lyrics_finder import LyricsFinder
+    from music_world.analysis.application.use_cases.search_lyrics import SearchLyrics
+    from music_world.analysis.infrastructure.audio_tags import FfprobeTagReader
+    from music_world.analysis.infrastructure.lrclib_lookup import LrclibLookup
+    from music_world.analysis.infrastructure.whisper_lyrics import WhisperLyricsTranscriber
+    from music_world.analysis.interfaces.jobs import SearchLyricsJobHandler
+
+    finder = LyricsFinder(
+        store,
+        LrclibLookup() if settings.lyrics_lookup else None,
+        FfprobeTagReader(),
+        WhisperLyricsTranscriber(settings.lyrics_asr_model, settings.lyrics_language),
+    )
+    return SearchLyricsJobHandler(SearchLyrics(projects, repo, store, finder))
+
+
 def _analysis_handler(
     settings: Settings, store: ObjectStoreAdapter, repo: SqlAlchemyAnalysisRepository, projects: ProjectsAudioSource
 ) -> JobHandler:
@@ -387,11 +407,14 @@ def build_container(settings: Settings, *, with_analysis: bool = False) -> Conta
     analyses = SqlAlchemyAnalysisRepository(sessions)
     analysis_cache = AnalysisCache(analyses)
     handlers: dict[str, JobHandler] = {DEMO_JOB_KIND: DemoJobHandler()}
-    enqueue_job = EnqueueJob(repo, ArqJobQueue(redis), [*handlers.keys(), ANALYZE_PROJECT_JOB_KIND], uuid7, utc_now)
+    enqueue_job = EnqueueJob(
+        repo, ArqJobQueue(redis), [*handlers.keys(), ANALYZE_PROJECT_JOB_KIND, SEARCH_LYRICS_JOB_KIND], uuid7, utc_now
+    )
     get_project = GetProject(projects, repo, analysis_cache)
     project_audio = ProjectsAudioSource(get_project)
     if with_analysis:
         handlers[ANALYZE_PROJECT_JOB_KIND] = _analysis_handler(settings, store, analyses, project_audio)
+        handlers[SEARCH_LYRICS_JOB_KIND] = _lyrics_search_handler(settings, store, analyses, project_audio)
     get_project_analysis = GetProjectAnalysis(project_audio, analyses)
     return Container(
         settings=settings,

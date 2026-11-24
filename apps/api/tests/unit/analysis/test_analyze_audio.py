@@ -290,3 +290,30 @@ async def test_a_user_lrc_skips_recognition_and_an_instrumental_catalog_entry_sk
     use_case2, _ = _with_lyrics(FakeLookup(FoundLyrics((), instrumental=True)), asr2)
     instrumental = await use_case2.execute(INPUT, Recorder())
     assert instrumental.lyrics == [] and asr2.calls == 0
+
+
+async def test_search_lyrics_updates_the_stored_analysis_and_leaves_it_alone_when_nothing_is_found() -> None:
+    from music_world.analysis.application.lyrics_finder import LyricsFinder
+    from music_world.analysis.application.ports import ProjectAudio
+    from music_world.analysis.application.use_cases.search_lyrics import SearchLyrics
+
+    use_case, repo, store = make()
+    await use_case.execute(INPUT, Recorder())  # the analysis exists, without lyrics
+    before = await repo.get(HASH)
+    assert before is not None and before.lyrics == []
+
+    class Projects:
+        async def get(self, project_id: str) -> ProjectAudio:
+            return ProjectAudio(HASH, "audio/x.wav", None)
+
+    nothing = SearchLyrics(Projects(), repo, store, LyricsFinder(store, None, None, CountingAsr([])))
+    assert await nothing.execute("p") == 0 and (await repo.get(HASH)) == before
+
+    heard = [LyricLine(1.0, 2.0, "first line"), LyricLine(3.0, 4.0, "second line"), LyricLine(5.0, 99.0, "late line")]
+    store.objects.pop(next(k for k in store.objects if k.endswith("/lyrics.json")), None)
+    found = SearchLyrics(Projects(), repo, store, LyricsFinder(store, None, None, CountingAsr(heard)))
+    assert await found.execute("p") == 3
+    after = await repo.get(HASH)
+    assert after is not None and after.lyrics_source == "whisper" and after.notes == before.notes
+    assert [s.text for s in after.lyrics] == ["first line", "second line", "late line"]
+    assert after.lyrics[-1].end == DURATION  # clamped to the song
