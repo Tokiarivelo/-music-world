@@ -81,6 +81,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | Roadmap 8.4, 8.5 | Claude Code (deploy/hardening) | done | `docs/security-review.md`, `infra/README.md` |
 | Roadmap 8.1–8.3 | — | blocked | scripts + runbook ready; needs instance, domain, keys (human) |
 | Roadmap 9.1, 9.2 | Claude Code (submission docs) | done | `README.md`, `KIRO_USAGE.md` |
+| 08-navigation-mode 1–6 | Claude Code (world-builder) | in progress | branch `feature-navigation-mode` |
 | Roadmap 9.3–9.5 | — | blocked | human: video, Devpost, posts; drafts in `docs/submission.md` |
 
 ## 5. Active pitfalls
