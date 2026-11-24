@@ -17,6 +17,10 @@ fileMatchPattern: "apps/api/music_world/*/interfaces/**"
 - Ownership: load the resource, compare `owner_id` with the caller, answer **404** on mismatch.
 - Uploads: `multipart/form-data`, streamed to object storage; reject by content sniffing, size (25 MB) and
   duration (180 s) with `413` / `415` / `422`.
+- Body size: `shared/body_limit.py` refuses bodies over 1 MiB (26 MiB + 64 KiB + 1 MiB for `POST /api/projects`)
+  with `413 REQUEST_TOO_LARGE` before FastAPI parses them; Caddy enforces the same limits. A new upload route needs
+  its own entry in `path_limits` (`main.py`) and in the Caddyfile.
+- Production: the API refuses to start with `SESSION_COOKIE_SECURE=false` or an `http://` `PUBLIC_BASE_URL`.
 - Long operations return `202` with `{ "jobId": "…" }`; clients poll `GET /api/jobs/{id}` (status, stage, progress).
 - Pagination: `?cursor=&limit=` (max 50), response `{ "items": [...], "nextCursor": "…" | null }`.
 - JSON field names are camelCase on the wire (pydantic `alias_generator=to_camel`), snake_case in Python.

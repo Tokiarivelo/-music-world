@@ -1,0 +1,11 @@
+# Music World server cron (install: crontab infra/cron/music-world.cron, from the repository root on the server).
+# Adjust MW to the checkout path; cron mails any output (set MAILTO) and every script is silent on success.
+MAILTO=""
+MW=/home/ubuntu/music-world
+
+# Nightly database + local storage backup at 03:15 UTC, 14 kept.
+15 3 * * * cd $MW && infra/scripts/backup-db.sh --storage
+# Disk space every 30 minutes (alert at 85 %).
+*/30 * * * * cd $MW && infra/scripts/check-disk.sh 85
+# Public health every 5 minutes (non-zero exit and a line on failure).
+*/5 * * * * cd $MW && infra/scripts/check-health.sh

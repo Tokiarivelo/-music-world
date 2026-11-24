@@ -12,3 +12,4 @@ infra/.env
 **/.env
 **/.env.*
 docs/handoff-archive
+infra/backups

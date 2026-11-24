@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-26 · **Last updated by:** Claude Code (roadmap Phase 6 — Template store)
+> **Date:** 2026-11-24 · **Last updated by:** Claude Code (roadmap Phase 8 — hardening and deploy readiness)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -12,39 +12,36 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 1. Repository state
 
-- Phase 6 worked on branch `phase-6-template-store` (one commit per `06-template-store` task + this handoff), merged
-  into `main` through the PR "Phase 6: template store". Work from `main` (or a new phase branch).
+- Phase 8 prep worked on branch `phase-8-hardening` (one commit per roadmap task: 8.4, 8.5, 8.1–8.3 prep, + this
+  handoff), merged into `main` through the PR "Phase 8: hardening and deploy readiness". Work from `main`.
   Push with gh credentials: `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
-- Uncommitted: none. Commits are unsigned (GPG signing fails non-interactively).
-- `make check` green (exit 0): API pytest 302 passed (3 slow deselected), web vitest 177 passed (40 files), ruff,
+- Uncommitted: none.
+- `make check` green (exit 0): API pytest 313 passed (3 slow deselected), web vitest 177 passed (40 files), ruff,
   mypy strict, eslint, tsc, schema drift and architecture checks clean.
-- No server left running. A `music-world` Compose stack and another project's containers (`angaly_*`, postgres on
-  5432) may be running — not started by these sessions; leave them alone. The Compose stack predates migrations
-  `0003`/`0004`: rebuild before using it (`make build`, the api runs `alembic upgrade head` at start).
+- Compose validated statically (`docker compose -f infra/docker-compose.yml --env-file <throwaway> config`); no image
+  was built (disk ~98 % full). Caddyfile checked with `caddy validate` / `caddy adapt` in a throwaway container.
+- No server left running. A `music-world` Compose stack (old images, predates Phase 6) and another project's
+  containers (`angaly_*`) may be running — not started by these sessions; leave them alone.
+- **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet.
 
-## 2. Last session (2026-11-26, Claude Code, Phase 6)
+## 2. Last session (2026-11-24, Claude Code, roadmap Phase 8 prep)
 
-- Created spec `06-template-store` (requirements in EARS, design, tasks) from `PROJECT.md` §8; tasks 1–6 done
-  (6 = P2 reports + upload limit); 7 is the human check.
-- Accounts: **e-mail magic link** (no GitHub OAuth). `EmailSender` port: `console` (link logged, default) / `smtp`.
-  Tokens and sessions random 256-bit, stored as SHA-256, single use (atomic `UPDATE … RETURNING`), 15 min / 30 days.
-  Cookies `mw_session` (httpOnly, Secure, Lax) + `mw_csrf`; unsafe requests with a session need `X-CSRF-Token`
-  (`src/lib/api-client.ts` adds it). Production also refuses cross-origin `/api/auth/*` POSTs.
-- Ownership: projects uploaded signed in get `owner_id`; others get 404 on project/audio/analysis/director
-  (`shared/auth.py` `AccessibleProjectId`). Anonymous uploads stay public by id (judge path needs no login).
-  Director rate limit keyed by user or IP.
-- Store (`apps/api/music_world/templates/`): validate (pydantic + store spec: 32 KB, built-in kinds, staff contrast,
-  plain-text name), unique template id suffix, drafts/publish/delete owner-only (404), thumbnails sniffed
-  (PNG/JPEG/WebP ≤ 128 KB, ≤ 640 px), public cursor-paginated gallery, featured launch templates from JSON files.
-- Web: `features/auth` (`/sign-in`, `/auth/verify`), `features/template-store` (`/templates`, publish button for
-  AI-generated worlds with a generated palette WebP thumbnail, report button), player picker = built-ins → `?template=`
-  store template → generated → other store templates (the VR panel shows only 4 slots).
-- Halloween launch template `kiroween-pumpkin-night` (store id `00000000-0000-7000-8000-000000000001`).
-- Live check with Playwright (sign-in via logged link, publish, other browser uses it) and
-  `MW_ANGLE=vulkan node apps/web/scripts/xr-check.mjs` 28/28 (new check: VR picker lists the store template).
-  Details: `.kiro/specs/06-template-store/design.md` § As built.
-- **Deviations** (in `design.md`): thumbnail is a generated palette preview, not a WebGL capture; reports have no
-  review UI (restore with SQL); `RateLimitedError` moved to `shared/errors.py`.
+- 8.4 security review over the whole app → `docs/security-review.md` (no high finding; 2 medium fixed, low ones
+  recorded with reasons).
+- Fixed: request body limit (`shared/body_limit.py`, 413 `REQUEST_TOO_LARGE`; 26 MiB + 64 KiB + 1 MiB for
+  `POST /api/projects`, 1 MiB elsewhere) because Starlette spooled whole multipart bodies to disk before the 25 MB
+  check; same limits in Caddy (`request_body`).
+- Fixed: Caddy CSP, `X-Frame-Options DENY`, `Permissions-Policy`; Next `poweredByHeader: false`. CSP checked in
+  Chromium behind a throwaway Caddy in front of `next dev`: no violation, demo world renders.
+- Fixed: the API refuses to start in production with `SESSION_COOKIE_SECURE=false` or an `http://`
+  `PUBLIC_BASE_URL`; `infra/scripts/check-env.sh` (`make check-env`) fails fast on missing/unsafe env (names only).
+- 8.5: log rotation (`x-logging`), worker `stop_grace_period`, `backup-db.sh` (+ `--storage`, retention),
+  `check-disk.sh`, `check-health.sh`, `infra/cron/music-world.cron`, restore steps in `infra/README.md` § Backups,
+  Demucs weights pre-downloaded in `api.Dockerfile` (`TORCH_HOME=/opt/models/torch`, not built yet).
+- 8.1–8.3 prep: `infra/deploy.sh` (`make deploy`: ssh, checkout pushed commit, check-env, build, up, wait healthy,
+  rollback hint, `DRY_RUN=1`), runbook `infra/README.md` § Deploy, `.env.example` + Compose gained
+  `META_VOICE_MODEL`, `AWS_SESSION_TOKEN`; skill `deploy-ovh` updated.
+- Not run (needs network to advisory DBs): `uvx pip-audit`, `pnpm audit --prod` — do it once before submission.
 
 ## 3. Next actions
 
@@ -61,10 +58,12 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
    checks. If Muse rejects `response_format` json_schema, drop it in `providers/muse.py`.
 4. **Human** — `07-xr-mode` task 7 on a Quest 3 (`07-xr-mode/design.md` § Human checks), incl. the Halloween template
    fps; then tick `03-world-engine-core` task 7.
-5. Roadmap 8 — deploy (skill `deploy-ovh`): migrations `0003_accounts_templates`, `0004_template_reports` run at api
-   start; set `PUBLIC_BASE_URL` (Compose default `https://$DOMAIN`), `AUTH_EMAIL_SENDER`/`SMTP_*`; the API image needs
-   ffmpeg + torch CPU and `anthropic[bedrock]`; pre-download Demucs weights; then check `/upload`, `/templates`,
-   `/api/director/providers`. Outbound SMTP (587) must be allowed on the instance.
+5. **Human** — roadmap 8.1–8.3 deploy, exact steps in `infra/README.md` § Deploy: instance (≥ 4 vCPU / 8 GB, ports
+   22/80/443 in, 443/587 out), DNS A record, Docker, clone to `~/music-world`, `infra/.env` from `.env.example`
+   (`APP_ENV=production`, strong `POSTGRES_PASSWORD`, `AUTH_EMAIL_SENDER=smtp`, keys) until
+   `infra/scripts/check-env.sh` prints 0 errors, then `DEPLOY_HOST=ubuntu@<ip> DEPLOY_DOMAIN=<domain> make deploy`
+   (try `DRY_RUN=1`), verify per skill `deploy-ovh` § Verify incl. Quest Browser Enter VR (8.3) and the browser
+   console for CSP reports, then install the cron file and run one backup by hand.
 6. Optional: `05-ai-world-director` task 6 (ShapeRecipe, P2); a template editor (publish non-AI templates from the
    UI); review UI for hidden templates; `02-music-analysis` 6.1 (Muse Voice); `01-foundation` 6.2/6.3/7.
 
@@ -73,7 +72,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 | Task | Owner | Status | Note |
 |---|---|---|---|
 | 01-foundation 1–5, 6.1 | Claude Code | done | merged |
-| 01-foundation 6.2, 6.3 | — | todo | needs OVHcloud instance + bucket |
+| 01-foundation 6.2, 6.3 | — | blocked | needs OVHcloud instance + bucket; `deploy.sh` ready (Phase 8) |
 | 01-foundation 7 | — | blocked | needs API keys (human) |
 | 02-music-analysis 1–5, 6.2, 7–10 | Claude Code (audio-analyst) | done | merged with Phase 3 PR |
 | 02-music-analysis 6.1 | — | blocked | Muse Voice: needs `META_API_KEY` + format check (P2) |
@@ -87,6 +86,8 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 | 05-ai-world-director 7 | — | blocked | real calls need `META_API_KEY` / AWS credentials (human) |
 | 06-template-store 1–6 | Claude Code | done | merged with Phase 6 PR |
 | 06-template-store 7 | — | blocked | real e-mail (SMTP credentials) + public URL (human) |
+| Roadmap 8.4, 8.5 | Claude Code (deploy/hardening) | done | `docs/security-review.md`, `infra/README.md` |
+| Roadmap 8.1–8.3 | — | blocked | scripts + runbook ready; needs instance, domain, keys (human) |
 
 ## 5. Active pitfalls
 
@@ -122,6 +123,11 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
   `director/infrastructure/default_template.json` must equal the web `neon-nocturne.json` (test).
 - `anthropic` 2.x uses `httpx2`: mock its transport with `httpx2.MockTransport`.
 - Muse and Bedrock adapters, and the SMTP sender, were never run against live services (no credentials).
+- Body limits live in two places (`main.py` `path_limits` and the Caddyfile): a new upload route needs both.
+- New external origin in the web app (CDN, presigned S3 URLs) → extend the Caddy CSP, or it is blocked silently.
+- Production `create_app` raises on `SESSION_COOKIE_SECURE=false` / `http://` `PUBLIC_BASE_URL`: tests that build a
+  production app must pass an https `public_base_url`.
+- Never `docker volume prune` on the server (pgdata, storage, Let's Encrypt certificates).
 - Deadline: Kiroween submission **2026-12-04 14:00 PT**; demo audio must be royalty-free.
 
 ## 6. Open specs

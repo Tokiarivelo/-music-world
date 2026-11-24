@@ -11,7 +11,26 @@
 		respond 404
 	}
 
+	# Request body limits (the API enforces the same ones): song uploads 26 MiB, every other body 1 MiB.
+	@upload {
+		method POST
+		path /api/projects
+	}
+	@small_body {
+		not {
+			method POST
+			path /api/projects
+		}
+	}
+	request_body @upload {
+		max_size 26MiB
+	}
+	request_body @small_body {
+		max_size 1MiB
+	}
+
 	handle /api/* {
+		# Caddy replaces any client X-Forwarded-For (no trusted_proxies): the API trusts it only from Caddy.
 		reverse_proxy api:8000
 	}
 
@@ -19,10 +38,15 @@
 		reverse_proxy web:3000
 	}
 
+	# CSP: Next.js inline bootstrap scripts need 'unsafe-inline' (no nonces); WebAssembly needs 'wasm-unsafe-eval';
+	# IWSDK fetches WebXR controller profiles from jsDelivr and glTF decoders from unpkg (connect-src only).
 	header {
 		Strict-Transport-Security "max-age=31536000"
 		X-Content-Type-Options nosniff
 		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options DENY
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' blob: data: https://cdn.jsdelivr.net https://unpkg.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 		-Server
 	}
 }

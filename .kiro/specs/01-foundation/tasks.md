@@ -33,6 +33,8 @@
   - [x] 6.1 Dockerfiles (web standalone, api, worker), `infra/docker-compose.yml`, Caddyfile, `.env.example`.
   - [ ] 6.2 S3 client configured for OVHcloud Object Storage; upload/download smoke test.
   - [ ] 6.3 `infra/deploy.sh`; deploy and verify `https://<domain>/api/health`, then open `/play/demo` on a Quest.
+    - `infra/deploy.sh` written in roadmap Phase 8 prep (runbook `infra/README.md` § Deploy); the deploy itself
+      needs the instance (human).
   - _Requirements: 6.1–6.4, 1.3_
 
 - [ ] 7. Day-1 risk checks (record results in `KIRO_USAGE.md` and `PROJECT.md` §13)
