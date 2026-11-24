@@ -1,0 +1,21 @@
+# Files an AI agent must not read (token budget, docs/token-budget.md). Gitignore syntax.
+# Same list as .claude/settings.json "deny" and the "Never read" rule in .kiro/steering/rules.md: edit all together.
+node_modules/
+.venv/
+.next/
+.data/
+docs/handoff-archive/
+pnpm-lock.yaml
+uv.lock
+packages/schemas/*.schema.json
+apps/web/src/templates/generated/
+apps/web/src/xr/glyphs/bravura-outlines.ts
+apps/web/src/features/player/demo/neon-nocturne.analysis.json
+apps/web/src/engine/__fixtures__/demo-analysis.json
+*.mp3
+*.wav
+*.flac
+*.otf
+.env
+.env.local
+infra/.env

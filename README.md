@@ -45,13 +45,26 @@ make dev                              # then open https://localhost/play/demo (a
 curl -k https://localhost/api/health  # {"status":"ok",…}
 ```
 
+`make dev` builds an image only when its sources changed (content hash), so a second run starts at once.
+
+**Hot reload on the host** (api, worker and web outside Docker; Postgres and Redis in Docker on 127.0.0.1):
+
+```bash
+cp apps/api/.env.example apps/api/.env          # optional: only to change a default
+make dev-infra                                  # postgres + redis
+make dev-api                                    # terminal 2: migrations, then uvicorn --reload on :8000
+make dev-worker                                 # terminal 3 (only to analyse a song)
+make dev-web                                    # terminal 4: http://localhost:3000/play/demo
+```
+
 **Developer checks:**
 
 ```bash
 cd apps/api && uv sync && cd ../..    # Python deps
 make schemas                          # pydantic -> JSON Schema -> TS + zod
-make check                            # schema drift + lint + types + tests + architecture check
-make help                             # every target
+make -j3 check                        # schema drift + lint + types + tests + architecture check (api and web in parallel)
+make help                             # every target (run, build, test, prune, clean)
+make disk && make prune               # disk usage, then safe Docker clean-up
 ```
 
 ## Features
@@ -97,6 +110,8 @@ MW_ANGLE=vulkan node apps/web/scripts/xr-check.mjs   # GPU; without MW_ANGLE it 
 
 ## Configuration
 
+Environment files: `infra/.env.example` (Docker stack and production, the global one), `apps/api/.env.example`
+(API and worker on the host) and `apps/web/.env.example` (Next dev server, copy to `.env.local`).
 Production settings: copy `infra/.env.example` to `infra/.env` and validate it with `make check-env`. Deploying
 (`DEPLOY_HOST=user@host make deploy`), backups, restore and uptime checks: [`infra/README.md`](infra/README.md).
 Without `S3_*` settings, uploads and stems go to a local directory (`STORAGE_DIR`, a Docker volume in Compose).

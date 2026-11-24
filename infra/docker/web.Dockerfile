@@ -1,14 +1,19 @@
+# syntax=docker/dockerfile:1
 # Next.js standalone image. Build context: repository root.
 FROM node:22-alpine AS build
 RUN npm install -g pnpm@10.29.3
+ENV npm_config_store_dir=/pnpm/store
 WORKDIR /repo
+# Manifests first: the install layer is rebuilt only when a dependency changes. The pnpm store cache mount keeps
+# downloaded packages between builds (not part of the image).
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY apps/web/package.json apps/web/
 COPY packages/schemas/package.json packages/schemas/
-RUN pnpm install --frozen-lockfile --filter @music-world/web...
+RUN --mount=type=cache,id=music-world-pnpm,target=/pnpm/store pnpm install --frozen-lockfile --filter @music-world/web...
 COPY apps/web/ apps/web/
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN pnpm -C apps/web build
+# .next/cache (Turbopack / webpack incremental cache) survives between builds: only changed modules are rebuilt.
+RUN --mount=type=cache,id=music-world-next,target=/repo/apps/web/.next/cache pnpm -C apps/web build
 
 FROM node:22-alpine
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000

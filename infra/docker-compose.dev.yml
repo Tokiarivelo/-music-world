@@ -1,0 +1,7 @@
+# Development override (make dev-infra): publishes Postgres and Redis on 127.0.0.1 only, so the API, the worker and
+# the web app can run on the host with hot reload. Never used in production (deploy.sh loads docker-compose.yml only).
+services:
+  postgres:
+    ports: ["127.0.0.1:5432:5432"]
+  redis:
+    ports: ["127.0.0.1:6379:6379"]

@@ -11,7 +11,7 @@ the same change**. Edit the existing file; never create a duplicate.
 |---|---|
 | Requirement or design change during a task | the spec's `requirements.md` / `design.md` (and note the deviation in the handoff) |
 | New or changed schema (`music-world.*.vN`) | `PROJECT.md` §9 (contracts) · regenerate with `make schemas` |
-| New env variable | `infra/.env.example` · `tech.md` (env table) · `README.md` (setup) |
+| New env variable | `infra/.env.example` (+ `apps/api/.env.example` or `apps/web/.env.example` when they apply) · `env.md` (Bedrock/Muse: `tech.md`) · `x-api-env` in `docker-compose.yml` · `README.md` (setup) |
 | New service, port, compose or Caddy change | `infrastructure.md` · `README.md` (run/deploy) |
 | New LLM model id, provider or prompt version | `ai-models.md` · `PROJECT.md` §5 |
 | New shape kind, recipe op or template field | `PROJECT.md` §6 / §8 · default template · `world-template` skill if the checklist changes |

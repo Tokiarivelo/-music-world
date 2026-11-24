@@ -13,6 +13,7 @@ here. Never copy these rules elsewhere: edit `.kiro/` instead.
 |---|---|---|
 | `product.md` | always | Vision, default look, MVP scope, product rules |
 | `tech.md` | always | Stack, non-negotiable engineering rules, LLM providers, perf budget |
+| `env.md` | fileMatch `settings.py`, `.env.example`, `infra/**` | Core and accounts environment variables, which `.env.example` file gets what |
 | `structure.md` | always | Monorepo layout, naming, schema pipeline |
 | `coding-standards.md` | always | TypeScript and Python standards, errors, logging, security |
 | `handoff.md` | always | Session start/end, handoff between agents, task ownership |
@@ -71,4 +72,11 @@ Master plan and priorities (P0/P1/P2, cut line, token rules): `docs/roadmap.md` 
 - All repository text (code, comments, docs for judges, commit messages) is in **English**. `PROJECT.md` stays French.
 - Commits, PRs, issues and review comments never mention Claude, Claude Code or any AI agent: no
   `Co-Authored-By` trailer, no "Generated with" line, no agent attribution of any kind.
+- Token budget (`docs/token-budget.md`): search then read a range, run only the touched tests, never open generated files,
+  lockfiles or `docs/handoff-archive/`, edit instead of rewriting a file, `/clear` between tasks.
+- **Never read** (every agent): `node_modules`, `.venv`, `.next`, `.data`, `docs/handoff-archive/`, lockfiles
+  (`pnpm-lock.yaml`, `uv.lock`), generated files (`packages/schemas/*.schema.json`, `templates/generated/`,
+  `bravura-outlines.ts`), the demo analysis JSON files, audio/font binaries, `.env` files. Read the source instead
+  (pydantic models, scripts). Enforced by `.claude/settings.json` (Claude Code) and `.cursorignore`, `.geminiignore`,
+  `.codeiumignore`, `.aiderignore`; Codex, Kiro and others follow this rule. Keep all of them identical.
 - Read large files by search + range, never whole. Do not open `docs/handoff-archive/` unless a task needs history.
