@@ -30,6 +30,12 @@ Read docs/handoff.md and continue with the next actions.
   into `rules.md`, `frontend.md`, `new-web-feature`); `MyTemplates` on `/templates` with the "Hidden after reports,
   under review" label (requirement 4.1 closed); launch template **Nemo Reef** (`featured/nemo-reef.json`, store id
   `…0002`, listed after Kiroween Pumpkin Night).
+- Template **scenery** (new, contract change): `scenery: [{kind, count}]` stands objects on the plate before the first
+  note (engine `sceneryRecords`, records `[0, sceneryCount)`, placed from the world seed in the zones of their kind);
+  recipes cap 4 → 16 for the store (the AI director stays at 4). **Nemo Reef** now has 16 recipes + 5 native kinds,
+  116 scenery objects, 21 pitch bands. Limits to know: the seed comes from the song hash, so the arrangement is the
+  same each time a song is played (a per-play reshuffle is not done); recipe shapes are scaled to a 0.25 m footprint
+  and 0.5–1.5 m height, so every object is tall and narrow.
 - A personal e-mail was committed in `apps/api/.env.example` by mistake (`062da9c`) and emptied in the next commit; it
   stays in that branch's history. Never put real e-mails in tracked files: set `MODERATOR_EMAILS` in `infra/.env`.
 - Previous session (phase A2): `09-template-editor` 1–8 (`/editor`, `PUT /api/templates/{id}`); not done: recipe
