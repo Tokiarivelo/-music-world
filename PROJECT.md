@@ -298,7 +298,7 @@ Chaque utilisateur peut publier des templates que les autres utilisent pendant l
 - Conditions `when` (toutes optionnelles, combinées en ET) : `pitch` et `velocity` (`<a`, `>a` stricts, `a-b` inclusif),
   `chord` (booléen), `stem`. `spawn` : `terrain_ridge | building | spike | crystal | cluster | recipe:<nom>`.
 - Les accords sont toujours reliés par un arc lumineux (`fx.chordLinks`), indépendamment des mappings.
-- **Décor** (`scenery`, ≤ 24 entrées `{kind, count ≤ 60}`, ≤ 400 objets au total) : des objets déjà posés sur la plaque à t = 0, sans note, entièrement développés. Leur position vient de la graine du monde, dans les zones de leur `kind` : une autre graine réorganise toute la scène. Ils partagent le budget `instancesPerKind` de leur `kind` ; `spawnedCount` ne les compte pas. Exemple : `nemo-reef` (16 recettes + 5 formes natives, 116 objets).
+- **Décor** (`scenery`, ≤ 24 entrées `{kind, count ≤ 60}`, ≤ 400 objets au total) : des objets déjà posés sur la plaque à t = 0, sans note, entièrement développés. Leur position vient de la graine du monde, dans les zones de leur `kind` : une autre graine réorganise toute la scène. Ils partagent le budget `instancesPerKind` de leur `kind` ; `spawnedCount` ne les compte pas. Chaque Play depuis le début (premier Play, ou Play après la fin) tire une nouvelle graine (`usePlaySeed`) : décor et notes sont réorganisés à chaque lecture ; pause et reprise gardent la graine. Une recette règle son échelle avec `footprint` (0,1–1,5 m, défaut 0,25) et `heightScale` (0,1–2, défaut 1) pour être large et basse (tortue, épave) ou fine et haute. Exemple : `nemo-reef` (16 recettes + 5 formes natives, 116 objets).
 
 ### Règles
 

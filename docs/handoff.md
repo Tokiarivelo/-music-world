@@ -33,9 +33,9 @@ Read docs/handoff.md and continue with the next actions.
 - Template **scenery** (new, contract change): `scenery: [{kind, count}]` stands objects on the plate before the first
   note (engine `sceneryRecords`, records `[0, sceneryCount)`, placed from the world seed in the zones of their kind);
   recipes cap 4 → 16 for the store (the AI director stays at 4). **Nemo Reef** now has 16 recipes + 5 native kinds,
-  116 scenery objects, 21 pitch bands. Limits to know: the seed comes from the song hash, so the arrangement is the
-  same each time a song is played (a per-play reshuffle is not done); recipe shapes are scaled to a 0.25 m footprint
-  and 0.5–1.5 m height, so every object is tall and narrow.
+  116 scenery objects, 21 pitch bands. Each Play from the beginning draws a new world seed (`usePlaySeed`, in the demo
+  and project players only; the editor preview keeps one), so the arrangement changes every run. Recipes have
+  `footprint` (m) and `heightScale` for squat or wide shapes (`engine/recipe-scale.ts`); Nemo sets both per recipe.
 - A personal e-mail was committed in `apps/api/.env.example` by mistake (`062da9c`) and emptied in the next commit; it
   stays in that branch's history. Never put real e-mails in tracked files: set `MODERATOR_EMAILS` in `infra/.env`.
 - Previous session (phase A2): `09-template-editor` 1–8 (`/editor`, `PUT /api/templates/{id}`); not done: recipe
