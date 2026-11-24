@@ -33,3 +33,9 @@ class TemplateNotEditableError(MusicWorldError):
     """Only a draft can be edited: a published (or hidden) template is immutable."""
 
     code = "TEMPLATE_NOT_EDITABLE"
+
+
+class TemplateNotHiddenError(MusicWorldError):
+    """A moderation decision on a template that is not (or no longer) hidden: answers 409."""
+
+    code = "TEMPLATE_NOT_HIDDEN"

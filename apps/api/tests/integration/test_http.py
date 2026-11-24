@@ -28,6 +28,7 @@ from tests.fakes import (
     InMemoryAnalysisRepository,
     InMemoryJobRepository,
     InMemoryLoginTokenRepository,
+    InMemoryModerationAudit,
     InMemoryObjectStore,
     InMemoryProjectRepository,
     InMemoryReportRepository,
@@ -77,7 +78,9 @@ def make_container(
             InMemorySessionRepository(),
             sender or CapturingEmailSender(),
         ),
-        templates=build_templates(settings, InMemoryStoreTemplateRepository(), store, InMemoryReportRepository()),
+        templates=build_templates(
+            settings, InMemoryStoreTemplateRepository(), store, InMemoryReportRepository(), InMemoryModerationAudit()
+        ),
         upload_limiter=SlidingWindowLimiter(settings.upload_rate_limit_per_hour, 3600.0),
         check_project_access=CheckProjectAccess(projects),
     )

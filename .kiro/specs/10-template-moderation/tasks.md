@@ -5,7 +5,7 @@
   - _Requirements: 1.1–1.4_
 - [x] 2. Migration (`moderation_actions`, `reports_since`), repository methods, `ModerationAudit` adapter; tests.
   - _Requirements: 3.1, 3.4_
-- [ ] 3. Use cases `ListHiddenTemplates`, `RestoreTemplate`, `RemoveTemplate` with fakes; property test on counts
+- [x] 3. Use cases `ListHiddenTemplates`, `RestoreTemplate`, `RemoveTemplate` with fakes; property test on counts
   after a restore.
   - _Requirements: 2.1, 3.1, 3.2, 5.2_
 - [ ] 4. Router `/api/moderation/*` (404 rules, CSRF, rate limit, 409), docs in `api-specs.md`; HTTP tests.
