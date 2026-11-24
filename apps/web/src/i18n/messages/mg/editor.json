@@ -153,5 +153,8 @@
   "part.spread": "Fivelarana",
   "part.seedOffset": "Fiovana",
   "error.recipeName": "Litera 1 hatramin’ny 40: a-z, 0-9 ary _, tsy mitovy amin’ny endrika hafa.",
-  "error.recipeBudget": "Mila telozoro maro kokoa noho ny fetra ny ampahany."
+  "error.recipeBudget": "Mila telozoro maro kokoa noho ny fetra ny ampahany.",
+  "staff.style": "Fomba",
+  "opt.glowing_lines": "Tsipika mazava",
+  "opt.aurora": "Aorora any an-danitra"
 }

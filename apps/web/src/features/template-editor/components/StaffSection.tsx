@@ -10,10 +10,20 @@ import { SelectInput } from './fields/SelectInput';
 
 export function StaffSection({ draft, errors, update }: SectionProps) {
   const t = useT('editor');
-  const { path, clef, glow, lookahead, fallDuration } = draft.staff;
+  const { style, path, clef, glow, lookahead, fallDuration } = draft.staff;
   return (
     <Section title={t('section.staff')}>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <SelectInput
+          label={t('staff.style')}
+          value={style}
+          options={[
+            { value: 'glowing_lines', label: t('opt.glowing_lines') },
+            { value: 'aurora', label: t('opt.aurora') },
+          ]}
+          error={firstError(errors, 'staff.style')}
+          onChange={(v) => update((d) => setOption(d, 'staff', 'style', v as typeof style))}
+        />
         <SelectInput
           label={t('staff.path')}
           value={path}
