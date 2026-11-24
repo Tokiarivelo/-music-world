@@ -10,9 +10,12 @@ from music_world.templates.domain.model import StoreTemplate, TemplateStatus
 FEATURED_DIR = Path(__file__).parent / "featured"
 FEATURED_AUTHOR = "Music World"
 FEATURED_OWNER = "00000000-0000-7000-8000-000000000000"
+KIROWEEN_STORE_ID = "00000000-0000-7000-8000-000000000001"
 FEATURED_AT = datetime(2026, 11, 26, tzinfo=UTC)
 # Store id → file. Fixed UUIDv7-shaped ids so links to a launch template never change.
-FEATURED_FILES: dict[str, str] = {}
+FEATURED_FILES: dict[str, str] = {
+    KIROWEEN_STORE_ID: "kiroween-pumpkin-night.json",  # Halloween launch template
+}
 
 
 class FileFeaturedCatalog:

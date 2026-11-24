@@ -43,7 +43,7 @@ describe('useAiTemplateChoice', () => {
     expect(hook.result.current.template.id).toBe('neon-nocturne');
   });
 
-  it('lists store templates between built-ins and generated ones and selects the requested one once', () => {
+  it('lists the requested store template and generated ones before other store templates, selects it once', () => {
     const night = { ...NEON_NOCTURNE, id: 'kiroween-pumpkin-night', name: 'Pumpkin Night' };
     const other = { ...NEON_NOCTURNE, id: 'neon-nocturne-2e3f4a5b' };
     const d = director([generated('ai-mock-a')]);
@@ -54,8 +54,8 @@ describe('useAiTemplateChoice', () => {
     expect(hook.result.current.templates.map((t) => t.id)).toEqual([
       'neon-nocturne',
       'kiroween-pumpkin-night',
-      'neon-nocturne-2e3f4a5b',
       'ai-mock-a',
+      'neon-nocturne-2e3f4a5b',
     ]);
     expect(hook.result.current.template.id).toBe('kiroween-pumpkin-night');
     act(() => hook.result.current.selectTemplate('neon-nocturne'));

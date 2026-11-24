@@ -14,17 +14,20 @@ export interface StoreChoice {
 
 const NO_STORE: StoreChoice = { templates: [], requestedTemplateId: null };
 
-/** Built-ins, then store templates, then every AI-generated one (2D page and VR picker); each new generation and the
- * requested store template are selected. Ids are unique: a later duplicate is dropped. */
+/** Built-ins, the requested store template, every AI-generated one, then the other store templates (2D page and VR
+ * picker); each new generation and the requested store template are selected. A later duplicate id is dropped. */
 export function useAiTemplateChoice(director: DirectorState, store: StoreChoice = NO_STORE): TemplateChoiceState {
   const templates = useMemo(() => {
     const seen = new Set<string>();
-    return [...BUILTIN_TEMPLATES, ...store.templates, ...director.templates].filter((t) => {
+    // The VR panel shows the first VR_PANEL_TEMPLATE_SLOTS (4): keep the requested store template and the generated
+    // ones ahead of the other store templates.
+    const requested = store.templates.filter((t) => t.id === store.requestedTemplateId);
+    return [...BUILTIN_TEMPLATES, ...requested, ...director.templates, ...store.templates].filter((t) => {
       if (seen.has(t.id)) return false;
       seen.add(t.id);
       return true;
     });
-  }, [store.templates, director.templates]);
+  }, [store.templates, store.requestedTemplateId, director.templates]);
   const choice = useTemplateChoice(templates);
   const { selectTemplate } = choice;
   const latestId = director.latest?.template.id ?? null;

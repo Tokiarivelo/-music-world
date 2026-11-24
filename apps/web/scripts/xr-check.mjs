@@ -339,7 +339,13 @@ try {
         if (!doc && typeof o.getElementById === 'function') doc = o;
       });
       const text = (id) => doc.getElementById(id).properties.peek().text;
-      return { title: text('mw-title'), time: text('mw-time'), play: text('mw-play'), tpl0: text('mw-tpl-0') };
+      return {
+        title: text('mw-title'),
+        time: text('mw-time'),
+        play: text('mw-play'),
+        tpl0: text('mw-tpl-0'),
+        tpl1: text('mw-tpl-1'),
+      };
     });
     check(
       'panel: title, time, play label and template picker reflect the player',
@@ -349,6 +355,22 @@ try {
         panelText.tpl0 === 'Neon Nocturne',
       JSON.stringify(panelText),
     );
+    // 06-template-store: with the API running, the store's launch template joins the VR picker after the built-in.
+    const storeUp = await page.evaluate(() =>
+      fetch('/api/templates?limit=1').then(
+        (r) => r.ok,
+        () => false,
+      ),
+    );
+    if (storeUp) {
+      check(
+        'panel: template picker lists the store templates',
+        panelText.tpl1 === 'Kiroween Pumpkin Night',
+        panelText.tpl1,
+      );
+    } else {
+      console.log('SKIP panel: store templates (API not reachable from next dev)');
+    }
   }
   // Look down at the table like a standing user (pitch −35°) for the screenshot.
   await page.evaluate(() => globalThis.__mwXRDevice.quaternion.set(Math.sin(-0.3054), 0, 0, Math.cos(-0.3054)));

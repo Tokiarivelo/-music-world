@@ -19,7 +19,7 @@
   store templates in `useAiTemplateChoice` (2D and VR picker), `?template=<store id>`, zod re-validation, offline
   fallback; run `apps/web/scripts/xr-check.mjs` once if feasible.
   - _Requirements: 4.1–4.6_
-- [ ] 5. (6.5, P1) Halloween template `kiroween-pumpkin-night` as a featured store template (skill `world-template`
+- [x] 5. (6.5, P1) Halloween template `kiroween-pumpkin-night` as a featured store template (skill `world-template`
   checklist), validated by pydantic, the store specification and zod; renders on `/play/demo?template=…`.
   - _Requirements: 5.1, 5.2_
 - [ ] 6. (6.6, P2) Reports (closed reasons, one per user and template, hide at threshold) and upload rate limit.

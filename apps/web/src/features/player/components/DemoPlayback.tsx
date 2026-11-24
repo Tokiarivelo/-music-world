@@ -40,7 +40,7 @@ export function DemoPlayback({ storeTemplateId = null }: { storeTemplateId?: str
       <div className="absolute left-3 top-3 z-10 max-w-[calc(100%-11rem)] sm:max-w-none">
         <DirectorPanel director={director} template={template} />
         <div className="mt-2 rounded-lg bg-[var(--mw-bg)]/80 px-3 py-2 empty:hidden">
-          <TemplateActions template={template} />
+          <TemplateActions template={template} generatedHere={director.templates.includes(template)} />
         </div>
       </div>
       {/* IWSDK sizes its canvas to the window, so the controls float above it. */}
