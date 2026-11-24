@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 # Only the first five minutes of a song are analysed (decoder cut); the rest plays with generic notes in the world.
-MAX_DURATION_SEC = 300.0
+MAX_ANALYZED_MINUTES = 5
+MAX_DURATION_SEC = MAX_ANALYZED_MINUTES * 60.0
 # Demucs htdemucs works at 44.1 kHz stereo; every stage reads this mix.
 MIX_SAMPLE_RATE = 44100
 MIX_CHANNELS = 2
