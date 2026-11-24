@@ -30,6 +30,11 @@ export async function listStoreTemplates(cursor: string | null = null, limit?: n
   return parsePage(await apiJson(`/api/templates${query}`, { cache: 'no-store' }));
 }
 
+/** `GET /api/templates/mine` (signed in): the caller's drafts, published and hidden templates. */
+export async function listMyTemplates(): Promise<StoreTemplate[]> {
+  return parsePage(await apiJson('/api/templates/mine', { cache: 'no-store' })).items;
+}
+
 /** `GET /api/templates/{id}`. */
 export async function getStoreTemplate(id: string): Promise<StoreTemplate> {
   return StoreTemplateSchema.parse(await apiJson(`/api/templates/${encodeURIComponent(id)}`, { cache: 'no-store' }));

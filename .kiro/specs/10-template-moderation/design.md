@@ -52,7 +52,7 @@ Set `MODERATOR_EMAILS` on the server and review one real hidden template after t
 - Contract: `music-world.session.v1` gains optional `moderator` (absent unless true), new `music-world.moderation-queue.v1`.
 - Web: `features/moderation` (`ModerationPage`, `QueueList`, `ReasonList`, `DecisionButtons`, `ModerationLink` in the
   site nav), page `/moderation`, namespace `moderation` in en / fr / mg.
-- Not done: requirement 4.1 "Hidden after reports, under review" label. The web app has no "My templates" list yet
-  (`GET /api/templates/mine` already returns `status: "hidden"`); add the label when that list exists.
+- Requirement 4.1: `/templates` shows a "My templates" section for signed-in users (`MyTemplates`, `GET /api/templates/mine`)
+  with a status label per template and "Hidden after reports, under review" on hidden ones (en / fr / mg).
 - Deploy note: `infra/.env.example` gains `MODERATOR_EMAILS=`; `check-env.sh` requires the name to be present in
   `infra/.env` (empty is fine).
