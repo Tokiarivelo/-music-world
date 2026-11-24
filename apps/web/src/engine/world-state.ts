@@ -9,6 +9,8 @@
  *   alive    afterwards                      until its slot is reused by a newer note of the same kind
  */
 import { ARC_FADE_SEC, FALL_ARC_HEIGHT, PULSE_DECAY_SEC } from './constants';
+import { hashSeed } from './prng';
+import { rainPosition } from './rain';
 import type { SpawnPlan, SpawnRecord } from './spawn-plan';
 import { staffNotePosition } from './staff';
 import type { ColorRole, GlyphKind, ShapeKind, Vec3 } from './types';
@@ -123,6 +125,9 @@ function energyAt(times: readonly number[], values: readonly number[], t: number
 
 function fallPosition(plan: SpawnPlan, r: SpawnRecord, progress: number): Vec3 {
   const from = staffNotePosition(plan.staff, plan.staff.playheadU, r.staffU);
+  if (plan.template.staff.style === 'aurora') {
+    return rainPosition(from, r.target, hashSeed(plan.seed, r.noteId), progress, plan.template.terrain.size);
+  }
   const lift = FALL_ARC_HEIGHT * 4 * progress * (1 - progress);
   return {
     x: from.x + (r.target.x - from.x) * progress,

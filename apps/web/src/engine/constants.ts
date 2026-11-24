@@ -27,6 +27,10 @@ export const STAFF_PLAYHEAD_U = 0.12;
 /** Staff height above the plate and spacing between its 5 lines, as fractions of the plate size. */
 export const STAFF_HEIGHT_RATIO = 0.06;
 export const STAFF_LINE_GAP_RATIO = 0.012;
+/** Aurora style (I6): the staff hangs high above the plate, its lines are wider apart, notes sway as they fall. */
+export const AURORA_HEIGHT_RATIO = 0.32;
+export const AURORA_GAP_FACTOR = 2.2;
+export const AURORA_SWAY_RATIO = 0.02;
 /** Peak of the falling arc above the straight line from staff to target, in metres. */
 export const FALL_ARC_HEIGHT = 0.6;
 
