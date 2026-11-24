@@ -9,7 +9,7 @@ Rules in `.kiro/steering/infrastructure.md`; deployment steps in the `deploy-ovh
 | `Caddyfile` | HTTPS, `/api/*` → api, rest → web, body limits, cache headers (`/demo/*`, `/_next/static/*`), security headers and CSP |
 | `docker/` | `api.Dockerfile` (api + worker, ffmpeg, Demucs weights pre-downloaded), `web.Dockerfile` |
 | `.env.example` | every variable; copy to `infra/.env` on the server (never committed). Host-run API and web have their own: `apps/api/.env.example`, `apps/web/.env.example` |
-| `docker-compose.dev.yml` | `make dev-infra` only: publishes Postgres and Redis on 127.0.0.1 for the host-run API and worker |
+| `docker-compose.dev.yml` | `make dev`, `up`, `dev-infra`: publishes Postgres and Redis on 127.0.0.1 and runs Garage (local S3) |
 | `scripts/build-changed.sh` | builds an image only when its sources changed (content hash in `.data/build/`); used by `make dev`, `up`, `build` |
 | `deploy.sh` | `make deploy`: ssh to the server, checkout a pushed commit, check env and disk, build, up, wait healthy |
 | `scripts/check-env.sh` | fails fast on missing or unsafe production settings (names only, never values) |
