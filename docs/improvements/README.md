@@ -1,6 +1,6 @@
 # Improvement phases (post-MVP)
 
-Eight improvements asked on 2026-11-24, one file per phase. Each file has: goal (the request), current state (checked in
+Nine improvements asked on 2026-11-24, one file per phase (I9 added the same day). Each file has: goal (the request), current state (checked in
 the code), requirements with acceptance criteria, design, tasks (one commit per task, like the roadmap phases),
 verification and the decisions that need a human. They are plans: nothing here is implemented yet. When a phase starts,
 convert it to a spec in `.kiro/specs/<NN>-<name>/` (`requirements.md`, `design.md`, `tasks.md`) as the workflow requires.
@@ -11,10 +11,11 @@ convert it to a spec in `.kiro/specs/<NN>-<name>/` (`requirements.md`, `design.m
 | I2 | [`i2-fullscreen-world.md`](i2-fullscreen-world.md) | 3D space fills the whole screen, no black areas | 1–1.5 days | no — **done** (branch `phase-I2-fullscreen-world`) |
 | I3 | [`i3-i18n.md`](i3-i18n.md) | Every text in locale files, multi-language | 2–3 days | translations (fr, mg) — **done** (branch `phase-14-i18n`), review pending |
 | I4 | [`i4-random-scene-colors.md`](i4-random-scene-colors.md) | Brighter scene, random / chosen colors | 1–1.5 days | no |
-| I5 | [`i5-layers-instruments-lyrics.md`](i5-layers-instruments-lyrics.md) | Show instruments, voice, lyrics; toggle each | 2–3 days | stem model choice |
+| I5 | [`i5-layers-instruments-lyrics.md`](i5-layers-instruments-lyrics.md) | Show instruments, voice, lyrics; toggle each | 2–3 days | stem model choice — **desktop done** (VR page not done) |
 | I6 | [`i6-aurora-sky-staff.md`](i6-aurora-sky-staff.md) | Tablature as aurora in the sky, notes rain down | 3 days | Quest check — **first slice done** (style `aurora`, rain, curtain, Aurora Night) |
 | I7 | [`i7-immersive-scale.md`](i7-immersive-scale.md) | Immersion and explore: you stand inside the world | 2–3 days | Quest check, comfort — **first slice done** (walk, scale, VR glide) |
 | I8 | [`i8-realistic-objects.md`](i8-realistic-objects.md) | Clouds, cars, bicycles, planes, plants… very realistic | 5+ days | asset sourcing and licences |
+| I9 | [`i9-editable-notes.md`](i9-editable-notes.md) | Click a note when paused to hear it, move it to other lines, create a new line | 6–8 days | decided: lines are full staves, per-note and per-line colors; open: sampled tone |
 
 ## Order and schedule
 

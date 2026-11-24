@@ -16,7 +16,10 @@ import {
   type NavigationCommands,
 } from "../hooks/use-navigation-shortcuts";
 import { usePaletteOverride, usePaletteStore } from "../hooks/use-palette-override";
+import { useHiddenLayers } from "../hooks/use-hidden-layers";
 import { ColorsPopover } from "./ColorsPopover";
+import { LayersPopover } from "./LayersPopover";
+import { LyricsOverlay } from "./LyricsOverlay";
 import { NavigationControls } from "./NavigationControls";
 
 interface WorldCanvasProps {
@@ -73,6 +76,9 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
   // The listener's colors (I4) go on top of the template after each load.
   usePaletteOverride(handle, scene);
   const paletteStore = usePaletteStore(scene);
+  const [hiddenLayers, setHiddenLayers] = useHiddenLayers(handle);
+  const lyrics = scene?.analysis.lyrics;
+  const hasLyrics = !!lyrics && lyrics.length > 0;
 
   // Player commands for VR; swapping them never rebuilds the world.
   useEffect(() => {
@@ -118,6 +124,20 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
           store={paletteStore}
           templatePalette={scene.template.palette}
         />
+      )}
+      {scene && !immersive && (
+        <>
+          <LayersPopover
+            activity={() => handle?.activity() ?? null}
+            hasLyrics={hasLyrics}
+            hidden={hiddenLayers}
+            onChange={setHiddenLayers}
+            palette={scene.template.palette}
+          />
+          {hasLyrics && (
+            <LyricsOverlay hidden={hiddenLayers.has("lyrics")} lyrics={lyrics} now={() => scene.clock.now()} />
+          )}
+        </>
       )}
       {vrSupported && (
         <button

@@ -26,11 +26,13 @@ import { mapNote, type MappedNote } from './mapping';
 import { noteStream, uniform } from './prng';
 import { recipeScale } from './recipe-scale';
 import { buildStaffPath, type StaffPath } from './staff';
-import type { ColorRole, EngineAnalysis, GlyphKind, NoteEvent, ShapeKind, Vec3, WorldTemplate } from './types';
+import type { ColorRole, EngineAnalysis, GlyphKind, NoteEvent, ShapeKind, Stem, Vec3, WorldTemplate } from './types';
 
 export interface SpawnRecord {
   readonly index: number;
   readonly noteId: string;
+  /** Instrument of the note (I5 layers); null for template scenery. */
+  readonly stem: Stem | null;
   readonly kind: ShapeKind;
   /** Instance slot within its kind: `indexWithinKind % budget` (the oldest slot is reused, requirement 1.5). */
   readonly slot: number;
@@ -156,6 +158,7 @@ function sceneryRecords(
       const size = kindSize(item.kind, template);
       records.push({
         noteId: id,
+        stem: null,
         kind: item.kind,
         onset: SCENERY_LANDED_AT - fallDuration,
         duration: 0,
@@ -212,6 +215,7 @@ export function buildSpawnPlan(analysis: EngineAnalysis, template: WorldTemplate
     return {
       index,
       noteId: note.id,
+      stem: note.stem,
       kind: mapped.kind,
       slot,
       onset: note.time,

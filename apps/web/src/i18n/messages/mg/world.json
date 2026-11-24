@@ -35,5 +35,21 @@
   "colors.contrast": "Fifanoherana",
   "nav.walk": "Mandeha",
   "nav.walkReset": "Hiverina eo am-piandohana",
-  "nav.walkHint": "Alefaso hijery · WASD na zana-tsipìka handeha · Shift handeha haingana · Q / E hanodina · R hiverina · G hivoaka"
+  "nav.walkHint": "Alefaso hijery · WASD na zana-tsipìka handeha · Shift handeha haingana · Q / E hanodina · R hiverina · G hivoaka",
+  "layers.title": "Sosona",
+  "layers.presets": "Safidy voalohany momba ny sosona",
+  "layers.preset.everything": "Rehetra",
+  "layers.preset.rhythm": "Hira mandeha ihany",
+  "layers.preset.melody": "Feo hira ihany",
+  "layers.preset.voice": "Feo sy tononkira",
+  "layers.noLyrics": "Tsy misy tononkira ity hira ity: ampio rakitra .lrc rehefa mandefa azy.",
+  "layer.drums": "Ampongatapaka",
+  "layer.bass": "Basy",
+  "layer.vocals": "Feo",
+  "layer.other": "Zavamaneno hafa",
+  "layer.chords": "Hira mifanaraka",
+  "layer.lyrics": "Tononkira",
+  "layer.fx": "Poti-javatra sy endrika",
+  "layer.staff": "Andalan-kira",
+  "lyrics.label": "Tononkira"
 }

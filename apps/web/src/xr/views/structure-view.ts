@@ -4,10 +4,12 @@
  * palette role or gradient × emissive); slots without a live structure collapse to zero scale (seek backwards).
  */
 import { Color, Group, InstancedMesh, Matrix4, MeshBasicMaterial, Quaternion, Vector3 } from 'three';
+import { isRecordShown } from '@/engine/layers';
 import type { SpawnPlan } from '@/engine/spawn-plan';
 import { recipeScale } from '@/engine/recipe-scale';
 import type { ShapeKind, WorldTemplate } from '@/engine/types';
 import type { WorldState } from '@/engine/world-state';
+import { layerStore } from '../layer-store';
 import { KIND_FOOTPRINT, RECIPE_FOOTPRINT } from '../constants';
 import { lightness, structureColor } from '../palette';
 import { buildShapeGeometry } from '../shapes/builtin-shapes';
@@ -38,9 +40,13 @@ export class StructureView implements WorldView {
   private readonly scale = new Vector3();
   private readonly color = new Color();
   private lastT = Number.NaN;
+  private readonly unsubscribe: () => void;
 
   constructor(private readonly plan: SpawnPlan) {
     this.object.name = 'structures';
+    this.unsubscribe = layerStore.subscribe(() => {
+      this.lastT = Number.NaN; // redraw at once, even while paused
+    });
     const { palette } = plan.template;
     // Ridges are mountains: terrain hue (lifted toward the primary), not the pitch gradient (requirement 2.4).
     this.ridgeColor = new Color(palette.terrain)
@@ -84,7 +90,9 @@ export class StructureView implements WorldView {
       for (let i = 0; i < mesh.count; i++) mesh.setMatrixAt(i, ZERO);
     }
     const palette = this.plan.template.palette;
+    const hidden = layerStore.hidden;
     for (const s of state.structures) {
+      if (!isRecordShown(this.plan, s.index, hidden)) continue;
       const mesh = this.meshes.get(s.kind);
       if (!mesh || s.slot >= mesh.count) continue;
       const footprint = footprintOf(s.kind, this.plan.template) * (0.6 + 0.4 * s.growth);
@@ -104,6 +112,7 @@ export class StructureView implements WorldView {
   }
 
   dispose(): void {
+    this.unsubscribe();
     for (const mesh of this.meshes.values()) mesh.geometry.dispose();
     for (const material of this.materials.values()) material.dispose();
   }

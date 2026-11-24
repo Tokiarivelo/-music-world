@@ -16,6 +16,7 @@ import {
   InstancedMesh,
   Matrix4,
   Mesh,
+  Object3D,
   MeshBasicMaterial,
   Points,
   PointsMaterial,
@@ -29,6 +30,7 @@ import { mulberry32, uniform } from '@/engine/prng';
 import { staffPoint } from '@/engine/staff';
 import type { SpawnPlan } from '@/engine/spawn-plan';
 import type { WorldState } from '@/engine/world-state';
+import { layerStore } from '../layer-store';
 import {
   ARC_CAPACITY_MAX,
   ARC_HEIGHT_MAX,
@@ -124,6 +126,9 @@ export class FxView implements WorldView {
   private readonly arcMaterial: MeshBasicMaterial;
   private readonly decorMaterial: MeshBasicMaterial;
   private readonly particles: Points;
+  private decor: Object3D = new Object3D();
+  private particlesOn = true;
+  private unsubscribe: () => void = () => {};
   private readonly particleMaterial: PointsMaterial;
   private readonly arcColor: Color;
   private readonly disposables: Array<{ dispose(): void }> = [];
@@ -172,7 +177,8 @@ export class FxView implements WorldView {
     const decor = decorArcs(plan, rng);
     const decorGeometry = mergeGeometries(decor.tubes);
     if (decorGeometry) {
-      this.object.add(new Mesh(decorGeometry, this.decorMaterial));
+      this.decor = new Mesh(decorGeometry, this.decorMaterial);
+      this.object.add(this.decor);
       this.disposables.push(decorGeometry);
     }
     this.disposables.push(this.decorMaterial);
@@ -210,7 +216,11 @@ export class FxView implements WorldView {
       depthWrite: false,
     });
     this.particles = new Points(particleGeometry, this.particleMaterial);
-    this.particles.visible = fx.particles !== 'none';
+    this.particlesOn = fx.particles !== 'none';
+    this.particles.visible = this.particlesOn;
+    this.unsubscribe = layerStore.subscribe(() => {
+      this.lastT = Number.NaN;
+    });
     this.object.add(this.particles);
     this.disposables.push(particleGeometry, this.particleMaterial, dot);
   }
@@ -223,10 +233,13 @@ export class FxView implements WorldView {
   update(state: WorldState): void {
     if (state.t === this.lastT) return; // paused: nothing changed (everything below is a function of t)
     this.lastT = state.t;
+    const hidden = layerStore.hidden;
+    this.decor.visible = !hidden.has('fx');
+    this.particles.visible = this.particlesOn && !hidden.has('fx');
     const glow = this.glow(state.pulses.energy);
     let n = 0;
     let intensity = 0;
-    for (const arc of state.arcs) {
+    for (const arc of hidden.has('chords') ? [] : state.arcs) {
       if (n >= this.arcs.instanceMatrix.count) break;
       this.from.set(arc.from.x, arc.from.y, arc.from.z);
       this.to.set(arc.to.x, arc.to.y, arc.to.z);
@@ -248,6 +261,7 @@ export class FxView implements WorldView {
   }
 
   dispose(): void {
+    this.unsubscribe();
     for (const d of this.disposables) d.dispose();
   }
 }

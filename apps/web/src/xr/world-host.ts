@@ -21,6 +21,8 @@ import {
 import { applyPaletteOverride, type PaletteOverride } from './palette-override';
 import { cinematicDistance } from './navigation/orbit-camera';
 import { obstaclesAt, type Circle } from './navigation/walk-camera';
+import { activityAt, type Activity, type HiddenLayers } from '@/engine/layers';
+import { layerStore } from './layer-store';
 import { anchorPlacement, plateWidthM, rootScale } from './scale';
 import { bindNavigationInput } from './navigation/navigation-input';
 import type { CameraMode, NavigationController, NavigationState } from './navigation/navigation-controller';
@@ -57,6 +59,10 @@ export interface WorldHandle {
   setPaletteOverride(override: PaletteOverride | null): void;
   /** Scene lights multiplier (I4b), 1 = the template look; view-only, no rebuild. */
   setLightLevel(level: number): void;
+  /** Layers the viewer switched off (I5): view-only, no rebuild, redrawn at once even while paused. */
+  setHiddenLayers(hidden: HiddenLayers): void;
+  /** What each stem plays now, for the meters of the layers panel (null before a song is loaded). */
+  activity(): Activity | null;
   enterVR(): void;
   exitVR(): void;
   /**
@@ -275,6 +281,12 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     },
     setLightLevel(level) {
       if (!disposed) scene.setLightLevel(level);
+    },
+    activity() {
+      return basePlan && baseClock ? activityAt(basePlan, baseClock.now()) : null;
+    },
+    setHiddenLayers(hidden) {
+      if (!disposed) layerStore.set(hidden);
     },
     setPaletteOverride(next) {
       if (disposed) return;

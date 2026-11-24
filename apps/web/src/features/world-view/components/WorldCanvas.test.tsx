@@ -11,6 +11,8 @@ vi.mock("@/xr/world-host", () => ({
       setControls: vi.fn(),
       setPaletteOverride: vi.fn(),
       setLightLevel: vi.fn(),
+      setHiddenLayers: vi.fn(),
+      activity: vi.fn(() => null),
       onSessionChange: () => () => undefined,
       onNavigationChange: () => () => undefined,
       setCameraMode: vi.fn(),
