@@ -66,3 +66,29 @@ Quest 3 for comfort. Record fps and draw calls in `design.md` § As built.
 ## Risks
 
 Motion sickness: keep glide optional and slow. Depends on I2 (environment) and I6 (sky scale), so do I2 first.
+
+## As built (phase I7, 2026-11-24)
+
+Screenshots over the demo song: `docs/improvements/i7/walk-start.png`, `walk-forward.png`.
+
+- `xr/scale.ts`: `diorama` (1.5 m plate, default on desktop) and `immersive` (80 m plate, plate top = floor, ground, hills,
+  fog and far plane ×3). It is view state (`scaleStore`); `worldStateAt` and the plan are untouched.
+- Desktop **Walk** mode (`G`, button "Walk"): `navigation/walk-camera.ts` (pure): eye 1.6 m, WASD / Shift / Q E, drag to look,
+  circle collisions with the structures that have landed (recomputed twice a second), bounds = plate + 25 m margin, so the
+  world is not a closed square: the environment ground continues past the plate edge.
+- VR: the immersive scale is the default in a session (`xr/locomotion.ts`, `XRLocomotionSystem`): left stick glide ≤ 2 m/s,
+  right stick 30° snap turn, B / Y toggles the diorama. Reduced motion: 3 m steps instead of gliding. The spatial panel hangs
+  in the tracking space, 0.75 m ahead, and follows the plate's moves. Stick seek is off in this scale (panel buttons stay).
+- Not done: teleport arc, vignette while gliding, scale toggle button on the spatial panel, LOD for distant structures,
+  persisted settings (scale, turn style), **Quest 3 check** (comfort, scale, fps).
+
+### IWER check (2026-11-24, `MW_ANGLE=vulkan node apps/web/scripts/xr-check.mjs`)
+
+- A session starts immersive (plate top = floor, scale ×6.67), the left stick glides (0.62 m in 0.33 s ≤ 2 m/s), the right
+  stick snaps 30°, B returns to the table-top diorama, and the old checks still pass. 46 draw calls (< 100), no leak.
+  Screenshot: `docs/improvements/i7/vr-immersive-iwer.png`. SwiftShader is too slow for this script (screenshot timeouts): use `MW_ANGLE=vulkan`.
+- Meta docs (design/locomotion-comfort-usability, hz-iwsdk-webxr): walking 1.4 m/s, running 2.8 m/s; vignette recommended
+  during slide; snap turn is the comfort default; IWSDK ships its own locomotor (`features.locomotion`: teleport, slide, turn,
+  `comfortAssistLevel`) that moves `world.player`. We kept our own system (the plate moves around the head) so the panel and
+  the scale toggle stay simple; switching to the IWSDK locomotor (teleport + vignette for free, needs a
+  `LocomotionEnvironment` floor) is the way to close the teleport and vignette gaps.

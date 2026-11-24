@@ -32,5 +32,8 @@
   "colors.role.secondary": "Secondaire",
   "colors.role.staff": "Portée",
   "colors.brightness": "Luminosité",
-  "colors.contrast": "Contraste"
+  "colors.contrast": "Contraste",
+  "nav.walk": "Marcher",
+  "nav.walkReset": "Retour au départ",
+  "nav.walkHint": "Glisse pour regarder · WASD ou flèches pour marcher · Maj pour courir · Q / E pour tourner · R retour au départ · G pour quitter"
 }

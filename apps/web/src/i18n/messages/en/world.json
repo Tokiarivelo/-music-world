@@ -32,5 +32,8 @@
   "colors.role.secondary": "Secondary",
   "colors.role.staff": "Staff",
   "colors.brightness": "Brightness",
-  "colors.contrast": "Contrast"
+  "colors.contrast": "Contrast",
+  "nav.walk": "Walk",
+  "nav.walkReset": "Back to start",
+  "nav.walkHint": "Drag to look · WASD or arrows to walk · Shift to run · Q / E to turn · R back to start · G to leave"
 }

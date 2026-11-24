@@ -24,6 +24,24 @@ export const ENV_FOG_FAR_M = 58;
 export const ENV_HILL_RINGS = 2;
 export const ENV_HILL_COLUMNS = 160;
 export const ENV_STAR_DENSITY = 0.012;
+/**
+ * Immersive scale (I7): plate width in metres, how far the viewer starts from the plate centre (inside its near edge),
+ * eye height, environment scale (ground, hills, fog), far plane, and the margin the viewer may walk past the plate.
+ */
+export const IMMERSIVE_PLATE_M = 80;
+export const IMMERSIVE_START_Z_M = 30;
+export const EYE_HEIGHT_M = 1.6;
+export const IMMERSIVE_ENV_SCALE = 3;
+export const IMMERSIVE_CAMERA_FAR_M = 700;
+export const WALK_MARGIN_M = 25;
+/** Walk speed (m/s), Shift multiplier, mouse look (rad per px), glide and snap turn in VR. */
+export const WALK_SPEED_MPS = 3;
+export const WALK_FAST_FACTOR = 3;
+export const WALK_LOOK_RAD_PER_PX = 0.004;
+export const WALK_PITCH_LIMIT_RAD = 1.2;
+export const VR_GLIDE_SPEED_MPS = 2;
+export const VR_STICK_DEADZONE = 0.25;
+export const VR_SNAP_TURN_RAD = Math.PI / 6;
 /** Far plane of the desktop camera: must reach the sky dome. */
 export const CAMERA_FAR_M = 300;
 

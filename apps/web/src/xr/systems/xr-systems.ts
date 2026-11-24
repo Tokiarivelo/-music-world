@@ -24,7 +24,9 @@ import {
   type World,
 } from '@iwsdk/core';
 import { Quaternion, Vector3, type Group } from 'three';
-import { DIORAMA_POSITION, VR_MIN_HEAD_HEIGHT_M } from '../constants';
+import { IMMERSIVE_PLATE_M, VR_MIN_HEAD_HEIGHT_M, VR_PANEL_OFFSET, VR_PANEL_TILT_DEG } from '../constants';
+import { SNAP_TURN_RAD, SnapTurn, glide, onPlate, turnAround } from '../locomotion';
+import { anchorPlacement, scaleStore, type ScaleMode } from '../scale';
 import { PinchGesture } from '../pinch';
 import { commandsFromPads, type PadEdges, type XRCommand } from '../xr-input-map';
 import { tabletopPose, yawFromQuaternion } from '../xr-placement';
@@ -82,10 +84,14 @@ export interface XRRig {
   recenterRequested: boolean;
   /** True once the plate has been placed for the current session. */
   placed: boolean;
+  /** Scale mode the plate was placed for: a change places it again. */
+  placedScale: ScaleMode;
   /** Player commands; null until the player is ready. */
   controls: WorldControls | null;
   /** Spatial panel entity (a pinch while it is hovered is a panel click, not a play toggle). */
   panel: Entity | null;
+  /** Immersive scale: where the panel hangs in the tracking space (it stays there while the plate moves). */
+  panelWorld: Vector3 | null;
 }
 
 export const XRRigComponent = createComponent(
@@ -116,7 +122,20 @@ export class XRPlacementSystem extends createSystem({ rigs: { required: [XRRigCo
         if (rig.placed) restoreDesktopPlacement(rig);
         continue;
       }
-      if (rig.placed && !rig.recenterRequested) continue;
+      const mode = scaleStore.mode;
+      if (rig.placed && !rig.recenterRequested && rig.placedScale === mode) continue;
+      if (mode === 'immersive') {
+        // The viewer stands on the plate: it is placed from the tracking origin, not in front of the head.
+        const at = anchorPlacement(mode);
+        rig.anchor.position.set(at.x, at.y, at.z);
+        rig.anchor.rotation.set(0, 0, 0);
+        rig.panelWorld = PANEL_WORLD_DEFAULT.clone();
+        applyPanelPlacement(rig);
+        rig.placed = true;
+        rig.placedScale = mode;
+        rig.recenterRequested = false;
+        continue;
+      }
       const head = this.player.head;
       head.getWorldPosition(this.headPosition);
       if (this.headPosition.y < VR_MIN_HEAD_HEIGHT_M) continue; // viewer pose not tracked yet
@@ -124,14 +143,39 @@ export class XRPlacementSystem extends createSystem({ rigs: { required: [XRRigCo
       const pose = tabletopPose(this.headPosition, yawFromQuaternion(this.headQuaternion));
       rig.anchor.position.set(pose.position.x, pose.position.y, pose.position.z);
       rig.anchor.rotation.set(0, pose.yaw, 0);
+      rig.panelWorld = null;
+      applyPanelPlacement(rig);
       rig.placed = true;
+      rig.placedScale = mode;
       rig.recenterRequested = false;
     }
   }
 }
 
+const PANEL_WORLD_DEFAULT = new Vector3(0, 1.15, -0.75);
+const PANEL_TILT_RAD = (VR_PANEL_TILT_DEG * Math.PI) / 180;
+const panelLocal = new Vector3();
+
+/** Keeps the spatial panel where the viewer can reach it: on the plate's side in the diorama, in the room when immersive. */
+export function applyPanelPlacement(rig: XRRig): void {
+  const object = rig.panel?.object3D;
+  if (!object) return;
+  object.rotation.order = 'YXZ';
+  if (!rig.panelWorld) {
+    object.position.set(VR_PANEL_OFFSET.x, VR_PANEL_OFFSET.y, VR_PANEL_OFFSET.z);
+    object.rotation.set(-PANEL_TILT_RAD, 0, 0);
+    return;
+  }
+  rig.anchor.updateMatrixWorld(true);
+  object.position.copy(rig.anchor.worldToLocal(panelLocal.copy(rig.panelWorld)));
+  object.rotation.set(-PANEL_TILT_RAD, -rig.anchor.rotation.y, 0);
+}
+
 export function restoreDesktopPlacement(rig: XRRig): void {
-  rig.anchor.position.set(DIORAMA_POSITION.x, DIORAMA_POSITION.y, DIORAMA_POSITION.z);
+  rig.panelWorld = null;
+  applyPanelPlacement(rig);
+  const at = anchorPlacement(scaleStore.mode);
+  rig.anchor.position.set(at.x, at.y, at.z);
   rig.anchor.rotation.set(0, 0, 0);
   rig.placed = false;
   rig.recenterRequested = false;
@@ -173,7 +217,15 @@ export class XRControlSystem extends createSystem({ rigs: { required: [XRRigComp
     const { left, right } = this.input.xr.gamepads;
     const leftEdge = readPad(left, InputComponent.X_Button, this.pads[0]);
     const rightEdge = readPad(right, InputComponent.A_Button, this.pads[1]);
+    if (scaleStore.mode === 'immersive') {
+      // The sticks move and turn the viewer there (XRLocomotionSystem); seeking stays on the spatial panel.
+      for (const pad of this.pads) {
+        pad.stickLeft = false;
+        pad.stickRight = false;
+      }
+    }
     if (!leftEdge && !rightEdge) return; // steady state: no allocation
+    if (!this.pads.some((p) => p.face || p.squeeze || p.stickLeft || p.stickRight)) return;
     for (const entity of this.queries.rigs.entities) {
       const rig = readRig(entity);
       if (rig) for (const command of commandsFromPads(this.pads)) runCommand(rig, command);
@@ -191,12 +243,79 @@ export class XRControlSystem extends createSystem({ rigs: { required: [XRRigComp
   }
 }
 
+const REDUCED_MOTION_STEP_M = 3;
+const SCALE_TOGGLE_BUTTON = 5; // B / Y on the xr-standard gamepad mapping
+const STICK_X = 2;
+const STICK_Y = 3;
+
+function prefersReducedMotion(): boolean {
+  return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/**
+ * Locomotion in the immersive scale (I7 requirement 2): left stick glides (≤ 2 m/s; reduced motion: 3 m steps), right
+ * stick turns in 30° snaps, B / Y switches between the diorama on the table and the world around you. It moves the
+ * plate around the head, so the tracked floor stays under the viewer.
+ */
+export class XRLocomotionSystem extends createSystem({ rigs: { required: [XRRigComponent] } }) {
+  private readonly head = new Vector3();
+  private readonly headQuaternion = new Quaternion();
+  private readonly turn = new SnapTurn();
+  private readonly step = new SnapTurn();
+  private toggleHeld = false;
+
+  update(delta: number): void {
+    if (!isImmersive(this.world)) return;
+    const session = this.world.renderer.xr.getSession?.();
+    if (!session) return;
+    let glideStick = { x: 0, y: 0 };
+    let turnX = 0;
+    let toggle = false;
+    for (const source of session.inputSources) {
+      const pad = source.gamepad;
+      if (!pad) continue;
+      if (source.handedness === 'left') glideStick = { x: pad.axes[STICK_X] ?? 0, y: pad.axes[STICK_Y] ?? 0 };
+      if (source.handedness === 'right') {
+        turnX = pad.axes[STICK_X] ?? 0;
+        toggle = !!pad.buttons[SCALE_TOGGLE_BUTTON]?.pressed;
+      }
+    }
+    if (toggle && !this.toggleHeld) scaleStore.set(scaleStore.mode === 'immersive' ? 'diorama' : 'immersive');
+    this.toggleHeld = toggle;
+    if (scaleStore.mode !== 'immersive') return;
+    const reduced = prefersReducedMotion();
+    const snap = this.turn.update(turnX);
+    const stepDir = reduced ? this.step.update(glideStick.y) : 0;
+    for (const entity of this.queries.rigs.entities) {
+      const rig = readRig(entity);
+      if (!rig?.placed) continue;
+      this.world.player.head.getWorldPosition(this.head);
+      this.world.player.head.getWorldQuaternion(this.headQuaternion);
+      const yaw = yawFromQuaternion(this.headQuaternion);
+      const a = rig.anchor;
+      let pose = { x: a.position.x, z: a.position.z, yaw: a.rotation.y };
+      if (snap !== 0) pose = turnAround(pose, this.head, -snap * SNAP_TURN_RAD);
+      const move = reduced
+        ? { dx: -Math.sin(yaw) * -stepDir * REDUCED_MOTION_STEP_M, dz: -Math.cos(yaw) * -stepDir * REDUCED_MOTION_STEP_M }
+        : glide(glideStick, yaw, delta);
+      // The viewer goes one way, so the plate goes the other.
+      const next = { ...pose, x: pose.x - move.dx, z: pose.z - move.dz };
+      if (onPlate(next, this.head, IMMERSIVE_PLATE_M / 2)) pose = next;
+      a.position.x = pose.x;
+      a.position.z = pose.z;
+      a.rotation.y = pose.yaw;
+      applyPanelPlacement(rig);
+    }
+  }
+}
+
 /** Registers the XR systems and the rig on the diorama anchor entity. */
 export function installXRSystems(world: World, anchorEntity: Entity, anchor: Group): XRRig {
-  const rig: XRRig = { anchor, recenterRequested: false, placed: false, controls: null, panel: null };
+  const rig: XRRig = { anchor, recenterRequested: false, placed: false, placedScale: 'diorama', controls: null, panel: null, panelWorld: null };
   world.registerComponent(XRRigComponent);
   world.registerSystem(XRPlacementSystem);
   world.registerSystem(XRControlSystem);
+  world.registerSystem(XRLocomotionSystem);
   anchorEntity.addComponent(XRRigComponent, { rig });
   return rig;
 }

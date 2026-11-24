@@ -6,7 +6,7 @@ import { useNavigationShortcuts } from "../hooks/use-navigation-shortcuts";
 afterEach(cleanup);
 
 function commands() {
-  return { toggleExplore: vi.fn(), selectPreset: vi.fn(), reset: vi.fn() };
+  return { toggleExplore: vi.fn(), toggleWalk: vi.fn(), selectPreset: vi.fn(), reset: vi.fn() };
 }
 
 describe("NavigationControls", () => {
@@ -87,5 +87,19 @@ describe("useNavigationShortcuts", () => {
     rerender(<Harness c={c} enabled={false} />);
     fireEvent.keyDown(window, { code: "KeyN" });
     expect(c.toggleExplore).not.toHaveBeenCalled();
+  });
+
+  it("offers a Walk toggle that reports its state and a way back to the start", () => {
+    const c = commands();
+    const { rerender } = render(<NavigationControls commands={c} state={{ mode: "cinematic", preset: null }} />);
+    const walk = screen.getByRole("button", { name: "Walk" });
+    expect(walk.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(walk);
+    expect(c.toggleWalk).toHaveBeenCalledOnce();
+    rerender(<NavigationControls commands={c} state={{ mode: "walk", preset: null }} />);
+    expect(screen.getByRole("button", { name: "Walk" }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.queryByRole("button", { name: "Top" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Back to start" }));
+    expect(c.reset).toHaveBeenCalledOnce();
   });
 });

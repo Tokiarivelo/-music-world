@@ -32,5 +32,8 @@
   "colors.role.secondary": "Faharoa",
   "colors.role.staff": "Portée",
   "colors.brightness": "Hazavana",
-  "colors.contrast": "Fifanoherana"
+  "colors.contrast": "Fifanoherana",
+  "nav.walk": "Mandeha",
+  "nav.walkReset": "Hiverina eo am-piandohana",
+  "nav.walkHint": "Alefaso hijery · WASD na zana-tsipìka handeha · Shift handeha haingana · Q / E hanodina · R hiverina · G hivoaka"
 }

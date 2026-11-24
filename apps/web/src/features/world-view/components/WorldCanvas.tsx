@@ -85,15 +85,17 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
   // Camera navigation (08-navigation-mode): the buttons and the keys call the same commands.
   useEffect(() => handle?.onNavigationChange(setNavigation), [handle]);
   const exploring = navigation.mode === "explore";
+  const walking = navigation.mode === "walk";
   const commands = useMemo<NavigationCommands | null>(
     () =>
       handle && {
         toggleExplore: () =>
           handle.setCameraMode(exploring ? "cinematic" : "explore"),
+        toggleWalk: () => handle.setCameraMode(walking ? "cinematic" : "walk"),
         selectPreset: (id: ViewPresetId) => handle.setViewPreset(id),
         reset: () => handle.resetView(),
       },
-    [handle, exploring],
+    [handle, exploring, walking],
   );
   useNavigationShortcuts(commands, !immersive);
 

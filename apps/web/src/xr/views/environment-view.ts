@@ -29,6 +29,7 @@ import {
   ENV_SKY_RADIUS_M,
   ENV_STAR_DENSITY,
 } from '../constants';
+import { environmentScale, fogRange, scaleStore, type ScaleMode } from '../scale';
 import { environmentColors, type EnvironmentColors } from '../palette';
 import type { WorldView } from './world-view';
 
@@ -164,12 +165,28 @@ export class EnvironmentView implements WorldView {
     );
 
     this.object.add(this.sky, this.ground, this.hills);
+    this.applyScale(scaleStore.mode);
+    this.unsubscribe = scaleStore.subscribe((mode) => this.applyScale(mode));
+  }
+
+  private readonly unsubscribe: () => void;
+
+  /** The horizon moves out with the plate (I7): ground, hills and fog scale, the sky stays around the viewer. */
+  private applyScale(mode: ScaleMode): void {
+    const k = environmentScale(mode);
+    this.ground.scale.setScalar(k);
+    this.hills.scale.setScalar(k);
+    const { near, far } = fogRange(mode);
+    this.fog.near = near;
+    this.fog.far = far;
+    this.sky.scale.setScalar(k);
   }
 
   /** Static: nothing changes with the world state. */
   update(): void {}
 
   dispose(): void {
+    this.unsubscribe();
     for (const mesh of [this.sky, this.ground, this.hills]) {
       mesh.geometry.dispose();
       mesh.material.dispose();

@@ -14,7 +14,7 @@ import { createComponent, createSystem, Types, type Entity, type World } from '@
 import { AmbientLight, Color, DirectionalLight, Group } from 'three';
 import type { SpawnPlan } from '@/engine/spawn-plan';
 import { worldStateAt, type WorldState } from '@/engine/world-state';
-import { CAMERA_FAR_M, DIORAMA_POSITION, DIORAMA_WIDTH_M } from '../constants';
+import { anchorPlacement, cameraFar, rootScale, scaleStore, type ScaleMode } from '../scale';
 import { EnvironmentView } from '../views/environment-view';
 import { FxView } from '../views/fx-view';
 import { StaffView } from '../views/staff-view';
@@ -159,6 +159,8 @@ export interface MusicScene {
   setScene(plan: SpawnPlan, clock: WorldClock): void;
   /** Multiplies the scene lights (I4b); 1 = the template look. View-only. The renderer has no tone mapping, so no exposure. */
   setLightLevel(level: number): void;
+  /** Table-top diorama or a world the viewer stands in (I7). View-only: the plan and the clock are untouched. */
+  setScaleMode(mode: ScaleMode): void;
 }
 
 /** Registers the component and systems and creates the clock entity with the diorama root. */
@@ -171,15 +173,19 @@ export function installMusicSystems(world: World, options: { perfLog?: boolean }
   world.registerSystem(FxSystem);
   world.registerSystem(EnvironmentSystem);
   // The sky dome is far away: the default far plane would clip it.
-  if (world.camera.far < CAMERA_FAR_M) {
-    world.camera.far = CAMERA_FAR_M;
+  const applyFar = (mode: ScaleMode) => {
+    world.camera.far = cameraFar(mode);
     world.camera.updateProjectionMatrix();
-  }
+  };
+  applyFar(scaleStore.mode);
   if (options.perfLog) world.registerSystem(PerfSystem);
 
   const anchor = new Group();
   anchor.name = 'music-world-anchor';
-  anchor.position.set(DIORAMA_POSITION.x, DIORAMA_POSITION.y, DIORAMA_POSITION.z);
+  const place = anchorPlacement(scaleStore.mode);
+  anchor.position.set(place.x, place.y, place.z);
+  let terrainSize = 12;
+  const applyScale = () => root.scale.setScalar(rootScale(scaleStore.mode, terrainSize));
   const root = new Group();
   root.name = 'music-world';
   const ambient = new AmbientLight(0xffffff, BASE_AMBIENT);
@@ -188,6 +194,13 @@ export function installMusicSystems(world: World, options: { perfLog?: boolean }
   sun.position.set(-4, 10, 6);
   root.add(sun);
   anchor.add(root);
+  scaleStore.subscribe((mode) => {
+    applyFar(mode);
+    applyScale();
+    const at = anchorPlacement(mode);
+    anchor.position.set(at.x, at.y, at.z);
+    anchor.rotation.set(0, 0, 0);
+  });
   const entity = world.createTransformEntity(anchor);
   entity.addComponent(ClockComponent, { root });
 
@@ -195,13 +208,17 @@ export function installMusicSystems(world: World, options: { perfLog?: boolean }
     root,
     anchor,
     anchorEntity: entity,
+    setScaleMode(mode) {
+      scaleStore.set(mode); // the subscription below does the work, so a mode set from VR input does the same
+    },
     setLightLevel(level) {
       const k = Number.isFinite(level) ? Math.min(MAX_LIGHT_LEVEL, Math.max(MIN_LIGHT_LEVEL, level)) : 1;
       ambient.intensity = BASE_AMBIENT * k;
       sun.intensity = BASE_SUN * k;
     },
     setScene(plan, clock) {
-      root.scale.setScalar(DIORAMA_WIDTH_M / plan.template.terrain.size);
+      terrainSize = plan.template.terrain.size;
+      applyScale();
       world.scene.background = new Color(plan.template.palette.background);
       entity.setValue(ClockComponent, 'clock', clock);
       entity.setValue(ClockComponent, 'plan', plan);
