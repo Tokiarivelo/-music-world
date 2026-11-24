@@ -4,9 +4,8 @@ import { useEffect, useState } from 'react';
 import { getStoreTemplate } from '@/features/template-store';
 import { BUILTIN_TEMPLATES, DEFAULT_TEMPLATE } from '@/templates/default';
 import type { Template } from '@/templates/generated';
-import { FROM_SESSION } from '../consts/loader.consts';
 import { validateTemplate } from '../lib/editor-validate';
-import { readStashedTemplate } from '../lib/session-draft';
+import { HANDOFF_KEY, readStashedTemplate } from '@/lib/template-stash';
 
 export type SourceState =
   | { status: 'loading' }
@@ -18,7 +17,10 @@ export interface EditorSourceApi {
   readStashed(): Template | null;
 }
 
-const DEFAULT_API: EditorSourceApi = { getStoreTemplate, readStashed: readStashedTemplate };
+/** `?from=session`: the template an "Edit a copy" entry point handed over (overwritten by the next handoff). */
+export const FROM_SESSION = 'session';
+
+const DEFAULT_API: EditorSourceApi = { getStoreTemplate, readStashed: () => readStashedTemplate(HANDOFF_KEY) };
 
 /**
  * The template to start from: the default look without `from`, a built-in or store template by id, or the one an

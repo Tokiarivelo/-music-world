@@ -13,7 +13,7 @@
   - _Requirements: 2.1, 2.3, 2.4_
 - [x] 6. Live preview with `WorldHandle` template swap, debounce, last valid template; tests with a fake handle.
   - _Requirements: 3.3, 4.1, 4.2_
-- [ ] 7. Save draft, publish, sign-in round trip, "Edit a copy" entry points (play page, store card); tests.
+- [x] 7. Save draft, publish, sign-in round trip, "Edit a copy" entry points (play page, store card); tests.
   - _Requirements: 1.1, 5.1–5.4_
 - [ ] 8. Browser check (screenshot over the demo song), README, `PROJECT.md` §8, handoff, tick.
   - _Requirements: 4.1, 6.1_

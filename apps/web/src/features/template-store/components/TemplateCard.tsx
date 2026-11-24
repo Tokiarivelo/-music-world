@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { StoreTemplate } from '@/templates/generated';
 import { useT, type Translator } from '@/i18n';
 import { STORE_ROUTES } from '../consts/template-store.consts';
+import { EditCopyLink } from './EditCopyLink';
 import { ReportTemplateButton } from './ReportTemplateButton';
 import { TemplatePreview } from './TemplatePreview';
 
@@ -54,6 +55,7 @@ export function TemplateCard({ item, canReport = false }: TemplateCardProps) {
       >
         {t('use')}
       </Link>
+      <EditCopyLink template={template} className="text-center text-sm underline" />
       {canReport && !item.featured && <ReportTemplateButton storeId={item.id} />}
     </article>
   );

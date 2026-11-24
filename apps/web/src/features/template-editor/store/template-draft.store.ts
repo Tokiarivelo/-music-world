@@ -12,8 +12,8 @@ export interface DraftStore {
   replace(draft: Template, draftId?: string | null): void;
   /** Back to a fresh copy of the source. */
   reset(): void;
-  /** Records the id of the server draft after a save. */
-  markSaved(draftId: string): void;
+  /** Records the id of the server draft after a save (`null` after a publication: the next save is a new draft). */
+  markSaved(draftId: string | null): void;
   /** Adds server-reported errors (mapped paths) until the next change. */
   reject(errors: readonly EditorError[]): void;
 }

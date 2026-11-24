@@ -45,6 +45,17 @@ export async function createStoreTemplate(template: Template, publish: boolean):
   return StoreTemplateSchema.parse(await apiJson('/api/templates', init));
 }
 
+/** `PUT /api/templates/{id}` (owner, draft only): replaces the document of a saved draft. */
+export async function updateStoreTemplate(id: string, template: Template): Promise<StoreTemplate> {
+  const init = { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ template }) };
+  return StoreTemplateSchema.parse(await apiJson(`/api/templates/${encodeURIComponent(id)}`, init));
+}
+
+/** `POST /api/templates/{id}/publish` (owner): publishes a saved draft. */
+export async function publishStoreTemplate(id: string): Promise<StoreTemplate> {
+  return StoreTemplateSchema.parse(await apiJson(`/api/templates/${encodeURIComponent(id)}/publish`, { method: 'POST' }));
+}
+
 /** `POST /api/templates/{id}/reports` (signed in): one report per user and template. */
 export async function reportStoreTemplate(id: string, reason: ReportReason): Promise<void> {
   const init = { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ reason }) };
