@@ -119,5 +119,6 @@
   "errors.TEMPLATE_NOT_FOUND": "Tsy misy intsony io drafitra io. Tahirizo indray mba hamorona vaovao.",
   "errors.RATE_LIMITED": "Be loatra ny modely voatahiry. Andramo indray any aoriana kely.",
   "errors.NETWORK": "Tsy tafiditra ny mpizara. Andramo indray.",
-  "errors.UNKNOWN": "Nisy zavatra tsy mety. Andramo indray."
+  "errors.UNKNOWN": "Nisy zavatra tsy mety. Andramo indray.",
+  "previewLabel": "Topimaso mivantana"
 }

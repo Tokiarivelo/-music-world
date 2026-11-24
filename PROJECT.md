@@ -306,6 +306,11 @@ Chaque utilisateur peut publier des templates que les autres utilisent pendant l
 - Taille maximale, licence obligatoire (choix parmi une liste), aperçu (capture générée).
 - Publication : brouillon → publié. Signalement possible.
 - Un template généré par le LLM peut être modifié puis publié dans le store.
+- **Éditeur** (`/editor?from=<id>`) : on travaille sur une copie ; palette, terrain, portée, effets, règles de notes et zones,
+  avec les bornes du schéma comme `min` / `max`, validation zod + règles du store à chaque changement, aperçu en direct
+  (dernier template valide, 300 ms) sur la chanson de démo ou `?project=<id>`. Brouillon : `POST` puis `PUT
+  /api/templates/{id}` (propriétaire, brouillon seulement, 409 sinon) ; publication avec vignette. Les recettes de formes
+  ne sont pas modifiables dans l'éditeur (elles restent telles quelles).
 - Comptes : authentification simple (e-mail + lien magique, ou OAuth GitHub).
 - Templates de lancement : `neon-nocturne` (par défaut, fidèle à l'image) et un template d'Halloween pour le thème Kiroween.
 
@@ -428,7 +433,7 @@ music-world/
 
 **Échéance des crédits Kiro :** demande avant le **1er décembre 2026, 12:00 PT**.
 
-**Après le hackathon :** modèle auto-hébergé (Muse Glimmer), GPU pour Demucs, mode à l'échelle 1 en VR, export vidéo, entrée micro en direct, éditeur visuel de templates.
+**Après le hackathon :** modèle auto-hébergé (Muse Glimmer), GPU pour Demucs, mode à l'échelle 1 en VR, export vidéo, entrée micro en direct, éditeur de recettes de formes (l'éditeur de templates existe déjà).
 
 ---
 

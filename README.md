@@ -97,6 +97,7 @@ make disk && make prune               # disk usage, then safe Docker clean-up
 | Full-screen world | The 3D view fills the whole screen on every aspect ratio (phone portrait to ultra-wide); the plate floats in a sky dome with horizon glow, stars, a fogged ground and two rings of hills, all derived from the template palette and drawn in 3 calls. The cinematic camera backs off on narrow screens to keep the plate in view. | `apps/web/src/xr/views/environment-view.ts`, `scripts/blank-ratio.mjs` |
 | Navigation | On desktop and phone the world opens in the cinematic view; **Explore** (or `N`) unlocks orbit (drag), pan (right-drag, Shift-drag, two fingers), zoom (wheel, pinch), WASD/QE fly, view presets (`1`–`4`: Overview, Staff, City, Top) and reset (`R`). Camera only: never touches the song or the world state. | `apps/web/src/xr/navigation`, `features/world-view` |
 | Colors | The **Colors** button (bottom left) opens a popover: **Randomize** (a harmonious OKLCH scheme: analogous, complementary, triad or split-complement, with readable staff contrast), undo/redo, one color input and lock per role, Brightness and Contrast sliders (Brightness also scales the scene lights) and "Reset to the template". The scheme seed is shown ("Scheme #4F2A9"), copyable as a link and applied with `?palette=<seed>`: the same seed gives the same colors on every device. A view-only choice, saved per template in the browser; the template, the song and the audio are never touched. Neon Nocturne stays the dark reference look of `/play/demo`. | `apps/web/src/xr/palette-generator.ts`, `features/world-view` |
+| Template editor | `/editor`: edit a copy of any template (palette, terrain, staff, effects, note rules, zones) with controls limited to the schema bounds, live preview over the demo song (`?project=<id>` for yours), validation next to each field. Works signed out (download the JSON); signed in, save a draft and publish it to the store. Entry points: "Edit a copy" on store cards and on the play page. Recipes are kept untouched (read-only kinds). | `apps/web/src/features/template-editor`, `PUT /api/templates/{id}` |
 | XR mode | WebXR via IWSDK on Meta Quest: tabletop diorama, controllers, hand pinch, spatial panel with template picker. | `apps/web/src/xr` |
 
 ### VR mode
@@ -204,6 +205,8 @@ folder (e.g. `es/`), translate the values (keep the `{parameters}` and plural fo
   (full list in `.kiro/specs/04-default-template/design.md`).
 - The VR panel uses the bundled MSDF Inter font: French and Malagasy accents must be checked on a Quest (glyphs missing
   from the atlas render as boxes). Lyrics are shown as transcribed, never translated.
+- The template editor does not edit shape recipes, and an unsaved document survives the sign-in round trip only in the
+  same browser tab (`sessionStorage`; the magic link may open in another tab).
 - Reported templates have no review UI; rate limits are in memory per API worker.
 
 ## Documentation

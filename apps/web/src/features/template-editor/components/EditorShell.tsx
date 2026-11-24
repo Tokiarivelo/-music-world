@@ -38,7 +38,7 @@ function Editor({ source, projectId }: { source: Template; projectId: string | n
         <EditorActions state={state} signedIn={session.user !== null} saver={saver} onReset={store.reset} />
         <EditorForm draft={state.draft} errors={state.errors} update={store.update} />
       </section>
-      <section className="relative h-[70dvh] min-h-80 flex-1 lg:h-auto" aria-label={t('previewNote')}>
+      <section className="relative h-[70dvh] min-h-80 flex-1 [contain:layout_paint] lg:h-auto" aria-label={t('previewLabel')}>
         <WorldPreview state={state} projectId={projectId} />
         {state.errors.length > 0 && (
           <p className="absolute left-3 top-3 z-10 rounded bg-[var(--mw-bg)]/80 px-3 py-1 text-xs">{t('previewNote')}</p>

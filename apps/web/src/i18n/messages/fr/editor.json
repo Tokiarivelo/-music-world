@@ -119,5 +119,6 @@
   "errors.TEMPLATE_NOT_FOUND": "Ce brouillon n’existe plus. Enregistre-le à nouveau pour en créer un nouveau.",
   "errors.RATE_LIMITED": "Trop de templates enregistrés. Réessaie plus tard.",
   "errors.NETWORK": "Le serveur est injoignable. Réessaie.",
-  "errors.UNKNOWN": "Une erreur est survenue. Réessaie."
+  "errors.UNKNOWN": "Une erreur est survenue. Réessaie.",
+  "previewLabel": "Aperçu en direct"
 }

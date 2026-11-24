@@ -119,5 +119,6 @@
   "errors.TEMPLATE_NOT_FOUND": "This draft no longer exists. Save it again to create a new one.",
   "errors.RATE_LIMITED": "Too many templates saved. Try again later.",
   "errors.NETWORK": "The server could not be reached. Try again.",
-  "errors.UNKNOWN": "Something went wrong. Try again."
+  "errors.UNKNOWN": "Something went wrong. Try again.",
+  "previewLabel": "Live preview"
 }

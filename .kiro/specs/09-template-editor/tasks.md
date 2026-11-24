@@ -15,5 +15,5 @@
   - _Requirements: 3.3, 4.1, 4.2_
 - [x] 7. Save draft, publish, sign-in round trip, "Edit a copy" entry points (play page, store card); tests.
   - _Requirements: 1.1, 5.1–5.4_
-- [ ] 8. Browser check (screenshot over the demo song), README, `PROJECT.md` §8, handoff, tick.
+- [x] 8. Browser check (screenshot over the demo song), README, `PROJECT.md` §8, handoff, tick.
   - _Requirements: 4.1, 6.1_
