@@ -15,7 +15,8 @@ import {
   useNavigationShortcuts,
   type NavigationCommands,
 } from "../hooks/use-navigation-shortcuts";
-import { usePaletteOverride } from "../hooks/use-palette-override";
+import { usePaletteOverride, usePaletteStore } from "../hooks/use-palette-override";
+import { ColorsPopover } from "./ColorsPopover";
 import { NavigationControls } from "./NavigationControls";
 
 interface WorldCanvasProps {
@@ -71,6 +72,7 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
 
   // The listener's colors (I4) go on top of the template after each load.
   usePaletteOverride(handle, scene);
+  const paletteStore = usePaletteStore(scene);
 
   // Player commands for VR; swapping them never rebuilds the world.
   useEffect(() => {
@@ -108,6 +110,12 @@ export default function WorldCanvas({ scene, controls }: WorldCanvasProps) {
       )}
       {commands && !immersive && (
         <NavigationControls commands={commands} state={navigation} />
+      )}
+      {paletteStore && scene && !immersive && (
+        <ColorsPopover
+          store={paletteStore}
+          templatePalette={scene.template.palette}
+        />
       )}
       {vrSupported && (
         <button

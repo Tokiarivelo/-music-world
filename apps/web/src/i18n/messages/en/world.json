@@ -13,5 +13,22 @@
   "preset.overview": "Overview",
   "preset.staff": "Staff",
   "preset.city": "City",
-  "preset.top": "Top"
+  "preset.top": "Top",
+  "colors.open": "Colors",
+  "colors.title": "Scene colors",
+  "colors.randomize": "Randomize",
+  "colors.undo": "Undo",
+  "colors.redo": "Redo",
+  "colors.reset": "Reset to the template",
+  "colors.scheme": "Scheme #{seed}",
+  "colors.noScheme": "Template colors",
+  "colors.copyLink": "Copy link",
+  "colors.copied": "Link copied",
+  "colors.lock": "Lock {role}",
+  "colors.role.background": "Background",
+  "colors.role.terrain": "Terrain",
+  "colors.role.primary": "Primary",
+  "colors.role.accent": "Accent",
+  "colors.role.secondary": "Secondary",
+  "colors.role.staff": "Staff"
 }

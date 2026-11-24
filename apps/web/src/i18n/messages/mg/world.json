@@ -13,5 +13,22 @@
   "preset.overview": "Fijery ankapobeny",
   "preset.staff": "Portée",
   "preset.city": "Tanàna",
-  "preset.top": "Ambony"
+  "preset.top": "Ambony",
+  "colors.open": "Loko",
+  "colors.title": "Loko an'ny sehatra",
+  "colors.randomize": "Kisendrasendra",
+  "colors.undo": "Foano",
+  "colors.redo": "Averina",
+  "colors.reset": "Avereno amin'ny modely",
+  "colors.scheme": "Firafitry #{seed}",
+  "colors.noScheme": "Loko an'ny modely",
+  "colors.copyLink": "Adikao ny rohy",
+  "colors.copied": "Voadika ny rohy",
+  "colors.lock": "Hidio {role}",
+  "colors.role.background": "Aloha",
+  "colors.role.terrain": "Tany",
+  "colors.role.primary": "Fototra",
+  "colors.role.accent": "Fanamafisana",
+  "colors.role.secondary": "Faharoa",
+  "colors.role.staff": "Portée"
 }

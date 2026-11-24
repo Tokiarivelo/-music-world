@@ -46,7 +46,7 @@ readable, and the listener can roll a random color scheme, lock the colors they 
 1. [x] `palette-generator.ts` with OKLCH math, schemes, constraints; property tests (10 000 seeds).
 2. [x] `WorldHandle.setPaletteOverride` + view updates (terrain, structures, staff, fx, environment). As built: the host re-applies the same plan with the merged palette (`xr/palette-override.ts`), so the views rebuild from it (geometry is recreated, audio and clock untouched); a color override resets when another template id loads. No draw-call test: the draw-call count does not depend on colors.
 3. [x] Player store + persistence + `?palette=` link; tests. As built: `features/world-view/lib/palette-store.ts` (vanilla store, no new dependency; one store per template id, undo/redo, locks, `mw.palette.<templateId>` in `localStorage`), `hooks/use-palette-override.ts` applies it to the world.
-4. `ColorsPopover` UI (randomize, undo/redo, locks, sliders, reset); Testing Library tests.
+4. [x] `ColorsPopover` UI (randomize, undo/redo, locks, color inputs, seed + copy link, reset); Testing Library tests; `colors.*` keys in en/fr/mg. The Brightness and Contrast sliders move to task 5 (they need the lift in the store). Placed bottom-right above the player bar: overlap not yet checked with `scripts/play-layout.mjs`.
 5. Brightness/exposure and light tuning; before/after screenshots in `docs/`; README.
 
 ## Decisions for the author
