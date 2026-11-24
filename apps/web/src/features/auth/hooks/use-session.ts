@@ -15,6 +15,8 @@ export interface SessionState {
   status: 'loading' | 'ready';
   /** Null when signed out (or when the API cannot be reached: the app keeps working signed out). */
   user: SessionUser | null;
+  /** True only for a moderator (`MODERATOR_EMAILS`); the API leaves the field out for everyone else. */
+  moderator: boolean;
   signOut(): void;
 }
 
@@ -24,16 +26,18 @@ const DEFAULT_API: SessionApi = { getSession, signOut: apiSignOut };
 export function useSession(api: SessionApi = DEFAULT_API): SessionState {
   const [status, setStatus] = useState<SessionState['status']>('loading');
   const [user, setUser] = useState<SessionUser | null>(null);
+  const [moderator, setModerator] = useState(false);
 
   useEffect(() => {
     let alive = true;
     api
       .getSession()
-      .then((s) => s.user)
-      .catch(() => null)
+      .then((s) => ({ user: s.user, moderator: s.moderator === true }))
+      .catch(() => ({ user: null, moderator: false }))
       .then((u) => {
         if (!alive) return;
-        setUser(u);
+        setUser(u.user);
+        setModerator(u.moderator);
         setStatus('ready');
       });
     return () => {
@@ -43,10 +47,16 @@ export function useSession(api: SessionApi = DEFAULT_API): SessionState {
 
   const signOut = useCallback(() => {
     api.signOut().then(
-      () => setUser(null),
-      () => setUser(null),
+      () => {
+        setUser(null);
+        setModerator(false);
+      },
+      () => {
+        setUser(null);
+        setModerator(false);
+      },
     );
   }, [api]);
 
-  return { status, user, signOut };
+  return { status, user, moderator, signOut };
 }

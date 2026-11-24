@@ -81,7 +81,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | Improvements I1, I2, I3 | Claude Code (world-builder) | done | all merged (I1 PR #17) |
 | Improvement I4 | Claude Code (world-builder) | done | tasks 1–5 and I4b merged (PRs #18, #19); Neon Nocturne stays the default |
 | 09-template-editor 1–8 | Claude Code (world-builder) | done | branch `phase-A2-template-editor` (backlog A2), one commit per task |
-| 10-template-moderation 1–4 | Claude Code | done | branch `phase-A3-moderation`, one commit per task; next 5 |
+| 10-template-moderation 1–5 | Claude Code | done | branch `phase-A3-moderation`, one commit per task; next 6 |
 | Roadmap 9.3–9.5 | — | blocked | human: video, Devpost, posts; drafts in `docs/submission.md` |
 
 ## 5. Active pitfalls
@@ -111,4 +111,4 @@ The daily ones. The rest (API, web/XR, tooling): `docs/pitfalls.md`, read the gr
 | 07-xr-mode | 1–6 done | 7 (Quest, human) | design.md § Human checks |
 | 08-navigation-mode | 1–6 done | — (human: try it on a phone) | design.md § As built |
 | 09-template-editor | 1–8 done | — (follow-up: recipe editing) | design.md § As built |
-| 10-template-moderation | 4/7 done | 5 (web `features/moderation`, `/moderation`) | design.md § Moderator check |
+| 10-template-moderation | 5/7 done | 6 (env docs, README, PROJECT.md §9) | design.md § Moderator check |
