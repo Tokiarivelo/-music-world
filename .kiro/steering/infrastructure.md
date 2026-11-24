@@ -47,6 +47,16 @@ fileMatchPattern: ["infra/**", "**/Dockerfile*", "Makefile"]
 - Deployment is scripted in `infra/deploy.sh` and described in the `deploy-ovh` skill. The demo must stay online
   until 2027-01-29 (end of Kiroween judging).
 
-## Makefile targets (created by spec 01)
+## Makefile targets
 
-`make dev` · `make test` · `make check` · `make schemas` · `make build` · `make deploy` · `make logs`
+`make help` lists them all. Run: `dev` (Docker, builds only changed images), `dev-infra` + `dev-api` + `dev-worker` +
+`dev-web` (host, hot reload), `up` / `down` / `ps` / `logs` / `shell`. Build: `build`, `rebuild`. Checks: `test`,
+`check` (`make -j3 check` parallel), `lint`, `format`, `schemas`. Ops: `deploy`, `check-env`. Disk: `disk`, `prune`,
+`prune-images`, `prune-cache`, `prune-all`, `prune-volumes` (destructive, `CONFIRM=yes`, refused on a production
+`infra/.env`), `clean`, `clean-deps`. Nothing uses `docker ... prune -a`: other projects share this Docker daemon.
+
+- Image builds go through `infra/scripts/build-changed.sh`: a content hash of the sources decides, the Docker layer
+  cache does the rest. Keep Dockerfile layers ordered by change frequency (deps → weights → code).
+- `infra/docker-compose.dev.yml` (dev-infra only) publishes Postgres and Redis on 127.0.0.1; never used in production.
+- Env example files: `infra/.env.example` (global: Docker stack + production), `apps/api/.env.example` (host API and
+  worker, loaded by `uv run --env-file`), `apps/web/.env.example` (Next dev, copy to `.env.local`).

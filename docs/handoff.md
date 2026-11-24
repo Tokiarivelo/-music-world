@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-24 · **Last updated by:** Claude Code (roadmap Phase 9 — submission docs)
+> **Date:** 2026-11-24 · **Last updated by:** Claude Code (Makefile, Docker, env examples, optimization, token budget)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -15,28 +15,27 @@ Read docs/handoff.md and continue with the next actions.
 - Phase 9 docs worked on branch `phase-9-submission` (one commit per roadmap task: 9.1, 9.2, 9.3–9.5 drafts, + this
   handoff), merged into `main` through the PR "Phase 9: submission docs". Work from `main`.
   Push with gh credentials: `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
-- Branch `feature-navigation-mode` (08-navigation-mode tasks 1–6, one commit each) is ready for a PR into `main`.
-- Uncommitted: none.
+- `08-navigation-mode` is merged (PR #9).
+- Uncommitted: this session's tooling changes (see § 2), on `main`: create a branch before committing.
 - `make check` green (exit 0): API pytest 313 passed (3 slow deselected), web vitest 213 passed (44 files), ruff,
   mypy strict, eslint, tsc, schema drift and architecture checks clean. Docs-only session: no code changed.
 - No server left running. A `music-world` Compose stack (old images, predates Phase 6) and another project's
   containers (`angaly_*`) may be running — not started by these sessions; leave them alone.
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-24, Claude Code, roadmap Phase 9 agent part)
+## 2. Last session (2026-11-24, Claude Code, tooling and optimization)
 
-- 9.1 `README.md` rewritten for judges: "Test it in 2 minutes" (public URL marked `TODO(deploy)`), local run
-  (`pnpm -C apps/web dev` web-only, `make dev` full stack), feature table, architecture diagram, configuration,
-  Kiro section, known limitations, MIT + third-party licenses (Bravura OFL, IWSDK/IWER, Demucs, Basic Pitch, LGPL
-  transitive `soxr`/`lameenc`). Every command checked against the Makefile and package scripts.
-- 9.2 `KIRO_USAGE.md` final write-up on top of the dated log: specs table (how each was created, 62 tasks done /
-  11 open), steering, 9 hooks (honest note: none fired, sessions ran outside the Kiro IDE), 4 agents, 11 skills,
-  PBT findings (3 real bugs, mutation-check table), MCP (not exercised; APIs checked in installed typings), spec vs
-  vibe (Phase 8 had no spec), what worked / did not.
-- 9.3–9.5: `docs/submission.md` = human drafts: video shot list/script (~2:40, demo song only), Devpost description
-  (Frankenstein), social post starting with `#KiroweenHackathon26`, blog outline. Placeholders `TODO(deploy)`,
-  `TODO(YouTube URL)`.
-- Not run (needs network to advisory DBs): `uvx pip-audit`, `pnpm audit --prod` — do it once before submission.
+- Makefile completed (`make help`): `dev-infra`/`dev-api`/`dev-worker`/`dev-web` (host, hot reload), `up`/`down`/`ps`/
+  `shell`, `build`/`rebuild`, `check-api`/`check-web`/`arch`/`lint`/`format`, `disk`, `prune*`, `clean*`.
+  `prune-volumes` needs `CONFIRM=yes` and refuses a production `infra/.env`.
+- `make dev` builds only changed images: `infra/scripts/build-changed.sh` (content hash in `.data/build/`). Tested with
+  a docker shim, **not** with a real image build (no network to PyPI/npm, disk 97 %): backlog C3.
+- Dockerfiles: Demucs weights layer moved before the code, no duplicate `chown -R` layer, cache mounts (uv, pnpm,
+  `.next/cache`); `.dockerignore` extended; `buildx --check` clean. `web` service has `image: music-world-web`.
+- `.env.example` for `apps/api` and `apps/web` (infra's stays the global one); core/accounts env tables moved from
+  `tech.md` to `env.md` (file-match). `.claude/settings.json` denies heavy and generated files.
+- New docs: `docs/optimization.md` (measures, findings), `docs/token-budget.md` (rules), `docs/backlog-agent.md`
+  (tasks needing no human). `make -j3 check` green in 46 s (was ≈ 75 s serial).
 
 ## 3. Next actions
 
@@ -57,7 +56,8 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
    Update README § Known limitations once done.
 4. **Human** — roadmap 9.3 video, 9.4 Devpost form, 9.5 posts from the drafts in `docs/submission.md` (checklist at
    its top). Run `uvx pip-audit` / `pnpm audit --prod` once before submitting.
-5. Optional: `05-ai-world-director` task 6 (ShapeRecipe, P2); a template editor; review UI for hidden templates;
+5. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` (A: product, B: quality and perf, C: docs).
+   Optional: `05-ai-world-director` task 6 (ShapeRecipe, P2); a template editor; review UI for hidden templates;
    `02-music-analysis` 6.1 (Muse Voice); `01-foundation` 6.2/6.3/7.
 
 ## 4. Task ownership
