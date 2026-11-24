@@ -4,5 +4,10 @@
   "openDemo": "Sokafy ny tontolo fanehoana",
   "uploadSong": "Alefaso ny hira",
   "browseTemplates": "Jereo ny môdely",
-  "language": "Fiteny"
+  "language": "Fiteny",
+  "navLabel": "Fitetezana ny tranokala",
+  "navHome": "Fandraisana",
+  "navNewSong": "Hira vaovao",
+  "navTemplates": "Modely",
+  "navMenu": "Menio"
 }

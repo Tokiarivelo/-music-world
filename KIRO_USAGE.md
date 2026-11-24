@@ -327,3 +327,9 @@ repository:
   third-party licenses, known limitations); this file gained the final write-up above from the git log, specs and
   the earlier entries; `docs/submission.md` holds drafts of the video script, Devpost text and social post for the
   human. No hooks fired (outside the Kiro IDE); no new property-test findings.
+
+### 2026-11-24 — Improvement I1 back to upload (Claude Code)
+
+- Skills used: `start`, `handoff`. `SiteNav` on both play pages, three catalogs updated, lifecycle tests.
+  `scripts/play-layout.mjs` found a layout overlap that unit tests could not (nav stretched over the language switch).
+  No hooks fired (outside the Kiro IDE).

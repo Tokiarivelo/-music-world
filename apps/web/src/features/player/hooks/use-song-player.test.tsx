@@ -1,7 +1,7 @@
-import { act, renderHook, waitFor } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
-import { FakeAudioContext } from '../lib/fake-audio-context';
-import { useSongPlayer, type PlayerContext } from './use-song-player';
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { FakeAudioContext } from "../lib/fake-audio-context";
+import { useSongPlayer, type PlayerContext } from "./use-song-player";
 
 class FakePlayerContext extends FakeAudioContext implements PlayerContext {
   resumed = 0;
@@ -16,13 +16,16 @@ class FakePlayerContext extends FakeAudioContext implements PlayerContext {
 
 function setup() {
   const ctx = new FakePlayerContext();
-  const deps = { createContext: () => ctx, loadBuffer: async () => ({ duration: 24 }) };
+  const deps = {
+    createContext: () => ctx,
+    loadBuffer: async () => ({ duration: 24 }),
+  };
   const hook = renderHook(() => useSongPlayer(deps));
   return { ctx, hook };
 }
 
-describe('useSongPlayer (task 5, requirement 5.2)', () => {
-  it('exposes a stable clock that reads 0 until the song is ready', async () => {
+describe("useSongPlayer (task 5, requirement 5.2)", () => {
+  it("exposes a stable clock that reads 0 until the song is ready", async () => {
     const { hook } = setup();
     const clock = hook.result.current.clock;
     expect(clock.now()).toBe(0);
@@ -31,7 +34,7 @@ describe('useSongPlayer (task 5, requirement 5.2)', () => {
     expect(hook.result.current.duration).toBe(24);
   });
 
-  it('plays, pauses and seeks exactly on the audio clock', async () => {
+  it("plays, pauses and seeks exactly on the audio clock", async () => {
     const { ctx, hook } = setup();
     await waitFor(() => expect(hook.result.current.ready).toBe(true));
     const { clock } = hook.result.current;
@@ -51,10 +54,24 @@ describe('useSongPlayer (task 5, requirement 5.2)', () => {
     expect(clock.now()).toBe(0);
   });
 
-  it('closes the audio context on unmount', async () => {
+  it("closes the audio context on unmount", async () => {
     const { ctx, hook } = setup();
     await waitFor(() => expect(hook.result.current.ready).toBe(true));
     hook.unmount();
+    expect(ctx.closed).toBe(true);
+  });
+
+  it("stops the audio when the page is left while playing (I1 requirement 3)", async () => {
+    const { clock, ctx, hook } = (() => {
+      const r = setup();
+      return { ...r, clock: () => r.hook.result.current.clock };
+    })();
+    await waitFor(() => expect(hook.result.current.ready).toBe(true));
+    const c = clock();
+    act(() => hook.result.current.toggle());
+    expect(c.isPlaying()).toBe(true);
+    hook.unmount();
+    expect(c.isPlaying()).toBe(false);
     expect(ctx.closed).toBe(true);
   });
 });

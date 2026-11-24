@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase I2 full-screen world)
+> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase I1 back to upload)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -16,24 +16,25 @@ Read docs/handoff.md and continue with the next actions.
   handoff), merged into `main` through the PR "Phase 9: submission docs". Work from `main`.
   Push with gh credentials: `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
 - `08-navigation-mode` is merged (PR #9).
-- Phase I3 is merged (PR #15). Phase I2 is on branch `phase-I2-fullscreen-world` (one commit per task 1–5, not pushed
-  or merged; PR to open).
-- `make check` green (exit 0): API pytest 313 passed (3 slow deselected), web vitest 213 passed (44 files), ruff,
-  mypy strict, eslint, tsc, schema drift and architecture checks clean. Docs-only session: no code changed.
+- Phases I3 (PR #15) and I2 (PR #16) are merged. Phase I1 is on branch `phase-I1-back-to-upload` (3 commits, not
+  pushed or merged; PR to open). Last commit `974b2e8`.
+- `make check` green: web vitest 273 passed (51 files), eslint, tsc, architecture checks clean (API untouched,
+  313 passed last run).
 - No server left running. A `music-world` Compose stack (old images, predates Phase 6) and another project's
   containers (`angaly_*`) may be running — not started by these sessions; leave them alone.
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-24, Claude Code, phase I2 full-screen world)
+## 2. Last session (2026-11-24, Claude Code, phase I1 back to upload)
 
-- Branch `phase-I2-fullscreen-world` (`docs/improvements/i2-fullscreen-world.md`, § As built): `WorldCanvas` is
-  `fixed inset-0` with `ResizeObserver` + DPR cap; `cinematicDistance(aspect)` backs the camera off on narrow views
-  (16:9 framing unchanged); `EnvironmentView` (sky dome shader, ground, fog, 2 hill rings; 3 draw calls, no texture)
-  fills everything beyond the plate; `PLATE_SIDE_LIGHT` 0.8. `scripts/blank-ratio.mjs` (needs `next dev` on 3125):
-  ≥ 99.9 % filled at 16:9, 21:9, 4:3, 1:1, 9:16 (was 58–81 %). `xr-check.mjs` passes with `MW_ANGLE=vulkan`.
-- Not done: Quest check (I7), horizon visible in the cinematic pose (camera looks down 31°), I1, I4–I8.
-- Earlier this day: phase I3 i18n (merged): catalogs `en`/`fr`/`mg`, rule "add text only as catalog keys (`en` first)".
-  Still open there: VR glyph atlas for accents, fr/mg screenshots, native review of fr/mg, `PROJECT.md` §7.
+- I2 merged (PR #16). Branch `phase-I1-back-to-upload` (3 commits, one per task; not pushed or merged, PR to open).
+- `features/navigation/SiteNav`: labelled `<nav>` with Home, New song (`/upload`), Templates; menu button below `sm`.
+  Labels are `common` keys `nav*` in `en`, `fr`, `mg`. Placed at the top of the top-left stack of both play pages.
+- `scripts/play-layout.mjs` (needs `next dev` on 3125, `MW_ANGLE=vulkan`): no overlap with controls, language switch
+  and player bar at 1280×720 and 390×844. It caught a real bug (full-width nav covered the language switch): `w-fit`.
+- Tests: `SiteNav.test.tsx`, `WorldCanvas.test.tsx` (dispose once, one world per mount), audio stops on unmount.
+- Not done: req 7 (`beforeunload`) waits for spec 09; no Quest check. Details: `docs/improvements/i1-back-to-upload.md`.
+- Next improvement in the plan order: I4 (brighter scene, random colors). I3 open items: VR glyph atlas for accents,
+  fr/mg screenshots and native review, `PROJECT.md` §7.
 
 ## 3. Next actions
 
@@ -54,7 +55,8 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
    Update README § Known limitations once done.
 4. **Human** — roadmap 9.3 video, 9.4 Devpost form, 9.5 posts from the drafts in `docs/submission.md` (checklist at
    its top). Run `uvx pip-audit` / `pnpm audit --prod` once before submitting.
-5. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` (A: product, B: quality and perf, C: docs).
+5. Agent-only: push and merge `phase-I1-back-to-upload`, then I4 (`docs/improvements/i4-random-scene-colors.md`).
+6. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` (A: product, B: quality and perf, C: docs).
    Optional: `05-ai-world-director` task 6 (ShapeRecipe, P2); a template editor; review UI for hidden templates;
    `02-music-analysis` 6.1 (Muse Voice); `01-foundation` 6.2/6.3/7.
 
@@ -81,6 +83,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | Roadmap 9.1, 9.2 | Claude Code (submission docs) | done | `README.md`, `KIRO_USAGE.md` |
 | 08-navigation-mode 1–6 | Claude Code (world-builder) | done | branch `feature-navigation-mode`, one commit per task; PR to open |
 | 05-ai-world-director 6 | Claude Code (ai-director) | done | phase 10 branch, one commit per sub-task |
+| Improvements I1, I2, I3 | Claude Code (world-builder) | done | I2, I3 merged; I1 branch to merge |
 | Roadmap 9.3–9.5 | — | blocked | human: video, Devpost, posts; drafts in `docs/submission.md` |
 
 ## 5. Active pitfalls
