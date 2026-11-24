@@ -6,7 +6,6 @@ export function stageViews(stage: string | null, status: string): StageView[] {
   const current = ANALYSIS_STAGES.findIndex((s) => s.id === stage);
   return ANALYSIS_STAGES.map((s, i) => ({
     id: s.id,
-    label: s.label,
     state:
       status === 'done' || (current >= 0 && i < current)
         ? 'done'

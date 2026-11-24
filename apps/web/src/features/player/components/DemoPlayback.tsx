@@ -5,7 +5,8 @@ import { DirectorPanel, useDirector, type DirectorSource } from '@/features/dire
 import { useStoreTemplates } from '@/features/template-store';
 import { WorldView } from '@/features/world-view';
 import { loadAudioUrl } from '../api/project.api';
-import { DEMO_SEED, PLAYER_TEXT } from '../consts/player.consts';
+import { useT } from '@/i18n';
+import { DEMO_SEED } from '../consts/player.consts';
 import { DEMO_SONG } from '../demo/demo-song';
 import { useSongPlayer, type SongPlayerDeps } from '../hooks/use-song-player';
 import { useAiTemplateChoice } from '../hooks/use-ai-template-choice';
@@ -26,6 +27,7 @@ const DEMO_DEPS: SongPlayerDeps = {
 /** `/play/demo`: the pre-analysed demo song and its audio, rendered with the default, a store or an AI-generated template
  * (`?template=<store id>` selects a store template). */
 export function DemoPlayback({ storeTemplateId = null }: { storeTemplateId?: string | null }) {
+  const t = useT('player');
   const player = useSongPlayer(DEMO_DEPS);
   const director = useDirector(DEMO_SOURCE);
   const store = useStoreTemplates(storeTemplateId);
@@ -47,8 +49,8 @@ export function DemoPlayback({ storeTemplateId = null }: { storeTemplateId?: str
       <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[var(--mw-bg)] to-transparent pt-6">
         <PlayerBar player={player} />
         <p className="pb-2 text-center text-xs opacity-60">
-          {PLAYER_TEXT.demoNote(DEMO_SONG.title)} · {analysis.key} · {Math.round(analysis.tempoBpm)} BPM ·{' '}
-          {analysis.notes.length} notes
+          {t('demoNote', { title: DEMO_SONG.title })} ·{' '}
+          {t('demoStats', { key: analysis.key, bpm: Math.round(analysis.tempoBpm), count: analysis.notes.length })}
         </p>
       </div>
     </div>

@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import type { Template } from '@/templates/generated';
-import { STORE_ROUTES, STORE_TEXT, storeErrorText } from '../consts/template-store.consts';
+import { useT } from '@/i18n';
+import { STORE_ROUTES } from '../consts/template-store.consts';
 import { usePublishTemplate, type PublishApi } from '../hooks/use-publish-template';
 
 interface PublishTemplateButtonProps {
@@ -14,20 +15,21 @@ interface PublishTemplateButtonProps {
 
 /** "Publish to the store" for the template the world renders; signed-out users get a sign-in link. */
 export function PublishTemplateButton({ template, signedIn, api }: PublishTemplateButtonProps) {
+  const t = useT('store');
   const { status, errorKey, publishedIds, publish } = usePublishTemplate(api);
   if (!signedIn) {
     return (
       <Link className="text-sm underline" href={STORE_ROUTES.signIn}>
-        {STORE_TEXT.signInToPublish}
+        {t('signInToPublish')}
       </Link>
     );
   }
   if (publishedIds.includes(template.id)) {
     return (
       <p role="status" className="text-sm">
-        {STORE_TEXT.published} ·{' '}
+        {t('published')} ·{' '}
         <Link className="underline" href={STORE_ROUTES.gallery}>
-          {STORE_TEXT.viewStore}
+          {t('viewStore')}
         </Link>
       </p>
     );
@@ -40,11 +42,11 @@ export function PublishTemplateButton({ template, signedIn, api }: PublishTempla
         disabled={status === 'publishing'}
         className="rounded border border-[var(--mw-secondary)] px-3 py-1 disabled:opacity-50"
       >
-        {status === 'publishing' ? STORE_TEXT.publishing : STORE_TEXT.publish}
+        {status === 'publishing' ? t('publishing') : t('publish')}
       </button>
       {status === 'error' && (
         <p role="alert" className="text-[var(--mw-accent)]">
-          {storeErrorText(errorKey)}
+          {t.error(errorKey)}
         </p>
       )}
     </div>

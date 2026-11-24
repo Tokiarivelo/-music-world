@@ -4,7 +4,6 @@ export type StageState = 'done' | 'active' | 'pending';
 
 export interface StageView {
   readonly id: AnalysisStageId;
-  readonly label: string;
   readonly state: StageState;
 }
 

@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 import type { Template } from '@/templates/generated';
-import { STORE_TEXT, THUMBNAIL_SIZE } from '../consts/template-store.consts';
+import { useT } from '@/i18n';
+import { THUMBNAIL_SIZE } from '../consts/template-store.consts';
 import { drawTemplatePreview } from '../lib/thumbnail';
 
 interface TemplatePreviewProps {
@@ -11,6 +12,7 @@ interface TemplatePreviewProps {
 
 /** Palette preview drawn on a 2D canvas when a template has no thumbnail. */
 export function TemplatePreview({ template }: TemplatePreviewProps) {
+  const t = useT('store');
   const canvas = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     let ctx: CanvasRenderingContext2D | null = null;
@@ -27,7 +29,7 @@ export function TemplatePreview({ template }: TemplatePreviewProps) {
       width={THUMBNAIL_SIZE}
       height={THUMBNAIL_SIZE}
       role="img"
-      aria-label={STORE_TEXT.previewAlt(template.name)}
+      aria-label={t('previewAlt', { name: template.name })}
       className="aspect-square w-full rounded"
     />
   );

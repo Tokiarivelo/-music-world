@@ -1,5 +1,5 @@
+import { useT } from '@/i18n';
 import type { Job } from '@/templates/generated';
-import { UPLOAD_TEXT } from '../consts/upload.consts';
 import { percent, stageViews } from '../lib/stage-progress';
 
 const STATE_CLASS = {
@@ -11,14 +11,15 @@ const STATE_CLASS = {
 const STATE_MARK = { done: '✓', active: '…', pending: '·' } as const;
 
 export function AnalysisProgress({ job }: { job: Job | null }) {
+  const t = useT('upload');
   const value = percent(job?.progress ?? 0);
   const stages = stageViews(job?.stage ?? null, job?.status ?? 'queued');
   return (
     <section aria-live="polite" className="w-full space-y-4">
-      <h2 className="text-lg font-medium">{UPLOAD_TEXT.analysing}</h2>
+      <h2 className="text-lg font-medium">{t('analysing')}</h2>
       <div
         role="progressbar"
-        aria-label={UPLOAD_TEXT.progressLabel}
+        aria-label={t('progressLabel')}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={value}
@@ -35,7 +36,7 @@ export function AnalysisProgress({ job }: { job: Job | null }) {
             <span aria-hidden="true" className="inline-block w-5">
               {STATE_MARK[s.state]}
             </span>
-            {s.label}
+            {t(`stage.${s.id}`)}
           </li>
         ))}
       </ol>

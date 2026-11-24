@@ -1,12 +1,12 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useT } from '@/i18n';
 import type { Analysis } from '@/templates/generated';
 import { DirectorPanel, useDirector, type DirectorSource } from '@/features/director';
 import { useStoreTemplates } from '@/features/template-store';
 import { WorldView } from '@/features/world-view';
 import { loadProjectAudio } from '../api/project.api';
-import { PLAYER_ERRORS, PLAYER_TEXT } from '../consts/player.consts';
 import { useProjectAnalysis } from '../hooks/use-project-analysis';
 import { useSongPlayer } from '../hooks/use-song-player';
 import { useAiTemplateChoice } from '../hooks/use-ai-template-choice';
@@ -22,6 +22,7 @@ interface ProjectWorldProps {
 }
 
 function ProjectWorld({ projectId, analysis, storeTemplateId }: ProjectWorldProps) {
+  const t = useT('player');
   const deps = useMemo(
     () => ({ createContext: () => new AudioContext(), loadBuffer: () => loadProjectAudio(projectId) }),
     [projectId],
@@ -31,7 +32,7 @@ function ProjectWorld({ projectId, analysis, storeTemplateId }: ProjectWorldProp
   const director = useDirector(source);
   const store = useStoreTemplates(storeTemplateId);
   const choice = useAiTemplateChoice(director, store);
-  const controls = useWorldControls(player, PLAYER_TEXT.projectTitle, choice);
+  const controls = useWorldControls(player, t('projectTitle'), choice);
   const { clock } = player;
   const { template } = choice;
   const scene = useMemo(
@@ -51,7 +52,7 @@ function ProjectWorld({ projectId, analysis, storeTemplateId }: ProjectWorldProp
       <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[var(--mw-bg)] to-transparent pt-6">
         <PlayerBar player={player} />
         <p className="pb-2 text-center text-xs opacity-60">
-          {analysis.key} · {Math.round(analysis.tempoBpm)} BPM · {analysis.notes.length} notes
+          {t('demoStats', { key: analysis.key, bpm: Math.round(analysis.tempoBpm), count: analysis.notes.length })}
         </p>
       </div>
     </div>
@@ -66,6 +67,7 @@ export function ProjectPlayback({
   projectId: string;
   storeTemplateId?: string | null;
 }) {
+  const t = useT('player');
   const state = useProjectAnalysis(projectId);
   if (state.kind === 'ready') {
     return <ProjectWorld projectId={projectId} analysis={state.analysis} storeTemplateId={storeTemplateId} />;
@@ -73,10 +75,10 @@ export function ProjectPlayback({
   return (
     <div className="flex h-dvh items-center justify-center p-6 text-center">
       {state.kind === 'loading' ? (
-        <p role="status">{PLAYER_TEXT.loadingProject}</p>
+        <p role="status">{t('loadingProject')}</p>
       ) : (
         <p role="alert" className="text-[var(--mw-accent)]">
-          {PLAYER_ERRORS[state.messageKey] ?? PLAYER_ERRORS.UNKNOWN}
+          {t.error(state.messageKey)}
         </p>
       )}
     </div>
