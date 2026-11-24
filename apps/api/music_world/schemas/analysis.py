@@ -22,7 +22,7 @@ TIME_EPSILON = 1e-6
 CHORD_ONSET_WINDOW_SEC = 0.06
 
 Stem = Literal["vocals", "drums", "bass", "other"]
-LyricsSource = Literal["muse-voice", "lrc", "none"]
+LyricsSource = Literal["muse-voice", "lrc", "lrclib", "whisper", "none"]
 NoteId = Annotated[str, StringConstraints(pattern=r"^n_\d{4,}$")]
 ChordId = Annotated[str, StringConstraints(pattern=r"^c_\d+$")]
 ChordLabel = Annotated[

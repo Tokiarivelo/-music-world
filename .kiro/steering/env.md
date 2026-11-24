@@ -22,6 +22,7 @@ provider rules. Source of truth in code: `apps/api/music_world/shared/settings.p
 | `DATABASE_URL` | `postgresql+asyncpg://music_world:music_world@localhost:5432/music_world` | Postgres (asyncpg driver) |
 | `REDIS_URL` | `redis://localhost:6379/0` | arq queue |
 | `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` | — | S3-compatible storage: Garage locally (`make garage-init`), Cloudflare R2 deployed (`S3_REGION=auto`); health reports `not_configured` while unset |
+| `LYRICS_LOOKUP`, `LYRICS_ASR`, `LYRICS_ASR_MODEL`, `LYRICS_LANGUAGE` | `true`, `true`, `base`, detect | Lyrics without a user `.lrc`: online lookup (LRCLIB, artist + title + duration only), then local Whisper on the vocal stem; `tiny` is fastest, `small` most accurate |
 | `STORAGE_DIR` | `.data/storage` | Local object store (uploads, stems, stage checkpoints) used while the `S3_*` settings are incomplete |
 | `ANALYSIS_MIN_VELOCITY` | `0.25` | Notes below this velocity (0–1) are dropped (requirement 3.3) |
 | `DEMUCS_MODEL` | `htdemucs` | Demucs pretrained model name used by the worker |

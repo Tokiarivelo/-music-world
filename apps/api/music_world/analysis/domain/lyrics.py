@@ -1,7 +1,7 @@
 """Timed lyrics (requirement 6) and the `.lrc` parser (requirement 1.5). Lyrics are user content: never log text."""
 
 import re
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 
 # A line without a following timestamp stays on screen this long.
@@ -62,6 +62,46 @@ def parse_lrc(text: str) -> list[LyricLine]:
         if len(lines) >= MAX_LINES:
             break
     return lines
+
+
+# Synced lyrics found online are trusted only when they look like a whole song: enough lines, spread over it.
+MIN_FOUND_LINES = 4
+MIN_FOUND_SPAN_RATIO = 0.4
+# A found track whose length differs from the audio by more than this is another version (live, edit, remaster).
+MAX_DURATION_DIFF_SEC = 4.0
+
+
+def is_plausible_lyrics(lines: Sequence[LyricLine], duration_sec: float) -> bool:
+    """True when `lines` could be the lyrics of a song of `duration_sec`: at least `MIN_FOUND_LINES` lines whose span
+    covers a good part of it. Guards against a stub or the lyrics of another song."""
+    if len(lines) < MIN_FOUND_LINES or duration_sec <= 0:
+        return False
+    span = lines[-1].start - lines[0].start
+    return span >= MIN_FOUND_SPAN_RATIO * min(duration_sec, MAX_ANALYZED_FOR_SPAN)
+
+
+MAX_ANALYZED_FOR_SPAN = 300.0
+
+
+def clean_asr_lines(lines: Iterable[LyricLine]) -> list[LyricLine]:
+    """Speech-recognition output → lyrics: drops empty lines and the immediate repeats a recogniser produces when it
+    loops on a held vowel or on silence (the same text three times in a row keeps one)."""
+    out: list[LyricLine] = []
+    repeats = 0
+    for line in lines:
+        text = _CONTROL.sub("", line.text).strip()[:MAX_TEXT_CHARS]
+        if not text or not any(ch.isalpha() for ch in text):
+            continue
+        if out and out[-1].text.casefold() == text.casefold():
+            repeats += 1
+            if repeats >= 2:
+                continue
+        else:
+            repeats = 0
+        out.append(LyricLine(line.start, max(line.end, line.start), text))
+        if len(out) >= MAX_LINES:
+            break
+    return out
 
 
 def fit_lyrics(lines: Iterable[LyricLine], duration_sec: float) -> list[LyricLine]:

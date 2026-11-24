@@ -20,7 +20,9 @@ class AnalyzeProjectJobHandler:
         audio = await self._projects.get(job.subject_id)
         structlog.contextvars.bind_contextvars(project_id=job.subject_id)
         try:
-            result = await self._analyze.execute(AnalyzeAudioInput(audio.audio_hash, audio.audio_key), report)
+            result = await self._analyze.execute(
+                AnalyzeAudioInput(audio.audio_hash, audio.audio_key, allow_asr=audio.lrc_text is None), report
+            )
             log.info("analysis.done", notes=len(result.notes), chords=len(result.chords), key=result.key)
         finally:
             structlog.contextvars.unbind_contextvars("project_id")

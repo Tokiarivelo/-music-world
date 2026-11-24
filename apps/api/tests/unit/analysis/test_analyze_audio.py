@@ -217,3 +217,76 @@ def test_any_stage_output_assembles_into_a_valid_analysis(
     )  # fmt: skip
     assert result.duration_sec == duration  # (the model validator already enforced requirement 7.2)
     assert len(result.notes) == len(merged)
+
+
+# --- Lyrics without a user .lrc: online catalog, then recognition, cached ---
+
+
+class FakeLookup:
+    def __init__(self, found: object = None) -> None:
+        self.found, self.queries = found, []  # type: ignore[var-annotated]
+
+    async def find(self, artist: str, title: str, duration_sec: float) -> object:
+        self.queries.append((artist, title))
+        return self.found
+
+
+class FakeTags:
+    async def read(self, audio: Path) -> tuple[str, str] | None:
+        return ("Tag Artist", "Tag Title")
+
+
+class CountingAsr:
+    def __init__(self, lines: list[LyricLine]) -> None:
+        self.lines, self.calls = lines, 0
+
+    async def transcribe(self, vocals: Path, duration_sec: float) -> list[LyricLine]:
+        self.calls += 1
+        return self.lines
+
+
+def _with_lyrics(lookup: object, asr: CountingAsr) -> tuple[AnalyzeAudio, InMemoryObjectStore]:
+    repo, store = InMemoryAnalysisRepository(), InMemoryObjectStore()
+    store.objects["audio/x.wav"] = b"RIFF fake"
+    use_case = AnalyzeAudio(
+        repo, store, FakeDecoder(), FakeSeparator(), FakeTranscriber(), FakeRhythm(), FakeStructure(),
+        asr, min_velocity=0.25, lookup=lookup, tags=FakeTags(),
+    )  # type: ignore[arg-type]  # fmt: skip
+    return use_case, store
+
+
+FOUND_LINES = tuple(LyricLine(2.0 * i, 2.0 * i + 1.5, f"line {i}") for i in range(1, 6))
+
+
+async def test_found_lyrics_win_and_recognition_is_never_run() -> None:
+    from music_world.analysis.application.ports import FoundLyrics
+
+    lookup, asr = FakeLookup(FoundLyrics(FOUND_LINES)), CountingAsr([LyricLine(1, 2, "heard")])
+    use_case, _ = _with_lyrics(lookup, asr)
+    result = await use_case.execute(INPUT, Recorder())
+    assert result.lyrics_source == "lrclib" and len(result.lyrics) == 5
+    assert lookup.queries == [("Tag Artist", "Tag Title")] and asr.calls == 0
+
+
+async def test_not_found_falls_back_to_recognition_and_the_outcome_is_cached() -> None:
+    lookup, asr = FakeLookup(None), CountingAsr([LyricLine(1, 2, "heard one"), LyricLine(3, 4, "heard two")])
+    use_case, store = _with_lyrics(lookup, asr)
+    first = await use_case.execute(INPUT, Recorder())
+    assert first.lyrics_source == "whisper" and [s.text for s in first.lyrics] == ["heard one", "heard two"]
+    store.objects.pop(next(k for k in store.objects if k.startswith("work/") and k.endswith("/notes.json")), None)
+    use_case._repo = InMemoryAnalysisRepository()  # type: ignore[attr-defined]  # force a second full run
+    again = await use_case.execute(INPUT, Recorder())
+    assert again.lyrics_source == "whisper" and asr.calls == 1 and len(lookup.queries) == 1  # nothing asked twice
+
+
+async def test_a_user_lrc_skips_recognition_and_an_instrumental_catalog_entry_skips_it_too() -> None:
+    from music_world.analysis.application.ports import FoundLyrics
+
+    asr = CountingAsr([LyricLine(1, 2, "heard")])
+    use_case, _ = _with_lyrics(FakeLookup(None), asr)
+    skipped = await use_case.execute(AnalyzeAudioInput(HASH, "audio/x.wav", allow_asr=False), Recorder())
+    assert skipped.lyrics == [] and skipped.lyrics_source == "none" and asr.calls == 0
+    asr2 = CountingAsr([LyricLine(1, 2, "heard")])
+    use_case2, _ = _with_lyrics(FakeLookup(FoundLyrics((), instrumental=True)), asr2)
+    instrumental = await use_case2.execute(INPUT, Recorder())
+    assert instrumental.lyrics == [] and asr2.calls == 0
