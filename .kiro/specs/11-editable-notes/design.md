@@ -12,3 +12,7 @@ See `docs/improvements/i9-editable-notes.md` § Design. Add an "As built" sectio
   `AddedNote`, limits 8 lines / 2 000 edits, hex colors, line ids `[a-z0-9-]`). `when.line` added to the template mapping
   condition (additive, optional; the engine reads it in task 3). Director prompt lists `line "main"` only and
   `PROMPT_VERSION` is now `director-v3`.
+- Task 3: `buildSpawnPlan(analysis, template, seed, edits?)` applies the edits first. `SpawnRecord` gains `line`, `lineY` (metres,
+  `lineOffsetY` in `engine/staff.ts`, 6 gaps per `height` unit) and `colorHex`; `SpawnPlan.lines` lists the voice lines with
+  their offset. `staffNotePosition` takes an optional `yOffset`. `when.line` is matched in `mapping.ts` (default `main`).
+  With no edits the plan is equal to the old one (test). Rendering of extra staff lines and `colorHex` is task 5/6c.

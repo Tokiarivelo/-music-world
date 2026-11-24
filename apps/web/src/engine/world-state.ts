@@ -124,7 +124,7 @@ function energyAt(times: readonly number[], values: readonly number[], t: number
 }
 
 function fallPosition(plan: SpawnPlan, r: SpawnRecord, progress: number): Vec3 {
-  const from = staffNotePosition(plan.staff, plan.staff.playheadU, r.staffU);
+  const from = staffNotePosition(plan.staff, plan.staff.playheadU, r.staffU, r.lineY);
   if (plan.template.staff.style === 'aurora') {
     return rainPosition(from, r.target, hashSeed(plan.seed, r.noteId), progress, plan.template.terrain.size);
   }
@@ -147,7 +147,7 @@ export function worldStateAt(plan: SpawnPlan, t: number): WorldState {
     const ahead = (r.onset - t) / lookahead; // (0, 1]
     if (ahead >= 1) continue; // appears strictly after onset - lookahead
     const u = staff.playheadU + ahead * (1 - staff.playheadU);
-    notesOnStaff.push({ index: i, glyph: r.glyph, u, position: staffNotePosition(staff, u, r.staffU) });
+    notesOnStaff.push({ index: i, glyph: r.glyph, u, position: staffNotePosition(staff, u, r.staffU, r.lineY) });
   }
 
   const fallingNotes: FallingNote[] = [];

@@ -56,7 +56,16 @@ export function staffPoint(path: StaffPath, u: number): Vec3 {
 }
 
 /** Note head position: `staffU` 0 = bottom line, 1 = top (fifth) line. */
-export function staffNotePosition(path: StaffPath, u: number, staffU: number): Vec3 {
+/** `yOffset` lifts the note with its line (I9 voice lines); 0 for the main line. */
+export function staffNotePosition(path: StaffPath, u: number, staffU: number, yOffset = 0): Vec3 {
   const p = staffPoint(path, u);
-  return { x: p.x, y: p.y + staffU * 4 * path.lineGap, z: p.z };
+  return { x: p.x, y: p.y + staffU * 4 * path.lineGap + yOffset, z: p.z };
+}
+
+/** Gaps between the bottom lines of two stacked voice lines: the staff (4) plus clearance. */
+export const LINE_STACK_GAPS = 6;
+
+/** Height of a voice line above the main staff, in metres (`height` is in stack units, see `StaffLine`). */
+export function lineOffsetY(path: StaffPath, height: number): number {
+  return height * LINE_STACK_GAPS * path.lineGap;
 }

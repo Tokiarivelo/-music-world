@@ -25,7 +25,8 @@ import { pitchFraction, placeNote, zonesFor, type ZoneRect } from './layout';
 import { mapNote, type MappedNote } from './mapping';
 import { noteStream, uniform } from './prng';
 import { recipeScale } from './recipe-scale';
-import { buildStaffPath, type StaffPath } from './staff';
+import { applyEdits, linesOf, MAIN_LINE_ID, type LayoutEdits, type StaffLine } from './edits';
+import { buildStaffPath, lineOffsetY, type StaffPath } from './staff';
 import type { ColorRole, EngineAnalysis, GlyphKind, NoteEvent, ShapeKind, Stem, Vec3, WorldTemplate } from './types';
 
 export interface SpawnRecord {
@@ -33,6 +34,12 @@ export interface SpawnRecord {
   readonly noteId: string;
   /** Instrument of the note (I5 layers); null for template scenery. */
   readonly stem: Stem | null;
+  /** Voice line of the note (I9); `main` for the analysis staff and for scenery. */
+  readonly line: string;
+  /** Height of the note's line above the main staff, in metres (0 for `main`). */
+  readonly lineY: number;
+  /** The note's own color (`#rrggbb`) when the user set one, else null. */
+  readonly colorHex: string | null;
   readonly kind: ShapeKind;
   /** Instance slot within its kind: `indexWithinKind % budget` (the oldest slot is reused, requirement 1.5). */
   readonly slot: number;
@@ -84,6 +91,8 @@ export interface SpawnPlan {
   readonly beats: readonly number[];
   readonly energy: { readonly times: readonly number[]; readonly values: readonly number[] };
   readonly staff: StaffPath;
+  /** Voice lines in display order, with their height in metres (`main` first unless reordered). */
+  readonly lines: readonly (StaffLine & { readonly offsetY: number })[];
   readonly budget: number;
   /** Records `[0, sceneryCount)` are template scenery (standing before the first note), the rest are notes. */
   readonly sceneryCount: number;
@@ -159,6 +168,9 @@ function sceneryRecords(
       records.push({
         noteId: id,
         stem: null,
+        line: MAIN_LINE_ID,
+        lineY: 0,
+        colorHex: null,
         kind: item.kind,
         onset: SCENERY_LANDED_AT - fallDuration,
         duration: 0,
@@ -180,7 +192,20 @@ function sceneryRecords(
   return records;
 }
 
-export function buildSpawnPlan(analysis: EngineAnalysis, template: WorldTemplate, seed: number): SpawnPlan {
+export function buildSpawnPlan(
+  analysisIn: EngineAnalysis,
+  template: WorldTemplate,
+  seed: number,
+  edits?: LayoutEdits,
+): SpawnPlan {
+  const edited = edits ? applyEdits(analysisIn, edits) : null;
+  const analysis = edited ? edited.analysis : analysisIn;
+  const staff = buildStaffPath(template);
+  const lines = linesOf(edits ?? { version: 1, lines: [], notes: [], added: [] }).map((l) => ({
+    ...l,
+    offsetY: lineOffsetY(staff, l.id === MAIN_LINE_ID ? 0 : l.height),
+  }));
+  const offsetOf = new Map(lines.map((l) => [l.id, l.offsetY]));
   const { lookahead, fallDuration } = template.staff;
   const budget = template.budget.instancesPerKind;
   const notes = [...analysis.notes].sort(byOnset);
@@ -207,7 +232,8 @@ export function buildSpawnPlan(analysis: EngineAnalysis, template: WorldTemplate
 
   const noteRecords = notes.map((note, i): SpawnRecord => {
     const index = first + i;
-    const mapped = mapNote(note, template);
+    const line = edited?.lineOf.get(note.id) ?? MAIN_LINE_ID;
+    const mapped = mapNote(note, template, line);
     const zones = zonesOf(mapped.kind);
     const slot = claimSlot(mapped.kind, index);
     const size = kindSize(mapped.kind, template);
@@ -216,6 +242,9 @@ export function buildSpawnPlan(analysis: EngineAnalysis, template: WorldTemplate
       index,
       noteId: note.id,
       stem: note.stem,
+      line,
+      lineY: offsetOf.get(line) ?? 0,
+      colorHex: edited?.colorOf.get(note.id) ?? null,
       kind: mapped.kind,
       slot,
       onset: note.time,
@@ -279,7 +308,8 @@ export function buildSpawnPlan(analysis: EngineAnalysis, template: WorldTemplate
     kicks: sortedUnique(drumOnsets.length > 0 ? drumOnsets : analysis.beats),
     beats: sortedUnique(analysis.beats),
     energy: { times: energy.map((e) => e.time), values: energy.map((e) => e.value) },
-    staff: buildStaffPath(template),
+    staff,
+    lines,
     budget,
     sceneryCount: first,
     lookahead,

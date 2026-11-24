@@ -4,7 +4,7 @@
   - _Requirements: 3, 5, 7, 13_
 - [x] 2. Contract: `music-world.edits.v1` schema, `when.line` in the template, director prompt + `PROMPT_VERSION`.
   - _Requirements: 5, 6, 13_
-- [ ] 3. `engine/staff.ts` multi-line staves + `SpawnRecord.line`; one-line plan unchanged.
+- [x] 3. `engine/staff.ts` multi-line staves + `SpawnRecord.line`; one-line plan unchanged.
   - _Requirements: 4, 5_
 - [ ] 4. `xr/audio/note-synth.ts` + `xr/picking.ts` with tests.
   - _Requirements: 1, 2, 10, 12_
