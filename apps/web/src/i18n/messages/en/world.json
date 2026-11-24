@@ -35,5 +35,21 @@
   "colors.contrast": "Contrast",
   "nav.walk": "Walk",
   "nav.walkReset": "Back to start",
-  "nav.walkHint": "Drag to look · WASD or arrows to walk · Shift to run · Q / E to turn · R back to start · G to leave"
+  "nav.walkHint": "Drag to look · WASD or arrows to walk · Shift to run · Q / E to turn · R back to start · G to leave",
+  "layers.title": "Layers",
+  "layers.presets": "Layer presets",
+  "layers.preset.everything": "Everything",
+  "layers.preset.rhythm": "Rhythm only",
+  "layers.preset.melody": "Melody only",
+  "layers.preset.voice": "Voice and lyrics",
+  "layers.noLyrics": "No lyrics for this song: add a .lrc file when you upload it.",
+  "layer.drums": "Drums",
+  "layer.bass": "Bass",
+  "layer.vocals": "Vocals",
+  "layer.other": "Other instruments",
+  "layer.chords": "Chords",
+  "layer.lyrics": "Lyrics",
+  "layer.fx": "Particles and effects",
+  "layer.staff": "Staff",
+  "lyrics.label": "Lyrics"
 }

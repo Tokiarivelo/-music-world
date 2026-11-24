@@ -35,5 +35,21 @@
   "colors.contrast": "Contraste",
   "nav.walk": "Marcher",
   "nav.walkReset": "Retour au départ",
-  "nav.walkHint": "Glisse pour regarder · WASD ou flèches pour marcher · Maj pour courir · Q / E pour tourner · R retour au départ · G pour quitter"
+  "nav.walkHint": "Glisse pour regarder · WASD ou flèches pour marcher · Maj pour courir · Q / E pour tourner · R retour au départ · G pour quitter",
+  "layers.title": "Calques",
+  "layers.presets": "Préréglages de calques",
+  "layers.preset.everything": "Tout",
+  "layers.preset.rhythm": "Rythme seul",
+  "layers.preset.melody": "Mélodie seule",
+  "layers.preset.voice": "Voix et paroles",
+  "layers.noLyrics": "Pas de paroles pour ce morceau : ajoute un fichier .lrc à l’envoi.",
+  "layer.drums": "Batterie",
+  "layer.bass": "Basse",
+  "layer.vocals": "Voix",
+  "layer.other": "Autres instruments",
+  "layer.chords": "Accords",
+  "layer.lyrics": "Paroles",
+  "layer.fx": "Particules et effets",
+  "layer.staff": "Portée",
+  "lyrics.label": "Paroles"
 }
