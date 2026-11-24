@@ -43,5 +43,6 @@ provider rules. Source of truth in code: `apps/api/music_world/shared/settings.p
 | `AUTH_RATE_LIMIT_PER_HOUR` | `10` | Sign-in links per client IP (plus 5 per address) |
 | `TEMPLATE_PUBLISH_RATE_LIMIT_PER_HOUR` | `10` | Store templates created per user |
 | `TEMPLATE_REPORT_HIDE_THRESHOLD` | `3` | Distinct reports that hide a store template |
+| `MODERATOR_EMAILS` | empty | Comma-separated e-mails (case-insensitive) that may use `/moderation`; empty disables the feature (404). Kept hashed in memory, never logged |
 | `UPLOAD_RATE_LIMIT_PER_HOUR` | `20` | Song uploads per user or client IP |
 

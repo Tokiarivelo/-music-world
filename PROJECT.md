@@ -322,7 +322,7 @@ Source de vérité : modèles pydantic dans `apps/api/music_world/schemas/`, enr
 `make schemas` produit `packages/schemas/*.schema.json` puis les types TS + validateurs zod dans
 `apps/web/src/templates/generated/`. Schémas exportés : `music-world.analysis.v1`, `music-world.director-providers.v1`,
 `music-world.director-result.v1`, `music-world.health.v1`, `music-world.job.v1`,
-`music-world.job-accepted.v1`, `music-world.project.v1`, `music-world.project-created.v1`, `music-world.session.v1`,
+`music-world.job-accepted.v1`, `music-world.moderation-queue.v1`, `music-world.project.v1`, `music-world.project-created.v1`, `music-world.session.v1`,
 `music-world.store-template.v1`, `music-world.store-template-page.v1`, `music-world.template.v1`.
 
 `POST /api/projects` (multipart `audio` + `lyrics` .lrc optionnel) répond `202` avec `ProjectCreated`
@@ -352,6 +352,12 @@ du store : ≤ 32 Ko, formes intégrées uniquement, portée lisible, nom en tex
 `GET /api/templates/mine` les templates de l'appelant. `POST /api/templates/{id}/reports` (`{reason}` parmi
 `offensive | spam | broken | copyright`, connecté) : un signalement par personne et par template ; au seuil
 `TEMPLATE_REPORT_HIDE_THRESHOLD` le template passe `hidden` (retiré de la galerie, visible de son auteur).
+Modération (`10-template-moderation`) : `MODERATOR_EMAILS` (liste d'e-mails séparés par des virgules, vide par défaut)
+désigne les modérateurs ; `GET /api/auth/session` ajoute `moderator: true` pour eux seuls. `GET
+/api/moderation/templates` (`ModerationQueue` : templates `hidden`, dernier signalement d'abord, motifs, `nextCursor`),
+`POST /api/moderation/templates/{id}/restore` (republie et oublie les signalements) et `…/remove` (supprime) répondent
+`204`, `409 TEMPLATE_NOT_HIDDEN` si le template n'est plus masqué ; `404` pour tout autre utilisateur, et pour tous quand la
+liste est vide. Chaque décision écrit une ligne `moderation_actions`.
 
 ### NoteEvent
 

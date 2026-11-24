@@ -179,6 +179,9 @@ after the launch templates. **Use this template** opens `/play/demo?template=<st
 12 newest store templates. Signed-in visitors can **Report** a template; after `TEMPLATE_REPORT_HIDE_THRESHOLD`
 (default 3) distinct reports it leaves the gallery. Uploads are limited to `UPLOAD_RATE_LIMIT_PER_HOUR` (default 20)
 per user or IP, publication to `TEMPLATE_PUBLISH_RATE_LIMIT_PER_HOUR` (default 10) per user.
+People listed in `MODERATOR_EMAILS` (comma-separated, empty by default) get a **Moderation** link and the page
+`/moderation`: the hidden templates with their report reasons, each to **Restore** (published again, reports
+forgotten) or **Remove** (deleted). Everyone else gets a 404, and every decision is written to an audit table.
 
 ```bash
 curl -k https://localhost/api/templates?limit=5          # {"items":[…],"nextCursor":…}

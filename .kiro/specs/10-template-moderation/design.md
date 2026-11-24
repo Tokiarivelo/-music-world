@@ -39,3 +39,20 @@ template.
 ## Human checks
 
 Set `MODERATOR_EMAILS` on the server and review one real hidden template after the public deploy.
+
+## As built
+
+- `ModeratorDirectory.is_moderator(email)` takes the e-mail (not a `User`) so `shared/auth.require_moderator` can use it
+  without importing the accounts domain; it compares hashes only. `require_moderator` answers 404 **before** the CSRF
+  check for non-moderators, so a missing CSRF header never reveals the routes.
+- The queue cursor reuses `PageCursor`: its `published_at` carries the latest report time. Order: latest report first,
+  then id. Reports store a closed reason code (`offensive | spam | broken | copyright`), shown as translated text.
+- `RemoveTemplate` and `RestoreTemplate` also delete the report rows; `reports_since` is set on restore and honoured by
+  `ReportTemplate`, so a restored template restarts from zero. Rate limit: 120 decisions per hour per moderator.
+- Contract: `music-world.session.v1` gains optional `moderator` (absent unless true), new `music-world.moderation-queue.v1`.
+- Web: `features/moderation` (`ModerationPage`, `QueueList`, `ReasonList`, `DecisionButtons`, `ModerationLink` in the
+  site nav), page `/moderation`, namespace `moderation` in en / fr / mg.
+- Not done: requirement 4.1 "Hidden after reports, under review" label. The web app has no "My templates" list yet
+  (`GET /api/templates/mine` already returns `status: "hidden"`); add the label when that list exists.
+- Deploy note: `infra/.env.example` gains `MODERATOR_EMAILS=`; `check-env.sh` requires the name to be present in
+  `infra/.env` (empty is fine).

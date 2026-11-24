@@ -13,7 +13,7 @@
 - [x] 5. Web `features/moderation` + `/moderation` page + navigation link from `session.moderator`; "My templates" hidden
   label; Testing Library tests.
   - _Requirements: 2.2, 2.3, 4.1_
-- [ ] 6. `.env.example` files, `env.md`, `check-env.sh`, README, `PROJECT.md` §9, handoff; tick.
+- [x] 6. `.env.example` files, `env.md`, `check-env.sh`, README, `PROJECT.md` §9, handoff; tick.
   - _Requirements: 1.1_
 - [ ] 7. (human) Review one real hidden template on the public URL.
   - _Requirements: 2.1, 3.1_
