@@ -1,0 +1,14 @@
+{
+  "play": "Alefaso",
+  "pause": "Ajanony",
+  "seek": "Toerana ao amin'ny hira",
+  "loading": "Fiomanana ny hira fanehoana…",
+  "demoNote": "Hira fanehoana “{title}”, noforonina ho an'i Music World",
+  "demoStats": "{key} · {bpm} BPM · {count, plural, other {nota #}}",
+  "loadingProject": "Fampidirana ny tontolon'ny hira…",
+  "projectTitle": "Ny hirao",
+  "errors.PROJECT_NOT_FOUND": "Tsy misy ity hira ity.",
+  "errors.ANALYSIS_NOT_READY": "Mbola andalam-panadihadiana ity hira ity. Miverena afaka minitra.",
+  "errors.NETWORK": "Tsy azo tratra ny serivera. Andramo indray.",
+  "errors.UNKNOWN": "Tsy azo nampidirina ity tontolo ity."
+}

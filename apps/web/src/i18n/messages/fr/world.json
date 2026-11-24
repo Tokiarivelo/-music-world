@@ -1,0 +1,17 @@
+{
+  "enterVR": "Entrer en VR",
+  "exitVR": "Quitter la VR",
+  "loading": "Chargement du monde…",
+  "loadError": "Le monde 3D n'a pas pu être créé dans ce navigateur.",
+  "canvasLabel": "Vue 3D de Music World",
+  "nav.group": "Caméra",
+  "nav.explore": "Explorer",
+  "nav.exploring": "Exploration",
+  "nav.reset": "Réinitialiser la vue",
+  "nav.presetsLabel": "Vues prédéfinies",
+  "nav.hint": "Glisser pour orbiter · clic droit pour déplacer · molette pour zoomer · WASD pour avancer · R pour réinitialiser",
+  "preset.overview": "Vue d'ensemble",
+  "preset.staff": "Portée",
+  "preset.city": "Ville",
+  "preset.top": "Dessus"
+}

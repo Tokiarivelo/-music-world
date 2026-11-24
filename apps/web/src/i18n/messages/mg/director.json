@@ -1,0 +1,17 @@
+{
+  "title": "Talen'ny tontolo AI",
+  "provider": "Mpamatsy AI",
+  "generate": "Forony amin'ny AI ny tontolo",
+  "generating": "Eo am-pamoronana ny tontolonao…",
+  "generatedBy": "Noforonin'i {provider} · {model}",
+  "fallback": "Tsy nisy ny {requested}, ka {provider} no namaly.",
+  "cached": "avy amin'ny cache",
+  "provider.muse": "Meta Muse",
+  "provider.bedrock": "Claude (Amazon Bedrock)",
+  "provider.mock": "Fanahafana (tsy misy internet)",
+  "errors.RATE_LIMITED": "Be loatra ny tontolo noforonina. Andramo any aoriana.",
+  "errors.ANALYSIS_NOT_READY": "Mbola andalam-panadihadiana ity hira ity.",
+  "errors.PROJECT_NOT_FOUND": "Tsy misy ity hira ity.",
+  "errors.NETWORK": "Tsy azo tratra ny serivera. Andramo indray.",
+  "errors.UNKNOWN": "Tsy afaka noforonina ny tontolo."
+}

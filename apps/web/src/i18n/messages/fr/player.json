@@ -1,0 +1,14 @@
+{
+  "play": "Lecture",
+  "pause": "Pause",
+  "seek": "Position dans la chanson",
+  "loading": "Préparation de la chanson de démonstration…",
+  "demoNote": "Chanson de démonstration « {title} », composée pour Music World",
+  "demoStats": "{key} · {bpm} BPM · {count, plural, one {# note} other {# notes}}",
+  "loadingProject": "Chargement du monde de votre chanson…",
+  "projectTitle": "Votre chanson",
+  "errors.PROJECT_NOT_FOUND": "Cette chanson n'existe pas.",
+  "errors.ANALYSIS_NOT_READY": "Cette chanson est encore en cours d'analyse. Revenez dans une minute.",
+  "errors.NETWORK": "Le serveur est injoignable. Réessayez.",
+  "errors.UNKNOWN": "Ce monde n'a pas pu être chargé."
+}

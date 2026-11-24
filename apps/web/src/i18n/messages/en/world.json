@@ -1,0 +1,17 @@
+{
+  "enterVR": "Enter VR",
+  "exitVR": "Exit VR",
+  "loading": "Loading world…",
+  "loadError": "The 3D world could not be created in this browser.",
+  "canvasLabel": "Music World 3D view",
+  "nav.group": "Camera",
+  "nav.explore": "Explore",
+  "nav.exploring": "Exploring",
+  "nav.reset": "Reset view",
+  "nav.presetsLabel": "View presets",
+  "nav.hint": "Drag to orbit · right-drag to pan · wheel to zoom · WASD to move · R to reset",
+  "preset.overview": "Overview",
+  "preset.staff": "Staff",
+  "preset.city": "City",
+  "preset.top": "Top"
+}
