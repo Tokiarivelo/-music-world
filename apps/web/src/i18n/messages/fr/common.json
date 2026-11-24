@@ -4,5 +4,10 @@
   "openDemo": "Ouvrir le monde de démonstration",
   "uploadSong": "Envoyer votre chanson",
   "browseTemplates": "Parcourir les modèles",
-  "language": "Langue"
+  "language": "Langue",
+  "navLabel": "Navigation du site",
+  "navHome": "Accueil",
+  "navNewSong": "Nouvelle chanson",
+  "navTemplates": "Modèles",
+  "navMenu": "Menu"
 }
