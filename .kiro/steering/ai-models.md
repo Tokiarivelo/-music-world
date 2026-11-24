@@ -13,9 +13,15 @@ fileMatchPattern: "apps/api/music_world/director/**"
 | World direction | `muse-spark-1.3` | text summary of `AnalysisResult` + lyrics | `WorldTemplate` JSON |
 | Custom shapes (optional) | `muse-wonder-1.0` | shape intent from the template | `ShapeRecipe` JSON |
 
+Bedrock equivalents (Claude in Amazon Bedrock, `bedrock-mantle`): director `anthropic.claude-sonnet-5-5`, shapes
+`anthropic.claude-opus-5-5`. Mock: `mock-director-1`. Current prompt: `PROMPT_VERSION = "director-v1"`
+(`director/infrastructure/prompts/director.py`). Verified facts and sources: spec `05-ai-world-director/design.md`.
+
 ## Provider switch
 
-- All calls go through the `LLMProvider` port (`director/application/ports.py`), implemented in
+- All calls go through the `LLMProvider` port (`director/application/ports.py`:
+  `complete_json(PromptRequest) -> ProviderReply`, the request carries the structured summary for the mock and the
+  reply the cost estimate), implemented in
   `director/infrastructure/providers/{muse,bedrock,mock}.py`; the fallback chain and cache are adapters too.
 - Equivalent roles on Bedrock: director → a Claude Sonnet-class model, shapes → a Claude Opus-class model
   (ids from `BEDROCK_MODEL_ID` / `BEDROCK_SHAPE_MODEL_ID`).

@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "music-world.director-providers.v1",
+  "$comment": "GENERATED — do not edit. Source: apps/api/music_world/schemas (run `make schemas`).",
+  "$defs": {
+    "ProviderInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "enum": [
+            "muse",
+            "bedrock",
+            "mock"
+          ],
+          "title": "Id",
+          "type": "string"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "configured": {
+          "description": "False when credentials are missing: the selector hides it.",
+          "title": "Configured",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "model",
+        "configured"
+      ],
+      "title": "ProviderInfo",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "`GET /api/director/providers`: the default provider and which ones can be selected.",
+  "examples": [
+    {
+      "default": "mock",
+      "providers": [
+        {
+          "configured": false,
+          "id": "muse",
+          "model": "muse-spark-1.3"
+        },
+        {
+          "configured": false,
+          "id": "bedrock",
+          "model": "anthropic.claude-sonnet-5-5"
+        },
+        {
+          "configured": true,
+          "id": "mock",
+          "model": "mock-director-1"
+        }
+      ]
+    }
+  ],
+  "properties": {
+    "default": {
+      "enum": [
+        "muse",
+        "bedrock",
+        "mock"
+      ],
+      "type": "string",
+      "title": "Default"
+    },
+    "providers": {
+      "items": {
+        "$ref": "#/$defs/ProviderInfo"
+      },
+      "title": "Providers",
+      "type": "array"
+    }
+  },
+  "required": [
+    "default",
+    "providers"
+  ],
+  "title": "DirectorProviders",
+  "type": "object"
+}

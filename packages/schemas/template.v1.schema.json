@@ -56,6 +56,38 @@
       "title": "Fx",
       "type": "object"
     },
+    "GeneratedBy": {
+      "additionalProperties": false,
+      "description": "Which AI World Director run produced a template (05-ai-world-director requirement 1.4).",
+      "properties": {
+        "provider": {
+          "enum": [
+            "muse",
+            "bedrock",
+            "mock"
+          ],
+          "title": "Provider",
+          "type": "string"
+        },
+        "model": {
+          "pattern": "^[A-Za-z0-9._:-]{1,80}$",
+          "title": "Model",
+          "type": "string"
+        },
+        "promptVersion": {
+          "pattern": "^[A-Za-z0-9._-]{1,40}$",
+          "title": "Promptversion",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "model",
+        "promptVersion"
+      ],
+      "title": "GeneratedBy",
+      "type": "object"
+    },
     "MappingCondition": {
       "additionalProperties": false,
       "description": "All present fields must match (AND); an empty condition matches every note.",
@@ -282,6 +314,25 @@
       "title": "Staff",
       "type": "object"
     },
+    "TemplateMeta": {
+      "additionalProperties": false,
+      "properties": {
+        "generatedBy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeneratedBy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Set by the director, never by a model."
+        }
+      },
+      "title": "TemplateMeta",
+      "type": "object"
+    },
     "Terrain": {
       "additionalProperties": false,
       "properties": {
@@ -460,6 +511,17 @@
         "beatPulse": true,
         "chordLinks": "light_arc"
       }
+    },
+    "meta": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TemplateMeta"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "required": [

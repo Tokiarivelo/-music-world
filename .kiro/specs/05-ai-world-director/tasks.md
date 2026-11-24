@@ -3,7 +3,7 @@
 - [x] 1. Create this spec (design + tasks) from `requirements.md`, `PROJECT.md` §5–§6, `ai-models.md` and the
   `llm-provider` skill; verify provider docs (recorded in `design.md` § Verified provider facts).
   - _Requirements: all_
-- [ ] 2. (5.2, P1) Director core, green without any key: contracts (`meta.generatedBy`, `DirectorResult`,
+- [x] 2. (5.2, P1) Director core, green without any key: contracts (`meta.generatedBy`, `DirectorResult`,
   `DirectorProviders`), settings, `LLMProvider` port, analysis summary, prompts + `PROMPT_VERSION`, sanitize / clamp /
   validate / renderability spec, deterministic `mock` provider, `GenerateWorld` use case (fallback chain, retry once,
   cache, spend cap, timeout), object-store cache and spend tracker, HTTP routes with rate limit; Hypothesis property

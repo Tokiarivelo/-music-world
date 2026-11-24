@@ -95,6 +95,18 @@ class Fx(ContractModel):
     chord_links: Literal["light_arc", "none"] = "light_arc"
 
 
+class GeneratedBy(ContractModel):
+    """Which AI World Director run produced a template (05-ai-world-director requirement 1.4)."""
+
+    provider: Literal["muse", "bedrock", "mock"]
+    model: str = Field(pattern=r"^[A-Za-z0-9._:-]{1,80}$")
+    prompt_version: str = Field(pattern=r"^[A-Za-z0-9._-]{1,40}$")
+
+
+class TemplateMeta(ContractModel):
+    generated_by: GeneratedBy | None = Field(default=None, description="Set by the director, never by a model.")
+
+
 class WorldTemplate(ContractModel):
     """Palette, terrain, staff, note-to-shape mappings, layout zones and effects of a world."""
 
@@ -111,3 +123,4 @@ class WorldTemplate(ContractModel):
     zones: list[Zone] = Field(default=[], max_length=16, description="Kinds without a zone use the whole plate.")
     budget: Budget = Budget()
     fx: Fx = Fx()
+    meta: TemplateMeta | None = None

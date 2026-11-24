@@ -83,6 +83,24 @@ curl -k -F audio=@song.mp3 -F lyrics=@song.lrc https://localhost/api/projects   
 curl -k https://localhost/api/projects/<projectId>                               # status analyzing | ready | failed
 ```
 
+### AI World Director
+
+On `/play/demo` (or `/play/<projectId>`), pick a provider and press **Generate world with AI**: the API summarizes the
+analysis (key, tempo, chords per section, energy curve, pitch range, lyrics), asks the model for a world template, then
+validates and clamps it. The label shows which provider and model produced the world; generate again with another
+provider to compare (both stay in the template list, also in VR). Without any key the deterministic `mock` director
+answers, so the demo always works. To enable the real providers, set in `infra/.env` (server only):
+
+- Meta Muse: `META_API_KEY` (models `META_DIRECTOR_MODEL=muse-spark-1.3`).
+- Claude in Amazon Bedrock: `AWS_REGION` + AWS credentials (`AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`, or
+  `AWS_BEARER_TOKEN_BEDROCK`), model `BEDROCK_MODEL_ID=anthropic.claude-sonnet-5-5` (enable access in the console).
+- `LLM_PROVIDER` picks the default; `META_SPEND_CAP_USD` (default 1) caps the estimated spend per song.
+
+```bash
+curl -k https://localhost/api/director/providers
+curl -k -X POST https://localhost/api/projects/<projectId>/director -H 'content-type: application/json' -d '{"provider":"muse"}'
+```
+
 ## License
 
 [MIT](LICENSE)

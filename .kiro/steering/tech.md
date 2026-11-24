@@ -67,8 +67,18 @@ chosen per request (UI selector) or by default with `LLM_PROVIDER`:
 | `bedrock` | Amazon Bedrock, Anthropic Claude models | Same model family Kiro uses in the IDE. Kiro itself has no runtime API for apps. |
 | `mock` | Deterministic rules | No key needed; always available as fallback |
 
-Bedrock env: `AWS_REGION`, AWS credentials (server only), `BEDROCK_MODEL_ID` (pick the latest Claude model enabled in
-the account's region; verify the exact id in the Bedrock console). Both real providers share the same prompts, schema
+Bedrock env (Claude in Amazon Bedrock, `bedrock-mantle` Messages API through `anthropic[bedrock]`):
+
+| Env var | Default | Use |
+|---|---|---|
+| `LLM_PROVIDER` | `muse` | Default director provider (`muse`, `bedrock`, `mock`); unconfigured → next in the chain |
+| `AWS_REGION` | — | Required for Bedrock |
+| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, `AWS_PROFILE`, `AWS_BEARER_TOKEN_BEDROCK` | — | Server-only credentials (keys, profile or a Bedrock API key); none → Bedrock skipped |
+| `BEDROCK_MODEL_ID` | `anthropic.claude-sonnet-5-5` | Director (Sonnet class); check access in the Bedrock console |
+| `BEDROCK_SHAPE_MODEL_ID` | `anthropic.claude-opus-5-5` | ShapeRecipe generation (Opus class, optional) |
+| `DIRECTOR_TIMEOUT_SEC` | `30` | Per provider call; over it → next provider |
+| `DIRECTOR_AUDIO_HINT` | `false` | Optional 30 s audio mood hint (plumbed, not sent by any provider yet) |
+| `DIRECTOR_RATE_LIMIT_PER_HOUR` | `30` | Director generations per client IP and API worker (`429 RATE_LIMITED`) | Both real providers share the same prompts, schema
 validation, cache and fallback chain: selected provider → other real provider (if configured) → mock.
 Lyrics transcription is separate: `LYRICS_PROVIDER = muse | lrc | none` (`lrc` = user-supplied file).
 
@@ -81,7 +91,7 @@ Lyrics transcription is separate: `LYRICS_PROVIDER = muse | lrc | none` (`lrc` =
 | `META_DIRECTOR_MODEL` | `muse-spark-1.3` | Music summary + lyrics → `WorldTemplate` JSON |
 | `META_SHAPE_MODEL` | `muse-wonder-1.0` | Optional: `ShapeRecipe` generation |
 | `META_VOICE_MODEL` | `muse-voice-transcribe-1.0` | Lyrics from the Demucs vocal stem |
-| `META_SPEND_CAP_USD` | `1` | Per-analysis spend cap; over it → mock |
+| `META_SPEND_CAP_USD` | `1` | Estimated USD per analysis (audio hash), both real providers; over it → mock |
 
 - The API is in public preview: verify model ids, request formats and the voice endpoint in Meta's docs before coding.
 - Do not use `*-contributor` model ids with user audio or lyrics (Meta trains on those inputs).

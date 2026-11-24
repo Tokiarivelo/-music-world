@@ -197,3 +197,20 @@ so the 2D page and the VR template picker both list every generated template; no
 2. Bedrock: set `AWS_REGION` and AWS credentials (or `AWS_BEARER_TOKEN_BEDROCK`), enable access to the Claude model in
    the Bedrock console, same command with `"provider": "bedrock"`.
 3. On `/play/demo`, pick each provider, click "Generate world with AI", check the label and the world.
+
+## As built (Phase 5, 2026-11-25)
+
+- Task 2: `apps/api/music_world/director/` — domain (`providers.py` chain, `renderable.py`, `spend.py`, `demo.py`,
+  `errors.py`), application (`summary.py`, `template_output.py`, `ports.py`, use cases `GenerateWorld`,
+  `GenerateProjectWorld`, `GenerateDemoWorld`, `ListProviders`), infrastructure (`prompts/`, `providers/mock.py`,
+  `object_store_cache.py`, `default_template.json` = copy of the web default, kept equal by a test), interfaces
+  (`http.py`). Wiring: `shared/container.py` `build_director` (`Container.director`). Rate limiter:
+  `shared/rate_limit.py`.
+- Selecting `mock` never calls a paid provider (chain = `[mock]`).
+- The rate limit is in memory per API worker (2 uvicorn workers → up to 2× the limit); uvicorn trusts Caddy's
+  `X-Forwarded-For` (`--forwarded-allow-ips '*'`, the api port is not published).
+- Property test `tests/unit/director/test_template_output.py`: arbitrary JSON (300 examples) and near-valid templates
+  (400 examples, ~20 % renderable / 80 % rejected) against an oracle written from the engine's rules. Mutation
+  checks (each caught): recipe kinds allowed, staff contrast check removed, minimum clamp removed, NaN kept,
+  model-provided `id` kept. The first strategy version produced 0 % renderable documents (vacuous property): fixed
+  by biasing each field toward valid values.

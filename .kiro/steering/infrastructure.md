@@ -11,7 +11,7 @@ fileMatchPattern: ["infra/**", "**/Dockerfile*", "Makefile"]
 |---|---|---|---|
 | `caddy` | caddy | 80, 443 (public) | Only public service; Let's Encrypt; `/api/*` → api, rest → web |
 | `web` | `infra/docker/web.Dockerfile` (Next.js standalone) | 3000 | |
-| `api` | `infra/docker/api.Dockerfile` | 8000 | uvicorn, 2 workers |
+| `api` | `infra/docker/api.Dockerfile` | 8000 | uvicorn, 2 workers, `--forwarded-allow-ips '*'` (only Caddy reaches it: client IPs for the director rate limit) |
 | `worker` | same image as api | — | `arq music_world.worker.WorkerSettings`; CPU-heavy (Demucs) |
 | `postgres` | postgres:16 | 5432 | volume `pgdata` |
 | `redis` | redis:7 | 6379 | |
