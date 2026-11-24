@@ -88,6 +88,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 | 06-template-store 7 | — | blocked | real e-mail (SMTP credentials) + public URL (human) |
 | Roadmap 8.4, 8.5 | Claude Code (deploy/hardening) | done | `docs/security-review.md`, `infra/README.md` |
 | Roadmap 8.1–8.3 | — | blocked | scripts + runbook ready; needs instance, domain, keys (human) |
+| Roadmap 9.1, 9.2, 9.3–9.5 drafts | Claude Code (submission docs) | in progress | branch `phase-9-submission` |
 
 ## 5. Active pitfalls
 
