@@ -117,3 +117,14 @@ def test_a_generated_template_keeps_at_most_four_recipes() -> None:
     five = _template(recipes=[recipe | {"name": f"t{i}"} for i in range(5)])
     assert WorldTemplate.model_validate(five)  # the store accepts up to 16
     assert any("at most 4" in e for e in renderability_errors(five))
+
+
+def test_recipe_scale_has_defaults_and_bounds() -> None:
+    recipe = FIXTURES[3]["recipe"]
+    plain = ShapeRecipe.model_validate(recipe)
+    assert (plain.footprint, plain.height_scale) == (0.25, 1)
+    squat = ShapeRecipe.model_validate(recipe | {"footprint": 1.2, "heightScale": 0.3})
+    assert (squat.footprint, squat.height_scale) == (1.2, 0.3)
+    for bad in ({"footprint": 0.05}, {"footprint": 2}, {"heightScale": 0}, {"heightScale": 3}):
+        with pytest.raises(ValidationError):
+            ShapeRecipe.model_validate(recipe | bad)

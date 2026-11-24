@@ -461,6 +461,22 @@
           "default": {
             "maxTriangles": 500
           }
+        },
+        "footprint": {
+          "default": 0.25,
+          "description": "Side of the unit footprint in metres on the plate: wide shapes (a whale, a wreck) use more.",
+          "maximum": 1.5,
+          "minimum": 0.1,
+          "title": "Footprint",
+          "type": "number"
+        },
+        "heightScale": {
+          "default": 1,
+          "description": "Multiplies the instance height (0.5 to 1.5 m by default): below 1 makes a squat shape.",
+          "maximum": 2,
+          "minimum": 0.1,
+          "title": "Heightscale",
+          "type": "number"
         }
       },
       "required": [

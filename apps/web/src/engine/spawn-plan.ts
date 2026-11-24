@@ -24,6 +24,7 @@ import {
 import { pitchFraction, placeNote, zonesFor, type ZoneRect } from './layout';
 import { mapNote, type MappedNote } from './mapping';
 import { noteStream, uniform } from './prng';
+import { recipeScale } from './recipe-scale';
 import { buildStaffPath, type StaffPath } from './staff';
 import type { ColorRole, EngineAnalysis, GlyphKind, NoteEvent, ShapeKind, Vec3, WorldTemplate } from './types';
 
@@ -128,8 +129,10 @@ function sortedUnique(values: readonly number[]): number[] {
   return [...new Set(values.filter(Number.isFinite))].sort((a, b) => a - b);
 }
 
-function kindSize(kind: ShapeKind): { base: number; extra: number } {
-  return kind.startsWith('recipe:') ? RECIPE_HEIGHT : (KIND_HEIGHT[kind] ?? RECIPE_HEIGHT);
+function kindSize(kind: ShapeKind, template: WorldTemplate): { base: number; extra: number } {
+  if (!kind.startsWith('recipe:')) return KIND_HEIGHT[kind] ?? RECIPE_HEIGHT;
+  const { heightScale } = recipeScale(template, kind);
+  return { base: RECIPE_HEIGHT.base * heightScale, extra: RECIPE_HEIGHT.extra * heightScale };
 }
 
 /**
@@ -150,7 +153,7 @@ function sceneryRecords(
       const rng = noteStream(seed, `${id}:attributes`);
       const midi = Math.floor(uniform(rng, PIANO_LOW_MIDI, PIANO_HIGH_MIDI));
       const velocity = uniform(rng, SCENERY_VELOCITY_MIN, SCENERY_VELOCITY_MAX);
-      const size = kindSize(item.kind);
+      const size = kindSize(item.kind, template);
       records.push({
         noteId: id,
         kind: item.kind,
@@ -204,7 +207,7 @@ export function buildSpawnPlan(analysis: EngineAnalysis, template: WorldTemplate
     const mapped = mapNote(note, template);
     const zones = zonesOf(mapped.kind);
     const slot = claimSlot(mapped.kind, index);
-    const size = kindSize(mapped.kind);
+    const size = kindSize(mapped.kind, template);
     const velocity = clamp(note.velocity, 0, 1);
     return {
       index,

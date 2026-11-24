@@ -5,7 +5,8 @@
  */
 import { Color, Group, InstancedMesh, Matrix4, MeshBasicMaterial, Quaternion, Vector3 } from 'three';
 import type { SpawnPlan } from '@/engine/spawn-plan';
-import type { ShapeKind } from '@/engine/types';
+import { recipeScale } from '@/engine/recipe-scale';
+import type { ShapeKind, WorldTemplate } from '@/engine/types';
 import type { WorldState } from '@/engine/world-state';
 import { KIND_FOOTPRINT, RECIPE_FOOTPRINT } from '../constants';
 import { lightness, structureColor } from '../palette';
@@ -21,8 +22,9 @@ const RIDGE_LIGHT = 1.2;
 const SPIKE_GLOW = 2.2;
 const ZERO = new Matrix4().makeScale(0, 0, 0);
 
-export function footprintOf(kind: ShapeKind): number {
-  return KIND_FOOTPRINT[kind] ?? RECIPE_FOOTPRINT;
+export function footprintOf(kind: ShapeKind, template?: WorldTemplate): number {
+  if (KIND_FOOTPRINT[kind] !== undefined) return KIND_FOOTPRINT[kind];
+  return template ? recipeScale(template, kind).footprint : RECIPE_FOOTPRINT;
 }
 
 export class StructureView implements WorldView {
@@ -85,7 +87,7 @@ export class StructureView implements WorldView {
     for (const s of state.structures) {
       const mesh = this.meshes.get(s.kind);
       if (!mesh || s.slot >= mesh.count) continue;
-      const footprint = footprintOf(s.kind) * (0.6 + 0.4 * s.growth);
+      const footprint = footprintOf(s.kind, this.plan.template) * (0.6 + 0.4 * s.growth);
       this.scale.set(footprint, Math.max(MIN_SCALE, s.height), footprint);
       this.m.compose(this.pos.set(s.position.x, s.position.y, s.position.z), this.q, this.scale);
       mesh.setMatrixAt(s.slot, this.m);

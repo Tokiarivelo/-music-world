@@ -321,7 +321,9 @@
       ],
       "budget": {
         "maxTriangles": 600
-      }
+      },
+      "footprint": 0.5,
+      "heightScale": 0.5
     },
     {
       "name": "shark",
@@ -349,7 +351,9 @@
       ],
       "budget": {
         "maxTriangles": 600
-      }
+      },
+      "footprint": 0.9,
+      "heightScale": 0.6
     },
     {
       "name": "jellyfish",
@@ -376,7 +380,9 @@
       ],
       "budget": {
         "maxTriangles": 600
-      }
+      },
+      "footprint": 0.5,
+      "heightScale": 0.8
     },
     {
       "name": "octopus",
@@ -403,7 +409,9 @@
       ],
       "budget": {
         "maxTriangles": 600
-      }
+      },
+      "footprint": 0.6,
+      "heightScale": 0.6
     },
     {
       "name": "sea_turtle",
@@ -437,7 +445,9 @@
       ],
       "budget": {
         "maxTriangles": 600
-      }
+      },
+      "footprint": 0.8,
+      "heightScale": 0.3
     },
     {
       "name": "starfish",
@@ -463,7 +473,9 @@
       ],
       "budget": {
         "maxTriangles": 600
-      }
+      },
+      "footprint": 0.6,
+      "heightScale": 0.15
     },
     {
       "name": "seashell",
@@ -485,7 +497,9 @@
       ],
       "budget": {
         "maxTriangles": 600
-      }
+      },
+      "footprint": 0.5,
+      "heightScale": 0.3
     },
     {
       "name": "shipwreck",
@@ -515,7 +529,9 @@
       ],
       "budget": {
         "maxTriangles": 600
-      }
+      },
+      "footprint": 1.1,
+      "heightScale": 0.5
     },
     {
       "name": "treasure_chest",
@@ -548,7 +564,9 @@
       ],
       "budget": {
         "maxTriangles": 600
-      }
+      },
+      "footprint": 0.6,
+      "heightScale": 0.3
     },
     {
       "name": "anchor",
@@ -587,7 +605,9 @@
       ],
       "budget": {
         "maxTriangles": 600
-      }
+      },
+      "footprint": 0.5,
+      "heightScale": 0.8
     },
     {
       "name": "sea_anemone",
@@ -613,7 +633,9 @@
       ],
       "budget": {
         "maxTriangles": 600
-      }
+      },
+      "footprint": 0.6,
+      "heightScale": 0.4
     },
     {
       "name": "coral_fan",
@@ -639,7 +661,9 @@
       ],
       "budget": {
         "maxTriangles": 600
-      }
+      },
+      "footprint": 0.8,
+      "heightScale": 0.7
     },
     {
       "name": "seahorse",
@@ -663,7 +687,9 @@
       ],
       "budget": {
         "maxTriangles": 600
-      }
+      },
+      "footprint": 0.3,
+      "heightScale": 0.7
     },
     {
       "name": "whale",
@@ -694,7 +720,9 @@
       ],
       "budget": {
         "maxTriangles": 600
-      }
+      },
+      "footprint": 1.4,
+      "heightScale": 0.8
     },
     {
       "name": "crab",
@@ -729,7 +757,9 @@
       ],
       "budget": {
         "maxTriangles": 600
-      }
+      },
+      "footprint": 0.6,
+      "heightScale": 0.2
     },
     {
       "name": "bubble_column",
@@ -748,7 +778,9 @@
       ],
       "budget": {
         "maxTriangles": 600
-      }
+      },
+      "footprint": 0.5,
+      "heightScale": 0.8
     }
   ],
   "budget": {

@@ -22,6 +22,7 @@ RecipeName = Annotated[str, StringConstraints(pattern=r"^[a-z0-9_]{1,40}$")]
 Op = Literal["box", "prism", "spike", "stack", "cluster"]
 Primitive = Literal["box", "prism", "spike"]
 
+DEFAULT_FOOTPRINT_M = 0.25  # mirrored by RECIPE_FOOTPRINT (apps/web/src/xr/constants.ts)
 MAX_TRIANGLES_CAP = 2000  # PROJECT.md §6 example; builtin kinds stay under SHAPE_TRIANGLE_BUDGET (xr/constants.ts)
 DEFAULT_MAX_TRIANGLES = 500
 SPIKE_SIDES = 4  # a spike is an open 4-sided cone
@@ -76,6 +77,18 @@ class ShapeRecipe(ContractModel):
     name: RecipeName = Field(description="Referenced by templates as the kind `recipe:<name>`.")
     parts: list[Part] = Field(min_length=1, max_length=8)
     budget: ShapeBudget = ShapeBudget()
+    footprint: float = Field(
+        default=DEFAULT_FOOTPRINT_M,
+        ge=0.1,
+        le=1.5,
+        description="Side of the unit footprint in metres on the plate: wide shapes (a whale, a wreck) use more.",
+    )
+    height_scale: float = Field(
+        default=1,
+        ge=0.1,
+        le=2,
+        description="Multiplies the instance height (0.5 to 1.5 m by default): below 1 makes a squat shape.",
+    )
 
     def triangle_count(self) -> int:
         return sum(p.triangle_count() for p in self.parts)
