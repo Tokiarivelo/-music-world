@@ -55,3 +55,11 @@ of `next dev`; Playwright opened `/`, `/play/demo`, `/templates`, `/upload` and 
 `securitypolicyviolation` event, and the demo world renders (staff, notes, terrain) exactly as without the header.
 Repeat on the public URL after the first deploy (browser console) and on the Quest (controller models come from
 `cdn.jsdelivr.net`, allowed in `connect-src`).
+
+## Dependency audit (2026-11-24)
+
+- `uv export --no-dev --frozen | uvx pip-audit --no-deps`: **no known vulnerabilities** in the 309 locked production
+  packages. `torch` and `torchaudio` (CPU wheels from the PyTorch index) cannot be audited against PyPI advisories:
+  watch the PyTorch security advisories before bumping them.
+- `pnpm audit --prod`: **no known vulnerabilities**.
+- Repeat both before the submission (2026-12-04) and after any dependency change.

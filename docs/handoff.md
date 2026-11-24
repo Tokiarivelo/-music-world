@@ -108,3 +108,5 @@ The daily ones. The rest (API, web/XR, tooling): `docs/pitfalls.md`, read the gr
 | 06-template-store | 1–6 done | 7 (human: real e-mail, public URL) | design.md § Human checks, § As built |
 | 07-xr-mode | 1–6 done | 7 (Quest, human) | design.md § Human checks |
 | 08-navigation-mode | 1–6 done | — (human: try it on a phone) | design.md § As built |
+| 09-template-editor | spec written, 0/8 | 1 (`PUT /api/templates/{id}`) | design.md § API addition |
+| 10-template-moderation | spec written, 0/7 | 1 (`MODERATOR_EMAILS`, session field) | design.md § Moderator check |
