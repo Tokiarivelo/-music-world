@@ -4,7 +4,7 @@
 	build build-api build-web rebuild \
 	test test-api test-web check check-api check-web bundle-check arch lint format schemas schemas-check \
 	deploy check-env db-password \
-	disk prune prune-images prune-cache prune-all prune-volumes clean clean-deps
+	smoke disk prune prune-images prune-cache prune-all prune-volumes clean clean-deps
 
 API := apps/api
 WEB := apps/web
@@ -58,6 +58,9 @@ down: ## Stop the Docker stack (volumes are kept)
 
 restart: ## Restart one service or all: make restart SERVICE=api
 	$(DC) restart $(SERVICE)
+
+smoke: ## Smoke test of the running Docker stack (make smoke UP=1 starts it first)
+	bash infra/scripts/smoke-dev.sh $(if $(UP),--up)
 
 ps: ## Docker stack status
 	$(DC) ps

@@ -31,8 +31,8 @@ Last reviewed: 2026-11-24 (after the Makefile / Docker / env / token session).
 
 | # | Task | Done when |
 |---|---|---|
-| C1 | Update `KIRO_USAGE.md` (setup section) with the new `.claude/settings.json`, `env.md` and Makefile targets | section updated |
-| C2 | A `make dev` smoke test script (`infra/scripts/smoke-dev.sh`: up, wait healthy, curl `/api/health` and `/play/demo`, down) for CI-less verification | script + Makefile target `smoke` |
+| C1 | ~~KIRO_USAGE.md setup section~~ | done 2026-11-24 (phase 11) |
+| C2 | ~~Smoke test of the local stack~~ | done 2026-11-24: `make smoke` (`UP=1` starts the stack first) |
 | C3 | Verify the new Dockerfile layer order really avoids the Demucs download on a code-only change (needs network once, ~15 min, ~6 GB disk: free space first with `make prune`) | two consecutive `make build` runs, the second reuses the weights layer |
 
 ## Not here (needs a human)
