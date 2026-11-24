@@ -11,7 +11,7 @@ function typing(target: EventTarget | null): boolean {
 
 /** Keyboard operation of the note editor (requirement 11): Tab / arrows select, Up / Down move, Enter plays. */
 export function useEditShortcuts(handle: WorldHandle | null, api: NoteEditsApi): void {
-  const { enabled, undo, redo, removeNote } = api;
+  const { enabled, undo, redo, removeNote, copySelection, paste } = api;
   useEffect(() => {
     if (!handle || !enabled) return;
     const onKey = (e: KeyboardEvent): void => {
@@ -21,6 +21,11 @@ export function useEditShortcuts(handle: WorldHandle | null, api: NoteEditsApi):
         e.preventDefault();
         if (e.shiftKey) redo();
         else undo();
+      } else if (mod && e.key.toLowerCase() === "c") {
+        copySelection();
+      } else if (mod && e.key.toLowerCase() === "v") {
+        e.preventDefault();
+        paste();
       } else if (mod && e.key.toLowerCase() === "y") {
         e.preventDefault();
         redo();
@@ -44,5 +49,5 @@ export function useEditShortcuts(handle: WorldHandle | null, api: NoteEditsApi):
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [handle, enabled, undo, redo, removeNote]);
+  }, [handle, enabled, undo, redo, removeNote, copySelection, paste]);
 }

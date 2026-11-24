@@ -44,6 +44,10 @@ export interface NoteEditsApi {
   /** The announcement for the `aria-live` region. */
   message: string;
   selected: NoteEvent | null;
+  /** Number of selected notes (Shift-click adds); edits below apply to all of them. */
+  selectedCount: number;
+  copySelection(): void;
+  paste(): void;
   selectedLine: string;
   selectedColor: string | undefined;
   lineName(line: StaffLine): string;
@@ -74,14 +78,16 @@ export function useNoteEdits(
   const [history, setHistory] = useState<History>(() => newHistory());
   const [enabled, setEnabledState] = useState(false);
   const [paused, setPaused] = useState(() => (controls ? !controls.isPlaying() : false));
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<readonly string[]>([]);
+  const [clipboard, setClipboard] = useState<readonly NoteEvent[]>([]);
+  const selectedId = selectedIds.at(-1) ?? null;
   const [message, setMessage] = useState("");
   // Another song starts from its own notes: edits belong to one analysis (state adjusted during render).
   const [forAnalysis, setForAnalysis] = useState(analysis);
   if (forAnalysis !== analysis) {
     setForAnalysis(analysis);
     setHistory(newHistory());
-    setSelectedId(null);
+    setSelectedIds([]);
   }
 
   const edits = history.present;
@@ -115,14 +121,15 @@ export function useNoteEdits(
   useEffect(() => {
     if (!handle) return;
     return handle.onNoteEvent((event) => {
-      if (event.type === "selected") {
-        setSelectedId(event.noteId);
-        announce(t("edit.live.selected", { name: noteName(event.midi) }));
+      if (event.type === "selection") {
+        setSelectedIds(event.ids);
+        if (event.primary) announce(t("edit.live.selected", { name: noteName(event.primary.midi) }));
       } else if (event.type === "moved") {
         announce(t("edit.live.moved", { name: noteName(event.midi) }));
       } else if (event.type === "committed") {
-        setHistory((h) => commit(h, editNote(h.present, event.noteId, { midi: event.midi })));
-        announce(t("edit.live.moved", { name: noteName(event.midi) }));
+        setHistory((h) => commit(h, event.moves.reduce((acc, m) => editNote(acc, m.noteId, { midi: m.midi }), h.present)));
+        const last = event.moves.at(-1);
+        if (last) announce(t("edit.live.moved", { name: noteName(last.midi) }));
       } else if (event.type === "cancelled") {
         announce(t("edit.live.cancelled"));
       }
@@ -138,7 +145,6 @@ export function useNoteEdits(
   );
 
   const selectedLine = selected && edited ? edited.lineOf.get(selected.id) ?? MAIN_LINE_ID : MAIN_LINE_ID;
-  const noteId = selected?.id ?? null;
 
   return {
     enabled: active,
@@ -158,11 +164,38 @@ export function useNoteEdits(
     },
     reset: () => {
       setHistory(resetAll);
-      setSelectedId(null);
+      setSelectedIds([]);
       announce(t("edit.live.reset"));
     },
     message,
     selected,
+    selectedCount: selectedIds.length,
+    copySelection: () => {
+      const notes = edited ? selectedIds.flatMap((id) => edited.analysis.notes.filter((n) => n.id === id)) : [];
+      setClipboard(notes);
+    },
+    paste: () => {
+      if (!scene || clipboard.length === 0) return;
+      const t0 = Math.min(...clipboard.map((n) => n.time));
+      const base = scene.clock.now() + 1;
+      let next = edits;
+      let last = "";
+      for (const n of clipboard) {
+        const made = addNote(next, {
+          time: base + (n.time - t0),
+          duration: n.duration,
+          midi: n.midi,
+          velocity: n.velocity,
+          lineId: edited?.lineOf.get(n.id) ?? MAIN_LINE_ID,
+          ...(edited?.colorOf.get(n.id) ? { color: edited.colorOf.get(n.id) } : {}),
+        });
+        next = made.edits;
+        last = made.id;
+      }
+      mutate(() => next);
+      setSelectedIds([last]);
+      announce(t("edit.live.noteAdded"));
+    },
     selectedLine,
     selectedColor: selected ? edited?.colorOf.get(selected.id) : undefined,
     lineName,
@@ -182,12 +215,12 @@ export function useNoteEdits(
     },
     shiftLine: (id, delta) => mutate((e) => moveLine(e, id, delta)),
     patchNote: (patch) => {
-      if (noteId) mutate((e) => editNote(e, noteId, patch));
+      if (selectedIds.length > 0) mutate((e) => selectedIds.reduce((acc, id) => editNote(acc, id, patch), e));
     },
     removeNote: () => {
-      if (!noteId) return;
-      mutate((e) => editNote(e, noteId, { deleted: true }));
-      setSelectedId(null);
+      if (selectedIds.length === 0) return;
+      mutate((e) => selectedIds.reduce((acc, id) => editNote(acc, id, { deleted: true }), e));
+      setSelectedIds([]);
       announce(t("edit.live.noteDeleted"));
     },
     copyNote: () => {
@@ -200,11 +233,11 @@ export function useNoteEdits(
         lineId: selectedLine,
       });
       mutate(() => made.edits);
-      setSelectedId(made.id);
+      setSelectedIds([made.id]);
       announce(t("edit.live.noteAdded"));
     },
     restoreNote: () => {
-      if (noteId) mutate((e) => resetNote(e, noteId));
+      if (selectedIds.length > 0) mutate((e) => selectedIds.reduce((acc, id) => resetNote(acc, id), e));
     },
     addNoteAt: () => {
       if (!scene) return;
@@ -216,7 +249,7 @@ export function useNoteEdits(
         lineId: selectedLine,
       });
       mutate(() => made.edits);
-      setSelectedId(made.id);
+      setSelectedIds([made.id]);
       announce(t("edit.live.noteAdded"));
     },
     playSelected: () => handle?.editCommand({ type: "play" }),

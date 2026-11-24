@@ -162,6 +162,11 @@ export function stepPitch(midi: number, steps: number): number {
   return clamp(midiOfDegree(degreeIndex(Math.round(midi)) + Math.round(steps)), MIN_MIDI, MAX_MIDI);
 }
 
+/** Diatonic steps from one pitch to another (negative = down); off-scale pitches count from their scale tone below. */
+export function stepsBetween(from: number, to: number): number {
+  return degreeIndex(Math.round(to)) - degreeIndex(Math.round(from));
+}
+
 /** Nearest scale pitch for a vertical staff position (`staffU` 0 = bottom line, 1 = top line). */
 export function snapToStaff(staffU: number): number {
   const steps = Math.round(staffU * 8); // 8 diatonic steps from E4 to F5

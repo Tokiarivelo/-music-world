@@ -177,7 +177,10 @@ export function EditToolbar({ api }: { api: NoteEditsApi }) {
 
       {api.enabled && (
         <section aria-label={t("edit.note.title")} className="w-80 max-w-full space-y-2 rounded-2xl border border-white/20 bg-black/70 p-3 text-sm text-white backdrop-blur">
-          <h2 className="font-medium">{selected ? `${t("edit.note.title")}: ${noteName(selected.midi)}` : t("edit.note.title")}</h2>
+          <h2 className="font-medium">
+            {selected ? `${t("edit.note.title")}: ${noteName(selected.midi)}` : t("edit.note.title")}
+            {api.selectedCount > 1 ? ` (${api.selectedCount})` : ""}
+          </h2>
           {!selected && <p className="text-white/70">{t("edit.note.none")}</p>}
           {selected && (
             <>

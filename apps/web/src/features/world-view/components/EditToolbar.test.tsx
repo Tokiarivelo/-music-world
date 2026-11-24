@@ -55,7 +55,7 @@ describe("note editing page logic (I9)", () => {
   it("commits a drag to the history, announces it, and undo / redo / reset work", () => {
     const f = fixture();
     act(() => f.hook.result.current.setEnabled(true));
-    f.emit({ type: "committed", noteId: "a", midi: 72 });
+    f.emit({ type: "committed", moves: [{ noteId: "a", midi: 72 }] });
     expect(f.hook.result.current.edits.notes).toEqual([{ noteId: "a", midi: 72 }]);
     expect(f.hook.result.current.message).toBe("Moved to C5");
     expect(f.handle.setEdits).toHaveBeenLastCalledWith(f.hook.result.current.edits);
@@ -87,7 +87,7 @@ describe("note editing page logic (I9)", () => {
   it("selects a note, edits its properties, duplicates and deletes it", () => {
     const f = fixture();
     act(() => f.hook.result.current.setEnabled(true));
-    f.emit({ type: "selected", noteId: "b", midi: 67 });
+    f.emit({ type: "selection", ids: ["b"], primary: { noteId: "b", midi: 67 } });
     expect(f.hook.result.current.selected?.id).toBe("b");
     act(() => f.hook.result.current.patchNote({ midi: 60, velocity: 0.2, color: "#ff0000" }));
     expect(f.hook.result.current.selected).toMatchObject({ midi: 60, velocity: 0.2 });
@@ -104,9 +104,31 @@ describe("note editing page logic (I9)", () => {
   it("the property panel shows the selected note", () => {
     const f = fixture();
     act(() => f.hook.result.current.setEnabled(true));
-    f.emit({ type: "selected", noteId: "a", midi: 64 });
+    f.emit({ type: "selection", ids: ["a"], primary: { noteId: "a", midi: 64 } });
     f.ui();
     expect(screen.getByText(/Selected note: E4/)).toBeTruthy();
     expect(screen.getByRole("status")).toBeTruthy();
+  });
+
+  it("acts on every selected note: move together, recolor, copy and paste, delete", () => {
+    const f = fixture();
+    act(() => f.hook.result.current.setEnabled(true));
+    f.emit({ type: "selection", ids: ["a", "b"], primary: { noteId: "b", midi: 67 } });
+    expect(f.hook.result.current.selectedCount).toBe(2);
+    f.emit({ type: "committed", moves: [{ noteId: "a", midi: 65 }, { noteId: "b", midi: 69 }] });
+    expect(f.hook.result.current.edits.notes.map((e) => [e.noteId, e.midi])).toEqual([["a", 65], ["b", 69]]);
+    act(() => f.hook.result.current.patchNote({ color: "#00ff00" }));
+    expect(f.hook.result.current.edits.notes.every((e) => e.color === "#00ff00")).toBe(true);
+    act(() => f.hook.result.current.copySelection());
+    act(() => f.hook.result.current.paste());
+    const added = f.hook.result.current.edits.added;
+    expect(added.map((a) => a.midi)).toEqual([65, 69]);
+    expect(added[0]!.time).toBe(3); // clock 2 + 1 s, relative spacing kept
+    expect(added[1]!.time).toBeCloseTo(3 + 1);
+    expect(added.every((a) => a.color === "#00ff00")).toBe(true);
+    f.emit({ type: "selection", ids: ["a", "b"], primary: { noteId: "b", midi: 69 } });
+    act(() => f.hook.result.current.removeNote());
+    expect(f.hook.result.current.edits.notes.every((e) => e.deleted === true)).toBe(true);
+    expect(f.hook.result.current.selectedCount).toBe(0);
   });
 });

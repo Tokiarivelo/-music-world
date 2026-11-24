@@ -47,6 +47,8 @@ import type { WorldView } from './world-view';
 
 export const GLYPH_KINDS: readonly GlyphKind[] = ['quarter', 'eighth', 'sixteenth'];
 const CLEF_U = 0.012;
+/** Extra halo slots for the editor marks (selected notes, hover, ghost). */
+const MARK_CAPACITY = 64;
 /** The G clef's origin sits on the G line: the second line from the bottom. */
 const CLEF_LINE = 1;
 /** Halo quad around a glyph, in staff spaces: centred between the notehead and the stem top. */
@@ -111,6 +113,10 @@ export class StaffView implements WorldView {
   private readonly pos = new Vector3();
   private readonly scale: Vector3;
   private readonly markScale = new Vector3();
+  private readonly indexOf = new Map<string, number>();
+  private readonly tinted: boolean;
+  private readonly glow: Color;
+  private readonly tint = new Color();
   private readonly up = new Vector3(0, 1, 0);
   /** Reused per update (07-xr-mode requirement 6.2: no steady-state allocation). */
   private readonly counts = new Map<GlyphKind, number>();
@@ -155,6 +161,16 @@ export class StaffView implements WorldView {
       this.disposables.push(this.curtain);
     }
 
+    for (const r of plan.records) this.indexOf.set(r.noteId, r.index);
+    // Own colors (I9): when any note has one, glyphs use a white material and an instance color per note, so the default
+    // glow color is unchanged for the others. Plans without custom colors keep the single shared material.
+    this.glow = glow;
+    this.tinted = plan.records.some((r) => r.colorHex !== null);
+    let glyphMaterial: MeshBasicMaterial = material;
+    if (this.tinted) {
+      glyphMaterial = new MeshBasicMaterial({ color: 0xffffff, side: DoubleSide });
+      this.disposables.push(glyphMaterial);
+    }
     const size = plan.staff.lineGap * GLYPH_SCALE;
     this.scale = new Vector3(size, size, size);
     let capacity = 0;
@@ -162,7 +178,7 @@ export class StaffView implements WorldView {
       const total = plan.records.filter((r) => r.glyph === kind).length;
       if (total === 0) continue;
       const geometry = buildGlyphGeometry(kind);
-      const mesh = new InstancedMesh(geometry, material, Math.min(total, GLYPH_CAPACITY_MAX) + 1);
+      const mesh = new InstancedMesh(geometry, glyphMaterial, Math.min(total, GLYPH_CAPACITY_MAX) + 1);
       mesh.count = 0;
       mesh.frustumCulled = false; // instances move every frame; the bounding sphere would be stale
       this.glyphMeshes.set(kind, mesh);
@@ -183,7 +199,7 @@ export class StaffView implements WorldView {
       side: DoubleSide,
     });
     const quad = new PlaneGeometry(HALO_SIZE.w, HALO_SIZE.h).translate(HALO_SIZE.x, HALO_SIZE.y, -0.01);
-    this.halos = new InstancedMesh(quad, glyphHaloMaterial, Math.max(1, capacity) + 2);
+    this.halos = new InstancedMesh(quad, glyphHaloMaterial, Math.max(1, capacity) + MARK_CAPACITY);
     this.halos.count = 0;
     this.halos.frustumCulled = false;
     this.object.add(this.halos);
@@ -207,31 +223,31 @@ export class StaffView implements WorldView {
     for (const part of this.staffParts) part.visible = !hidden.has('staff');
     this.counts.clear();
     this.haloCount = 0;
-    for (const n of state.notesOnStaff) if (isRecordShown(this.plan, n.index, hidden)) this.place(n.glyph, n.position, n.u);
+    for (const n of state.notesOnStaff) if (isRecordShown(this.plan, n.index, hidden)) this.place(n.glyph, n.position, n.u, this.plan.records[n.index]!.colorHex);
     for (const f of state.fallingNotes) {
-      if (isRecordShown(this.plan, f.index, hidden)) this.place(f.glyph, f.position, this.plan.staff.playheadU);
+      if (isRecordShown(this.plan, f.index, hidden)) this.place(f.glyph, f.position, this.plan.staff.playheadU, this.plan.records[f.index]!.colorHex);
     }
     this.placeEditMarks(state);
     for (const [kind, mesh] of this.glyphMeshes) {
       mesh.count = this.counts.get(kind) ?? 0;
       mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     }
     this.halos.count = this.haloCount;
     this.halos.instanceMatrix.needsUpdate = true;
   }
 
-  /** Editor marks (I9): a larger halo behind the hovered / selected note and a ghost glyph at the drag target. */
+  /** Editor marks (I9): a larger halo behind the hovered / selected notes and a ghost glyph at the drag target. */
   private placeEditMarks(state: WorldState): void {
     const edit = editStore.state;
     if (!edit.enabled) return;
-    const mark = (index: number | null, midi: number | null, scale: number): void => {
-      if (index === null) return;
-      const r = this.plan.records[index];
+    const mark = (noteId: string, midi: number | null, scale: number): void => {
+      const index = this.indexOf.get(noteId);
+      const r = index === undefined ? undefined : this.plan.records[index];
       if (!r) return;
-      const n = state.notesOnStaff.find((x) => x.index === index);
-      const f = state.fallingNotes.find((x) => x.index === index);
-      const base = n?.position ?? f?.position;
-      if (!base) return;
+      const n = state.notesOnStaff.find((x) => x.index === r.index);
+      const f = state.fallingNotes.find((x) => x.index === r.index);
+      if (!n && !f) return;
       const u = n ? n.u : this.plan.staff.playheadU;
       const staffU = midi === null ? r.staffU : staffUOfMidi(midi);
       const position = staffNotePosition(this.plan.staff, u, staffU, r.lineY);
@@ -242,24 +258,32 @@ export class StaffView implements WorldView {
         const c = this.counts.get(r.glyph) ?? 0;
         if (mesh && c < mesh.instanceMatrix.count) {
           mesh.setMatrixAt(c, this.m);
+          if (this.tinted) mesh.setColorAt(c, this.colorOf(r.colorHex));
           this.counts.set(r.glyph, c + 1);
         }
       }
       if (this.haloCount < this.halos.instanceMatrix.count) this.halos.setMatrixAt(this.haloCount++, this.m);
     };
-    mark(edit.selected ?? edit.hover, null, 1.35);
-    if (edit.ghost) mark(edit.ghost.index, edit.ghost.midi, 1);
+    const marked = edit.selection.length > 0 ? edit.selection : edit.hover ? [edit.hover] : [];
+    for (const id of marked) mark(id, null, 1.35);
+    if (edit.ghost) mark(edit.ghost.noteId, edit.ghost.midi, 1);
   }
 
-  private place(glyph: GlyphKind, position: { x: number; y: number; z: number }, u: number): void {
+  private place(glyph: GlyphKind, position: { x: number; y: number; z: number }, u: number, hex: string | null = null): void {
     const mesh = this.glyphMeshes.get(glyph);
     const n = this.counts.get(glyph) ?? 0;
     if (!mesh || n >= mesh.instanceMatrix.count) return;
     this.q.setFromAxisAngle(this.up, staffHeading(this.plan.staff, u));
     this.m.compose(this.pos.set(position.x, position.y, position.z), this.q, this.scale);
     mesh.setMatrixAt(n, this.m);
+    if (this.tinted) mesh.setColorAt(n, this.colorOf(hex));
     this.counts.set(glyph, n + 1);
     if (this.haloCount < this.halos.instanceMatrix.count) this.halos.setMatrixAt(this.haloCount++, this.m);
+  }
+
+  /** Glyph color: the note's own color times the staff glow, else the shared glow color. */
+  private colorOf(hex: string | null): Color {
+    return hex ? this.tint.set(hex).multiplyScalar(this.plan.template.staff.glow) : this.tint.copy(this.glow);
   }
 
   visibleHalos(): number {

@@ -296,7 +296,7 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   };
   // Capture phase: a press on a note belongs to the editor, so the camera does not orbit (requirement 1).
   const onDown = (e: PointerEvent): void => {
-    if (e.button === 0 && editor.pointerDown(local(e))) {
+    if (e.button === 0 && editor.pointerDown(local(e), e.shiftKey)) {
       e.stopImmediatePropagation();
       canvas.setPointerCapture?.(e.pointerId);
     }

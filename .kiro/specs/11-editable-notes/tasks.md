@@ -12,7 +12,7 @@
   - _Requirements: 1, 2, 3_
 - [x] 6. `EditToolbar`, lines, undo/redo/reset, keyboard, live region, strings (en, fr, mg).
   - _Requirements: 4, 7, 11_
-- [ ] 6b. Per-note properties panel, multi-select, add/duplicate/delete.
+- [x] 6b. Per-note properties panel, multi-select, add/duplicate/delete.
   - _Requirements: 13, 14_
 - [ ] 6c. Per-line properties and `colorRole: "line"`.
   - _Requirements: 15_

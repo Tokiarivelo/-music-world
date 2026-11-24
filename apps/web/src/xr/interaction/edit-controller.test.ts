@@ -55,14 +55,14 @@ describe('edit controller (I9)', () => {
     const { c, events, synth } = setup();
     const s = screenOf(first);
     c.pointerMove(s);
-    expect(editStore.state.hover).toBe(first);
+    expect(editStore.state.hover).toBe(plan.records[first]!.noteId);
     expect(c.pointerDown(s)).toBe(true);
     expect(c.capturing).toBe(true);
     expect(synth.playNote).toHaveBeenCalledWith(plan.records[first]!.midi, plan.records[first]!.velocity);
     c.pointerUp();
     expect(c.capturing).toBe(false);
     expect(events.some((e) => e.type === 'committed')).toBe(false);
-    expect(editStore.state.selected).toBe(first);
+    expect(editStore.state.selection).toEqual([plan.records[first]!.noteId]);
   });
 
   it('a press on empty space is not captured (the camera keeps it)', () => {
@@ -78,11 +78,12 @@ describe('edit controller (I9)', () => {
     c.pointerDown(s);
     c.pointerMove({ x: s.x, y: s.y - DRAG_THRESHOLD_PX - 1 }); // beyond the threshold, tiny move
     c.pointerMove({ x: s.x, y: s.y - 120 });
-    expect(editStore.state.ghost?.index).toBe(first);
+    expect(editStore.state.ghost?.noteId).toBe(plan.records[first]!.noteId);
     const ghost = editStore.state.ghost!.midi;
     expect(ghost).toBeGreaterThan(oldMidi);
     c.pointerUp();
-    expect(events.at(-1)).toEqual({ type: 'committed', noteId: plan.records[first]!.noteId, midi: ghost });
+    expect(events.at(-1)).toMatchObject({ type: 'committed', moves: [{ noteId: plan.records[first]!.noteId }] });
+    expect(events.at(-1)).toHaveProperty('moves.0.midi');
     expect(synth.playNote).toHaveBeenLastCalledWith(ghost, plan.records[first]!.velocity);
     expect(editStore.state.ghost).toBeNull();
   });
@@ -106,19 +107,45 @@ describe('edit controller (I9)', () => {
     c.pointerMove({ x: s.x, y: s.y - 150 });
     setPaused(false);
     expect(c.capturing).toBe(false);
-    expect(editStore.state).toMatchObject({ enabled: false, selected: null, ghost: null });
+    expect(editStore.state).toMatchObject({ enabled: false, selection: [], ghost: null });
   });
 
   it('keyboard: select next, nudge one step up, play', () => {
     const { c, events, synth } = setup();
     c.selectRelative(1);
-    expect(editStore.state.selected).not.toBeNull();
-    const idx = editStore.state.selected!;
+    expect(editStore.primary).not.toBeNull();
+    const idx = plan.records.findIndex((r) => r.noteId === editStore.primary);
     c.nudge(1);
-    const e = events.at(-1)!;
-    expect(e).toMatchObject({ type: 'committed', noteId: plan.records[idx]!.noteId });
-    expect((e as { midi: number }).midi).toBeGreaterThan(plan.records[idx]!.midi);
+    const e = events.at(-1) as { type: string; moves: { noteId: string; midi: number }[] };
+    expect(e.type).toBe('committed');
+    expect(e.moves[0]!.noteId).toBe(plan.records[idx]!.noteId);
+    expect(e.moves[0]!.midi).toBeGreaterThan(plan.records[idx]!.midi);
     c.playSelected();
     expect(synth.playNote).toHaveBeenLastCalledWith(plan.records[idx]!.midi, plan.records[idx]!.velocity);
+  });
+
+  it('Shift-click builds a multi-selection and a drag or step moves the whole group by the same steps', () => {
+    const { c, events } = setup();
+    const [n0, n1] = state.notesOnStaff;
+    c.pointerDown(screenOf(n0!.index));
+    c.pointerUp();
+    expect(c.pointerDown(screenOf(n1!.index), true)).toBe(true);
+    expect(c.capturing).toBe(false); // additive press never starts a drag
+    expect(editStore.state.selection).toEqual([plan.records[n0!.index]!.noteId, plan.records[n1!.index]!.noteId]);
+    c.nudge(2);
+    const e = events.at(-1) as unknown as { moves: { noteId: string; midi: number }[] };
+    expect(e.moves).toHaveLength(2);
+    expect(e.moves[0]!.midi - plan.records[n0!.index]!.midi).toBeGreaterThan(0);
+    // Shift-click again removes it
+    c.pointerDown(screenOf(n1!.index), true);
+    expect(editStore.state.selection).toEqual([plan.records[n0!.index]!.noteId]);
+  });
+
+  it('a press on empty space clears the selection', () => {
+    const { c } = setup();
+    c.pointerDown(screenOf(first));
+    c.pointerUp();
+    c.pointerDown({ x: -5000, y: -5000 });
+    expect(editStore.state.selection).toEqual([]);
   });
 });

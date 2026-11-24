@@ -206,6 +206,7 @@ export function buildSpawnPlan(
     offsetY: lineOffsetY(staff, l.id === MAIN_LINE_ID ? 0 : l.height),
   }));
   const offsetOf = new Map(lines.map((l) => [l.id, l.offsetY]));
+  const lineColor = new Map(lines.flatMap((l) => (l.color ? [[l.id, l.color] as const] : [])));
   const { lookahead, fallDuration } = template.staff;
   const budget = template.budget.instancesPerKind;
   const notes = [...analysis.notes].sort(byOnset);
@@ -244,7 +245,7 @@ export function buildSpawnPlan(
       stem: note.stem,
       line,
       lineY: offsetOf.get(line) ?? 0,
-      colorHex: edited?.colorOf.get(note.id) ?? null,
+      colorHex: edited?.colorOf.get(note.id) ?? lineColor.get(line) ?? null,
       kind: mapped.kind,
       slot,
       onset: note.time,

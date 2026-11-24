@@ -33,3 +33,10 @@ See `docs/improvements/i9-editable-notes.md` § Design. Add an "As built" sectio
   "Add a note"; `aria-live` status); `hooks/use-edit-shortcuts.ts` (Tab / arrows select, Up / Down move a step, Enter plays,
   Delete removes, Ctrl+Z / Ctrl+Shift+Z). Strings `edit.*` in en, fr, mg. Not yet: multi-select and copy / paste (6b),
   line staves and colors drawn in the world and `colorRole: "line"` (6c).
+- Task 6b: selection is a list of note ids (`editStore.selection`, the last is the primary): ids survive the plan rebuild
+  that follows every edit. Shift-click toggles a note; a drag or a keyboard step moves the whole selection by the same
+  diatonic steps (`stepsBetween`) as one `committed` event with `moves[]`, one history entry. The panel edits, duplicates,
+  resets and deletes all selected notes; Ctrl+C / Ctrl+V copy and paste them one second after the paused time, keeping
+  their spacing and lines. Own colors and line colors reach the world: `SpawnRecord.colorHex` (note color, else its line
+  color) tints glyphs through instance colors, only when some note has a color (otherwise the shared material is kept).
+  Rubber-band selection is not built: Shift-click and "add a note" cover the cases (follow-up).
