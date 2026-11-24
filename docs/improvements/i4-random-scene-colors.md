@@ -47,7 +47,7 @@ readable, and the listener can roll a random color scheme, lock the colors they 
 2. [x] `WorldHandle.setPaletteOverride` + view updates (terrain, structures, staff, fx, environment). As built: the host re-applies the same plan with the merged palette (`xr/palette-override.ts`), so the views rebuild from it (geometry is recreated, audio and clock untouched); a color override resets when another template id loads. No draw-call test: the draw-call count does not depend on colors.
 3. [x] Player store + persistence + `?palette=` link; tests. As built: `features/world-view/lib/palette-store.ts` (vanilla store, no new dependency; one store per template id, undo/redo, locks, `mw.palette.<templateId>` in `localStorage`), `hooks/use-palette-override.ts` applies it to the world.
 4. [x] `ColorsPopover` UI (randomize, undo/redo, locks, color inputs, seed + copy link, reset); Testing Library tests; `colors.*` keys in en/fr/mg. The Brightness and Contrast sliders move to task 5 (they need the lift in the store). Placed bottom-right above the player bar: overlap not yet checked with `scripts/play-layout.mjs`.
-5. Brightness/exposure and light tuning; before/after screenshots in `docs/`; README.
+5. [x] Brightness slider, screenshots, README (Contrast slider and light/exposure tuning not done, see As built).
 
 ## Decisions for the author
 
@@ -59,3 +59,19 @@ readable, and the listener can roll a random color scheme, lock the colors they 
 
 Property tests (10 000 seeds), screenshots at three seeds, contrast report, Quest check with I7 (bright scenes are
 heavier on additive blending: check fps).
+
+## As built
+
+- `xr/palette-generator.ts` (pure, seeded, OKLCH; property tests over 10 000 seeds), `xr/palette-override.ts`,
+  `WorldHandle.setPaletteOverride`, `features/world-view/lib/palette-store.ts`, `hooks/use-palette-override.ts`,
+  `components/ColorsPopover.tsx`. Decision: Neon Nocturne stays the default look; Randomize and the Brightness slider
+  are one click away.
+- An override re-applies the same plan with the merged palette: the views are rebuilt (geometry recreated), audio and
+  clock are untouched. A different template id starts from its own colors.
+- Brightness lifts background and terrain in OKLCH (`liftBrightness`), capped so the staff keeps 4.5:1 contrast.
+  The slider commits 120 ms after it settles because each commit rebuilds the views.
+- Screenshots (template, seeds `4F2A9`, `B7C01`, `19E3D`): `docs/improvements/i4/`. The popover does not overlap the
+  player bar or the language switch at 1280×720 and 390×844 (checked with a Playwright script, panel vs slider bar).
+- **Not done:** the **Contrast** slider (requirement 1) and ambient/directional light and renderer exposure tuning
+  (requirement 4, "and exposure"); `Save as my template` (requirement 8, waits for spec `09`); Quest fps check with
+  bright scenes (needs I7 and a headset); the popover is hidden in VR.

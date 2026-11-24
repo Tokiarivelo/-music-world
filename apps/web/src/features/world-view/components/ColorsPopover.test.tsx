@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { generatePalette } from "@/xr/palette-generator";
 import { createPaletteStore } from "../lib/palette-store";
 import { ColorsPopover } from "./ColorsPopover";
@@ -52,5 +52,19 @@ describe("ColorsPopover", () => {
     fireEvent.click(screen.getByRole("button", { name: "Randomize" }));
     expect(store.getState().override?.primary).toBe("#123456");
     expect((screen.getByLabelText("Primary") as HTMLInputElement).value).toBe("#123456");
+  });
+});
+
+describe("ColorsPopover brightness", () => {
+  it("applies the slider once it settles", () => {
+    vi.useFakeTimers();
+    const store = setup();
+    const slider = screen.getByLabelText("Brightness");
+    fireEvent.change(slider, { target: { value: "0.5" } });
+    fireEvent.change(slider, { target: { value: "0.6" } });
+    expect(store.getState().brightness).toBe(0);
+    vi.advanceTimersByTime(130);
+    expect(store.getState().brightness).toBe(0.6);
+    vi.useRealTimers();
   });
 });

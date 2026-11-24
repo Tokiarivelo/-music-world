@@ -30,5 +30,6 @@
   "colors.role.primary": "Primary",
   "colors.role.accent": "Accent",
   "colors.role.secondary": "Secondary",
-  "colors.role.staff": "Staff"
+  "colors.role.staff": "Staff",
+  "colors.brightness": "Brightness"
 }

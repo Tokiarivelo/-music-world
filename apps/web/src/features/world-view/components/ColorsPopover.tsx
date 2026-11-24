@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useT } from "@/i18n";
 import { PALETTE_ROLES } from "@/xr/palette-generator";
 import type { Palette } from "@/xr/palette-generator";
@@ -23,6 +23,10 @@ export function ColorsPopover({ store, templatePalette }: ColorsPopoverProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const state = useSyncExternalStore(store.subscribe, store.getState, store.getState);
+  // The slider follows the finger at once; the world (views are rebuilt) is updated once it settles.
+  const [draft, setDraft] = useState<number | null>(null);
+  const settle = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(settle.current), []);
   const colors = { ...templatePalette, ...(state.override ?? {}) };
 
   const copy = async () => {
@@ -91,6 +95,26 @@ export function ColorsPopover({ store, templatePalette }: ColorsPopoverProps) {
               );
             })}
           </ul>
+          <label className="flex items-center gap-3">
+            <span className="w-24">{t("colors.brightness")}</span>
+            <input
+              className="flex-1"
+              max={1}
+              min={-1}
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                setDraft(value);
+                clearTimeout(settle.current);
+                settle.current = setTimeout(() => {
+                  store.setBrightness(value);
+                  setDraft(null);
+                }, 120);
+              }}
+              step={0.05}
+              type="range"
+              value={draft ?? state.brightness}
+            />
+          </label>
           <button className={BUTTON} onClick={store.reset} type="button">
             {t("colors.reset")}
           </button>

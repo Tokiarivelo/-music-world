@@ -84,7 +84,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | 08-navigation-mode 1–6 | Claude Code (world-builder) | done | branch `feature-navigation-mode`, one commit per task; PR to open |
 | 05-ai-world-director 6 | Claude Code (ai-director) | done | phase 10 branch, one commit per sub-task |
 | Improvements I1, I2, I3 | Claude Code (world-builder) | done | all merged (I1 PR #17) |
-| Improvement I4 | Claude Code (world-builder) | in progress | branch `phase-I4-random-scene-colors`; tasks 1–4 done (generator, `setPaletteOverride`, `palette-store`, `ColorsPopover`), next task 5 (sliders, lights, screenshots, README, run play-layout); Neon Nocturne stays the default |
+| Improvement I4 | Claude Code (world-builder) | in progress | branch `phase-I4-random-scene-colors`; tasks 1–5 done (see `docs/improvements/i4-random-scene-colors.md` § As built; Contrast slider and light/exposure tuning not done); PR to open; Neon Nocturne stays the default |
 | Roadmap 9.3–9.5 | — | blocked | human: video, Devpost, posts; drafts in `docs/submission.md` |
 
 ## 5. Active pitfalls

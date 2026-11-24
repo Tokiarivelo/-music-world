@@ -1,9 +1,9 @@
 import { useEffect, useSyncExternalStore } from "react";
 import type { WorldHandle, WorldScene } from "@/xr/world-host";
-import { getPaletteStore, type PaletteStore } from "../lib/palette-store";
+import { effectiveOverride, getPaletteStore, type PaletteStore } from "../lib/palette-store";
 
 const NOOP = () => () => undefined;
-const SERVER_STATE = { seed: null, override: null, locked: [] } as const;
+const SERVER_STATE = { seed: null, override: null, locked: [], brightness: 0 } as const;
 
 /** The shared color store of the scene's template (null before there is a scene). */
 export function usePaletteStore(scene: WorldScene | undefined): PaletteStore | null {
@@ -23,6 +23,6 @@ export function usePaletteOverride(handle: WorldHandle | null, scene: WorldScene
     () => SERVER_STATE,
   );
   useEffect(() => {
-    if (handle && scene) handle.setPaletteOverride(state.override);
-  }, [handle, scene, state.override]);
+    if (handle && scene) handle.setPaletteOverride(effectiveOverride(scene.template.palette, state));
+  }, [handle, scene, state]);
 }
