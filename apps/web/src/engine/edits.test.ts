@@ -174,3 +174,29 @@ describe('edits: line order and names (I9)', () => {
     expect(duplicateLine(EMPTY_EDITS, 'missing', 'x')).toBeNull();
   });
 });
+
+import { parseEdits } from './edits';
+
+describe('parseEdits (I9)', () => {
+  it('round-trips a valid document and rejects other values', () => {
+    const l = addLine(EMPTY_EDITS, 'Harmony', '#00ff88')!;
+    const withNote = editNote(l.edits, 'a', { midi: 70, color: '#ff0000', lineId: l.id });
+    const doc = addNote(withNote, { time: 1, duration: 0.5, midi: 60, velocity: 0.5, lineId: 'main' }).edits;
+    expect(parseEdits(JSON.parse(JSON.stringify(doc)))).toEqual(doc);
+    for (const bad of [null, 3, 'x', [], { version: 2 }, {}]) expect(parseEdits(bad)).toBeNull();
+  });
+
+  it('drops invalid entries and clamps numbers instead of failing', () => {
+    const parsed = parseEdits({
+      version: 1,
+      lines: [{ id: 'BAD ID', name: 'x' }, { id: 'ok', name: 'Fine', color: 'red', height: 99 }],
+      notes: [{ noteId: 'a', midi: 500, velocity: 7, color: 'nope' }, { midi: 60 }],
+      added: [{ id: 'user:1' }, { id: 'user:2', time: 1, duration: 1, midi: 60, velocity: 1, lineId: 'main' }],
+    })!;
+    expect(parsed.lines).toHaveLength(1);
+    expect(parsed.lines[0]).toMatchObject({ id: 'ok', height: 8 });
+    expect(parsed.lines[0]).not.toHaveProperty('color');
+    expect(parsed.notes).toEqual([{ noteId: 'a', midi: 108, velocity: 1 }]);
+    expect(parsed.added.map((a) => a.id)).toEqual(['user:2']);
+  });
+});

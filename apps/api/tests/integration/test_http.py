@@ -15,6 +15,7 @@ from music_world.projects.application.use_cases.enqueue_job import EnqueueJob
 from music_world.projects.application.use_cases.get_job import GetJob
 from music_world.projects.application.use_cases.get_project import GetProject
 from music_world.projects.application.use_cases.get_project_audio import GetProjectAudio
+from music_world.projects.application.use_cases.project_edits import GetProjectEdits, SaveProjectEdits
 from music_world.projects.application.use_cases.run_job import RunJob
 from music_world.projects.domain.job_kinds import ANALYZE_PROJECT_JOB_KIND
 from music_world.shared.container import Container, build_accounts, build_director, build_templates
@@ -83,6 +84,8 @@ def make_container(
         ),
         upload_limiter=SlidingWindowLimiter(settings.upload_rate_limit_per_hour, 3600.0),
         check_project_access=CheckProjectAccess(projects),
+        get_project_edits=GetProjectEdits(projects),
+        save_project_edits=SaveProjectEdits(projects),
     )
 
 

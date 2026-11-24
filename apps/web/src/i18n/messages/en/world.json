@@ -101,5 +101,8 @@
   "edit.live.noteDeleted": "Note deleted",
   "edit.live.noteAdded": "Note added",
   "edit.live.enabled": "Note editing on",
-  "edit.live.disabled": "Note editing off"
+  "edit.live.disabled": "Note editing off",
+  "edit.playMine": "Play my edits",
+  "edit.live.playMineOn": "Playing your edited score instead of the song",
+  "edit.live.playMineOff": "Playing the original song"
 }

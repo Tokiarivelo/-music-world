@@ -49,6 +49,7 @@
               "type": "null"
             }
           ],
+          "default": null,
           "title": "Color"
         }
       },
@@ -58,8 +59,7 @@
         "duration",
         "midi",
         "velocity",
-        "lineId",
-        "color"
+        "lineId"
       ],
       "title": "AddedNote",
       "type": "object"
@@ -138,6 +138,7 @@
               "type": "null"
             }
           ],
+          "default": null,
           "title": "Color"
         },
         "lineId": {
@@ -150,6 +151,7 @@
               "type": "null"
             }
           ],
+          "default": null,
           "title": "Lineid"
         },
         "deleted": {
@@ -166,9 +168,7 @@
         }
       },
       "required": [
-        "noteId",
-        "color",
-        "lineId"
+        "noteId"
       ],
       "title": "NoteEdit",
       "type": "object"
@@ -198,6 +198,7 @@
               "type": "null"
             }
           ],
+          "default": null,
           "title": "Color"
         },
         "clef": {
@@ -238,8 +239,7 @@
       },
       "required": [
         "id",
-        "name",
-        "color"
+        "name"
       ],
       "title": "StaffLine",
       "type": "object"

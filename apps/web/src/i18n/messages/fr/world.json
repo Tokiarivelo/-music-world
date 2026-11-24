@@ -101,5 +101,8 @@
   "edit.live.noteDeleted": "Note supprimée",
   "edit.live.noteAdded": "Note ajoutée",
   "edit.live.enabled": "Modification des notes activée",
-  "edit.live.disabled": "Modification des notes désactivée"
+  "edit.live.disabled": "Modification des notes désactivée",
+  "edit.playMine": "Écouter mes modifications",
+  "edit.live.playMineOn": "Votre partition modifiée remplace la chanson",
+  "edit.live.playMineOff": "Retour à la chanson d'origine"
 }

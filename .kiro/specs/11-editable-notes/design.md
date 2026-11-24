@@ -45,3 +45,11 @@ See `docs/improvements/i9-editable-notes.md` § Design. Add an "As built" sectio
   also apply. Contract: `colorRole` gains `"line"` (`make schemas`); the engine maps it to `PaletteRole | null` plus
   `SpawnRecord.structureHex` (the note's color, else its line color), used by `StructureView`; the director prompt does not
   list `line`. Mute and solo are stored per line and are used by "Play my edits" (task 7).
+- Task 7: browser persistence per song (`mw.edits.v1:<audioHash>`, tolerant `parseEdits`, try / catch) and server sync for the
+  signed-in owner: migration `0006`, `projects.edits_json`, `GET` / `PUT /api/projects/{id}/edits` (`GetProjectEdits`,
+  `SaveProjectEdits`, 404 for non-owners and unowned projects, 413 `EDITS_TOO_LARGE`). The page reads the server copy first
+  (it wins when it has content) and never saves an empty document over it; a 401 / 404 switches the sync off for the page
+  (`projectEditsRemote`). The demo keeps its edits in the browser only. "Play my edits": `ScorePlayer` (rolling 100 ms
+  scheduler over the audio clock, delay computed at each tick so seeks, pauses and rate changes are followed, mute / solo per
+  line honored) plus `AudioPlayer.setMuted` (a gain node; the clock keeps running). Polyphony of the score is capped by the
+  synth's pool of 8 voices.

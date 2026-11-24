@@ -327,3 +327,76 @@ export function noteName(midi: number): string {
   const m = Math.round(midi);
   return `${names[((m % 12) + 12) % 12]}${Math.floor(m / 12) - 1}`;
 }
+
+// --- Reading a stored document ---------------------------------------------------------------------------------------
+
+const HEX = /^#[0-9a-fA-F]{6}$/;
+const ID = /^[a-z0-9-]{1,32}$/;
+
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+const num = (v: unknown, lo: number, hi: number): number | undefined =>
+  typeof v === 'number' && Number.isFinite(v) ? clamp(v, lo, hi) : undefined;
+const hex = (v: unknown): string | undefined => (typeof v === 'string' && HEX.test(v) ? v : undefined);
+const id = (v: unknown): string | undefined => (typeof v === 'string' && ID.test(v) ? v : undefined);
+
+/**
+ * Reads a document from the browser's storage or the server and keeps only what is valid and within the limits; a
+ * value that is not an edits document gives null. The server validates strictly: this is the tolerant reader.
+ */
+export function parseEdits(value: unknown): LayoutEdits | null {
+  if (!isObject(value) || value.version !== 1) return null;
+  const list = (v: unknown): Record<string, unknown>[] => (Array.isArray(v) ? v.filter(isObject).slice(0, MAX_EDITS) : []);
+  const lines = list(value.lines)
+    .slice(0, MAX_LINES)
+    .flatMap((l): StaffLine[] => {
+      const lineId = id(l.id);
+      if (!lineId || typeof l.name !== 'string' || l.name.length === 0) return [];
+      const clef: Clef = l.clef === 'bass' || l.clef === 'none' ? l.clef : 'treble';
+      const color = hex(l.color);
+      return [
+        {
+          id: lineId,
+          name: l.name.slice(0, 40),
+          ...(color && { color }),
+          clef,
+          height: num(l.height, 0, 8) ?? 0,
+          muted: l.muted === true,
+          solo: l.solo === true,
+          order: Math.round(num(l.order, 0, 16) ?? 0),
+        },
+      ];
+    });
+  const notes = list(value.notes).flatMap((n): NoteEdit[] => {
+    if (typeof n.noteId !== 'string' || n.noteId.length === 0 || n.noteId.length > 64) return [];
+    const midi = num(n.midi, MIN_MIDI, MAX_MIDI);
+    const time = num(n.time, 0, 1e6);
+    const duration = num(n.duration, 0.01, 60);
+    const velocity = num(n.velocity, 0, 1);
+    const color = hex(n.color);
+    const lineId = id(n.lineId);
+    return [
+      {
+        noteId: n.noteId,
+        ...(midi !== undefined && { midi: Math.round(midi) }),
+        ...(time !== undefined && { time }),
+        ...(duration !== undefined && { duration }),
+        ...(velocity !== undefined && { velocity }),
+        ...(color && { color }),
+        ...(lineId && { lineId }),
+        ...(n.deleted === true && { deleted: true }),
+      },
+    ];
+  });
+  const added = list(value.added).flatMap((a): AddedNote[] => {
+    const noteId = typeof a.id === 'string' && /^user:[0-9]{1,5}$/.test(a.id) ? a.id : undefined;
+    const time = num(a.time, 0, 1e6);
+    const duration = num(a.duration, 0.01, 60);
+    const midi = num(a.midi, MIN_MIDI, MAX_MIDI);
+    const velocity = num(a.velocity, 0, 1);
+    const lineId = id(a.lineId);
+    if (!noteId || time === undefined || duration === undefined || midi === undefined || velocity === undefined || !lineId) return [];
+    const color = hex(a.color);
+    return [{ id: noteId, time, duration, midi: Math.round(midi), velocity, lineId, ...(color && { color }) }];
+  });
+  return { version: 1, lines, notes, added };
+}

@@ -30,4 +30,6 @@ export interface AudioContextLike {
   readonly currentTime: number;
   readonly destination: unknown;
   createBufferSource(): AudioBufferSourceNodeLike;
+  /** Optional: lets the player mute the song ("Play my edits") without stopping its clock. */
+  createGain?(): { readonly gain: AudioParamLike; connect(destination: unknown): unknown; disconnect(): void };
 }

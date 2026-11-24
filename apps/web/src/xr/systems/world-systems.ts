@@ -25,6 +25,9 @@ import type { WorldView } from '../views/world-view';
 /** The only time source of the world: `AudioClock.now()` from the player (tech.md rule 4). */
 export interface WorldClock {
   now(): number;
+  /** Present on the player's clock: the score player ("Play my edits") follows pauses and the playback rate. */
+  isPlaying?(): boolean;
+  rate?(): number;
 }
 
 export const ClockComponent = createComponent(

@@ -55,7 +55,7 @@ export function DemoPlayback({
   );
   return (
     <div className="relative h-dvh w-full">
-      <WorldView controls={controls} scene={scene} />
+      <WorldView controls={controls} editsKey={analysis.audioHash} onScoreMode={player.setMuted} scene={scene} />
       <div className="absolute left-3 top-3 z-10 max-w-[calc(100%-11rem)] sm:max-w-none">
         <SiteNav />
         <div className="mt-2" />

@@ -26,6 +26,7 @@ import { activityAt, type Activity, type HiddenLayers } from '@/engine/layers';
 import { layerStore } from './layer-store';
 import { EditController, type NoteEditEvent } from './interaction/edit-controller';
 import { NoteSynth } from './audio/note-synth';
+import { ScorePlayer, type ScoreNote } from './audio/score-player';
 import { anchorPlacement, plateWidthM, rootScale } from './scale';
 import { bindNavigationInput } from './navigation/navigation-input';
 import type { CameraMode, NavigationController, NavigationState } from './navigation/navigation-controller';
@@ -81,6 +82,8 @@ export interface WorldHandle {
   setEditMode(enabled: boolean): void;
   /** Hover, selection, drag and commit events of the editor. Returns an unsubscribe function. */
   onNoteEvent(listener: (event: NoteEditEvent) => void): () => void;
+  /** "Play my edits": plays these notes with the synth in step with the song clock; `null` stops it. */
+  setScore(notes: readonly ScoreNote[] | null): void;
   /** Keyboard commands of the editor (requirement 11): select, nudge the pitch, play. */
   editCommand(command: EditCommand): void;
   /** What each stem plays now, for the meters of the layers panel (null before a song is loaded). */
@@ -282,6 +285,11 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   const noteListeners = new Set<(event: NoteEditEvent) => void>();
   const synth = new NoteSynth();
   const projector = scene.project;
+  const scorePlayer = new ScorePlayer(synth, {
+    now: () => baseClock?.now() ?? 0,
+    isPlaying: () => baseClock?.isPlaying?.() ?? false,
+    rate: () => baseClock?.rate?.() ?? 1,
+  });
   const editor = new EditController({
     plan: () => basePlan,
     now: () => baseClock?.now() ?? 0,
@@ -326,6 +334,7 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     canvas.removeEventListener('pointercancel', onUp, true);
     globalThis.removeEventListener?.('keydown', onKey);
     editor.setEnabled(false);
+    scorePlayer.stop();
     synth.dispose();
   };
   // `touch-action: none` only while exploring, so the cinematic page scrolls as before (requirement 2.4).
@@ -368,6 +377,15 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
       if (!loaded) return;
       basePlan = buildSpawnPlan(loaded.analysis, loaded.template, loaded.seed, edits);
       show();
+    },
+    setScore(notes) {
+      if (disposed) return;
+      if (notes === null) {
+        scorePlayer.stop();
+        return;
+      }
+      scorePlayer.setScore(notes);
+      scorePlayer.start();
     },
     setEditMode(enabled) {
       if (!disposed) editor.setEnabled(enabled);

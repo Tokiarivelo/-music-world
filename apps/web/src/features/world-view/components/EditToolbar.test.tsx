@@ -24,6 +24,7 @@ function fixture(playing = false) {
   const handle = {
     setEditMode: vi.fn(),
     setEdits: vi.fn(),
+    setScore: vi.fn(),
     editCommand: vi.fn(),
     onNoteEvent: (l: (e: NoteEditEvent) => void) => {
       listener = l;
@@ -130,5 +131,94 @@ describe("note editing page logic (I9)", () => {
     act(() => f.hook.result.current.removeNote());
     expect(f.hook.result.current.edits.notes.every((e) => e.deleted === true)).toBe(true);
     expect(f.hook.result.current.selectedCount).toBe(0);
+  });
+});
+
+describe("persistence and Play my edits (I9 requirement 8, 9)", () => {
+  afterEach(() => {
+    localStorage.clear();
+  });
+
+  function withPersistence(persistence: Parameters<typeof useNoteEdits>[3], playing = false) {
+    const handle = {
+      setEditMode: vi.fn(),
+      setEdits: vi.fn(),
+      setScore: vi.fn(),
+      editCommand: vi.fn(),
+      onNoteEvent: () => () => {},
+    } as unknown as WorldHandle;
+    const controls = { isPlaying: () => playing } as unknown as WorldControls;
+    const hook = renderHook(() => useNoteEdits(handle, scene, controls, persistence));
+    return { handle, hook };
+  }
+
+  it("remembers the edits in the browser and restores them for the same song", () => {
+    const first = withPersistence({ key: "sha256:abc" });
+    act(() => first.hook.result.current.setEnabled(true));
+    act(() => first.hook.result.current.addLine());
+    expect(localStorage.getItem("mw.edits.v1:sha256:abc")).toContain("line-1");
+    first.hook.unmount();
+    const again = withPersistence({ key: "sha256:abc" });
+    expect(again.hook.result.current.lines.map((l) => l.id)).toEqual(["main", "line-1"]);
+    const other = withPersistence({ key: "sha256:other" });
+    expect(other.hook.result.current.lines).toHaveLength(1);
+  });
+
+  it("ignores a corrupted stored value and clears the key when the edits are reset to nothing", () => {
+    localStorage.setItem("mw.edits.v1:k", "{not json");
+    const h = withPersistence({ key: "k" });
+    expect(h.hook.result.current.edits.notes).toEqual([]);
+    act(() => h.hook.result.current.addLine());
+    act(() => h.hook.result.current.undo());
+    expect(localStorage.getItem("mw.edits.v1:k")).toBeNull();
+  });
+
+  it("the server copy wins when it has content, and an empty page never overwrites it", async () => {
+    vi.useFakeTimers();
+    const serverDoc = { version: 1, lines: [], notes: [{ noteId: "a", midi: 70 }], added: [] };
+    const save = vi.fn((doc: { notes: unknown[] }) => Promise.resolve(doc.notes.length).then(() => undefined));
+    const remote = { load: () => Promise.resolve(serverDoc), save: save as unknown as (e: never) => Promise<void> };
+    const h = withPersistence({ key: "k", remote });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1500);
+    });
+    expect(h.hook.result.current.edits.notes).toEqual([{ noteId: "a", midi: 70 }]);
+    // loading a server copy writes it back unchanged at most; it never saves an empty document first
+    expect(save.mock.calls.every((call) => call[0].notes.length === 1)).toBe(true);
+    act(() => h.hook.result.current.removeNote());
+    act(() => h.hook.result.current.addLine());
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1500);
+    });
+    expect(save).toHaveBeenLastCalledWith(h.hook.result.current.edits);
+  });
+
+  it("does not call the server when signed out (the load fails) and nothing is edited", async () => {
+    vi.useFakeTimers();
+    const save = vi.fn(() => Promise.resolve());
+    const remote = { load: () => Promise.reject(new Error("401")), save };
+    withPersistence({ key: "k", remote });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000);
+    });
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it("Play my edits sends the score to the world, honors mute and solo, and tells the page to mute the song", () => {
+    const onScoreMode = vi.fn();
+    const h = withPersistence({ onScoreMode });
+    expect(onScoreMode).toHaveBeenLastCalledWith(false);
+    act(() => h.hook.result.current.setPlayMine(true));
+    expect(onScoreMode).toHaveBeenLastCalledWith(true);
+    expect(h.handle.setScore).toHaveBeenLastCalledWith([
+      { time: 3, duration: 0.5, midi: 64, velocity: 0.7 },
+      { time: 4, duration: 0.5, midi: 67, velocity: 0.7 },
+    ]);
+    act(() => h.hook.result.current.addLine());
+    act(() => h.hook.result.current.patchLine("main", { muted: true }));
+    expect(h.handle.setScore).toHaveBeenLastCalledWith([]);
+    act(() => h.hook.result.current.setPlayMine(false));
+    expect(h.handle.setScore).toHaveBeenLastCalledWith(null);
+    expect(onScoreMode).toHaveBeenLastCalledWith(false);
   });
 });

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  EMPTY_EDITS,
   MAIN_LINE_ID,
   addLine,
   addNote,
@@ -10,10 +11,12 @@ import {
   deleteLine,
   duplicateLine,
   editNote,
+  isEmptyEdits,
   linesOf,
   moveLine,
   newHistory,
   noteName,
+  parseEdits,
   redo,
   resetAll,
   resetNote,
@@ -26,8 +29,19 @@ import {
 import type { NoteEvent } from "@/engine/types";
 import { useT } from "@/i18n";
 import type { WorldControls, WorldHandle, WorldScene } from "@/xr/world-host";
+import { loadEdits, saveEdits, type EditsRemote } from "../lib/edits-storage";
 
 const PAUSE_POLL_MS = 200;
+const REMOTE_SAVE_DELAY_MS = 1000;
+
+/** Where the edits of the shown song live: this browser (by key) and, for a signed-in owner, the server. */
+export interface EditsPersistence {
+  /** Identifies the song in the browser's storage (the audio hash); no key = nothing is remembered. */
+  key?: string;
+  remote?: EditsRemote;
+  /** The song is muted while "Play my edits" is on. */
+  onScoreMode?(on: boolean): void;
+}
 
 export interface NoteEditsApi {
   enabled: boolean;
@@ -50,6 +64,9 @@ export interface NoteEditsApi {
   paste(): void;
   selectedLine: string;
   selectedColor: string | undefined;
+  /** "Play my edits": the song is replaced by the synthesized score of the edited notes. */
+  playMine: boolean;
+  setPlayMine(on: boolean): void;
   lineName(line: StaffLine): string;
   addLine(): void;
   patchLine(id: string, patch: Partial<Omit<StaffLine, "id">>): void;
@@ -72,10 +89,13 @@ export function useNoteEdits(
   handle: WorldHandle | null,
   scene: WorldScene | undefined,
   controls: WorldControls | undefined,
+  persistence: EditsPersistence = {},
 ): NoteEditsApi {
   const analysis = scene?.analysis;
   const t = useT("world");
-  const [history, setHistory] = useState<History>(() => newHistory());
+  const { key, remote, onScoreMode } = persistence;
+  const [history, setHistory] = useState<History>(() => newHistory((key && loadEdits(key)) || EMPTY_EDITS));
+  const [playMine, setPlayMineState] = useState(false);
   const [enabled, setEnabledState] = useState(false);
   const [paused, setPaused] = useState(() => (controls ? !controls.isPlaying() : false));
   const [selectedIds, setSelectedIds] = useState<readonly string[]>([]);
@@ -86,7 +106,7 @@ export function useNoteEdits(
   const [forAnalysis, setForAnalysis] = useState(analysis);
   if (forAnalysis !== analysis) {
     setForAnalysis(analysis);
-    setHistory(newHistory());
+    setHistory(newHistory((key && loadEdits(key)) || EMPTY_EDITS));
     setSelectedIds([]);
   }
 
@@ -116,6 +136,56 @@ export function useNoteEdits(
   const active = enabled && paused;
   useEffect(() => handle?.setEditMode(active), [handle, active]);
   useEffect(() => handle?.setEdits(edits), [handle, edits]);
+
+  // Persistence (requirement 8): the browser always, the server for a signed-in owner once its copy has been read, so an
+  // empty page never overwrites it. The server copy wins when it has content.
+  const [remoteReady, setRemoteReady] = useState(false);
+  const [remoteHad, setRemoteHad] = useState(false);
+  useEffect(() => {
+    if (!remote) return;
+    let cancelled = false;
+    remote
+      .load()
+      .then((value) => {
+        const doc = parseEdits(value);
+        if (cancelled) return;
+        if (doc && !isEmptyEdits(doc)) {
+          setHistory(newHistory(doc));
+          setRemoteHad(true);
+        }
+      })
+      .catch(() => undefined) // signed out or offline: the browser copy is used
+      .finally(() => !cancelled && setRemoteReady(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [remote, analysis]);
+  useEffect(() => {
+    if (key) saveEdits(key, edits);
+  }, [key, edits]);
+  useEffect(() => {
+    if (!remote || !remoteReady || (isEmptyEdits(edits) && !remoteHad)) return;
+    const id = setTimeout(() => {
+      remote.save(edits).then(() => setRemoteHad(!isEmptyEdits(edits)), () => undefined);
+    }, REMOTE_SAVE_DELAY_MS);
+    return () => clearTimeout(id);
+  }, [remote, remoteReady, remoteHad, edits]);
+
+  // "Play my edits": every stem of the edited score, honoring mute and solo per line.
+  const score = useMemo(() => {
+    if (!edited) return [];
+    const soloed = lines.some((l) => l.solo);
+    const silent = new Set(lines.filter((l) => l.muted || (soloed && !l.solo)).map((l) => l.id));
+    return edited.analysis.notes
+      .filter((n) => !silent.has(edited.lineOf.get(n.id) ?? MAIN_LINE_ID))
+      .map((n) => ({ time: n.time, duration: n.duration, midi: n.midi, velocity: n.velocity }));
+  }, [edited, lines]);
+  useEffect(() => {
+    handle?.setScore(playMine ? score : null);
+  }, [handle, playMine, score]);
+  useEffect(() => {
+    onScoreMode?.(playMine);
+  }, [onScoreMode, playMine]);
 
 
   useEffect(() => {
@@ -197,6 +267,11 @@ export function useNoteEdits(
       announce(t("edit.live.noteAdded"));
     },
     selectedLine,
+    playMine,
+    setPlayMine: (on) => {
+      setPlayMineState(on);
+      announce(t(on ? "edit.live.playMineOn" : "edit.live.playMineOff"));
+    },
     selectedColor: selected ? edited?.colorOf.get(selected.id) : undefined,
     lineName,
     addLine: () => {

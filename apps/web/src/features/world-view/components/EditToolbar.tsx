@@ -85,6 +85,14 @@ export function EditToolbar({ api }: { api: NoteEditsApi }) {
         >
           {t("edit.toggle")}
         </button>
+        <button
+          aria-pressed={api.playMine}
+          className={`${BUTTON} ${api.playMine ? ACTIVE : ""}`}
+          onClick={() => api.setPlayMine(!api.playMine)}
+          type="button"
+        >
+          {t("edit.playMine")}
+        </button>
         {api.enabled && (
           <>
             <button className={BUTTON} disabled={!api.canUndo} onClick={api.undo} type="button">

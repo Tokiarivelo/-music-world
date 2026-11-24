@@ -14,6 +14,7 @@ vi.mock("@/xr/world-host", () => ({
       setHiddenLayers: vi.fn(),
       setEditMode: vi.fn(),
       setEdits: vi.fn(),
+      setScore: vi.fn(),
       onNoteEvent: () => () => undefined,
       editCommand: vi.fn(),
       activity: vi.fn(() => null),

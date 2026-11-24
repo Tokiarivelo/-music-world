@@ -61,13 +61,18 @@ export class NoteSynth {
 
   /** Plays a pitch right now; returns false when audio is unavailable. Call it from a user gesture. */
   playNote(midi: number, velocity = 0.7, seconds = NOTE_SECONDS): boolean {
+    return this.playAt(midi, velocity, seconds, 0);
+  }
+
+  /** Plays a pitch `delay` seconds from now (the score scheduler, "Play my edits"). */
+  playAt(midi: number, velocity: number, seconds: number, delay: number): boolean {
     if (!Number.isFinite(midi)) return false;
     const ctx = this.context();
     if (!ctx) return false;
     if (ctx.state === 'suspended') void ctx.resume();
     if (this.voices.length >= VOICE_POOL) this.release(this.voices[0]!, ctx, 0);
 
-    const now = ctx.currentTime;
+    const now = ctx.currentTime + Math.max(0, delay);
     const peak = PEAK_GAIN * Math.min(1, Math.max(0.1, velocity));
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();

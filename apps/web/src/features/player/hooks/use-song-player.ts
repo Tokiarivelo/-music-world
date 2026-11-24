@@ -20,6 +20,8 @@ export interface SongPlayer {
   toggle(): void;
   seek(sec: number): void;
   seekBy(deltaSec: number): void;
+  /** Mutes the song, keeping its clock ("Play my edits"). */
+  setMuted(muted: boolean): void;
 }
 
 export type PlayerContext = AudioContextLike & { resume(): Promise<unknown>; close(): Promise<unknown> };
@@ -87,5 +89,7 @@ export function useSongPlayer(deps: SongPlayerDeps): SongPlayer {
     if (player) player.seek(player.now() + delta);
   }, []);
 
-  return { clock, ready, playing, duration, run, toggle, seek, seekBy };
+  const setMuted = useCallback((muted: boolean) => playerRef.current?.setMuted(muted), []);
+
+  return { clock, ready, playing, duration, run, toggle, seek, seekBy, setMuted };
 }

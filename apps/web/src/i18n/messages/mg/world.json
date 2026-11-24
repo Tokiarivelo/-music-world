@@ -101,5 +101,8 @@
   "edit.live.noteDeleted": "Voafafa ny note",
   "edit.live.noteAdded": "Nampiana ny note",
   "edit.live.enabled": "Mandeha ny fanovana note",
-  "edit.live.disabled": "Najanona ny fanovana note"
+  "edit.live.disabled": "Najanona ny fanovana note",
+  "edit.playMine": "Henoy ny fanovako",
+  "edit.live.playMineOn": "Ny partition novainao no henoina fa tsy ny hira",
+  "edit.live.playMineOff": "Averina ny hira tany am-boalohany"
 }

@@ -144,3 +144,38 @@ describe('AudioPlayer properties', () => {
     );
   });
 });
+
+describe('AudioPlayer mute ("Play my edits", I9)', () => {
+  function gainContext() {
+    const gains: { gain: { value: number }; connect(): void; disconnect(): void }[] = [];
+    const ctx = Object.assign(new FakeAudioContext(), {
+      gains,
+      createGain: () => {
+        const node = { gain: { value: 1 }, connect: () => undefined, disconnect: () => undefined };
+        gains.push(node);
+        return node;
+      },
+    });
+    return ctx;
+  }
+
+  it('silences the song without touching its clock, also for the next source', () => {
+    const ctx = gainContext();
+    const player = new AudioPlayer(ctx, { duration: DURATION });
+    player.play();
+    player.setMuted(true);
+    expect(ctx.gains.at(-1)!.gain.value).toBe(0);
+    ctx.advance(2);
+    expect(player.now()).toBeCloseTo(2, 9);
+    player.seek(10); // a new source is created: it must stay muted
+    expect(ctx.gains.at(-1)!.gain.value).toBe(0);
+    player.setMuted(false);
+    expect(ctx.gains.at(-1)!.gain.value).toBe(1);
+  });
+
+  it('works without gain support (the song just keeps playing)', () => {
+    const { player } = setup();
+    player.play();
+    expect(() => player.setMuted(true)).not.toThrow();
+  });
+});

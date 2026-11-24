@@ -16,7 +16,7 @@
   - _Requirements: 13, 14_
 - [x] 6c. Per-line properties and `colorRole: "line"`.
   - _Requirements: 15_
-- [ ] 7. Persistence (browser, then `PUT /api/projects/{id}/edits`), "Play my edits".
+- [x] 7. Persistence (browser, then `PUT /api/projects/{id}/edits`), "Play my edits".
   - _Requirements: 8, 9_
 - [ ] 8. VR picking and drag, IWER check, docs, screenshots.
   - _Requirements: 1, 3_

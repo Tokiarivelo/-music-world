@@ -15,6 +15,7 @@ function fakePlayer(): SongPlayer {
     toggle: vi.fn(),
     seek: vi.fn(),
     seekBy: vi.fn(),
+    setMuted: vi.fn(),
   };
 }
 

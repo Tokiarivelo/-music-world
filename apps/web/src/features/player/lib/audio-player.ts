@@ -20,6 +20,8 @@ export class AudioPlayer implements AudioClock {
   private offsetSec = 0;
   private currentRate = 1;
   private playing = false;
+  private muted = false;
+  private gainNode: ReturnType<NonNullable<AudioContextLike['createGain']>> | null = null;
 
   constructor(
     private readonly ctx: AudioContextLike,
@@ -77,6 +79,12 @@ export class AudioPlayer implements AudioClock {
     this.currentRate = rate;
   }
 
+  /** Silences the song without touching its clock ("Play my edits" plays the synthesized score instead). */
+  setMuted(muted: boolean): void {
+    this.muted = muted;
+    if (this.gainNode) this.gainNode.gain.value = muted ? 0 : 1;
+  }
+
   /** Stops and rewinds to 0. */
   stop(): void {
     this.playing = false;
@@ -89,7 +97,15 @@ export class AudioPlayer implements AudioClock {
     const source = this.ctx.createBufferSource();
     source.buffer = this.buffer;
     source.playbackRate.value = this.currentRate;
-    source.connect(this.ctx.destination);
+    if (this.ctx.createGain) {
+      this.gainNode?.disconnect();
+      this.gainNode = this.ctx.createGain();
+      this.gainNode.gain.value = this.muted ? 0 : 1;
+      this.gainNode.connect(this.ctx.destination);
+      source.connect(this.gainNode);
+    } else {
+      source.connect(this.ctx.destination);
+    }
     source.start(0, offset);
     this.source = source;
     this.offsetSec = offset;

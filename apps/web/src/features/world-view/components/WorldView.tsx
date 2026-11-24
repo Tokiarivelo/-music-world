@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import type { WorldControls, WorldScene } from "@/xr/world-host";
 import { useT } from "@/i18n";
+import type { EditsRemote } from "../lib/edits-storage";
 
 // The IWSDK world touches window/WebGL/WebXR: never render it on the server.
 const WorldCanvas = dynamic(() => import("./WorldCanvas"), {
@@ -20,8 +21,14 @@ interface WorldViewProps {
   scene?: WorldScene;
   /** Player commands used in VR (controllers, spatial panel, pinch). */
   controls?: WorldControls;
+  /** Where the note edits of this song are remembered in the browser (the audio hash); none = not remembered. */
+  editsKey?: string;
+  /** The signed-in owner's copy on the server (a project). */
+  editsRemote?: EditsRemote;
+  /** "Play my edits" replaces the song: the page mutes it while this is true. */
+  onScoreMode?(on: boolean): void;
 }
 
-export function WorldView({ scene, controls }: WorldViewProps) {
-  return <WorldCanvas controls={controls} scene={scene} />;
+export function WorldView({ scene, controls, editsKey, editsRemote, onScoreMode }: WorldViewProps) {
+  return <WorldCanvas controls={controls} editsKey={editsKey} editsRemote={editsRemote} onScoreMode={onScoreMode} scene={scene} />;
 }

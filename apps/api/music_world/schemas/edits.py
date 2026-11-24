@@ -8,16 +8,16 @@ from music_world.schemas.base import ContractModel
 
 SCHEMA_ID = "music-world.edits.v1"
 
-HexColor = Field(pattern=r"^#[0-9a-fA-F]{6}$")
-LineId = Field(pattern=r"^[a-z0-9-]{1,32}$")
+HEX_PATTERN = r"^#[0-9a-fA-F]{6}$"
+LINE_PATTERN = r"^[a-z0-9-]{1,32}$"
 
 
 class StaffLine(ContractModel):
     """A voice line: a full staff with its own clef, color, height in the sky, mute and solo."""
 
-    id: str = LineId
+    id: str = Field(pattern=LINE_PATTERN)
     name: str = Field(min_length=1, max_length=40)
-    color: str | None = HexColor
+    color: str | None = Field(default=None, pattern=HEX_PATTERN)
     clef: Literal["treble", "bass", "none"] = "treble"
     height: float = Field(default=0, ge=0, le=8, description="Extra height in staff gaps.")
     muted: bool = False
@@ -31,8 +31,8 @@ class NoteEdit(ContractModel):
     time: float | None = Field(default=None, ge=0)
     duration: float | None = Field(default=None, gt=0, le=60)
     velocity: float | None = Field(default=None, ge=0, le=1)
-    color: str | None = HexColor
-    line_id: str | None = LineId
+    color: str | None = Field(default=None, pattern=HEX_PATTERN)
+    line_id: str | None = Field(default=None, pattern=LINE_PATTERN)
     deleted: bool | None = None
 
 
@@ -42,8 +42,8 @@ class AddedNote(ContractModel):
     duration: float = Field(gt=0, le=60)
     midi: int = Field(ge=21, le=108)
     velocity: float = Field(ge=0, le=1)
-    line_id: str = LineId
-    color: str | None = HexColor
+    line_id: str = Field(pattern=LINE_PATTERN)
+    color: str | None = Field(default=None, pattern=HEX_PATTERN)
 
 
 class LayoutEdits(ContractModel):

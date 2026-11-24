@@ -43,6 +43,7 @@ class Project:
     job_id: str | None
     created_at: datetime
     owner_id: str | None = None  # None: uploaded without a session, readable by its unguessable id
+    edits_json: str | None = None  # the owner's note edits (`music-world.edits.v1`), validated before it is stored
 
 
 def can_access(project: Project, caller_id: str | None) -> bool:
