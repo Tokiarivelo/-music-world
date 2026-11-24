@@ -30,40 +30,56 @@ world as a template. Anyone can publish templates in a community store.
 ## Run locally
 
 Requirements: Python 3.12 via [uv](https://docs.astral.sh/uv/), Node 22+ with pnpm, Docker (for `make dev`).
+First time: `make install` (Python and Node dependencies from the lock files).
 
-**Fastest — web only, demo song** (no backend; the AI button and the store need the API):
+Pick one way. `make help` lists every target.
+
+| Way | Command | Open | Ports |
+|---|---|---|---|
+| **A. Web only** (demo song, no backend) | `pnpm -C apps/web dev` | `http://localhost:3000/play/demo` | web 3000 |
+| **B. Full stack in Docker** (production-like) | `make dev` | `https://localhost/play/demo` | Caddy 80 and 443 only |
+| **C. Hot reload on the host** (daily development) | `make dev-infra`, then `dev-api`, `dev-worker`, `dev-web` | `http://localhost:3000/play/demo` | web 3000 (`WEB_PORT`), api 8000, postgres 5432, redis 6379 (127.0.0.1) |
+
+**A. Web only** — the AI button and the template store need the API.
 
 ```bash
 pnpm install
-pnpm -C apps/web dev        # open http://localhost:3000/play/demo (IWER emulates a Quest 3 in dev)
+pnpm -C apps/web dev        # IWER emulates a Quest 3 in dev
 ```
 
-**Full stack** in Docker (Caddy, web, api, worker, postgres, redis):
+**B. Full stack in Docker** (Caddy, web, api, worker, postgres, redis):
 
 ```bash
-make dev                              # then open https://localhost/play/demo (accept the local certificate)
+make dev                              # accept the local certificate in the browser
 curl -k https://localhost/api/health  # {"status":"ok",…}
+make up / make down / make logs       # background mode, stop, follow logs (make logs SERVICE=api)
 ```
 
-`make dev` builds an image only when its sources changed (content hash), so a second run starts at once.
+`make dev` builds an image only when its sources changed (content hash), so a second run starts at once. The
+`web` container listens on 3000 **inside** the Docker network; only Caddy publishes ports (80, 443), so `WEB_PORT`
+has no effect here and nothing on your host's port 3000 is used or needed. Postgres credentials come from
+`infra/.env` (optional locally); an old database volume with another password: `make db-password`.
 
-**Hot reload on the host** (api, worker and web outside Docker; Postgres and Redis in Docker on 127.0.0.1):
+**C. Hot reload on the host** (api, worker and web outside Docker; Postgres and Redis in Docker on 127.0.0.1):
 
 ```bash
 cp apps/api/.env.example apps/api/.env          # optional: only to change a default
+cp apps/web/.env.example apps/web/.env.local    # optional: WEB_PORT, DEV_API_URL
 make dev-infra                                  # postgres + redis
 make dev-api                                    # terminal 2: migrations, then uvicorn --reload on :8000
 make dev-worker                                 # terminal 3 (only to analyse a song)
-make dev-web                                    # terminal 4: http://localhost:3000/play/demo (other port: WEB_PORT in apps/web/.env.local or make dev-web WEB_PORT=3001)
+make dev-web                                    # terminal 4: Next dev server on WEB_PORT (default 3000)
 ```
+
+Port 3000 taken? Set `WEB_PORT=3001` in `apps/web/.env.local` (or `make dev-web WEB_PORT=3001`) and
+`PUBLIC_BASE_URL=http://localhost:3001` in `apps/api/.env` so sign-in links use the same port. `WEB_PORT` only
+concerns the host dev server (way C); it is never passed to Docker. Stop the infra with `make down`.
 
 **Developer checks:**
 
 ```bash
-cd apps/api && uv sync && cd ../..    # Python deps
+make -j3 check                        # schema drift + lint + types + tests + architecture (api and web in parallel)
 make schemas                          # pydantic -> JSON Schema -> TS + zod
-make -j3 check                        # schema drift + lint + types + tests + architecture check (api and web in parallel)
-make help                             # every target (run, build, test, prune, clean)
 make disk && make prune               # disk usage, then safe Docker clean-up
 ```
 
