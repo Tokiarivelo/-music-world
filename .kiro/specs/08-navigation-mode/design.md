@@ -98,3 +98,18 @@ The camera is never read by the engine; the audio clock and `worldStateAt` are u
 - Headless Chromium (Playwright, `--use-angle=vulkan`) on `next dev`: screenshots of cinematic, explore after a drag,
   each preset, mobile width; `renderer.info.render.calls`.
 - `MW_ANGLE=vulkan node scripts/xr-check.mjs` once.
+
+## As built
+
+- `xr/navigation/navigation-controller.ts` holds the state (mode, preset, pose, goal, ease); `systems/navigation-system.ts`
+  only feeds it frame time and copies the pose to `world.camera` when the pose object changes (poses are immutable, so
+  an identity check is enough; no per-frame allocation). The host (`world-host.ts`) binds the input to the canvas, sets
+  `touch-action: none` only while exploring, reads `prefers-reduced-motion`, and unbinds on `dispose()`.
+- `WorldHandle` commands: `setCameraMode`, `setViewPreset`, `resetView`, `onNavigationChange`.
+- UI: `NavigationControls` sits top-right under the Enter VR button (a bottom placement was covered by the player bar:
+  found by the headless check). Hidden in VR; `useNavigationShortcuts` ignores editable targets, modifiers and repeats.
+- Headless Chromium (`--use-angle=vulkan`, `/play/demo`, 1280×720 and 390×760): a drag in the cinematic mode leaves the
+  camera at `(0.973, 2.228, 0.609)`; in explore the same drag moves it; Staff / City / Top / Overview reach their
+  presets after the ease, `R` then `N` return to the cinematic pose; draw calls stay at 15 in all states; no page error.
+- `MW_ANGLE=vulkan node scripts/xr-check.mjs`: every XR check passes (46 draw calls in VR); the final console check
+  fails only on `500` from `/api/*` because no backend ran during the check (run with the API up, or `DEV_API_URL`).

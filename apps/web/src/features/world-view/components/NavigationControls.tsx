@@ -11,19 +11,24 @@ interface NavigationControlsProps {
 }
 
 const BUTTON =
-  'rounded-full border border-white/20 bg-black/50 px-4 py-2 text-sm text-white backdrop-blur ' +
+  'rounded-full border border-white/20 px-4 py-2 text-sm backdrop-blur ' +
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mw-accent)]';
+const IDLE = 'bg-black/50 text-white';
 const ACTIVE = 'bg-[var(--mw-accent)] text-black';
 
 /** Explore toggle, presets, reset and hint, floating above the canvas (siblings: they never move the camera). */
 export function NavigationControls({ state, commands }: NavigationControlsProps) {
   const exploring = state.mode === 'explore';
   return (
-    <div aria-label={NAVIGATION_TEXT.group} className="absolute bottom-24 left-4 z-10 flex flex-col gap-2" role="group">
-      <div className="flex flex-wrap gap-2">
+    <div
+      aria-label={NAVIGATION_TEXT.group}
+      className="absolute right-4 top-20 z-10 flex max-w-[calc(100%-2rem)] flex-col items-end gap-2"
+      role="group"
+    >
+      <div className="flex flex-wrap justify-end gap-2">
         <button
           aria-pressed={exploring}
-          className={`${BUTTON} ${exploring ? ACTIVE : ''}`}
+          className={`${BUTTON} ${exploring ? ACTIVE : IDLE}`}
           onClick={commands.toggleExplore}
           type="button"
         >
@@ -31,11 +36,11 @@ export function NavigationControls({ state, commands }: NavigationControlsProps)
         </button>
         {exploring && (
           <>
-            <div aria-label={NAVIGATION_TEXT.presetsLabel} className="flex flex-wrap gap-2" role="group">
+            <div aria-label={NAVIGATION_TEXT.presetsLabel} className="flex flex-wrap justify-end gap-2" role="group">
               {VIEW_PRESET_IDS.map((id) => (
                 <button
                   aria-pressed={state.preset === id}
-                  className={`${BUTTON} ${state.preset === id ? ACTIVE : ''}`}
+                  className={`${BUTTON} ${state.preset === id ? ACTIVE : IDLE}`}
                   key={id}
                   onClick={() => commands.selectPreset(id)}
                   type="button"
@@ -44,13 +49,13 @@ export function NavigationControls({ state, commands }: NavigationControlsProps)
                 </button>
               ))}
             </div>
-            <button className={BUTTON} onClick={commands.reset} type="button">
+            <button className={`${BUTTON} ${IDLE}`} onClick={commands.reset} type="button">
               {NAVIGATION_TEXT.reset}
             </button>
           </>
         )}
       </div>
-      {exploring && <p className="max-w-xs text-xs text-white/70">{NAVIGATION_TEXT.hint}</p>}
+      {exploring && <p className="max-w-xs text-right text-xs text-white/70">{NAVIGATION_TEXT.hint}</p>}
     </div>
   );
 }

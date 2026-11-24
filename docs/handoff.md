@@ -15,8 +15,9 @@ Read docs/handoff.md and continue with the next actions.
 - Phase 9 docs worked on branch `phase-9-submission` (one commit per roadmap task: 9.1, 9.2, 9.3–9.5 drafts, + this
   handoff), merged into `main` through the PR "Phase 9: submission docs". Work from `main`.
   Push with gh credentials: `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
+- Branch `feature-navigation-mode` (08-navigation-mode tasks 1–6, one commit each) is ready for a PR into `main`.
 - Uncommitted: none.
-- `make check` green (exit 0): API pytest 313 passed (3 slow deselected), web vitest 177 passed (40 files), ruff,
+- `make check` green (exit 0): API pytest 313 passed (3 slow deselected), web vitest 213 passed (44 files), ruff,
   mypy strict, eslint, tsc, schema drift and architecture checks clean. Docs-only session: no code changed.
 - No server left running. A `music-world` Compose stack (old images, predates Phase 6) and another project's
   containers (`angaly_*`) may be running — not started by these sessions; leave them alone.
@@ -81,10 +82,13 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | Roadmap 8.4, 8.5 | Claude Code (deploy/hardening) | done | `docs/security-review.md`, `infra/README.md` |
 | Roadmap 8.1–8.3 | — | blocked | scripts + runbook ready; needs instance, domain, keys (human) |
 | Roadmap 9.1, 9.2 | Claude Code (submission docs) | done | `README.md`, `KIRO_USAGE.md` |
-| 08-navigation-mode 1–6 | Claude Code (world-builder) | in progress | branch `feature-navigation-mode` |
+| 08-navigation-mode 1–6 | Claude Code (world-builder) | done | branch `feature-navigation-mode`, one commit per task; PR to open |
 | Roadmap 9.3–9.5 | — | blocked | human: video, Devpost, posts; drafts in `docs/submission.md` |
 
 ## 5. Active pitfalls
+
+- `xr-check.mjs` ends with a console check that fails on `500` from `/api/*` when no backend runs (not an XR failure).
+- Navigation UI must not sit at the bottom of the canvas: the player bar covers it (controls are top-right).
 
 - `basic-pitch` 0.4.0 requires TensorFlow < 2.15.1 (no Python 3.12 wheels): `apps/api/pyproject.toml`
   `override-dependencies` removes it and runs the bundled ONNX model. Do not "fix" that override.
@@ -136,3 +140,4 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | 05-ai-world-director | 1–5 done | 7 (human real calls), 6 (P2) | design.md § Human checks, § As built |
 | 06-template-store | 1–6 done | 7 (human: real e-mail, public URL) | design.md § Human checks, § As built |
 | 07-xr-mode | 1–6 done | 7 (Quest, human) | design.md § Human checks |
+| 08-navigation-mode | 1–6 done | — (human: try it on a phone) | design.md § As built |

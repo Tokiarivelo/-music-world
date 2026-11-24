@@ -16,6 +16,6 @@
 - [x] 5. UI: `NavigationControls` (Explore toggle, presets, reset, hint) and `useNavigationShortcuts` (N, R, 1–4) in
   `features/world-view`, hidden in VR; Testing Library tests.
   - _Requirements: 1.2, 1.4, 3.2, 3.3, 3.4, 4.1–4.3, 5.2_
-- [ ] 6. Verify in headless Chromium (screenshots, draw calls) and with `xr-check.mjs`; record in `design.md`
+- [x] 6. Verify in headless Chromium (screenshots, draw calls) and with `xr-check.mjs`; record in `design.md`
   § As built; README, `PROJECT.md` §7, roadmap.
   - _Requirements: 5.4, 6.2_

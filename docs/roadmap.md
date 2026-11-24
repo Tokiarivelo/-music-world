@@ -127,7 +127,7 @@ Fallback: if 1.2 fails after 2 attempts → Vite IWSDK app under `/world` (requi
 | 7a | Enter VR + tabletop diorama placement + play/pause in VR | P0 | works in IWER and Quest |
 | 7b | Spatial panel (seek, template picker), hands pinch | P1 | `xr-verify` skill passed |
 | 7c | Perf pass on Quest 3 (≥ 72 fps, < 100 draw calls) | P1 | numbers in handoff |
-| 7d | Desktop / mobile navigation mode (spec `08-navigation-mode`): cinematic ↔ explore, orbit / pan / zoom, keyboard fly, presets, reset | P1 | tests + headless check; VR still passes `xr-check.mjs` |
+| 7d | Desktop / mobile navigation mode (spec `08-navigation-mode`): cinematic ↔ explore, orbit / pan / zoom, keyboard fly, presets, reset | P1 (done) | tests + headless check; VR still passes `xr-check.mjs` |
 
 ## Phase 8 — Deploy and hardening (P0, skill `deploy-ovh`)
 

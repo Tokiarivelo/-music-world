@@ -262,6 +262,7 @@ Tout est calculé à partir de `t`. Avec un seek, la note est simplement à l'en
 - Panneau spatial (UIKitML) : lecture / pause, timeline, choix du template.
 - Entrées : contrôleurs et mains (pincement). Seuil de pincement ≈ 0,7–0,8.
 - **Budget de performance Quest :** < 100 draw calls, tout en `InstancedMesh`, textures compressées, 72 Hz minimum (demander 90 Hz si le budget le permet).
+- **Navigation bureau / mobile (hors VR) :** vue cinématique par défaut ; mode « Explorer » (touche `N`) : orbite, déplacement, zoom, vol au clavier, vues prédéfinies (Vue d'ensemble, Portée, Ville, Dessus) et réinitialisation. Ne touche ni l'horloge audio ni `worldStateAt` ; désactivé pendant une session VR.
 - **Développement sans casque :** IWER émule un Meta Quest 3 dans le navigateur.
 - **Test sur casque :** URL HTTPS du serveur de développement ou de l'instance OVHcloud.
 
