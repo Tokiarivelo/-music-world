@@ -24,6 +24,9 @@ export type NoteEvent = Readonly<Analysis['notes'][number]>;
 
 export type ChordEvent = Readonly<Analysis['chords'][number]>;
 
+export type LyricSegment = Readonly<Analysis['lyrics'][number]>;
+
 export type EngineAnalysis = Readonly<
-  Pick<Analysis, 'durationSec' | 'tempoBpm' | 'beats' | 'notes' | 'chords' | 'energy'>
+  Pick<Analysis, 'durationSec' | 'tempoBpm' | 'beats' | 'notes' | 'chords' | 'energy'> &
+    Partial<Pick<Analysis, 'lyrics' | 'lyricsSource'>>
 >;
