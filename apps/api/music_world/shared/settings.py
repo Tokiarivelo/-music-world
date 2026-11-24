@@ -87,6 +87,17 @@ class Settings(BaseSettings):
     def docs_enabled(self) -> bool:
         return self.api_docs or self.app_env == "development"
 
+    def production_errors(self) -> list[str]:
+        """Settings that would make a production deployment unsafe; the API refuses to start with any of them."""
+        if self.app_env != "production":
+            return []
+        errors: list[str] = []
+        if not self.session_cookie_secure:
+            errors.append("SESSION_COOKIE_SECURE must be true in production")
+        if not self.public_base_url.startswith("https://"):
+            errors.append("PUBLIC_BASE_URL must be an https:// origin in production")
+        return errors
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

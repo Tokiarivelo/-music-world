@@ -30,6 +30,11 @@ fileMatchPattern: ["infra/**", "**/Dockerfile*", "Makefile"]
 - Sign-in e-mails: `PUBLIC_BASE_URL` defaults to `https://$DOMAIN` in Compose; `AUTH_EMAIL_SENDER=smtp` with the
   `SMTP_*` settings sends real e-mails (outbound port 587 must be open); `console` only logs the link.
 - Caddy blocks `/api/docs` in production unless `API_DOCS=true`.
+- Caddy limits request bodies (26 MiB for `POST /api/projects`, 1 MiB elsewhere; the API checks the same) and sets
+  HSTS, `nosniff`, `X-Frame-Options DENY`, `Permissions-Policy` and a Content-Security-Policy. When the web app
+  needs a new external origin (CDN, S3 presigned URLs), add it to the CSP `connect-src`/`media-src`/`img-src` and
+  re-run the CSP browser check (`docs/security-review.md`). Never publish the api port: uvicorn trusts
+  `X-Forwarded-For` from any peer, and only Caddy rewrites it.
 - The `api` container runs `alembic upgrade head` before uvicorn; `worker` waits for `api` to be healthy.
 - Images build from the repository root (`.dockerignore` excludes node_modules, venvs, `.env`). The web image is
   Next.js standalone (`apps/web/server.js` inside the image because tracing root = repo root).

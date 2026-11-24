@@ -40,6 +40,7 @@ PostgreSQL · Redis · OVHcloud (Docker Compose, Object Storage) · Meta Model A
 
 - Design document (French): [`PROJECT.md`](PROJECT.md)
 - Current status and next steps: [`docs/handoff.md`](docs/handoff.md)
+- Security review (findings, accepted risks, CSP check): [`docs/security-review.md`](docs/security-review.md)
 
 ## Development setup
 

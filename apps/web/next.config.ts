@@ -6,6 +6,7 @@ const DEV_API_URL = process.env.DEV_API_URL ?? 'http://localhost:8000';
 const nextConfig: NextConfig = {
   output: 'standalone',
   reactStrictMode: true,
+  poweredByHeader: false, // no X-Powered-By (security review, docs/security-review.md)
   agentRules: false, // agent rules live in .kiro/steering, not in a generated AGENTS.md
   outputFileTracingRoot: new URL('../..', import.meta.url).pathname,
   async rewrites() {

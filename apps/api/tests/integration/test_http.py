@@ -84,7 +84,8 @@ def make_container(
 
 
 async def client_for(env: str, postgres: StaticProbe | None = None) -> AsyncClient:
-    settings = Settings(app_env=env, s3_secret_key=SECRET)  # type: ignore[arg-type]
+    base_url = "https://mw.example" if env == "production" else "http://localhost:3000"
+    settings = Settings(app_env=env, s3_secret_key=SECRET, public_base_url=base_url)  # type: ignore[arg-type]
     app = create_app(settings, lambda s: make_container(s, postgres or StaticProbe("ok")))
     return AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
 
