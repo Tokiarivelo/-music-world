@@ -105,6 +105,10 @@ export class StaffView implements WorldView {
   private readonly pos = new Vector3();
   private readonly scale: Vector3;
   private readonly up = new Vector3(0, 1, 0);
+  /** Reused per update (07-xr-mode requirement 6.2: no steady-state allocation). */
+  private readonly counts = new Map<GlyphKind, number>();
+  private haloCount = 0;
+  private lastT = Number.NaN;
 
   constructor(private readonly plan: SpawnPlan) {
     const { palette, staff } = plan.template;
@@ -164,26 +168,29 @@ export class StaffView implements WorldView {
   }
 
   update(state: WorldState): void {
-    const counts = new Map<GlyphKind, number>();
-    let halos = 0;
-    const place = (glyph: GlyphKind, position: { x: number; y: number; z: number }, u: number) => {
-      const mesh = this.glyphMeshes.get(glyph);
-      const n = counts.get(glyph) ?? 0;
-      if (!mesh || n >= mesh.instanceMatrix.count) return;
-      this.q.setFromAxisAngle(this.up, staffHeading(this.plan.staff, u));
-      this.m.compose(this.pos.set(position.x, position.y, position.z), this.q, this.scale);
-      mesh.setMatrixAt(n, this.m);
-      counts.set(glyph, n + 1);
-      if (halos < this.halos.instanceMatrix.count) this.halos.setMatrixAt(halos++, this.m);
-    };
-    for (const n of state.notesOnStaff) place(n.glyph, n.position, n.u);
-    for (const f of state.fallingNotes) place(f.glyph, f.position, this.plan.staff.playheadU);
+    if (state.t === this.lastT) return; // paused: nothing changed, skip the GPU upload
+    this.lastT = state.t;
+    this.counts.clear();
+    this.haloCount = 0;
+    for (const n of state.notesOnStaff) this.place(n.glyph, n.position, n.u);
+    for (const f of state.fallingNotes) this.place(f.glyph, f.position, this.plan.staff.playheadU);
     for (const [kind, mesh] of this.glyphMeshes) {
-      mesh.count = counts.get(kind) ?? 0;
+      mesh.count = this.counts.get(kind) ?? 0;
       mesh.instanceMatrix.needsUpdate = true;
     }
-    this.halos.count = halos;
+    this.halos.count = this.haloCount;
     this.halos.instanceMatrix.needsUpdate = true;
+  }
+
+  private place(glyph: GlyphKind, position: { x: number; y: number; z: number }, u: number): void {
+    const mesh = this.glyphMeshes.get(glyph);
+    const n = this.counts.get(glyph) ?? 0;
+    if (!mesh || n >= mesh.instanceMatrix.count) return;
+    this.q.setFromAxisAngle(this.up, staffHeading(this.plan.staff, u));
+    this.m.compose(this.pos.set(position.x, position.y, position.z), this.q, this.scale);
+    mesh.setMatrixAt(n, this.m);
+    this.counts.set(glyph, n + 1);
+    if (this.haloCount < this.halos.instanceMatrix.count) this.halos.setMatrixAt(this.haloCount++, this.m);
   }
 
   visibleHalos(): number {

@@ -125,3 +125,38 @@ Commands are executed through `WorldControls` (given by React with the scene): `
   `visualAdapters.hand.left.getPinchStrength()` while the left primary source is a hand; skipped while the panel
   entity has `Hovered` (`rig.panel`). IWER check: `primaryInputMode = 'hand'`, `hands.left.setPinchValueImmediate(v)`
   (IWER pinch 0.70 → strength 0.40: no toggle; 1.0 → strength 1.0: toggle, twice).
+- Task 6 (steady state): `ClockSystem` keeps the previous `WorldState` while `t` and the plan are unchanged (paused:
+  no allocation); `StaffView` and `FxView` skip their update when `t` is unchanged (like `StructureView`), and
+  `StaffView` reuses its glyph counter map; the panel rebuilds its time text only when the displayed second changes
+  and its title / template buttons only when the controls object changes. Unit test: no instance buffer re-upload
+  while paused (`views.test.ts`).
+
+## Performance (requirement 6)
+
+IWER (Meta Quest 3 profile), headless Chromium 1248, `next dev`, `/play/demo`, 2026-11-25,
+`MW_ANGLE=vulkan node apps/web/scripts/xr-check.mjs` (GTX 960M laptop, vsync and frame-rate limit off):
+
+| Measure | Value |
+|---|---|
+| Draw calls in VR, both eyes, no multiview (IWER) | 40 at entry · 46 with the panel, controllers and hands |
+| Draw calls per eye (≈ multiview count on Quest) | ≈ 20–23 (budget < 100) |
+| Triangles (both eyes) | ≈ 145 k |
+| Frame time (stereo, uncapped, GPU) | ≈ 6.2 ms |
+| Frame time (SwiftShader CPU raster) | ≈ 250–300 ms (not representative; panel clicks skipped) |
+| Memory after 3 seeks while playing | 26 geometries / 12 textures before and after |
+| Multiview compile check | 17–18 programs (world, panel, controllers) compile and link with `OVR_multiview2` |
+
+Script result: 27/27 checks with `MW_ANGLE=vulkan`, 21/21 (+ panel clicks skipped) with SwiftShader.
+
+## Human checks (Quest 3, not done — needs a headset)
+
+1. `pnpm -C apps/web exec next dev --experimental-https -p 3125 -H 0.0.0.0`; open `https://<laptop-ip>:3125/play/demo`
+   in Quest Browser (same Wi-Fi, accept the certificate), or the deployed URL after Phase 8.
+2. Press Play once in 2D (unlocks audio), then Enter VR. Check: plate at table height ≈ 1.3 m ahead, panel above its
+   front edge, A/X play-pause, thumbstick ±5 s, grip recenters, panel buttons with the trigger ray and with a poke.
+3. Put the controllers down (hand tracking): left pinch toggles play; pinch while pointing at the panel clicks it
+   instead; light pinches (pointing) must not toggle.
+4. fps: Quest Browser performance HUD (or `metavr` perf tools) on the demo song: ≥ 72 fps for the whole song; then try
+   `session.updateTargetFrameRate(90)` and keep it only if 90 holds. Check the building windows render in both eyes
+   (multiview) and glyph readability at 1 m.
+5. Record date, device, fps, draw calls here and in `docs/handoff.md`; then tick `03-world-engine-core` task 7.

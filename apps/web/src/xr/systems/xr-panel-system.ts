@@ -29,7 +29,7 @@ import {
 } from '../constants';
 import { panelTime, progressPercent } from '../panel-format';
 import { ClockComponent, type WorldClock } from './world-systems';
-import { isImmersive, XRRigComponent, type XRRig } from './xr-systems';
+import { isImmersive, XRRigComponent, type WorldControls, type XRRig } from './xr-systems';
 
 /** Minimal surface of a UIKit component used here. */
 interface UIElement {
@@ -44,7 +44,13 @@ interface PanelView {
   progress: UIElement;
   play: UIElement;
   templates: UIElement[];
-  shown: { time: string; percent: number; playing: boolean | null; title: string; templatesKey: string };
+  shown: {
+    second: number;
+    duration: number;
+    percent: number;
+    playing: boolean | null;
+    controls: WorldControls | null;
+  };
 }
 
 export interface PanelBinding {
@@ -104,7 +110,7 @@ export class XRPanelSystem extends createSystem({
       progress: el('mw-progress'),
       play: el('mw-play'),
       templates,
-      shown: { time: '', percent: -1, playing: null, title: '', templatesKey: '' },
+      shown: { second: -1, duration: -1, percent: -1, playing: null, controls: null },
     };
   }
 
@@ -122,10 +128,12 @@ export class XRPanelSystem extends createSystem({
     const clock = binding.anchorEntity.getValue(ClockComponent, 'clock') as WorldClock | null;
     const now = clock?.now() ?? 0; // the audio clock: the only time source
     const duration = controls.duration();
-    const time = panelTime(now, duration); // a short string per frame; elements change only once per second
-    if (time !== shown.time) {
-      shown.time = time;
-      view.time.setProperties({ text: time });
+    // Text is rebuilt only when the displayed second changes (no per-frame string allocation).
+    const second = Math.floor(now);
+    if (second !== shown.second || duration !== shown.duration) {
+      shown.second = second;
+      shown.duration = duration;
+      view.time.setProperties({ text: panelTime(now, duration) });
     }
     const percent = progressPercent(now, duration);
     if (percent !== shown.percent) {
@@ -137,13 +145,10 @@ export class XRPanelSystem extends createSystem({
       shown.playing = playing;
       view.play.setProperties({ text: playing ? 'Pause' : 'Play' });
     }
-    if (controls.title !== shown.title) {
-      shown.title = controls.title;
+    // Title and template choices change only with a new controls object (React memo).
+    if (controls !== shown.controls) {
+      shown.controls = controls;
       view.title.setProperties({ text: controls.title });
-    }
-    const templatesKey = `${controls.templateId}|${controls.templates.map((t) => t.id).join(',')}`;
-    if (templatesKey !== shown.templatesKey) {
-      shown.templatesKey = templatesKey;
       view.templates.forEach((button, i) => {
         const choice = controls.templates[i];
         button.setProperties(

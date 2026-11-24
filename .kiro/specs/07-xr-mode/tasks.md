@@ -15,6 +15,9 @@
 - [x] 5. (7b, P1) Hand pinch: `PinchGesture` (0.75 / 0.6 hysteresis), left-hand pinch toggles play unless the panel
   is hovered; IWER check with hands.
   - _Requirements: 5.1–5.3_
-- [ ] 6. (7c, P1) Performance pass in IWER (draw calls with panel and controllers, frame time, memory after seeks and
-  a template switch), steady-state allocation review; record numbers and the Quest 3 human steps.
+- [x] 6. (7c, P1) Performance pass in IWER (draw calls with panel and controllers, frame time, memory after seeks;
+  a template switch waits for a second template), steady-state allocation review; record numbers and the Quest 3 human steps.
   - _Requirements: 6.1–6.4, 7.2_
+- [ ] 7. (7a/7c, human) Quest 3 check: Enter VR, controls, hands, ≥ 72 fps, multiview windows, glyphs at 1 m
+  (`design.md` § Human checks); then tick `03-world-engine-core` task 7.
+  - _Requirements: 1.1, 5.1, 6.3, 6.4_

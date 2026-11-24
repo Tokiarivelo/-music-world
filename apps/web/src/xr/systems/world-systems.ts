@@ -45,12 +45,19 @@ function read<T>(entity: Entity, key: 'clock' | 'plan' | 'state' | 'root'): T | 
 }
 
 export class ClockSystem extends createSystem({ clocks: { required: [ClockComponent] } }) {
+  private lastPlan: SpawnPlan | null = null;
+
   update(): void {
     for (const entity of this.queries.clocks.entities) {
       const clock = read<WorldClock>(entity, 'clock');
       const plan = read<SpawnPlan>(entity, 'plan');
       if (!clock || !plan) continue;
-      entity.setValue(ClockComponent, 'state', worldStateAt(plan, clock.now()));
+      const t = clock.now();
+      const state = read<WorldState>(entity, 'state');
+      // Paused: same plan and t give the same state (worldStateAt is pure), so keep it and allocate nothing.
+      if (state && state.t === t && this.lastPlan === plan) continue;
+      this.lastPlan = plan;
+      entity.setValue(ClockComponent, 'state', worldStateAt(plan, t));
     }
   }
 }

@@ -40,6 +40,9 @@ const browser = await chromium.launch({
     `--use-angle=${angle}`,
     '--enable-unsafe-swiftshader',
     '--ignore-gpu-blocklist',
+    // Uncapped frame rate so the measured frame time is the cost of a frame, not the display refresh.
+    '--disable-gpu-vsync',
+    '--disable-frame-rate-limit',
     '--autoplay-policy=no-user-gesture-required',
   ],
 });
@@ -398,6 +401,26 @@ try {
     globalThis.__mwXRDevice.primaryInputMode = 'controller';
   });
   await frames(10);
+
+  // Memory (xr-verify step 4): geometries and textures stay stable over seeks in VR.
+  const memory = () =>
+    page.evaluate(() => {
+      const { geometries, textures } = globalThis.__mwWorld.renderer.info.memory;
+      return { geometries, textures };
+    });
+  const memBefore = await memory();
+  await press('right', 'a-button');
+  for (const x of [1, 1, -1]) await flick('right', x);
+  await page.waitForTimeout(500);
+  await press('right', 'a-button');
+  const memAfter = await memory();
+  const lateCalls = await page.evaluate(() => globalThis.__mwWorld.renderer.info.render.calls);
+  check('budget: draw calls in VR with the panel and controllers < 100 (both eyes)', lateCalls < 100, `${lateCalls}`);
+  check(
+    'memory: no geometry or texture leak after 3 seeks while playing',
+    memAfter.geometries === memBefore.geometries && memAfter.textures === memBefore.textures,
+    `${JSON.stringify(memBefore)} → ${JSON.stringify(memAfter)}`,
+  );
 
   // Exit through the panel (IWER's runtime layer covers the 2D page while a session runs).
   const pausedAt = await songTime();
