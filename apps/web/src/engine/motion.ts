@@ -1,0 +1,93 @@
+/**
+ * Motion of catalog objects (I8 task 4): clouds drift, cars follow a closed path, planes cross the sky. Every position is
+ * a pure function of `(seed, objectId, t)`: no state, no physics, so a seek lands exactly where playing would have
+ * been (the world stays a function of `(plan, t)`). Distances are plate metres; angles radians.
+ */
+import { hashSeed, mulberry32, uniform } from './prng';
+
+export interface Vec3 {
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+}
+
+export interface Pose extends Vec3 {
+  /** Heading around the up axis (0 = +x), so a car or a plane faces where it goes. */
+  readonly yaw: number;
+}
+
+export interface Bounds {
+  readonly halfWidth: number; // along x
+  readonly halfDepth: number; // along z
+}
+
+function stream(seed: number, objectId: string): () => number {
+  return mulberry32(hashSeed(seed, `motion:${objectId}`));
+}
+
+/** Positive modulo: `wrap(-1, 4) === 3`. */
+export function wrap(value: number, period: number): number {
+  return ((value % period) + period) % period;
+}
+
+/**
+ * A cloud: starts anywhere in the area, drifts along one fixed direction at 0.05–0.25 m/s, wraps around so the sky stays
+ * full. Height and a slow bob come from the object's own stream.
+ */
+export function driftAt(seed: number, objectId: string, t: number, area: Bounds, heightRange: readonly [number, number]): Pose {
+  const rng = stream(seed, objectId);
+  const x0 = uniform(rng, -area.halfWidth, area.halfWidth);
+  const z0 = uniform(rng, -area.halfDepth, area.halfDepth);
+  const heading = uniform(rng, 0, Math.PI * 2);
+  const speed = uniform(rng, 0.05, 0.25);
+  const height = uniform(rng, heightRange[0], heightRange[1]);
+  const bobPhase = uniform(rng, 0, Math.PI * 2);
+  const width = area.halfWidth * 2;
+  const depth = area.halfDepth * 2;
+  const x = wrap(x0 + area.halfWidth + Math.cos(heading) * speed * t, width) - area.halfWidth;
+  const z = wrap(z0 + area.halfDepth + Math.sin(heading) * speed * t, depth) - area.halfDepth;
+  return { x, y: height + Math.sin(t * 0.2 + bobPhase) * height * 0.02, z, yaw: heading };
+}
+
+export interface LoopPath {
+  /** Centre and radii of an oval ring road. */
+  readonly cx: number;
+  readonly cz: number;
+  readonly rx: number;
+  readonly rz: number;
+  readonly y: number;
+}
+
+/** A car on an oval ring road at constant speed (1–4 m/s), either direction, starting at its own point on the ring. */
+export function loopAt(seed: number, objectId: string, t: number, path: LoopPath): Pose {
+  const rng = stream(seed, objectId);
+  const phase0 = uniform(rng, 0, Math.PI * 2);
+  const speed = uniform(rng, 1, 4);
+  const direction = rng() < 0.5 ? 1 : -1;
+  // Angular speed from the mean radius, so a longer ring takes longer.
+  const omega = (direction * speed) / ((path.rx + path.rz) / 2);
+  const a = phase0 + omega * t;
+  const x = path.cx + Math.cos(a) * path.rx;
+  const z = path.cz + Math.sin(a) * path.rz;
+  const dx = -Math.sin(a) * path.rx * direction;
+  const dz = Math.cos(a) * path.rz * direction;
+  return { x, y: path.y, z, yaw: Math.atan2(dz, dx) };
+}
+
+export interface FlightLane {
+  readonly halfLength: number; // the plane crosses [-halfLength, +halfLength] along its heading, then restarts
+  readonly altitude: readonly [number, number];
+  readonly halfWidth: number; // lanes are spread across z
+}
+
+/** A plane crossing the area at constant speed (6–14 m/s) along x, in its own lane and altitude, restarting at the edge. */
+export function flightAt(seed: number, objectId: string, t: number, lane: FlightLane): Pose {
+  const rng = stream(seed, objectId);
+  const offset = uniform(rng, 0, lane.halfLength * 2);
+  const speed = uniform(rng, 6, 14);
+  const direction = rng() < 0.5 ? 1 : -1;
+  const z = uniform(rng, -lane.halfWidth, lane.halfWidth);
+  const y = uniform(rng, lane.altitude[0], lane.altitude[1]);
+  const along = wrap(offset + speed * t, lane.halfLength * 2) - lane.halfLength;
+  return { x: along * direction, y, z, yaw: direction === 1 ? 0 : Math.PI };
+}

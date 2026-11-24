@@ -88,3 +88,12 @@ Quest 3 fps with the full catalog, licence audit file.
 
 Largest phase: asset production dominates the effort, not code. GLB size and decoding time on mobile; draw calls grow
 with kinds × LODs (merge LODs with distance culling, measure). Realism needs lighting from I2 and scale from I7 first.
+
+## As built
+
+- Task 4 (2026-11-24, branch `phase-I14-object-motion`): `engine/motion.ts` with `driftAt` (clouds), `loopAt` (cars on an
+  oval ring) and `flightAt` (planes), pure functions of `(seed, objectId, t)` with property tests (same inputs same pose
+  whatever was asked before, bounds, speed range, heading along the path). Nothing renders them yet.
+- Not started, and blocked on the decisions above: tasks 1 (spike on Quest 3 and asset sourcing), 2 (catalog contract),
+  3 (loader), 5-6 (content), 7 (lighting), 8 (director), 9 (Quest pass). The code tasks 2 and 3 are only worth writing once
+  the sourcing and the realism target are confirmed.
