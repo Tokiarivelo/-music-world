@@ -68,7 +68,7 @@ async function filledShare(page, pngBase64) {
 let failed = false;
 try {
   for (const ratio of RATIOS) {
-    const page = await browser.newPage({ viewport: { width: ratio.width, height: ratio.height } });
+    const page = await browser.newPage({ locale: 'en-US', viewport: { width: ratio.width, height: ratio.height } });
     await page.goto(`${base}/play/demo`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => globalThis.__mwWorld, null, { timeout: 120000 });
     await page.waitForTimeout(4000); // plan built, a few frames rendered

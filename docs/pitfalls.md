@@ -44,6 +44,9 @@ Read the group of the area you touch. The few that bite every session stay in th
 - Auth: every web call with a body goes through `apiFetch` (`src/lib/api-client.ts`), or signed-in users get
   `403 CSRF_FAILED`. Tests use `base_url="https://test"` so the `Secure` cookies are sent.
 
+- Headless Chromium picks the system language (often `fr`): Playwright scripts that click by label must open the page
+  with `locale: 'en-US'` (`xr-check.mjs`, `blank-ratio.mjs` do).
+
 ## Tooling, infra and process
 
 - pnpm is v12 here: offline installs need `--offline --trust-lockfile`; `pnpm run` may auto-install first (verify-deps).

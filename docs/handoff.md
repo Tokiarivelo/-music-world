@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase I3 i18n)
+> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase I2 full-screen world)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -16,23 +16,24 @@ Read docs/handoff.md and continue with the next actions.
   handoff), merged into `main` through the PR "Phase 9: submission docs". Work from `main`.
   Push with gh credentials: `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
 - `08-navigation-mode` is merged (PR #9).
-- Phase I3 work is on branch `phase-14-i18n` (committed, not pushed or merged).
+- Phase I3 is merged (PR #15). Phase I2 is on branch `phase-I2-fullscreen-world` (one commit per task 1–5, not pushed
+  or merged; PR to open).
 - `make check` green (exit 0): API pytest 313 passed (3 slow deselected), web vitest 213 passed (44 files), ruff,
   mypy strict, eslint, tsc, schema drift and architecture checks clean. Docs-only session: no code changed.
 - No server left running. A `music-world` Compose stack (old images, predates Phase 6) and another project's
   containers (`angaly_*`) may be running — not started by these sessions; leave them alone.
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-24, Claude Code, phase I3 i18n)
+## 2. Last session (2026-11-24, Claude Code, phase I2 full-screen world)
 
-- Branch `phase-14-i18n` (`docs/improvements/i3-i18n.md`, ADR `docs/decisions/002-i18n-in-house.md`): in-house
-  `apps/web/src/i18n` (typed JSON catalogs `en`/`fr`/`mg`, `useT`/`getT`, `t.error(code)`, `LanguageSwitch` in the
-  root layout, cookie `mw_locale`). Every `*_TEXT` / `*_ERRORS` constant was moved to the catalogs; the VR panel
-  labels come from `WorldControls.labels`. Tests: catalog parity, ICU, locale resolution, provider switch, and
-  `no-literal-text.test.ts` (fails on raw JSX text or text attributes). `next build` and `check-bundle` are green.
-- Not done: **glyph atlas** for the VR panel (needs a Quest / MSDF tooling, check accents with `xr-verify`), Playwright
-  screenshots in `fr`/`mg`, native review of the fr/mg drafts, `PROJECT.md` §7.
-- Rule for every later phase (I1, I2, I4–I8): add text only as catalog keys (`en` first).
+- Branch `phase-I2-fullscreen-world` (`docs/improvements/i2-fullscreen-world.md`, § As built): `WorldCanvas` is
+  `fixed inset-0` with `ResizeObserver` + DPR cap; `cinematicDistance(aspect)` backs the camera off on narrow views
+  (16:9 framing unchanged); `EnvironmentView` (sky dome shader, ground, fog, 2 hill rings; 3 draw calls, no texture)
+  fills everything beyond the plate; `PLATE_SIDE_LIGHT` 0.8. `scripts/blank-ratio.mjs` (needs `next dev` on 3125):
+  ≥ 99.9 % filled at 16:9, 21:9, 4:3, 1:1, 9:16 (was 58–81 %). `xr-check.mjs` passes with `MW_ANGLE=vulkan`.
+- Not done: Quest check (I7), horizon visible in the cinematic pose (camera looks down 31°), I1, I4–I8.
+- Earlier this day: phase I3 i18n (merged): catalogs `en`/`fr`/`mg`, rule "add text only as catalog keys (`en` first)".
+  Still open there: VR glyph atlas for accents, fr/mg screenshots, native review of fr/mg, `PROJECT.md` §7.
 
 ## 3. Next actions
 

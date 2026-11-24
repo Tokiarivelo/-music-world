@@ -39,6 +39,12 @@ apps/web/src/
 - **Secrets**: the web app never sees LLM keys; it calls `/api/*` only.
 - **UI**: Tailwind CSS, mobile-first (`sm: md: lg:`), checked at 375, 768 and 1280 px. Dark theme by default using the
   palette tokens of the default template (`--mw-bg`, `--mw-primary`, `--mw-accent`, `--mw-secondary`).
+- **Full-screen world**: `WorldCanvas` is `fixed inset-0` (overlays are absolute children, using
+  `env(safe-area-inset-*)`); the host resizes the renderer with a `ResizeObserver` (pixel ratio capped at 2) and feeds
+  the aspect to the cinematic camera (`cinematicDistance(aspect)`, 16:9 framing unchanged). Nothing may leave a flat
+  `palette.background` area: the environment (`xr/views/environment-view.ts`, ≤ 6 draw calls, ≤ 5 k triangles, no
+  texture) surrounds the plate. After touching the scene, camera or layout run `node apps/web/scripts/blank-ratio.mjs`
+  (needs `next dev` on 3125): it must report ≥ 99 % filled at 16:9, 21:9, 4:3, 1:1 and 9:16.
 - **Accessibility**: every control has a label; player controls work with the keyboard (space = play/pause,
   arrows = seek ±5 s).
 - **Text (i18n)**: no literal user-visible text in `.tsx`, `aria-*`, `title`, `placeholder`, metadata or the VR panel.

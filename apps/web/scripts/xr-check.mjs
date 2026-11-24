@@ -46,7 +46,7 @@ const browser = await chromium.launch({
     '--autoplay-policy=no-user-gesture-required',
   ],
 });
-const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+const page = await browser.newPage({ locale: 'en-US', viewport: { width: 1280, height: 720 } });
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
 page.on('response', (r) => {

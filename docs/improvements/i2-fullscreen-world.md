@@ -71,3 +71,35 @@ that differ from `palette.background` (`#07051a`) by more than 6 per channel:
 | 9:16 | 450×800 | 81.0 % | plate wider than the view (cropped), flat band on top |
 
 The canvas already covers the viewport in these runs (`h-dvh`); the black areas are the scene behind the plate.
+
+## As built (2026-11-24, branch `phase-I2-fullscreen-world`)
+
+- **Layout / resize** (task 2): `WorldCanvas` root is `fixed inset-0`; `world-host.ts` `fit()` runs on mount and from a
+  `ResizeObserver` (`renderer.setPixelRatio(min(dpr, 2))`, `setSize`, `camera.aspect`); skipped while an XR session runs
+  and redone when it ends. `viewport-fit=cover` in `app/layout.tsx`; the Enter VR button uses the safe-area insets.
+- **Camera** (task 3): `cinematicDistance(aspect) = 2.5 m × max(1, (16/9) / aspect)`: 16:9 and wider keep the exact
+  framing, narrower views move back so the plate width stays visible. The distance is the only thing that changes (same
+  azimuth, elevation, FOV). `NavigationController.setAspect` re-fits the cinematic / overview pose at once and leaves
+  an explored pose alone. `NAV_DISTANCE_MAX_M` 6 → 9 so 9:16 (7.9 m) stays inside the clamp.
+- **Environment** (task 4): `EnvironmentView`, a world-fixed child of the scene (not the scaled diorama, so it also
+  surrounds the user in VR): sky dome (shader gradient zenith → mid → horizon, horizon glow, hashed still stars), a
+  ground disc (radius 60 m, vertex colors fading to the horizon color), two seeded hill rings, `Fog` of the horizon color
+  (14–58 m). `environmentColors(palette)` derives every color. 3 draw calls, ≈ 1.8 k triangles, no texture. Camera far
+  plane raised to 300 m. Nothing is animated, so `prefers-reduced-motion` needs no special case.
+- **Plate sides** (task 5): `PLATE_SIDE_LIGHT` 0.55 → 0.8; the plate's side faces were almost exactly `#07051a` and
+  counted as blank (≈ 2 % of the view). They are still the darkest part of the plate.
+
+### Results (`blank-ratio.mjs`, SwiftShader, demo song)
+
+| Ratio | Before | After |
+|---|---|---|
+| 16:9 | 70.7 % | 99.9 % |
+| 21:9 | 57.9 % | 99.9 % |
+| 4:3 | 76.4 % | 99.9 % |
+| 1:1 | 78.8 % | 100.0 % |
+| 9:16 | 81.0 % | 100.0 % |
+
+`xr-check.mjs` with `MW_ANGLE=vulkan`: all checks pass (46 draw calls in VR without panel, 52 with; the only failure is
+the documented `500` from `/api/*` without a backend). With SwiftShader the check "leaving VR keeps the song state"
+failed once at ≈ 750 ms/frame (timing); it passes on the GPU. Not done: a Quest check (I7), a horizon view in the
+cinematic pose (the camera looks down 31°, so sky and hills show only when exploring or in VR).
