@@ -60,6 +60,26 @@ function fakeDeps(withSession = false) {
   return { deps, worlds, scene };
 }
 
+describe('setPaletteOverride', () => {
+  it('re-shows the same song with merged colors, restores on null, resets on another template', async () => {
+    const { deps, scene } = fakeDeps();
+    const handle = await createMusicWorld(document.createElement('div'), deps);
+    const clock = { now: () => 3 };
+    handle.setPaletteOverride({ background: '#112233' }); // before any load: nothing to show yet
+    expect(scene.setScene).not.toHaveBeenCalled();
+    handle.load({ analysis: demo, template: DEFAULT_TEMPLATE, seed: 1, clock });
+    expect(scene.setScene.mock.calls[0]![0].template.palette.background).toBe('#112233');
+    handle.setPaletteOverride(null);
+    expect(scene.setScene.mock.calls[1]![0].template.palette).toEqual(DEFAULT_TEMPLATE.palette);
+    expect(scene.setScene.mock.calls[1]![1]).toBe(clock);
+    handle.setPaletteOverride({ accent: '#abcdef' });
+    handle.load({ analysis: demo, template: { ...DEFAULT_TEMPLATE, id: 'other' }, seed: 1, clock });
+    expect(scene.setScene.mock.calls[3]![0].template.palette.accent).toBe(DEFAULT_TEMPLATE.palette.accent);
+    expect(DEFAULT_TEMPLATE.palette.accent).not.toBe('#abcdef');
+    handle.dispose();
+  });
+});
+
 describe('createMusicWorld', () => {
   it('releases the world, renderer and canvas on every one of 5 mount/unmount cycles', async () => {
     const container = document.createElement('div');
