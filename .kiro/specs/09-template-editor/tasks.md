@@ -23,7 +23,7 @@
 - [x] 9. Pure `recipe-model.ts` (add, remove, rename with reference rewrite, part and recipe fields clamped to the
   schema, triangle count mirroring `shape.py`) and validation (`recipeName`, `recipeBudget`); property tests.
   - _Requirements: 7.1–7.4_
-- [ ] 10. `RecipesSection` and `RecipeEditor` / `PartEditor` components (op-specific fields, live triangle meter,
+- [x] 10. `RecipesSection` and `RecipeEditor` / `PartEditor` components (op-specific fields, live triangle meter,
   limits 16 recipes and 8 parts); Testing Library tests.
   - _Requirements: 7.1–7.5_
 - [ ] 11. English, French and Malagasy strings, error messages, README and `PROJECT.md` §8, browser check
