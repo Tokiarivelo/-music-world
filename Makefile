@@ -1,5 +1,5 @@
 # Music World — root commands. See .kiro/steering/infrastructure.md and testing.md. `make help` lists the targets.
-.PHONY: help install \
+.PHONY: help install garage-init \
 	dev dev-local dev-redis dev-infra dev-api dev-worker dev-web up down restart ps logs shell \
 	build build-api build-web rebuild \
 	test test-api test-web check check-api check-web bundle-check arch lint format schemas schemas-check \
@@ -49,8 +49,11 @@ dev-local: ## Everything on the host, no Docker: API (SQLite) + web, plus Redis 
 dev-redis: ## Redis on the host (needs redis-server): 127.0.0.1:6379, no persistence
 	redis-server --bind 127.0.0.1 --port 6379 --save "" --appendonly no
 
-dev-infra: ## Postgres + Redis only, published on 127.0.0.1 (then dev-api, dev-worker, dev-web on the host)
-	$(DC) -f $(COMPOSE_DEV) up -d --wait postgres redis
+dev-infra: ## Postgres + Redis + Garage (S3) only, published on 127.0.0.1 (then dev-api, dev-worker, dev-web on the host)
+	$(DC) -f $(COMPOSE_DEV) up -d --wait postgres redis garage
+
+garage-init: ## One-time setup of the local Garage S3 store (bucket + key); prints the S3_* lines for apps/api/.env
+	bash infra/scripts/garage-init.sh
 
 dev-api: ## API on the host with reload: migrations then uvicorn on API_PORT (default 8000) (needs dev-infra; env: apps/api/.env)
 	cd $(API) && uv run $(API_ENV_FILE) alembic upgrade head
