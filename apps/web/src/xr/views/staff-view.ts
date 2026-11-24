@@ -35,6 +35,7 @@ import {
   STAFF_TUBE_RADIUS,
   STAFF_TUBE_SEGMENTS,
 } from '../constants';
+import { createAuroraCurtain, type AuroraCurtain } from './aurora-curtain';
 import { bravuraGeometry, noteGlyphGeometry } from '../glyphs/glyph-geometry';
 import { radialAlphaTexture } from '../glyphs/halo-texture';
 import type { WorldView } from './world-view';
@@ -109,6 +110,7 @@ export class StaffView implements WorldView {
   private readonly counts = new Map<GlyphKind, number>();
   private haloCount = 0;
   private lastT = Number.NaN;
+  private readonly curtain: AuroraCurtain | null = null;
 
   constructor(private readonly plan: SpawnPlan) {
     const { palette, staff } = plan.template;
@@ -131,6 +133,13 @@ export class StaffView implements WorldView {
     const haloGeometry = buildStaffGeometry(plan.staff, false, STAFF_HALO_RADIUS);
     this.object.add(new Mesh(haloGeometry, haloMaterial));
     this.disposables.push(haloGeometry, haloMaterial);
+
+    if (staff.style === 'aurora') {
+      const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      this.curtain = createAuroraCurtain(plan.staff, palette, plan.template.terrain.size, staff.glow, reduced);
+      this.object.add(this.curtain.mesh);
+      this.disposables.push(this.curtain);
+    }
 
     const size = plan.staff.lineGap * GLYPH_SCALE;
     this.scale = new Vector3(size, size, size);
@@ -170,6 +179,7 @@ export class StaffView implements WorldView {
   update(state: WorldState): void {
     if (state.t === this.lastT) return; // paused: nothing changed, skip the GPU upload
     this.lastT = state.t;
+    this.curtain?.update(state.t);
     this.counts.clear();
     this.haloCount = 0;
     for (const n of state.notesOnStaff) this.place(n.glyph, n.position, n.u);

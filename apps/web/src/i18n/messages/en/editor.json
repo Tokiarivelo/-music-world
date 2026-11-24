@@ -153,5 +153,8 @@
   "part.spread": "Spread",
   "part.seedOffset": "Variation",
   "error.recipeName": "Use 1 to 40 characters: a-z, 0-9 and _, different from the other shapes.",
-  "error.recipeBudget": "The parts need more triangles than the budget allows."
+  "error.recipeBudget": "The parts need more triangles than the budget allows.",
+  "staff.style": "Style",
+  "opt.glowing_lines": "Glowing lines",
+  "opt.aurora": "Aurora in the sky"
 }

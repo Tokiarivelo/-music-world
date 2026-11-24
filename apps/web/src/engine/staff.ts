@@ -2,7 +2,7 @@
  * Staff geometry (requirement 3.1): a quadratic Bézier centre line across the plate, five lines stacked above it.
  * Pure math in plate metres, shared by the engine (note positions) and the renderer (line tubes).
  */
-import { STAFF_HEIGHT_RATIO, STAFF_LINE_GAP_RATIO, STAFF_PLAYHEAD_U } from './constants';
+import { AURORA_GAP_FACTOR, AURORA_HEIGHT_RATIO, STAFF_HEIGHT_RATIO, STAFF_LINE_GAP_RATIO, STAFF_PLAYHEAD_U } from './constants';
 import type { Vec3, WorldTemplate } from './types';
 
 export interface StaffPath {
@@ -30,14 +30,15 @@ export function buildStaffPath(template: WorldTemplate): StaffPath {
   const bow = template.staff.path === 'diagonal_curve' ? CURVE_BOW : { x: 0, z: 0 };
   const midX = (DIAGONAL_START.x + DIAGONAL_END.x) / 2;
   const midZ = (DIAGONAL_START.z + DIAGONAL_END.z) / 2;
-  const baseY = template.terrain.size * STAFF_HEIGHT_RATIO;
+  const aurora = template.staff.style === 'aurora';
+  const baseY = template.terrain.size * (aurora ? AURORA_HEIGHT_RATIO : STAFF_HEIGHT_RATIO);
   return {
     start: { x: DIAGONAL_START.x * half, y: baseY, z: DIAGONAL_START.z * half },
     // A quadratic Bézier passes halfway to its control point, so double the bow.
     control: { x: (midX + 2 * bow.x) * half, y: baseY, z: (midZ + 2 * bow.z) * half },
     end: { x: DIAGONAL_END.x * half, y: baseY, z: DIAGONAL_END.z * half },
     baseY,
-    lineGap: template.terrain.size * STAFF_LINE_GAP_RATIO,
+    lineGap: template.terrain.size * STAFF_LINE_GAP_RATIO * (aurora ? AURORA_GAP_FACTOR : 1),
     playheadU: STAFF_PLAYHEAD_U,
   };
 }

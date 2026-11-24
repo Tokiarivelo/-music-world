@@ -1,0 +1,42 @@
+{
+  "schema": "music-world.template.v1",
+  "id": "aurora-night",
+  "name": "Aurora Night",
+  "license": "CC-BY-4.0",
+  "palette": {
+    "background": "#050b1a",
+    "terrain": "#0e1a2e",
+    "primary": "#2cffb0",
+    "accent": "#a06bff",
+    "secondary": "#46c8ff",
+    "staff": "#e8fff6"
+  },
+  "terrain": { "style": "smooth_plate", "mountains": "edges", "size": 14 },
+  "staff": {
+    "style": "aurora",
+    "path": "diagonal_curve",
+    "clef": "treble",
+    "glow": 1.3,
+    "lookahead": 5.0,
+    "fallDuration": 1.4
+  },
+  "mappings": [
+    { "when": { "chord": true }, "spawn": "cluster", "heightFrom": "velocity", "colorRole": "accent" },
+    { "when": { "pitch": "<48" }, "spawn": "terrain_ridge", "heightFrom": "duration", "colorRole": "secondary" },
+    { "when": { "pitch": "48-72" }, "spawn": "crystal", "heightFrom": "velocity" },
+    { "when": { "pitch": ">72" }, "spawn": "spike", "heightFrom": "pitch", "colorRole": "accent" },
+    { "when": {}, "spawn": "crystal" }
+  ],
+  "zones": [
+    { "kind": "terrain_ridge", "xMin": -0.95, "xMax": 0.95, "zMin": -0.95, "zMax": -0.55 },
+    { "kind": "crystal", "xMin": -0.8, "xMax": 0.8, "zMin": -0.5, "zMax": 0.6 },
+    { "kind": "spike", "xMin": -0.95, "xMax": 0.95, "zMin": -0.2, "zMax": 0.95 },
+    { "kind": "cluster", "xMin": -0.6, "xMax": 0.6, "zMin": 0.2, "zMax": 0.9 }
+  ],
+  "scenery": [
+    { "kind": "crystal", "count": 24 },
+    { "kind": "spike", "count": 16 }
+  ],
+  "budget": { "instancesPerKind": 2000 },
+  "fx": { "particles": "dust", "bloom": 1.0, "beatPulse": true, "chordLinks": "light_arc" }
+}

@@ -524,8 +524,11 @@
       "additionalProperties": false,
       "properties": {
         "style": {
-          "const": "glowing_lines",
           "default": "glowing_lines",
+          "enum": [
+            "glowing_lines",
+            "aurora"
+          ],
           "title": "Style",
           "type": "string"
         },
