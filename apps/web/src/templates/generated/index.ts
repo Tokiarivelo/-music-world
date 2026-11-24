@@ -8,4 +8,5 @@ export * from './job-accepted-v1';
 export * from './job-v1';
 export * from './project-created-v1';
 export * from './project-v1';
+export * from './session-v1';
 export * from './template-v1';

@@ -56,6 +56,21 @@ Do **not** add: React Three Fiber / Drei (conflicts with IWSDK's renderer), Esse
 | `DOMAIN` | `localhost` | Compose/Caddy only: public domain (Let's Encrypt), `localhost` = Caddy local CA |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | `music_world` | Compose only: postgres credentials, used to build `DATABASE_URL` |
 
+## Accounts and template store env (`06-template-store`)
+
+| Env var | Default | Use |
+|---|---|---|
+| `PUBLIC_BASE_URL` | `http://localhost:3000` (Compose: `https://$DOMAIN`) | Web origin: sign-in links, production `Origin` check on `/api/auth/*` |
+| `AUTH_EMAIL_SENDER` | `console` | `console` (link logged by the api, development) or `smtp` |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_STARTTLS` | —, `587`, —, —, —, `true` | SMTP sender (password server only, 10 s timeout, one retry) |
+| `AUTH_TOKEN_TTL_MIN` | `15` | Sign-in link lifetime (single use, stored hashed) |
+| `SESSION_TTL_DAYS` | `30` | Session cookie lifetime (`mw_session`, httpOnly, SameSite=Lax) |
+| `SESSION_COOKIE_SECURE` | `true` | `Secure` attribute of `mw_session` / `mw_csrf` |
+| `AUTH_RATE_LIMIT_PER_HOUR` | `10` | Sign-in links per client IP (plus 5 per address) |
+| `TEMPLATE_PUBLISH_RATE_LIMIT_PER_HOUR` | `10` | Store templates created per user |
+| `TEMPLATE_REPORT_HIDE_THRESHOLD` | `3` | Distinct reports that hide a store template |
+| `UPLOAD_RATE_LIMIT_PER_HOUR` | `20` | Song uploads per user or client IP |
+
 ## LLM providers (switchable)
 
 The director talks to an `LLMProvider` interface (`complete_json(system, user, schema) -> dict`). The provider is

@@ -3,7 +3,7 @@
 - [x] 1. (6.1, P1) Create this spec (requirements, design, tasks) from `PROJECT.md` §8–§9, `api-specs.md` and
   `coding-standards.md` § Security.
   - _Requirements: all_
-- [ ] 2. (6.2, P1) Accounts with e-mail magic link: `accounts` context (domain, ports, use cases `RequestMagicLink`,
+- [x] 2. (6.2, P1) Accounts with e-mail magic link: `accounts` context (domain, ports, use cases `RequestMagicLink`,
   `VerifyMagicLink`, `ResolveSession`, `SignOut`), SQLAlchemy repositories + Alembic migration, console and SMTP
   `EmailSender` adapters, `shared/auth.py` (`current_caller`, `require_user`, CSRF double-submit), auth routes and
   rate limits, `music-world.session.v1`; project ownership (`owner_id`, `CheckProjectAccess`, 404) on the project,

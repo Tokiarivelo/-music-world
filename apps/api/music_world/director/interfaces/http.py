@@ -1,6 +1,5 @@
 """Director routes: provider list, generate for a project, generate for the shipped demo song."""
 
-import re
 from dataclasses import asdict
 from typing import Annotated, Any
 
@@ -13,31 +12,30 @@ from music_world.director.application.use_cases.generate_world import (
 )
 from music_world.director.application.use_cases.list_providers import ListProviders
 from music_world.director.domain.errors import RateLimitedError
-from music_world.projects.domain.errors import ProjectNotFoundError
 from music_world.schemas.director import DemoDirectorRequest, DirectorProviders, DirectorRequest, DirectorResult
+from music_world.shared.auth import AccessibleProjectId, Caller, CurrentCaller
 from music_world.shared.http import ERROR_RESPONSES
 from music_world.shared.rate_limit import SlidingWindowLimiter
 
 router = APIRouter(prefix="/api", tags=["director"])
 
-_UUID = re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
 _RESPONSES: dict[int | str, dict[str, Any]] = {422: ERROR_RESPONSES[422], 429: ERROR_RESPONSES[429]}
 
 
-def _rate_limit(request: Request) -> None:
+def _rate_limit(request: Request, caller: Caller) -> None:
     limiter: SlidingWindowLimiter = request.app.state.container.director.limiter
-    if not limiter.allow(request.client.host if request.client else "unknown"):
+    if not limiter.allow(caller.rate_key):  # per user when signed in, per client IP otherwise
         raise RateLimitedError("too many world generations, try again later")
 
 
-def _project_use_case(request: Request) -> GenerateProjectWorld:
-    _rate_limit(request)
+def _project_use_case(request: Request, caller: CurrentCaller, _: AccessibleProjectId) -> GenerateProjectWorld:
+    _rate_limit(request, caller)
     use_case: GenerateProjectWorld = request.app.state.container.director.generate_project_world
     return use_case
 
 
-def _demo_use_case(request: Request) -> GenerateDemoWorld:
-    _rate_limit(request)
+def _demo_use_case(request: Request, caller: CurrentCaller) -> GenerateDemoWorld:
+    _rate_limit(request, caller)
     use_case: GenerateDemoWorld = request.app.state.container.director.generate_demo_world
     return use_case
 
@@ -84,8 +82,6 @@ async def generate_for_project(
     body: DirectorRequest,
     use_case: Annotated[GenerateProjectWorld, Depends(_project_use_case)],
 ) -> DirectorResult:
-    if not _UUID.match(project_id):
-        raise ProjectNotFoundError(f"project {project_id} not found")
     return _result(await use_case.execute(project_id, body.provider))
 
 

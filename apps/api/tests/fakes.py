@@ -8,6 +8,7 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from music_world.accounts.domain.model import LoginToken, Session, User
 from music_world.projects.domain.job import Job
 from music_world.projects.domain.project import Project
 from music_world.schemas.analysis import AnalysisResult
@@ -140,3 +141,62 @@ def wav_bytes(seconds: float = 0.5, sample_rate: int = 8000, freq: float = 440.0
         w.setframerate(sample_rate)
         w.writeframes(b"".join(struct.pack("<h", s) for s in samples))
     return buf.getvalue()
+
+
+class InMemoryUserRepository:
+    def __init__(self) -> None:
+        self.users: dict[str, User] = {}
+
+    async def get(self, user_id: str) -> User | None:
+        return self.users.get(user_id)
+
+    async def get_by_email(self, email: str) -> User | None:
+        return next((u for u in self.users.values() if u.email == email), None)
+
+    async def add(self, user: User) -> None:
+        self.users[user.id] = user
+
+
+class InMemoryLoginTokenRepository:
+    def __init__(self) -> None:
+        self.tokens: dict[str, tuple[LoginToken, datetime | None]] = {}
+
+    async def add(self, token: LoginToken) -> None:
+        self.tokens[token.token_hash] = (token, None)
+
+    async def consume(self, token_hash: str, now: datetime) -> str | None:
+        entry = self.tokens.get(token_hash)
+        if entry is None or entry[1] is not None or entry[0].expires_at <= now:
+            return None
+        self.tokens[token_hash] = (entry[0], now)
+        return entry[0].email
+
+
+class InMemorySessionRepository:
+    def __init__(self) -> None:
+        self.sessions: dict[str, Session] = {}
+
+    async def add(self, session: Session) -> None:
+        self.sessions[session.token_hash] = session
+
+    async def get(self, token_hash: str) -> Session | None:
+        return self.sessions.get(token_hash)
+
+    async def delete(self, token_hash: str) -> None:
+        self.sessions.pop(token_hash, None)
+
+
+class CapturingEmailSender:
+    def __init__(self, error: Exception | None = None) -> None:
+        self.sent: list[tuple[str, str]] = []
+        self.error = error
+
+    async def send_sign_in_link(self, email: str, link: str) -> None:
+        if self.error is not None:
+            raise self.error
+        self.sent.append((email, link))
+
+    def last_token(self) -> str:
+        from urllib.parse import parse_qs, urlsplit
+
+        return parse_qs(urlsplit(self.sent[-1][1]).query)["token"][0]

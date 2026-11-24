@@ -101,6 +101,14 @@ curl -k https://localhost/api/director/providers
 curl -k -X POST https://localhost/api/projects/<projectId>/director -H 'content-type: application/json' -d '{"provider":"muse"}'
 ```
 
+### Accounts
+
+Publishing a template needs an account: on `/sign-in`, enter an e-mail address and open the single-use link (valid
+15 minutes). Without SMTP settings (`AUTH_EMAIL_SENDER=console`, the default) the link is written to the api logs
+(`make logs`, event `auth.sign_in_link`); set `AUTH_EMAIL_SENDER=smtp` and `SMTP_HOST`, `SMTP_PORT`,
+`SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM` in `infra/.env` to send real e-mails. Songs uploaded while signed in are
+private to their owner; songs uploaded signed out stay readable by their link (the demo needs no account).
+
 ## License
 
 [MIT](LICENSE)

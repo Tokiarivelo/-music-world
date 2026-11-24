@@ -171,3 +171,17 @@ the MVP volume).
    sender domain).
 2. On the public URL: publish a template from `/play/demo` (signed in), open `/templates` in a private window, "Use
    this template" → the world uses it; in VR the template picker lists it (`xr-verify`).
+
+## As built (Phase 6)
+
+- Task 2: `apps/api/music_world/accounts/` — domain (`model.py`: `normalize_email`, `hash_token`,
+  `default_display_name`; `errors.py`), application (`ports.py`, `use_cases/sign_in.py`: `RequestMagicLink`,
+  `VerifyMagicLink`, `ResolveSession`, `SignOut`), infrastructure (`sqlalchemy_repositories.py` with the atomic
+  `UPDATE … RETURNING` consumption, `email_senders.py` console + SMTP with one retry on connection errors), interfaces
+  (`http.py`). `shared/auth.py` (`Caller`, `current_caller`, `require_user`, `check_csrf`, `AccessibleProjectId`),
+  `projects/.../check_project_access.py`, `Project.owner_id`, migration `0003_accounts_templates` (also creates
+  `store_templates` for task 3; upgrade/downgrade checked on SQLite). `RateLimitedError` moved to `shared/errors.py`.
+  Web: `src/lib/api-client.ts` (`apiFetch` adds `X-CSRF-Token` on unsafe methods; used by upload, director, auth),
+  `features/auth` (`SignInForm`, `VerifyMagicLink`, `AccountBadge`, `AccountMenu`, `useSession`), pages `/sign-in`,
+  `/auth/verify` (token passed from `searchParams`). The CSRF check runs only when the request carries a valid session
+  (an anonymous upload needs no token). A failing SMTP send answers `503 EMAIL_UNAVAILABLE`.

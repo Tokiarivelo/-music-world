@@ -61,7 +61,7 @@ class CreateProject:
         self._repo, self._store, self._probe, self._analyses = repo, store, probe, analyses
         self._enqueue_job, self._new_id, self._clock = enqueue_job, new_id, clock
 
-    async def execute(self, audio_path: Path, lrc: bytes | None = None) -> CreatedProject:
+    async def execute(self, audio_path: Path, lrc: bytes | None = None, owner_id: str | None = None) -> CreatedProject:
         header, audio_hash, size = await asyncio.to_thread(_read_header_and_hash, audio_path)
         check_audio_size(size)
         audio_format = sniff_audio_format(header)
@@ -82,6 +82,7 @@ class CreateProject:
             lrc_text=lrc_text,
             job_id=None,
             created_at=self._clock(),
+            owner_id=owner_id,
         )
         await self._repo.add(project)  # persisted before the job is enqueued, so the worker always finds it
         if await self._analyses.exists(audio_hash):

@@ -5,7 +5,7 @@
 > **Contexte :** projet développé avec **Kiro** pour le hackathon **Kiroween 2026** (catégorie visée : **Frankenstein**).
 > Soumission avant le **4 décembre 2026, 14:00 PT**. Les documents Kiro (`.kiro/`) sont en anglais, comme l'exigent les règles.
 
-Dernière mise à jour : 25 novembre 2026.
+Dernière mise à jour : 26 novembre 2026.
 
 ---
 
@@ -315,7 +315,8 @@ Source de vérité : modèles pydantic dans `apps/api/music_world/schemas/`, enr
 `make schemas` produit `packages/schemas/*.schema.json` puis les types TS + validateurs zod dans
 `apps/web/src/templates/generated/`. Schémas exportés : `music-world.analysis.v1`, `music-world.director-providers.v1`,
 `music-world.director-result.v1`, `music-world.health.v1`, `music-world.job.v1`,
-`music-world.job-accepted.v1`, `music-world.project.v1`, `music-world.project-created.v1`, `music-world.template.v1`.
+`music-world.job-accepted.v1`, `music-world.project.v1`, `music-world.project-created.v1`, `music-world.session.v1`,
+`music-world.template.v1`.
 
 `POST /api/projects` (multipart `audio` + `lyrics` .lrc optionnel) répond `202` avec `ProjectCreated`
 (`projectId`, `jobId` nul si l'analyse du même SHA-256 est déjà en cache, `status`). `GET /api/projects/{id}` renvoie
@@ -328,6 +329,12 @@ Directeur IA : `GET /api/director/providers` renvoie `DirectorProviders` (`defau
 morceau de démo uniquement) renvoient `DirectorResult` : `template`, `provider`, `model`, `requestedProvider`, `cached`,
 `fallbacks[]` (`{provider, reason}`). Le template gagne un champ optionnel `meta.generatedBy = {provider, model,
 promptVersion}` (ajout compatible, le schéma reste v1), toujours écrit par le serveur, jamais par le modèle.
+
+Comptes (`06-template-store`) : `POST /api/auth/magic-link` (`{email}`, toujours `202`), `POST /api/auth/verify`
+(`{token}`, pose les cookies `mw_session` httpOnly et `mw_csrf`), `GET /api/auth/session` et `POST /api/auth/logout`
+renvoient ou terminent la `Session` (`user` : `{id, email, displayName}` ou nul). Les requêtes POST/PUT/DELETE avec
+session renvoient le cookie `mw_csrf` dans l'en-tête `X-CSRF-Token`. Un projet envoyé connecté appartient à son
+auteur : toute autre personne reçoit `404` sur le projet, son audio, son analyse et le directeur.
 
 ### NoteEvent
 

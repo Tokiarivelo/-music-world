@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "music-world.session.v1",
+  "$comment": "GENERATED — do not edit. Source: apps/api/music_world/schemas (run `make schemas`).",
+  "$defs": {
+    "SessionUser": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "email": {
+          "description": "Only ever returned to its owner.",
+          "title": "Email",
+          "type": "string"
+        },
+        "displayName": {
+          "description": "Public author name in the template store.",
+          "title": "Displayname",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "displayName"
+      ],
+      "title": "SessionUser",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "`GET /api/auth/session` and `POST /api/auth/verify`: who is signed in (`user` is null when nobody is).",
+  "examples": [
+    {
+      "user": {
+        "displayName": "creator-1a2b3c",
+        "email": "ada@example.com",
+        "id": "0193…"
+      }
+    },
+    {
+      "user": null
+    }
+  ],
+  "properties": {
+    "user": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SessionUser"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "user"
+  ],
+  "title": "AuthSession",
+  "type": "object"
+}

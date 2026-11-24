@@ -3,7 +3,8 @@ import asyncio
 from alembic import context
 from sqlalchemy.engine import Connection
 
-import music_world.analysis.infrastructure.sqlalchemy_analysis_repository  # noqa: F401  (registers tables)
+import music_world.accounts.infrastructure.sqlalchemy_repositories  # noqa: F401  (registers tables)
+import music_world.analysis.infrastructure.sqlalchemy_analysis_repository  # noqa: F401
 import music_world.projects.infrastructure.sqlalchemy_job_repository  # noqa: F401
 import music_world.projects.infrastructure.sqlalchemy_project_repository  # noqa: F401
 from music_world.shared.db import Base, create_engine

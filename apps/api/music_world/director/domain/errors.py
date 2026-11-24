@@ -1,7 +1,9 @@
 """Director errors. `ProviderError` never reaches HTTP: the use case falls back to the next provider."""
 
 from music_world.director.domain.providers import FallbackReason
-from music_world.shared.errors import MusicWorldError
+from music_world.shared.errors import MusicWorldError, RateLimitedError
+
+__all__ = ["DemoAnalysisMismatchError", "ProviderError", "RateLimitedError"]
 
 
 class ProviderError(Exception):
@@ -15,7 +17,3 @@ class ProviderError(Exception):
 
 class DemoAnalysisMismatchError(MusicWorldError):
     code = "DEMO_ANALYSIS_MISMATCH"
-
-
-class RateLimitedError(MusicWorldError):
-    code = "RATE_LIMITED"

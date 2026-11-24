@@ -24,12 +24,15 @@ class ErrorBody(BaseModel):
 
 
 ERROR_RESPONSES: dict[int | str, dict[str, Any]] = {
+    401: {"model": ErrorBody, "description": "Sign-in required or invalid sign-in link"},
+    403: {"model": ErrorBody, "description": "CSRF token missing or invalid"},
     404: {"model": ErrorBody, "description": "Not found"},
     409: {"model": ErrorBody, "description": "Conflict"},
     413: {"model": ErrorBody, "description": "Payload too large"},
     415: {"model": ErrorBody, "description": "Unsupported media type"},
     422: {"model": ErrorBody, "description": "Invalid request"},
     429: {"model": ErrorBody, "description": "Too many requests"},
+    503: {"model": ErrorBody, "description": "A dependency (e-mail) is unavailable"},
 }
 
 # Domain error codes that are not 409 by default.
@@ -43,6 +46,15 @@ _STATUS_BY_CODE: dict[str, int] = {
     "LRC_INVALID": 422,
     "DEMO_ANALYSIS_MISMATCH": 422,
     "RATE_LIMITED": 429,
+    "EMAIL_INVALID": 422,
+    "EMAIL_UNAVAILABLE": 503,
+    "AUTH_TOKEN_INVALID": 401,
+    "AUTH_REQUIRED": 401,
+    "CSRF_FAILED": 403,
+    "TEMPLATE_INVALID": 422,
+    "THUMBNAIL_TOO_LARGE": 413,
+    "THUMBNAIL_TYPE_UNSUPPORTED": 415,
+    "THUMBNAIL_INVALID": 422,
 }
 
 

@@ -27,6 +27,8 @@ fileMatchPattern: ["infra/**", "**/Dockerfile*", "Makefile"]
   api and worker share the `storage` volume at `STORAGE_DIR=/data/storage` (local object store, same keys).
 - The api image includes ffmpeg/ffprobe (upload duration check, worker decode stage).
 - The worker image pre-downloads Demucs and Basic Pitch weights at build time (no download at first job).
+- Sign-in e-mails: `PUBLIC_BASE_URL` defaults to `https://$DOMAIN` in Compose; `AUTH_EMAIL_SENDER=smtp` with the
+  `SMTP_*` settings sends real e-mails (outbound port 587 must be open); `console` only logs the link.
 - Caddy blocks `/api/docs` in production unless `API_DOCS=true`.
 - The `api` container runs `alembic upgrade head` before uvicorn; `worker` waits for `api` to be healthy.
 - Images build from the repository root (`.dockerignore` excludes node_modules, venvs, `.env`). The web image is
