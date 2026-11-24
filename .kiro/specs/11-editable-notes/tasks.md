@@ -14,7 +14,7 @@
   - _Requirements: 4, 7, 11_
 - [x] 6b. Per-note properties panel, multi-select, add/duplicate/delete.
   - _Requirements: 13, 14_
-- [ ] 6c. Per-line properties and `colorRole: "line"`.
+- [x] 6c. Per-line properties and `colorRole: "line"`.
   - _Requirements: 15_
 - [ ] 7. Persistence (browser, then `PUT /api/projects/{id}/edits`), "Play my edits".
   - _Requirements: 8, 9_

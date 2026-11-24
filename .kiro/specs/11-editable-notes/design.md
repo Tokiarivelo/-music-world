@@ -40,3 +40,8 @@ See `docs/improvements/i9-editable-notes.md` § Design. Add an "As built" sectio
   their spacing and lines. Own colors and line colors reach the world: `SpawnRecord.colorHex` (note color, else its line
   color) tints glyphs through instance colors, only when some note has a color (otherwise the shared material is kept).
   Rubber-band selection is not built: Shift-click and "add a note" cover the cases (follow-up).
+- Task 6c: each voice line is drawn as a full staff (`buildStaffGeometry(..., yOffset)`, own color, clef glyph only for
+  `treble`: the generated Bravura set is not extended here, so `bass` draws no glyph); the main line's color and clef
+  also apply. Contract: `colorRole` gains `"line"` (`make schemas`); the engine maps it to `PaletteRole | null` plus
+  `SpawnRecord.structureHex` (the note's color, else its line color), used by `StructureView`; the director prompt does not
+  list `line`. Mute and solo are stored per line and are used by "Play my edits" (task 7).

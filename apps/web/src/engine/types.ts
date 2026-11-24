@@ -10,6 +10,8 @@ export type WorldTemplate = Template;
 export type MappingRule = WorldTemplate['mappings'][number];
 export type ShapeKind = MappingRule['spawn'];
 export type ColorRole = NonNullable<MappingRule['colorRole']>;
+/** A role that names a palette color; `line` takes the color of the note's voice line instead (I9). */
+export type PaletteRole = Exclude<ColorRole, 'line'>;
 export type Stem = Analysis['notes'][number]['stem'];
 export type GlyphKind = 'quarter' | 'eighth' | 'sixteenth';
 

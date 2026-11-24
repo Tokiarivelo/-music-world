@@ -243,7 +243,8 @@
                 "primary",
                 "accent",
                 "secondary",
-                "staff"
+                "staff",
+                "line"
               ],
               "type": "string"
             },

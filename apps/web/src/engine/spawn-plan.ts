@@ -27,7 +27,7 @@ import { noteStream, uniform } from './prng';
 import { recipeScale } from './recipe-scale';
 import { applyEdits, linesOf, MAIN_LINE_ID, type LayoutEdits, type StaffLine } from './edits';
 import { buildStaffPath, lineOffsetY, type StaffPath } from './staff';
-import type { ColorRole, EngineAnalysis, GlyphKind, NoteEvent, ShapeKind, Stem, Vec3, WorldTemplate } from './types';
+import type { EngineAnalysis, GlyphKind, NoteEvent, PaletteRole, ShapeKind, Stem, Vec3, WorldTemplate } from './types';
 
 export interface SpawnRecord {
   readonly index: number;
@@ -57,7 +57,9 @@ export interface SpawnRecord {
   readonly height: number;
   readonly emissive: number;
   /** Fixed palette role, or null for the default gradient (primary → accent → secondary) at `colorT`. */
-  readonly colorRole: ColorRole | null;
+  readonly colorRole: PaletteRole | null;
+  /** Own color of the structure when its rule says `colorRole: "line"` (the line or note color), else null. */
+  readonly structureHex: string | null;
   readonly colorT: number;
   readonly groupId: string | null;
 }
@@ -184,6 +186,7 @@ function sceneryRecords(
         height: size.base + size.extra * rng(),
         emissive: EMISSIVE_BASE + EMISSIVE_VELOCITY_SCALE * velocity,
         colorRole: null,
+        structureHex: null,
         colorT: rng(),
         groupId: null,
       });
@@ -259,7 +262,8 @@ export function buildSpawnPlan(
       target: placeNote(seed, note.id, note.midi, mapped.pitchRange, zones),
       height: size.base + size.extra * heightFactor(note, mapped, analysis.tempoBpm),
       emissive: EMISSIVE_BASE + EMISSIVE_VELOCITY_SCALE * velocity,
-      colorRole: mapped.colorRole,
+      colorRole: mapped.colorRole === 'line' ? null : mapped.colorRole,
+      structureHex: mapped.colorRole === 'line' ? (edited?.colorOf.get(note.id) ?? lineColor.get(line) ?? null) : null,
       colorT: pitchFraction(note.midi, mapped.pitchRange),
       groupId: note.chordId !== null && chordIds.has(note.chordId) ? note.chordId : null,
     };

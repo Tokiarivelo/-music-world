@@ -13,7 +13,7 @@ import { hashSeed } from './prng';
 import { rainPosition } from './rain';
 import type { SpawnPlan, SpawnRecord } from './spawn-plan';
 import { staffNotePosition } from './staff';
-import type { ColorRole, GlyphKind, ShapeKind, Vec3 } from './types';
+import type { GlyphKind, PaletteRole, ShapeKind, Vec3 } from './types';
 
 export interface NoteOnStaff {
   readonly index: number;
@@ -41,7 +41,8 @@ export interface StructureState {
   readonly position: Vec3;
   readonly height: number;
   readonly emissive: number;
-  readonly colorRole: ColorRole | null;
+  readonly colorRole: PaletteRole | null;
+  readonly structureHex: string | null;
   readonly colorT: number;
 }
 
@@ -179,6 +180,7 @@ export function worldStateAt(plan: SpawnPlan, t: number): WorldState {
         height: r.height * growth,
         emissive: r.emissive,
         colorRole: r.colorRole,
+        structureHex: r.structureHex,
         colorT: r.colorT,
       });
     }

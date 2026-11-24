@@ -101,7 +101,8 @@ export class StructureView implements WorldView {
       mesh.setMatrixAt(s.slot, this.m);
       if (s.kind === RIDGE_KIND) mesh.setColorAt(s.slot, this.color.copy(this.ridgeColor));
       else {
-        structureColor(palette, s.colorRole, s.colorT, s.emissive, this.color);
+        if (s.structureHex) this.color.set(s.structureHex).multiplyScalar(s.emissive);
+        else structureColor(palette, s.colorRole, s.colorT, s.emissive, this.color);
         mesh.setColorAt(s.slot, s.kind === 'spike' ? this.color.multiplyScalar(SPIKE_GLOW) : this.color);
       }
     }

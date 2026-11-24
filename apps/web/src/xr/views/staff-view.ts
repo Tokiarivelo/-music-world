@@ -65,17 +65,17 @@ export function staffHeading(path: StaffPath, u: number): number {
   return Math.atan2(-(b.z - a.z), b.x - a.x);
 }
 
-function lineCurve(path: StaffPath, line: number): QuadraticBezierCurve3 {
-  const dy = line * path.lineGap;
+function lineCurve(path: StaffPath, line: number, yOffset = 0): QuadraticBezierCurve3 {
+  const dy = line * path.lineGap + yOffset;
   const lift = (p: { x: number; y: number; z: number }) => v(p).setY(p.y + dy);
   return new QuadraticBezierCurve3(lift(path.start), lift(path.control), lift(path.end));
 }
 
 /** Bravura G clef standing on the staff at u (requirement 3.2). */
-function clefGeometry(path: StaffPath, u: number): BufferGeometry {
+function clefGeometry(path: StaffPath, u: number, yOffset = 0): BufferGeometry {
   const size = path.lineGap * CLEF_SCALE;
   const geometry = bravuraGeometry('gClef').toNonIndexed().scale(size, size, size);
-  geometry.translate(0, CLEF_LINE * path.lineGap, 0);
+  geometry.translate(0, CLEF_LINE * path.lineGap + yOffset, 0);
   const p = staffPoint(path, u);
   return geometry.rotateY(staffHeading(path, u)).translate(p.x, p.y, p.z);
 }
@@ -87,12 +87,17 @@ function stripUv(g: BufferGeometry): BufferGeometry {
 }
 
 /** The five lines and both clefs merged into one mesh (one draw call). */
-export function buildStaffGeometry(path: StaffPath, withClefs: boolean, radius = STAFF_TUBE_RADIUS): BufferGeometry {
+export function buildStaffGeometry(
+  path: StaffPath,
+  withClefs: boolean,
+  radius = STAFF_TUBE_RADIUS,
+  yOffset = 0,
+): BufferGeometry {
   const parts: BufferGeometry[] = [];
   for (let line = 0; line < 5; line++) {
-    parts.push(stripUv(new TubeGeometry(lineCurve(path, line), STAFF_TUBE_SEGMENTS, radius, 5, false).toNonIndexed()));
+    parts.push(stripUv(new TubeGeometry(lineCurve(path, line, yOffset), STAFF_TUBE_SEGMENTS, radius, 5, false).toNonIndexed()));
   }
-  if (withClefs) parts.push(stripUv(clefGeometry(path, CLEF_U)), stripUv(clefGeometry(path, 1 - CLEF_U - 0.02)));
+  if (withClefs) parts.push(stripUv(clefGeometry(path, CLEF_U, yOffset)), stripUv(clefGeometry(path, 1 - CLEF_U - 0.02, yOffset)));
   const merged = mergeGeometries(parts);
   if (!merged) throw new Error('staff geometry could not be merged');
   return merged;
@@ -130,9 +135,10 @@ export class StaffView implements WorldView {
   constructor(private readonly plan: SpawnPlan) {
     const { palette, staff } = plan.template;
     this.object.name = 'staff';
-    const glow = new Color(palette.staff).multiplyScalar(staff.glow);
+    const mainLine = plan.lines.find((l) => l.id === 'main');
+    const glow = new Color(mainLine?.color ?? palette.staff).multiplyScalar(staff.glow);
     const material = new MeshBasicMaterial({ color: glow, side: DoubleSide });
-    const staffGeometry = buildStaffGeometry(plan.staff, staff.clef === 'treble');
+    const staffGeometry = buildStaffGeometry(plan.staff, staff.clef === 'treble' && (mainLine?.clef ?? 'treble') === 'treble');
     const lines = new Mesh(staffGeometry, material);
     this.staffParts.push(lines);
     this.object.add(lines);
@@ -152,6 +158,18 @@ export class StaffView implements WorldView {
     this.staffParts.push(halo);
     this.object.add(halo);
     this.disposables.push(haloGeometry, haloMaterial);
+
+    // Voice lines of the listener (I9): a full staff each, lifted above the main one, in its own color.
+    for (const line of plan.lines) {
+      if (line.id === 'main') continue;
+      const color = new Color(line.color ?? palette.staff).multiplyScalar(staff.glow);
+      const lineMaterial = new MeshBasicMaterial({ color, side: DoubleSide });
+      const lineGeometry = buildStaffGeometry(plan.staff, line.clef === 'treble', STAFF_TUBE_RADIUS, line.offsetY);
+      const mesh = new Mesh(lineGeometry, lineMaterial);
+      this.staffParts.push(mesh);
+      this.object.add(mesh);
+      this.disposables.push(lineGeometry, lineMaterial);
+    }
 
     if (staff.style === 'aurora') {
       const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
