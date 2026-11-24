@@ -3,7 +3,7 @@
 - [x] 1. API: `PUT /api/templates/{id}` (owner, draft only), use case `UpdateDraftTemplate`, repository
   `update_document`; unit and integration tests (ownership, published → 409, invalid → 422 with `loc`).
   - _Requirements: 5.1, 5.4_
-- [ ] 2. Pure `editor-model.ts` and `editor-validate.ts` (zod + store specification), property tests.
+- [x] 2. Pure `editor-model.ts` and `editor-validate.ts` (zod + store specification), property tests.
   - _Requirements: 2.2, 2.3, 3.1, 3.2, 6.3_
 - [ ] 3. `useTemplateDraft` store and loading (`?from=`, default, error fallback); tests.
   - _Requirements: 1.1–1.3, 5.3_
