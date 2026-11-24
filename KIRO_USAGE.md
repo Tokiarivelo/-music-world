@@ -1,28 +1,177 @@
 # How Kiro was used to build Music World
 
-Running log for the Kiroween 2026 submission write-up. Updated with the manual hook "Update Kiro usage log".
+Write-up for the Kiroween 2026 submission (category Frankenstein). The first part is the final summary; the second
+part is the dated session log it was built from (updated with the manual hook "Update Kiro usage log"). Sources: git
+history (one commit per spec task, 7 merged phase PRs), the specs' `tasks.md` checkboxes and the session log below.
+Numbers are only those recorded in the repository.
 
-## Setup
+**How the work ran.** The `.kiro/` folder (specs, steering, skills, custom agents, hooks) is the project's operating
+system. The logged coding sessions ran in a terminal agent (Claude Code) that loads the same files: `CLAUDE.md` and
+`AGENTS.md` only point to `.kiro/steering/rules.md`, and `.claude/skills` is a symlink to `.kiro/skills`. Every
+session started with the `start` skill and ended with the `handoff` skill, and took one spec task at a time.
 
-- **Steering (single source of rules):** `rules.md` is the index. Always included: `product`, `tech`, `structure`,
-  `coding-standards`, `handoff`, `documentation`. File-match: `architecture` (api), `api-specs` (routers),
-  `frontend` (web), `xr-iwsdk` (xr), `ai-models` (director), `testing` (tests), `infrastructure` (infra).
-  `CLAUDE.md` and `AGENTS.md` only point to `rules.md`, so every agent follows the same rules.
-- **Skills (`.kiro/skills/`, shared with Claude Code via a symlink):** `start`, `handoff`, `new-web-feature`,
-  `new-api-module`, `analysis-stage`, `llm-provider`, `shape-kind`, `world-template`, `xr-verify`, `deploy-ovh`,
-  `review-change`.
-- **Custom agents (`.kiro/agents/`):** `audio-analyst`, `world-builder`, `ai-director`, `reviewer` (read-only).
-- **Handoff between agents:** `docs/handoff.md` (6 fixed sections, ≤ 150 lines, task ownership table) + monthly
-  archive; manual hooks "Start session" and "Write handoff".
-- **Specs:** `01-foundation`, `02-music-analysis`, `03-world-engine-core`, `05-ai-world-director`
-  (later: `04-default-template`, `06-template-store`, `07-xr-mode`).
-- **Hooks:** architecture check (runCommand on save), engine property tests on save, schema regeneration, director
-  safety review, frontend rules review, after-task docs + handoff (postTaskExecution), start session, write handoff,
-  usage log (manual).
-- **Architecture validator:** `scripts/agents/validate-architecture.sh` (layer boundaries, pure engine, barrel
-  imports, no secrets in the web app).
-- **Property-based testing:** fast-check (engine determinism, seek equivalence, LLM output validation) and
-  Hypothesis (analysis invariants).
+## Specs
+
+Seven specs in `.kiro/specs/`, each with `requirements.md` (EARS), `design.md` and `tasks.md` (tasks cite requirement
+ids). 62 tasks ticked, 11 open — the open ones are almost all human checks (headset, credentials, server).
+
+| Spec | How it was created | Tasks done / open | Open because |
+|---|---|---|---|
+| `01-foundation` | Written at project setup from `PROJECT.md` | 14 / 4 | server instance, API keys |
+| `02-music-analysis` | Written at project setup | 10 / 2 | Muse Voice key (P2) |
+| `03-world-engine-core` | Written at project setup | 16 / 1 | Quest 3 check |
+| `04-default-template` | Created in Phase 4 from `PROJECT.md` §2 + the `world-template` skill checklist (reference-image breakdown table in the design) | 5 / 0 | — |
+| `05-ai-world-director` | Requirements at setup; design + tasks generated in Phase 5 from the requirements, `ai-models.md` and the `llm-provider` skill, with provider facts verified in Meta's and Anthropic's docs | 5 / 2 | real provider calls; ShapeRecipe (P2) skipped |
+| `06-template-store` | Created in Phase 6 from `PROJECT.md` §8 | 6 / 1 | real e-mail + public URL |
+| `07-xr-mode` | Created in Phase 7 from `PROJECT.md` §7, `xr-iwsdk.md` and the `xr-verify` skill | 6 / 1 | Quest 3 check |
+
+How the specs were used:
+
+- **One task per session, one commit per task** (`<spec>: <task> <summary>`), so the git log maps 1:1 to `tasks.md`.
+- **Design "As built" sections and recorded deviations**: whenever the implementation departed from the design (e.g.
+  procedural glyphs then Bravura outlines, no post-processing bloom in WebXR, director port signature, generated
+  thumbnail instead of a WebGL capture), the deviation was written into `design.md` and the handoff in the same change.
+- **"Human checks" sections** (`05`, `06`, `07`): steps an agent cannot do (Quest 3, live credentials) are written as
+  exact checklists instead of being ticked.
+
+## Steering
+
+`.kiro/steering/rules.md` is the single source of truth (index of rule files, skills, agents, workflow and absolute
+rules); 13 rule files in total.
+
+- **Always included:** `product` (vision, default look, MVP scope), `tech` (stack, non-negotiable rules, env table,
+  perf budget), `structure`, `coding-standards`, `handoff`, `documentation` (which doc to update for which change).
+- **File-match:** `architecture` (`apps/api/**`), `api-specs` (routers), `frontend` (`apps/web/src/**`), `xr-iwsdk`
+  (`apps/web/src/xr/**`), `ai-models` (director), `testing` (tests), `infrastructure` (`infra/**`). Agents load only
+  the rules of the area they touch.
+- Steering is touched by 13 commits: it was corrected as the project learned, in the same commit as the code (e.g. body
+  limits and security headers in `infrastructure.md` / `api-specs.md`, the `pnpm -C apps/web exec vitest` command, the
+  rule that commits carry no tool attribution).
+- `scripts/agents/validate-architecture.sh` turns steering rules into a check run by `make check`: Clean
+  Architecture layer boundaries, pure engine, barrel imports, no secrets in the web app.
+
+## Hooks (`.kiro/hooks/`, 9)
+
+| Hook | Trigger | Action |
+|---|---|---|
+| Architecture check | file edited (api Python, web TS/TSX) | runs the architecture validator |
+| Engine property tests on save | `apps/web/src/engine/**` edited | agent runs the engine property tests |
+| Regenerate schemas | `apps/api/music_world/schemas/**` edited | agent runs `make schemas` |
+| Director safety review | director / templates Python edited | agent reviews data-only LLM output, secrets, spend cap |
+| Frontend rules review | pages / feature components edited | agent checks thin pages and feature-first rules |
+| After spec task: docs and handoff | `postTaskExecution` | agent updates docs and the handoff |
+| Start session · Write handoff · Update Kiro usage log | manual | run the `start` / `handoff` skills, append to this file |
+
+**Honest note:** the session log records no hook firing — the sessions ran outside the Kiro IDE, where file-save
+and post-task hooks do not trigger. The same checks still ran on every task through `make check` (architecture
+validator, schema drift check, all tests) and through the skills' checklists.
+
+## Custom agents (`.kiro/agents/`, 4)
+
+| Agent | Owns | Used for |
+|---|---|---|
+| `world-builder` | `apps/web/src/engine`, `apps/web/src/xr` | Phase 2 (engine), Phase 4 (default look), Phase 7 (XR mode) |
+| `audio-analyst` | `apps/api/music_world/analysis` | Phase 3 (analysis pipeline, demo song) |
+| `ai-director` | `apps/api/music_world/director` | Phase 5 (providers, prompts, validation) |
+| `reviewer` (read-only) | review checklist | Phase 8 whole-app security review (`docs/security-review.md`) |
+
+Ownership of every task is recorded in `docs/handoff.md` § 4, so two agents never work on the same task.
+`world-builder` is the only agent with `includeMcpJson: true` (see MCP below).
+
+## Skills (`.kiro/skills/`, 11)
+
+`start` and `handoff` framed every session. Area skills were used as checklists: `new-api-module` and `new-web-feature`
+(projects, director, templates, auth contexts and features), `analysis-stage` (each analysis stage), `llm-provider`
+(Muse, Bedrock, mock), `world-template` (default look and the Halloween template), `xr-verify` (IWER checks, Quest
+steps), `review-change` and `deploy-ovh` (Phase 8). `shape-kind` was not needed (no new shape kind was added; the
+Halloween template reuses built-in kinds). Skills were corrected in the same commit as the code when a command in them
+turned out wrong (e.g. the `deploy-ovh` steps in Phase 8).
+
+## Handoff between agents
+
+`docs/handoff.md` has 6 fixed sections and ≤ 150 lines (repository state, last session, next actions, task ownership,
+active pitfalls, open specs), with a monthly archive. Any agent resumes with one line: "Read docs/handoff.md and
+continue with the next actions." The "Active pitfalls" section accumulated the traps that cost time once (IWSDK
+concurrent `World.create`, the Basic Pitch / TensorFlow override, CPU-only torch, CSRF on web calls…).
+
+## Property-based testing findings
+
+fast-check (web engine, player clock, XR helpers) and Hypothesis (analysis, upload, director, store). After writing
+a property, most sessions ran a **mutation check**: inject plausible bugs by hand and confirm a property fails.
+
+**Real bugs found by properties**
+
+1. `merge_stems` (analysis): exact duplicate notes kept the *last* copy, so a loud note could be replaced by a silent
+   duplicate and then dropped by the "keep the loudest" note cap. Shrunk example: two notes at t = 1.0, velocities
+   1.0 and 0.0, cap 1.
+2. Analysis assembly: `start + (end - start)` rounding (3.5234000000000005 > 3.5234) silently dropped the last note of
+   a song; found by "any stage output assembles into a valid `AnalysisResult`" (200 random inputs).
+3. Basic Pitch split one held note into two touching notes (real-model test) → new pure `join_fragments` step with
+   its own properties.
+
+**Weak or vacuous tests found (by mutation checks)**
+
+| Area | Mutants | Finding |
+|---|---|---|
+| Player clock | 1 | removing the playback-rate rebase fails with a 3-step counterexample |
+| PRNG | 3 | hashing only the low byte of UTF-16 units survived random pairs → targeted bit-flip property |
+| Engine mapping, layout, spawn plan, world state | 17 | 4 initial survivors: "target inside its zone" missed 3 layout bugs; "monotonic x" was vacuous (both notes shared one PRNG stream); a chord arc keyed on the first landing survived. All fixed with stronger properties; 1 survivor proven equivalent |
+| Analysis schema validator + harmony/structure | 18 | 2 validator mutants survived (missing "chord notes overlap" check, zero-length sections) → mutations added; 1 equivalent survivor in `group_chords` |
+| AI director output validation | 5 | first near-valid Hypothesis strategy produced 0 % renderable documents (shrinking biased toward the invalid branch), so the property held vacuously; fixed and checked with `--hypothesis-show-statistics` (~20 % renderable). The staff contrast mutant was caught only after adding contrast to the oracle |
+
+Other lessons: a Hypothesis strategy had its own bug (sorted by duration before pitch), caught on its first run; a
+20 000-note budget test built with `fc.filter` never finished and became a seeded generator; a full parallel
+`vitest run` hit the 5 s default timeout, so the timeout was raised rather than weakening a property.
+
+Properties that guard the product rules: `worldStateAt` determinism, purity, seek equivalence after random call
+histories and "frame-by-frame play == direct seek"; any provider JSON is rejected or renderable; analysis
+invariants; upload sniffing never crashes on arbitrary bytes; store ids always valid; XR tabletop placement for any
+head pose; pinch hysteresis.
+
+## MCP
+
+`PROJECT.md` planned the Meta docs MCP server for IWSDK / WebXR facts, and `world-builder` is configured with
+`includeMcpJson: true` and told to verify IWSDK API names against Meta's docs before coding. In the logged sessions,
+IWSDK 1.1.0 and IWER 2.8.0 APIs were verified in the **installed typings and sources** (`World.create`, `launchXR`,
+`createSystem`, `PanelUI`, `getPinchStrength`…), and provider facts in Meta's and Anthropic's published docs (links in
+`05-ai-world-director/design.md`). No MCP call is recorded in the session log, and the repository has no workspace MCP
+configuration.
+
+## Spec-driven vs vibe coding
+
+All seven features were built spec-first. The closest thing to a vibe-coded phase is Phase 8 (hardening and deploy
+readiness), which had no spec — only a roadmap table and the `review-change` / `deploy-ovh` skills. Observed in the
+repository:
+
+- Spec phases produced reviewable traces for free: requirement ids on every task, "As built" sections with measured
+  numbers (Demucs 325.7 s wall for a 3-minute song, 15–16 draw calls for the default look, ≈ 6.2 ms stereo frame in
+  IWER) and explicit deviations.
+- Phase 8 needed a written artifact to have the same value: the security review became `docs/security-review.md`
+  (2 medium findings fixed, no high), and the runbook `infra/README.md`.
+- Small fixes outside a spec task (wrong commands in skills, steering corrections) were done directly and recorded
+  in the handoff; that worked because the change was small and the rules said where to document it.
+
+## What worked
+
+- One rule source for every agent, plus a fixed-size handoff: 7 phases merged through PRs, sessions resumed from one
+  line, no two agents on the same task.
+- Property tests + hand-made mutants: they found 3 real data-loss bugs and 6 weak or vacuous properties that plain
+  example tests would have hidden.
+- The schema pipeline (pydantic → JSON Schema → zod) with a drift check: it found that the generator turned nested
+  `$ref`s into `z.any()` (unvalidated objects in TypeScript), fixed by inlining `$defs`.
+- Turning steering into executable checks (`validate-architecture.sh`, `make check`) made the rules hold even where
+  hooks did not fire.
+
+## What did not work (or not yet)
+
+- Hooks never fired in the logged sessions (outside the Kiro IDE); `make check` had to play their role.
+- The Meta docs MCP was not exercised; API facts came from installed typings instead.
+- Agent-only verification stops at the emulator and fixtures: the Quest 3 check, real Muse / Bedrock calls, real
+  e-mail and the deployment are human tasks (see `docs/handoff.md`).
+- Some agent shortcuts were traps recorded as pitfalls (e.g. `pkill -f` killing the agent's own shell, Next 16
+  auto-writing `apps/web/AGENTS.md`).
+
+---
 
 ## Log
 
@@ -163,3 +312,10 @@ Running log for the Kiroween 2026 submission write-up. Updated with the manual h
   clickjacking headers → Caddy CSP checked in Chromium). Production settings guard added.
 - Uptime pieces: log rotation, backup/disk/health scripts and cron file, restore runbook, Demucs weights in the image.
 - Steering updated: `infrastructure.md` (limits, headers, uptime), `api-specs.md` (body limit, production guard).
+
+### 2026-11-24 — Roadmap Phase 9 submission docs (Claude Code)
+
+- Skills used: `start`, `handoff`. README rewritten for judges (2-minute test path, features, architecture,
+  third-party licenses, known limitations); this file gained the final write-up above from the git log, specs and
+  the earlier entries; `docs/submission.md` holds drafts of the video script, Devpost text and social post for the
+  human. No hooks fired (outside the Kiro IDE); no new property-test findings.

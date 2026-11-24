@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-24 · **Last updated by:** Claude Code (roadmap Phase 8 — hardening and deploy readiness)
+> **Date:** 2026-11-24 · **Last updated by:** Claude Code (roadmap Phase 9 — submission docs)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -12,60 +12,52 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 1. Repository state
 
-- Phase 8 prep worked on branch `phase-8-hardening` (one commit per roadmap task: 8.4, 8.5, 8.1–8.3 prep, + this
-  handoff), merged into `main` through the PR "Phase 8: hardening and deploy readiness". Work from `main`.
+- Phase 9 docs worked on branch `phase-9-submission` (one commit per roadmap task: 9.1, 9.2, 9.3–9.5 drafts, + this
+  handoff), merged into `main` through the PR "Phase 9: submission docs". Work from `main`.
   Push with gh credentials: `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
 - Uncommitted: none.
 - `make check` green (exit 0): API pytest 313 passed (3 slow deselected), web vitest 177 passed (40 files), ruff,
-  mypy strict, eslint, tsc, schema drift and architecture checks clean.
-- Compose validated statically (`docker compose -f infra/docker-compose.yml --env-file <throwaway> config`); no image
-  was built (disk ~98 % full). Caddyfile checked with `caddy validate` / `caddy adapt` in a throwaway container.
+  mypy strict, eslint, tsc, schema drift and architecture checks clean. Docs-only session: no code changed.
 - No server left running. A `music-world` Compose stack (old images, predates Phase 6) and another project's
   containers (`angaly_*`) may be running — not started by these sessions; leave them alone.
-- **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet.
+- **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-24, Claude Code, roadmap Phase 8 prep)
+## 2. Last session (2026-11-24, Claude Code, roadmap Phase 9 agent part)
 
-- 8.4 security review over the whole app → `docs/security-review.md` (no high finding; 2 medium fixed, low ones
-  recorded with reasons).
-- Fixed: request body limit (`shared/body_limit.py`, 413 `REQUEST_TOO_LARGE`; 26 MiB + 64 KiB + 1 MiB for
-  `POST /api/projects`, 1 MiB elsewhere) because Starlette spooled whole multipart bodies to disk before the 25 MB
-  check; same limits in Caddy (`request_body`).
-- Fixed: Caddy CSP, `X-Frame-Options DENY`, `Permissions-Policy`; Next `poweredByHeader: false`. CSP checked in
-  Chromium behind a throwaway Caddy in front of `next dev`: no violation, demo world renders.
-- Fixed: the API refuses to start in production with `SESSION_COOKIE_SECURE=false` or an `http://`
-  `PUBLIC_BASE_URL`; `infra/scripts/check-env.sh` (`make check-env`) fails fast on missing/unsafe env (names only).
-- 8.5: log rotation (`x-logging`), worker `stop_grace_period`, `backup-db.sh` (+ `--storage`, retention),
-  `check-disk.sh`, `check-health.sh`, `infra/cron/music-world.cron`, restore steps in `infra/README.md` § Backups,
-  Demucs weights pre-downloaded in `api.Dockerfile` (`TORCH_HOME=/opt/models/torch`, not built yet).
-- 8.1–8.3 prep: `infra/deploy.sh` (`make deploy`: ssh, checkout pushed commit, check-env, build, up, wait healthy,
-  rollback hint, `DRY_RUN=1`), runbook `infra/README.md` § Deploy, `.env.example` + Compose gained
-  `META_VOICE_MODEL`, `AWS_SESSION_TOKEN`; skill `deploy-ovh` updated.
+- 9.1 `README.md` rewritten for judges: "Test it in 2 minutes" (public URL marked `TODO(deploy)`), local run
+  (`pnpm -C apps/web dev` web-only, `make dev` full stack), feature table, architecture diagram, configuration,
+  Kiro section, known limitations, MIT + third-party licenses (Bravura OFL, IWSDK/IWER, Demucs, Basic Pitch, LGPL
+  transitive `soxr`/`lameenc`). Every command checked against the Makefile and package scripts.
+- 9.2 `KIRO_USAGE.md` final write-up on top of the dated log: specs table (how each was created, 62 tasks done /
+  11 open), steering, 9 hooks (honest note: none fired, sessions ran outside the Kiro IDE), 4 agents, 11 skills,
+  PBT findings (3 real bugs, mutation-check table), MCP (not exercised; APIs checked in installed typings), spec vs
+  vibe (Phase 8 had no spec), what worked / did not.
+- 9.3–9.5: `docs/submission.md` = human drafts: video shot list/script (~2:40, demo song only), Devpost description
+  (Frankenstein), social post starting with `#KiroweenHackathon26`, blog outline. Placeholders `TODO(deploy)`,
+  `TODO(YouTube URL)`.
 - Not run (needs network to advisory DBs): `uvx pip-audit`, `pnpm audit --prod` — do it once before submission.
 
 ## 3. Next actions
 
-Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
+Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Submission deadline **2026-12-04 14:00 PT**.
 
 1. **Human** — roadmap Phase 0: Kiro credits request (before **2026-12-01 12:00 PT**), OVHcloud instance + bucket,
-   `META_API_KEY`, AWS Bedrock access, final royalty-free demo song. With a new demo song: put the MP3 in
-   `apps/web/public/demo/`, run `cd apps/api && uv run python scripts/analyze_file.py <mp3> <json>`, replace
+   `META_API_KEY`, AWS Bedrock access. A new demo song is optional: put the MP3 in `apps/web/public/demo/`, run
+   `cd apps/api && uv run python scripts/analyze_file.py <mp3> <json>`, replace
    `features/player/demo/neon-nocturne.analysis.json` (+ title/url in `demo-song.ts`) **and `DEMO_AUDIO_HASH` in
    `apps/api/music_world/director/domain/demo.py`**; tests check both hashes.
-2. **Human** — `06-template-store` task 7: real e-mail sign-in (`AUTH_EMAIL_SENDER=smtp` + `SMTP_*`) and the
-   cross-user check on the public URL — `06-template-store/design.md` § Human checks.
-3. **Human** — `05-ai-world-director` task 7 (real Muse / Bedrock calls) — `05-ai-world-director/design.md` § Human
-   checks. If Muse rejects `response_format` json_schema, drop it in `providers/muse.py`.
-4. **Human** — `07-xr-mode` task 7 on a Quest 3 (`07-xr-mode/design.md` § Human checks), incl. the Halloween template
-   fps; then tick `03-world-engine-core` task 7.
-5. **Human** — roadmap 8.1–8.3 deploy, exact steps in `infra/README.md` § Deploy: instance (≥ 4 vCPU / 8 GB, ports
-   22/80/443 in, 443/587 out), DNS A record, Docker, clone to `~/music-world`, `infra/.env` from `.env.example`
-   (`APP_ENV=production`, strong `POSTGRES_PASSWORD`, `AUTH_EMAIL_SENDER=smtp`, keys) until
-   `infra/scripts/check-env.sh` prints 0 errors, then `DEPLOY_HOST=ubuntu@<ip> DEPLOY_DOMAIN=<domain> make deploy`
-   (try `DRY_RUN=1`), verify per skill `deploy-ovh` § Verify incl. Quest Browser Enter VR (8.3) and the browser
-   console for CSP reports, then install the cron file and run one backup by hand.
-6. Optional: `05-ai-world-director` task 6 (ShapeRecipe, P2); a template editor (publish non-AI templates from the
-   UI); review UI for hidden templates; `02-music-analysis` 6.1 (Muse Voice); `01-foundation` 6.2/6.3/7.
+2. **Human** — roadmap 8.1–8.3 deploy, exact steps in `infra/README.md` § Deploy (`DRY_RUN=1` first, then
+   `DEPLOY_HOST=ubuntu@<ip> DEPLOY_DOMAIN=<domain> make deploy`), verify per skill `deploy-ovh` § Verify incl. Quest
+   Browser Enter VR, install the cron file, run one backup. Then replace `TODO(deploy)` in `README.md` and
+   `docs/submission.md` with the public URL.
+3. **Human** — checks on the public URL: `06-template-store` task 7 (real e-mail, cross-user), `05-ai-world-director`
+   task 7 (real Muse / Bedrock; if Muse rejects `response_format` json_schema, drop it in `providers/muse.py`),
+   `07-xr-mode` task 7 on a Quest 3 (`07-xr-mode/design.md` § Human checks) then tick `03-world-engine-core` task 7.
+   Update README § Known limitations once done.
+4. **Human** — roadmap 9.3 video, 9.4 Devpost form, 9.5 posts from the drafts in `docs/submission.md` (checklist at
+   its top). Run `uvx pip-audit` / `pnpm audit --prod` once before submitting.
+5. Optional: `05-ai-world-director` task 6 (ShapeRecipe, P2); a template editor; review UI for hidden templates;
+   `02-music-analysis` 6.1 (Muse Voice); `01-foundation` 6.2/6.3/7.
 
 ## 4. Task ownership
 
@@ -88,6 +80,8 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase).
 | 06-template-store 7 | — | blocked | real e-mail (SMTP credentials) + public URL (human) |
 | Roadmap 8.4, 8.5 | Claude Code (deploy/hardening) | done | `docs/security-review.md`, `infra/README.md` |
 | Roadmap 8.1–8.3 | — | blocked | scripts + runbook ready; needs instance, domain, keys (human) |
+| Roadmap 9.1, 9.2 | Claude Code (submission docs) | done | `README.md`, `KIRO_USAGE.md` |
+| Roadmap 9.3–9.5 | — | blocked | human: video, Devpost, posts; drafts in `docs/submission.md` |
 
 ## 5. Active pitfalls
 

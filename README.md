@@ -6,58 +6,69 @@ Notes slide along a glowing musical staff, fall onto the terrain and build a neo
 world director (Meta Muse or Claude on Amazon Bedrock) reads the song's harmony, energy and lyrics and designs the
 world as a template. Anyone can publish templates in a community store.
 
-> Built with [Kiro](https://kiro.dev) for **Kiroween 2026** (category: Frankenstein).
-> Status: **early development** — design, specs and agent setup are in place; application code starts now.
+> Built with [Kiro](https://kiro.dev) for **Kiroween 2026**, category **Frankenstein**: Python DSP + an LLM world
+> director + WebXR (IWSDK) + procedural generation + a community template store, stitched into one app.
 
 ![Reference look](assets/reference-image-original.png)
 
-## How it works
+## Test it in 2 minutes (judges)
 
-```text
-Audio upload ─► Python analysis (Demucs, Basic Pitch, librosa) ─► notes, chords, tempo, key, energy, lyrics
-            ─► AI World Director (Muse / Claude) ─► validated world template (data only)
-            ─► Next.js + IWSDK ─► deterministic world engine driven by the audio clock ─► browser / Meta Quest
-```
+**Public URL: `TODO(deploy)` — not deployed yet.** Until it is, use the local run below.
 
-- Algorithms detect the notes; the LLM only interprets the mood and designs the world.
-- The world is a pure function of playback time: pause, seek and replay always show the exact same world.
-- Templates and AI output are validated data, never executed code.
+1. Open `<public URL>/play/demo` (local: `http://localhost:3000/play/demo`). Press **Play**: the demo song
+   *Neon Nocturne* (57.6 s, self-made and royalty-free, pre-analysed by the real pipeline) builds the world.
+   `Space` = play/pause, `←` / `→` = seek ±5 s: the world jumps to exactly the state of that moment.
+2. Press **Generate world with AI**: the director proposes a new template; the label shows which provider and model
+   made it (without API keys the deterministic `mock` director answers, so this step always works).
+3. Open `/templates` and pick **Kiroween Pumpkin Night** (pumpkins, tombstones, a haunted town) → **Use this
+   template**.
+4. On a Meta Quest: open the same URL in Quest Browser and press **Enter VR**: the world becomes a tabletop
+   diorama with a floating control panel (details in [VR mode](#vr-mode)).
+5. Optional: `/upload` an MP3, WAV or FLAC (≤ 25 MB, ≤ 3 minutes). The page shows the analysis progress per stage
+   and then opens your song's world. CPU analysis takes a few minutes per song (Demucs separation dominates).
 
-## Stack
-
-Next.js · TypeScript · IWSDK (Three.js, WebXR) · IWER · FastAPI · Python (Demucs, Basic Pitch, librosa) ·
-PostgreSQL · Redis · OVHcloud (Docker Compose, Object Storage) · Meta Model API (Muse) · Amazon Bedrock (Claude).
-
-## Built with Kiro
-
-- **Specs** — `.kiro/specs/` (requirements in EARS format, design, tasks)
-- **Steering** — `.kiro/steering/rules.md` is the single source of project rules for every agent
-- **Skills** — `.kiro/skills/` · **Custom agents** — `.kiro/agents/` · **Hooks** — `.kiro/hooks/`
-- **Handoff between agents** — `docs/handoff.md`
-- Full log: [`KIRO_USAGE.md`](KIRO_USAGE.md)
-
-## Documentation
-
-- Design document (French): [`PROJECT.md`](PROJECT.md)
-- Current status and next steps: [`docs/handoff.md`](docs/handoff.md)
-- Security review (findings, accepted risks, CSP check): [`docs/security-review.md`](docs/security-review.md)
-
-## Development setup
+## Run locally
 
 Requirements: Python 3.12 via [uv](https://docs.astral.sh/uv/), Node 22+ with pnpm, Docker (for `make dev`).
 
+**Fastest — web only, demo song** (no backend; the AI button and the store need the API):
+
 ```bash
-cd apps/api && uv sync && cd ../..   # Python deps
-pnpm install                          # web app + schema generator
-make schemas                          # pydantic -> JSON Schema -> TS + zod
-make check                            # lint + types + tests + architecture check
-pnpm -C apps/web dev                  # http://localhost:3000/play/demo (IWER emulates a Quest 3 in dev)
-                                      # demo: space = play/pause, arrows = seek ±5 s
-                                      # /upload needs the API + worker (proxied from DEV_API_URL, default :8000)
+pnpm install
+pnpm -C apps/web dev        # open http://localhost:3000/play/demo (IWER emulates a Quest 3 in dev)
 ```
 
-VR mode: press **Enter VR** (IWER in dev, Quest Browser over HTTPS). The world becomes a tabletop diorama in front of
-you; A/X = play/pause, thumbstick = seek ±5 s, grip = recenter, left-hand pinch = play/pause, and a floating panel
+**Full stack** in Docker (Caddy, web, api, worker, postgres, redis):
+
+```bash
+make dev                              # then open https://localhost/play/demo (accept the local certificate)
+curl -k https://localhost/api/health  # {"status":"ok",…}
+```
+
+**Developer checks:**
+
+```bash
+cd apps/api && uv sync && cd ../..    # Python deps
+make schemas                          # pydantic -> JSON Schema -> TS + zod
+make check                            # schema drift + lint + types + tests + architecture check
+make help                             # every target
+```
+
+## Features
+
+| Feature | What it does | Where |
+|---|---|---|
+| Music analysis | ffmpeg decode → Demucs stem separation → Basic Pitch notes → librosa tempo, beats, key, chords, energy, sections; optional timed lyrics (`.lrc`). Resumable jobs with per-stage progress. | `apps/api/music_world/analysis` |
+| World engine | `worldStateAt(plan, t)` is a pure function of playback time, driven only by the audio clock: pause, seek and replay always show the same world. Seeded PRNG per note. | `apps/web/src/engine` |
+| Default look | *Neon Nocturne*: isometric cracked plate, diagonal glowing staff with Bravura clefs and notes, lit-window city and equalizer spikes, light arcs, particles — matched to the reference image above. | `apps/web/src/templates/default`, `apps/web/src/xr` |
+| AI World Director | Summarizes the analysis (no raw notes, never full lyrics in logs), asks the model for a template, then sanitizes, clamps and validates it. Providers: Meta Muse Spark, Claude on Amazon Bedrock, deterministic mock; fallback chain, cache, per-song spend cap. LLM output is data, never code. | `apps/api/music_world/director`, `apps/web/src/features/director` |
+| Template store | E-mail magic-link accounts, publish an AI-generated template (re-validated, 32 KB, built-in shapes only), public gallery, reports that hide a template at a threshold. Launch template: Halloween **Kiroween Pumpkin Night**. | `apps/api/music_world/templates`, `/templates` |
+| XR mode | WebXR via IWSDK on Meta Quest: tabletop diorama, controllers, hand pinch, spatial panel with template picker. | `apps/web/src/xr` |
+
+### VR mode
+
+Press **Enter VR** (IWER in dev, Quest Browser over HTTPS). The world becomes a tabletop diorama in front of you:
+A/X = play/pause, thumbstick = seek ±5 s, grip = recenter, left-hand pinch = play/pause, and a floating panel
 (trigger ray, hand pinch or poke) has play, seek ±10 s, restart, template picker, recenter and Exit VR. Automated
 emulator check (needs `next dev` on port 3125 and Playwright's Chromium in `~/.cache/ms-playwright`):
 
@@ -66,35 +77,41 @@ pnpm -C apps/web exec next dev -p 3125 &
 MW_ANGLE=vulkan node apps/web/scripts/xr-check.mjs   # GPU; without MW_ANGLE it uses SwiftShader and skips panel clicks
 ```
 
-Full stack in Docker (Caddy, web, api, worker, postgres, redis):
+## Architecture
 
-```bash
-make dev                              # then open https://localhost/play/demo (accept the local certificate)
-curl -k https://localhost/api/health  # {"status":"ok",…}
+```text
+ Browser / Quest Browser                         OVHcloud instance (Docker Compose behind Caddy HTTPS)
+┌──────────────────────────────┐   /api/*    ┌───────────────────────────┐   jobs   ┌──────────────────────────┐
+│ Next.js + IWSDK (Three.js)   │ ──────────► │ FastAPI (Clean Architecture│ ───────► │ arq worker: analysis     │
+│ features/ (upload, player,   │             │ per context: projects,     │  Redis   │ decode → Demucs → Basic  │
+│ director, template-store)    │ ◄────────── │ director, templates, auth) │          │ Pitch → librosa stages   │
+│ engine/ worldStateAt(plan,t) │  analysis + │        │          │        │          └──────────────────────────┘
+│ xr/ views, systems, panel    │  templates  │   PostgreSQL   Object storage           Muse / Bedrock / mock
+└──────────────────────────────┘             └───────────────────────────┘           (director, server-side keys)
 ```
 
-`make help` lists every target. Production settings: copy `infra/.env.example` to `infra/.env` and validate it
-with `make check-env`. Deploying (`DEPLOY_HOST=user@host make deploy`), backups, restore and uptime checks:
-[`infra/README.md`](infra/README.md).
+- Algorithms detect the notes; the LLM only interprets the mood and designs the world.
+- One contract pipeline: pydantic models → JSON Schema (`packages/schemas`) → TypeScript + zod (`make schemas`).
+- No LLM call during playback; secrets stay server-side. Design document (French): [`PROJECT.md`](PROJECT.md).
+
+## Configuration
+
+Production settings: copy `infra/.env.example` to `infra/.env` and validate it with `make check-env`. Deploying
+(`DEPLOY_HOST=user@host make deploy`), backups, restore and uptime checks: [`infra/README.md`](infra/README.md).
 Without `S3_*` settings, uploads and stems go to a local directory (`STORAGE_DIR`, a Docker volume in Compose).
 
-Upload a song at `https://localhost/upload`: the page shows the analysis progress per stage, then opens the world at
-`/play/<projectId>`. The same with curl (MP3, WAV or FLAC, ≤ 25 MB, ≤ 3 minutes; optional timed lyrics `.lrc`):
+**Upload by curl** (MP3, WAV or FLAC, ≤ 25 MB, ≤ 3 minutes; optional timed lyrics `.lrc`):
 
 ```bash
 curl -k -F audio=@song.mp3 -F lyrics=@song.lrc https://localhost/api/projects   # 202 {"projectId","jobId",…}
 curl -k https://localhost/api/projects/<projectId>                               # status analyzing | ready | failed
 ```
 
-### AI World Director
+**AI World Director.** On `/play/demo` (or `/play/<projectId>`), pick a provider and press **Generate world with
+AI**. Generate again with another provider to compare (both stay in the template list, also in VR). To enable the real
+providers, set in `infra/.env` (server only):
 
-On `/play/demo` (or `/play/<projectId>`), pick a provider and press **Generate world with AI**: the API summarizes the
-analysis (key, tempo, chords per section, energy curve, pitch range, lyrics), asks the model for a world template, then
-validates and clamps it. The label shows which provider and model produced the world; generate again with another
-provider to compare (both stay in the template list, also in VR). Without any key the deterministic `mock` director
-answers, so the demo always works. To enable the real providers, set in `infra/.env` (server only):
-
-- Meta Muse: `META_API_KEY` (models `META_DIRECTOR_MODEL=muse-spark-1.3`).
+- Meta Muse: `META_API_KEY` (model `META_DIRECTOR_MODEL=muse-spark-1.3`).
 - Claude in Amazon Bedrock: `AWS_REGION` + AWS credentials (`AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`, or
   `AWS_BEARER_TOKEN_BEDROCK`), model `BEDROCK_MODEL_ID=anthropic.claude-sonnet-5-5` (enable access in the console).
 - `LLM_PROVIDER` picks the default; `META_SPEND_CAP_USD` (default 1) caps the estimated spend per song.
@@ -104,33 +121,67 @@ curl -k https://localhost/api/director/providers
 curl -k -X POST https://localhost/api/projects/<projectId>/director -H 'content-type: application/json' -d '{"provider":"muse"}'
 ```
 
-### Accounts
+**Accounts.** Publishing a template needs an account: on `/sign-in`, enter an e-mail address and open the single-use
+link (valid 15 minutes). Without SMTP settings (`AUTH_EMAIL_SENDER=console`, the default) the link is written to the
+api logs (`make logs`, event `auth.sign_in_link`); set `AUTH_EMAIL_SENDER=smtp` and `SMTP_HOST`, `SMTP_PORT`,
+`SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM` to send real e-mails. Songs uploaded while signed in are private to
+their owner; songs uploaded signed out stay readable by their link (the demo needs no account).
 
-Publishing a template needs an account: on `/sign-in`, enter an e-mail address and open the single-use link (valid
-15 minutes). Without SMTP settings (`AUTH_EMAIL_SENDER=console`, the default) the link is written to the api logs
-(`make logs`, event `auth.sign_in_link`); set `AUTH_EMAIL_SENDER=smtp` and `SMTP_HOST`, `SMTP_PORT`,
-`SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM` in `infra/.env` to send real e-mails. Songs uploaded while signed in are
-private to their owner; songs uploaded signed out stay readable by their link (the demo needs no account).
-
-Signed in, an AI-generated world gets a **Publish to the store** button on the play page: the API validates the
-template again (schema, 32 KB, built-in shapes, readable staff, plain-text name), gives it a unique id and a small
-generated preview image, and lists it in the public gallery.
-
-The gallery at `/templates` (no account needed) lists published templates newest first, after the launch templates
-(the Halloween **Kiroween Pumpkin Night**: pumpkins, tombstones and a haunted town).
-**Use this template** opens `/play/demo?template=<store id>` with it (`/play/<projectId>?template=<store id>` works
-too); the player's template picker, in 2D and in VR, also offers the 12 newest store templates. If the store cannot be
-reached, the player keeps the built-in and AI-generated templates.
-
-Signed-in visitors can **Report** a community template (offensive, spam, does not render, copyright); after
-`TEMPLATE_REPORT_HIDE_THRESHOLD` (default 3) distinct reports it leaves the gallery until reviewed. Uploads are limited
-to `UPLOAD_RATE_LIMIT_PER_HOUR` (default 20) per user or IP, template publication to
-`TEMPLATE_PUBLISH_RATE_LIMIT_PER_HOUR` (default 10) per user.
+**Template store.** Signed in, an AI-generated world gets a **Publish to the store** button on the play page: the API
+validates the template again (schema, 32 KB, built-in shapes, readable staff, plain-text name), gives it a unique id
+and a small generated preview image, and lists it in the public gallery `/templates` (no account needed), newest first
+after the launch templates. **Use this template** opens `/play/demo?template=<store id>`
+(`/play/<projectId>?template=<store id>` works too); the player's template picker, in 2D and in VR, also offers the
+12 newest store templates. Signed-in visitors can **Report** a template; after `TEMPLATE_REPORT_HIDE_THRESHOLD`
+(default 3) distinct reports it leaves the gallery. Uploads are limited to `UPLOAD_RATE_LIMIT_PER_HOUR` (default 20)
+per user or IP, publication to `TEMPLATE_PUBLISH_RATE_LIMIT_PER_HOUR` (default 10) per user.
 
 ```bash
 curl -k https://localhost/api/templates?limit=5          # {"items":[…],"nextCursor":…}
 ```
 
+## Built with Kiro
+
+- **Specs** — 7 specs in `.kiro/specs/` (EARS requirements, design, tasks), one per roadmap phase.
+- **Steering** — `.kiro/steering/rules.md` is the single source of project rules for every agent.
+- **Skills** — `.kiro/skills/` · **Custom agents** — `.kiro/agents/` · **Hooks** — `.kiro/hooks/`.
+- **Property-based testing** — fast-check (engine) and Hypothesis (analysis, director, store), checked by mutation.
+- **Handoff between agents** — `docs/handoff.md`.
+- Full write-up: [`KIRO_USAGE.md`](KIRO_USAGE.md).
+
+## Known limitations
+
+- Not deployed yet (public URL above is `TODO(deploy)`); the Quest 3 headset check, real Muse / Bedrock calls and
+  real SMTP e-mail have not been run yet (all code paths are tested against fixtures and mocks).
+- Analysis runs on CPU: about 6.5 minutes for a 3-minute song on a 4-core laptop; songs are capped at 3 minutes.
+- Lyrics come only from an uploaded `.lrc` file (Muse Voice transcription is not wired yet).
+- The AI director picks among built-in shape kinds; custom shape recipes (ShapeRecipe) are not implemented.
+- Default look vs the reference image: no bloom haze in WebXR, beamed sixteenths drawn as separate flagged notes
+  (full list in `.kiro/specs/04-default-template/design.md`).
+- Reported templates have no review UI; rate limits are in memory per API worker.
+
+## Documentation
+
+- Design document (French): [`PROJECT.md`](PROJECT.md) · Roadmap: [`docs/roadmap.md`](docs/roadmap.md)
+- Current status and next steps: [`docs/handoff.md`](docs/handoff.md)
+- Security review: [`docs/security-review.md`](docs/security-review.md) · ADRs: [`docs/decisions/`](docs/decisions/)
+- Submission drafts (video, Devpost, social): [`docs/submission.md`](docs/submission.md)
+
 ## License
 
-[MIT](LICENSE)
+Music World is released under the [MIT License](LICENSE). No GPL/AGPL dependency.
+
+Third-party components:
+
+| Component | License | Use |
+|---|---|---|
+| [Bravura](https://github.com/steinbergmedia/bravura) font (Steinberg) | SIL Open Font License 1.1 (`assets/fonts/bravura/LICENSE.txt`) | Clef and note glyph outlines |
+| [Immersive Web SDK](https://github.com/facebook/immersive-web-sdk) `@iwsdk/core` 1.1.0, IWER 2.8.0 | MIT | WebXR runtime, Quest emulator |
+| three.js (super-three 0.185.0), Next.js 16, React 19, zod, fast-check | MIT | Web app |
+| [Demucs](https://github.com/facebookresearch/demucs) | MIT | Stem separation |
+| [Basic Pitch](https://github.com/spotify/basic-pitch) | Apache-2.0 | Note transcription (bundled ONNX model) |
+| librosa (ISC), PyTorch (BSD), onnxruntime (MIT), soundfile (BSD) | permissive | Analysis |
+| `soxr` (LGPL-2.1), `lameenc` (LGPL-3.0) | LGPL, dynamically linked, unmodified | Transitive analysis dependencies |
+
+Details: [`docs/decisions/001-analysis-ml-stack.md`](docs/decisions/001-analysis-ml-stack.md). The demo song
+*Neon Nocturne* is synthesized by `apps/api/scripts/synth_song.py` (self-made, royalty-free).
