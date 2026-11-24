@@ -187,7 +187,7 @@ Le directeur artistique passe par une interface `LLMProvider`. On change de four
 
 **Paroles :** `LYRICS_PROVIDER = muse | lrc | none`.
 
-**Implémentation (05-ai-world-director) :** prompts neutres versionnés (`PROMPT_VERSION = director-v1`), Muse Spark
+**Implémentation (05-ai-world-director) :** prompts neutres versionnés (`PROMPT_VERSION = director-v2`), Muse Spark
 par l'API compatible OpenAI (`/chat/completions`), Claude par **Claude in Amazon Bedrock** (`bedrock-mantle`, modèles
 `anthropic.claude-sonnet-5-5` pour le directeur, `anthropic.claude-opus-5-5` pour les formes). Sortie : nettoyage,
 bornage des nombres, validation pydantic, règles de rendu ; une seconde tentative avec les erreurs, puis le
@@ -224,7 +224,8 @@ Un LLM ne produit pas de bons maillages (des listes de sommets en texte sont imp
 }
 ```
 
-- Opérations disponibles (liste fermée) : `box`, `prism`, `lathe`, `extrude`, `cluster`, `stack` (étages), `lsystem_tree`, `spike` (pic d'égaliseur), `arch`, `emissive_bands`…
+- Opérations disponibles (liste fermée) : `box`, `prism`, `spike` (pic d'égaliseur), `stack` (étages) et `cluster` (05-ai-world-director, tâche 6). Réservées, non implémentées : `lathe`, `extrude`, `lsystem_tree`, `arch`, `emissive_bands`.
+- Budget : `budget.maxTriangles` ≤ 2000 (défaut 500), vérifié avant construction par `ShapeRecipe.triangle_count` (Python) et par le builder web ; au plus 4 recettes par template, référencées par `recipe:<name>`.
 - Chaque recette est construite une seule fois, puis réutilisée en **`InstancedMesh`** pour toutes les notes qui la déclenchent.
 - Les couleurs viennent de **rôles** de la palette (`primary`, `accent`…), pas de valeurs fixes : la forme suit le template.
 

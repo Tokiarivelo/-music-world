@@ -179,3 +179,16 @@ def test_lists_are_cut_to_the_schema_maximum() -> None:
     raw = valid_llm_template() | {"mappings": [{"when": {}, "spawn": "building"}] * 50}
     doc, _ = parse_template(raw, template_id="ai-mock-0123abcd", generated_by=GEN)
     assert doc is not None and len(doc["mappings"]) == 32
+
+
+def test_a_director_template_may_define_and_use_recipes() -> None:
+    recipe = {"name": "tower", "parts": [{"op": "stack", "of": "box", "levels": 3}], "budget": {"maxTriangles": 100}}
+    raw = valid_llm_template() | {
+        "mappings": [{"when": {}, "spawn": "recipe:tower"}],
+        "recipes": [recipe | {"junk": "dropped"}],
+    }
+    doc, errors = parse_template(raw, template_id="ai-mock-0123abcd", generated_by=GEN)
+    assert errors == [] and doc is not None
+    assert doc["recipes"][0]["name"] == "tower" and "junk" not in doc["recipes"][0]
+    over = recipe | {"budget": {"maxTriangles": 12}}
+    assert parse_template(raw | {"recipes": [over]}, template_id="ai-mock-0123abcd", generated_by=GEN)[0] is None

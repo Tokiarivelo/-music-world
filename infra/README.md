@@ -50,6 +50,12 @@ previous sha is also in `~/music-world/.deploy-previous`). Prune old images afte
 **Demo song in production (8.2):** the demo analysis ships with the web bundle (`/play/demo` needs no worker). If
 the demo MP3 changes, follow `docs/handoff.md` (re-analyse, replace the JSON and `DEMO_AUDIO_HASH`) before deploying.
 
+## Local pitfall: "password authentication failed for user music_world"
+
+`POSTGRES_PASSWORD` only applies when the `pgdata` volume is created. If `infra/.env` changed after the first
+`make dev`, the api cannot log in. Without losing data: `make db-password` (sets the role's password to the current
+value, then recreates api and worker). Production: never change the password this way without a backup first.
+
 ## Uptime (until 2027-01-29)
 
 - Every service has `restart: unless-stopped` and a healthcheck; `depends_on` waits for healthy dependencies.

@@ -3,7 +3,7 @@
 	dev dev-infra dev-api dev-worker dev-web up down restart ps logs shell \
 	build build-api build-web rebuild \
 	test test-api test-web check check-api check-web arch lint format schemas schemas-check \
-	deploy check-env \
+	deploy check-env db-password \
 	disk prune prune-images prune-cache prune-all prune-volumes clean clean-deps
 
 API := apps/api
@@ -135,6 +135,10 @@ deploy: ## Deploy to OVHcloud over ssh: DEPLOY_HOST=user@host [DEPLOY_REF=sha] [
 
 check-env: ## Validate a production env file (default infra/.env; ENV_FILE=path), names only
 	bash infra/scripts/check-env.sh $(ENV_FILE)
+
+db-password: ## Local stack: set the Postgres user's password to the current infra/.env value (fixes "password authentication failed" on an old pgdata volume)
+	$(DC) exec -T postgres sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "ALTER USER \"$$POSTGRES_USER\" PASSWORD '"'"'$$POSTGRES_PASSWORD'"'"'"'
+	$(DC) up -d --no-build --force-recreate api worker
 
 # ---------------------------------------------------------------------------------------------------------------
 # Disk: prune and clean. Docker volumes (pgdata, storage, Let's Encrypt certificates) are touched only by

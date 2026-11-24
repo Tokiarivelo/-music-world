@@ -10,7 +10,7 @@ Last reviewed: 2026-11-24 (after the Makefile / Docker / env / token session).
 
 | # | Task | Priority | Load first | Done when |
 |---|---|---|---|---|
-| A1 | `05-ai-world-director` task 6: ShapeRecipe generation (`music-world.shape.v1`, closed op list, triangle budget checked by a Python mirror of the Three.js builder) | P2 | skill `shape-kind`, `ai-models.md`, spec § 5.6 | contract + builder + validator + mock output, property tests, `make check` green |
+| A1 | ~~`05-ai-world-director` task 6: ShapeRecipe~~ | done 2026-11-24 (phase 10) | — | follow-ups: Quest 3 check of heavy recipes, dedicated shape-model call (see design.md § As built, task 6) |
 | A2 | Template editor in the web app (edit a template's zones and colours, validate with the zod schema, publish through the existing store API) | P2, no spec yet | skill `new-web-feature`; create a spec first | spec `09-template-editor` with tasks, then tasks ticked |
 | A3 | Review UI for hidden templates (reports ≥ `TEMPLATE_REPORT_HIDE_THRESHOLD`) | P2, no spec yet | skill `new-api-module` + `new-web-feature` | spec, endpoints with auth, page, tests |
 | A4 | ~~Fix the stale navigation-PR line in `docs/handoff.md`~~ | done 2026-11-24 | — | done |

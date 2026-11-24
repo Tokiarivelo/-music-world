@@ -14,7 +14,7 @@ fileMatchPattern: "apps/api/music_world/director/**"
 | Custom shapes (optional) | `muse-wonder-1.0` | shape intent from the template | `ShapeRecipe` JSON |
 
 Bedrock equivalents (Claude in Amazon Bedrock, `bedrock-mantle`): director `anthropic.claude-sonnet-5-5`, shapes
-`anthropic.claude-opus-5-5`. Mock: `mock-director-1`. Current prompt: `PROMPT_VERSION = "director-v1"`
+`anthropic.claude-opus-5-5`. Mock: `mock-director-1`. Current prompt: `PROMPT_VERSION = "director-v2"`
 (`director/infrastructure/prompts/director.py`). Verified facts and sources: spec `05-ai-world-director/design.md`.
 
 ## Provider switch
