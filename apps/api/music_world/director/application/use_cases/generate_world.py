@@ -112,6 +112,10 @@ class GenerateWorld:
                 reply = await provider.complete_json(request)
         except TimeoutError as exc:
             raise ProviderError("TIMEOUT") from exc
+        except ProviderError as exc:
+            if exc.cost_usd > 0:
+                await self._spend.add(audio_hash, exc.cost_usd)
+            raise
         if reply.cost_usd > 0:
             await self._spend.add(audio_hash, reply.cost_usd)
         return reply.data

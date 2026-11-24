@@ -193,3 +193,10 @@ def test_the_mock_is_required() -> None:
         GenerateWorld(
             {}, DirectorPromptSet(), MemoryCache(), MemorySpend(), {}, default_provider="mock", spend_cap_usd=1
         )
+
+
+async def test_billed_failures_count_toward_the_cap() -> None:
+    muse = FakeProvider("muse", [ProviderError("REFUSED", cost_usd=0.4)])
+    use_case, _, spend = make({"muse": muse})
+    result = await use_case.execute(GenerateWorldCommand(small_analysis()))
+    assert result.provider == "mock" and spend.total[small_analysis().audio_hash] == pytest.approx(0.4)

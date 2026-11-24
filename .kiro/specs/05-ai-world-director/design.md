@@ -214,3 +214,9 @@ so the 2D page and the VR template picker both list every generated template; no
   checks (each caught): recipe kinds allowed, staff contrast check removed, minimum clamp removed, NaN kept,
   model-provided `id` kept. The first strategy version produced 0 % renderable documents (vacuous property): fixed
   by biasing each field toward valid values.
+- Task 3: `providers/muse.py` (`httpx.AsyncClient`, 30 s, one retry on 429/500/502/503 with `Retry-After` ≤ 2 s,
+  `response_format` json_schema non-strict, `max_completion_tokens` 8000), `providers/_json.py` (fence stripping),
+  `providers/pricing.py`. Replies that were billed but unusable (refusal, truncated, not JSON) raise
+  `ProviderError(cost_usd=…)` so the spend tracker still counts them. Tested on
+  `tests/fixtures/director/muse-chat-completion.json` (hand-written in the documented shape) through
+  `httpx.MockTransport`. **Not verified against the live API** (no `META_API_KEY`): see § Human checks.

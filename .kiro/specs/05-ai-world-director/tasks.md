@@ -9,7 +9,7 @@
   cache, spend cap, timeout), object-store cache and spend tracker, HTTP routes with rate limit; Hypothesis property
   test "any provider JSON is rejected or renderable".
   - _Requirements: 1.1–1.5, 2.1, 2.2, 3.1–3.4, 5.1, 5.2, 5.4_
-- [ ] 3. (5.3, P1) Muse Spark provider: OpenAI-compatible chat completions, JSON schema response format, timeout,
+- [x] 3. (5.3, P1) Muse Spark provider: OpenAI-compatible chat completions, JSON schema response format, timeout,
   one retry on 429 / 5xx, cost estimate, contributor ids refused; tests on fixture responses with mocked HTTP.
   Human: one real call (`design.md` § Human checks).
   - _Requirements: 1.1, 1.3, 2.3, 5.2, 5.3, 5.4_

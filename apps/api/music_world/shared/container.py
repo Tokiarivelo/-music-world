@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 
+import structlog
 from arq.connections import ArqRedis
 from sqlalchemy.ext.asyncio import AsyncEngine
 
@@ -21,6 +22,7 @@ from music_world.director.infrastructure.default_template import default_templat
 from music_world.director.infrastructure.object_store_cache import ObjectStoreDirectorCache, ObjectStoreSpendTracker
 from music_world.director.infrastructure.prompts import DirectorPromptSet
 from music_world.director.infrastructure.providers.mock import MOCK_MODEL, MockProvider
+from music_world.director.infrastructure.providers.muse import MuseProvider, is_contributor_model
 from music_world.projects.application.ports import JobHandler
 from music_world.projects.application.use_cases.create_project import CreateProject
 from music_world.projects.application.use_cases.enqueue_job import EnqueueJob
@@ -43,6 +45,8 @@ from music_world.shared.settings import Settings
 from music_world.system.application.use_cases.check_health import CheckHealth
 from music_world.system.infrastructure.probes import PostgresProbe, RedisProbe, S3Probe
 
+log = structlog.get_logger(__name__)
+
 
 @dataclass
 class DirectorServices:
@@ -51,11 +55,25 @@ class DirectorServices:
     generate_demo_world: GenerateDemoWorld
     list_providers: ListProviders
     limiter: SlidingWindowLimiter
+    providers: dict[ProviderId, LLMProvider] = field(default_factory=dict)
+
+    async def close(self) -> None:
+        for provider in self.providers.values():
+            closer = getattr(provider, "aclose", None)
+            if closer is not None:
+                await closer()
 
 
 def _real_providers(settings: Settings) -> dict[ProviderId, LLMProvider]:
-    """Configured real providers (Muse: 05-ai-world-director task 3, Bedrock: task 5)."""
-    return {}
+    """Real providers whose credentials are set (keys never leave the server)."""
+    providers: dict[ProviderId, LLMProvider] = {}
+    if settings.muse_configured and settings.meta_api_key is not None:
+        if is_contributor_model(settings.meta_director_model):
+            log.warning("director.muse_contributor_refused", model=settings.meta_director_model)
+        else:
+            key = settings.meta_api_key.get_secret_value()
+            providers["muse"] = MuseProvider(key, settings.meta_director_model, settings.meta_base_url)
+    return providers
 
 
 def build_director(
@@ -89,6 +107,7 @@ def build_director(
         generate_demo_world=GenerateDemoWorld(generate),
         list_providers=ListProviders(models, set(chain), default),
         limiter=SlidingWindowLimiter(settings.director_rate_limit_per_hour, 3600.0),
+        providers=chain,
     )
 
 
@@ -110,6 +129,7 @@ class Container:
     handlers: dict[str, JobHandler] = field(default_factory=dict)
 
     async def close(self) -> None:
+        await self.director.close()
         if self.redis is not None:
             await self.redis.aclose()
         if self.engine is not None:
