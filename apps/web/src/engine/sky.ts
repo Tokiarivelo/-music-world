@@ -13,6 +13,13 @@ import type { Vec3 } from './types';
 /** Seconds of already played notes that stay in the sky (fading), and the minimum look-ahead window. */
 export const SKY_PAST_SEC = 5;
 export const SKY_FUTURE_MIN_SEC = 8;
+/**
+ * Height of the celestial aurora curtains and notes in the sky, as a multiple of the terrain size.
+ * Positioned high in the celestial vault above the plate, buildings and clouds, so notes glitter across
+ * the night sky at any camera view and never block the city or ground scenes below.
+ */
+export const SKY_AURORA_HEIGHT_RATIO = 1.15;
+
 /** Curtain height in staff line gaps, number of curtains and their lateral spacing in line gaps. */
 export const SKY_HEIGHT_GAPS = 14;
 export const SKY_CURTAINS = 3;
@@ -33,18 +40,17 @@ export interface SkyNote {
 }
 
 /**
- * The path the sky hangs on: the staff path lifted to the aurora height (templates with a low staff get the same high
- * sky) with the roomy aurora line gap, so every template shows the same northern lights.
+ * The path the sky hangs on: a majestic celestial arc sweeping across the sky dome high above the plate,
+ * with the roomy aurora line gap, so every template shows notes floating in the northern lights in the sky.
  */
 export function skyPath(plan: Pick<SpawnPlan, 'staff' | 'template'>): StaffPath {
   const size = plan.template.terrain.size;
-  const baseY = Math.max(plan.staff.baseY, size * AURORA_HEIGHT_RATIO);
-  const lift = (p: Vec3): Vec3 => ({ x: p.x, y: baseY, z: p.z });
+  const baseY = Math.max(plan.staff.baseY * 3, size * SKY_AURORA_HEIGHT_RATIO);
   return {
     ...plan.staff,
-    start: lift(plan.staff.start),
-    control: lift(plan.staff.control),
-    end: lift(plan.staff.end),
+    start: { x: -size * 1.6, y: baseY, z: size * 0.7 },
+    control: { x: 0, y: baseY * 1.15, z: -size * 1.0 },
+    end: { x: size * 1.6, y: baseY, z: size * 0.5 },
     baseY,
     lineGap: Math.max(plan.staff.lineGap, size * STAFF_LINE_GAP_RATIO * AURORA_GAP_FACTOR),
   };

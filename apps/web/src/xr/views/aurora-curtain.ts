@@ -55,13 +55,13 @@ void main() {
   // brightest at the foot and thinning upward, in the ribbon's own color.
   float lit = 0.0;
   for (int i = 0; i < ${NOTE_LIGHTS}; i++) {
-    float d = (vGrid.x - uNotes[i].x) / 0.03;
-    float up = uNotes[i].z < 0.0 ? pow(1.0 - vGrid.y, 0.9) : exp(-pow((vGrid.y - uNotes[i].z) / 0.13, 2.0));
+    float d = (vGrid.x - uNotes[i].x) / 0.024;
+    float up = uNotes[i].z < 0.0 ? pow(1.0 - vGrid.y, 0.9) : exp(-pow((vGrid.y - uNotes[i].z) / 0.16, 2.0));
     lit += uNotes[i].y * exp(-d * d) * up;
   }
   lit = min(lit, 1.0) * mix(1.0, rays, 0.5);
-  alpha = min(1.0, alpha * (1.0 + 2.4 * lit) + 0.28 * lit * uGlow);
-  col = mix(col, vec3(1.0), 0.35 * lit);
+  alpha = clamp(alpha * (1.0 + 0.9 * lit) + 0.18 * lit * uGlow, 0.0, 0.65);
+  col = mix(col, vec3(0.85, 1.0, 0.95), 0.18 * lit);
   gl_FragColor = vec4(col, alpha);
   #include <colorspace_fragment>
 }`;

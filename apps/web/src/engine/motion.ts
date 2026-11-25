@@ -109,9 +109,9 @@ export function objectPoseAt(kind: string, seed: number, index: number, t: numbe
   const half = size / 2;
   switch (kind) {
     case 'cloud':
-      return driftAt(seed, id, t, { halfWidth: half * 1.6, halfDepth: half * 1.6 }, [5, 8]);
+      return driftAt(seed, id, t, { halfWidth: half * 3.6, halfDepth: half * 3.6 }, [6, 11]);
     case 'airplane':
-      return flightAt(seed, id, t, { halfLength: half * 1.2, halfWidth: half * 0.8, altitude: [8, 12] });
+      return flightAt(seed, id, t, { halfLength: half * 3.8, halfWidth: half * 2.6, altitude: [10, 15] });
     case 'car':
       return loopAt(seed, id, t, { cx: 0, cz: 0, rx: half * 0.7, rz: half * 0.5, y: 0 });
     case 'bicycle':

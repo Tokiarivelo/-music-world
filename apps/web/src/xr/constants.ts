@@ -32,13 +32,13 @@ export const ENV_STAR_DENSITY = 0.012;
  * Immersive scale (I7): plate width in metres, how far the viewer starts from the plate centre (inside its near edge),
  * eye height, environment scale (ground, hills, fog), far plane, and the margin the viewer may walk past the plate.
  */
-export const IMMERSIVE_PLATE_M = 170;
-export const IMMERSIVE_START_Z_M = 45;
+export const IMMERSIVE_PLATE_M = 110;
+export const IMMERSIVE_START_Z_M = 35;
 /**
- * The plate is wide so the song's world fills the landscape, but objects keep the size calibrated on an 80 m plate:
- * instance sizes are multiplied by this in the immersive scale, only their positions spread.
+ * Objects maintain their full calibrated size so they fill the landscape with presence and architectural volume,
+ * rather than shrinking into miniatures.
  */
-export const IMMERSIVE_OBJECT_SCALE = 80 / IMMERSIVE_PLATE_M;
+export const IMMERSIVE_OBJECT_SCALE = 1;
 export const EYE_HEIGHT_M = 1.6;
 export const IMMERSIVE_ENV_SCALE = 3;
 export const IMMERSIVE_CAMERA_FAR_M = 1600;
@@ -184,8 +184,8 @@ export const NAV_PITCH_MIN_DEG = 5;
 export const NAV_PITCH_MAX_DEG = 85;
 export const NAV_DISTANCE_MIN_M = 0.35;
 export const NAV_DISTANCE_MAX_M = 9;
-/** In the big world the explore camera stops inside the sky dome (130 m x 3): 113 x 3.4 = 385 m from the target. */
-export const NAV_DISTANCE_MAX_WORLD_M = 3.4;
+/** In the big world the explore camera stops inside the sky dome: 73 x 3.8 = 277 m from the target. */
+export const NAV_DISTANCE_MAX_WORLD_M = 3.8;
 /** The orbit target stays within this horizontal distance of the plate centre (per axis). */
 export const NAV_TARGET_RADIUS_M = 0.9;
 /** The orbit target stays between the plate top and this height above it. */

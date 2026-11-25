@@ -38,10 +38,10 @@ const SWIMMERS: ReadonlySet<string> = new Set([
 ].map((n) => `recipe:${n}`));
 /** Kinds that need the plate's own place (they are the stage, not the backdrop). */
 const SKIPPED: ReadonlySet<string> = new Set(['building', 'cloud', ...MOVING_KINDS]);
-/** The inner edge (m from the plate centre, in the big world): the plate is 80 m wide. */
-const INNER_M = IMMERSIVE_PLATE_M / 2 + 8;
+/** The inner edge (m from the plate centre, in the big world): starts right at the edge of the plate. */
+const INNER_M = IMMERSIVE_PLATE_M / 2 + 2;
 /** The ground disc is centred on the world origin, the plate 30 m off it: stay well inside. */
-const OUTER_M = Math.min(ENV_GROUND_RADIUS_M * IMMERSIVE_ENV_SCALE - 60, 330);
+const OUTER_M = Math.min(ENV_GROUND_RADIUS_M * IMMERSIVE_ENV_SCALE - 60, 260);
 const CLUMPS = 16;
 
 export function horizonKinds(plan: SpawnPlan): ShapeKind[] {

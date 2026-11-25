@@ -48,12 +48,17 @@
   that sounds. Notes are coloured from green (low) to violet (high). A click still picks and plays a sky note; the
   pitch/time drag belongs to the staff and is off in this mode.
 
-## Follow-up: the song's world fills the landscape
+## Follow-up: celestial aurora in the sky, scene scale and full-view explore
 
-- The plate of the immersive scale is 170 m wide (was 80 m) and the landscape around it is bigger (ground radius 600 m,
-  sky 720 m, camera far plane 1600 m, hills start beyond the plate), so the scenes, cars, aurora notes and clouds are
-  spread over the whole view and not only at its centre.
-- Objects keep the size calibrated on the 80 m plate (`IMMERSIVE_OBJECT_SCALE`): instance sizes, collision radii and
-  walk obstacles are multiplied by it, only their positions spread. The sky rings and the sky note glyphs follow it.
-- The overview pose sits farther (1.8x the cinematic distance) and zooming out stops at 385 m, inside the sky dome.
-- The horizon ring has 1600 trees, bushes and rocks over 100 to 330 m around the plate.
+- Celestial aurora notes in the sky: the aurora path (`skyPath` in `engine/sky.ts`) forms an expansive celestial arc
+  high in the sky dome (`SKY_AURORA_HEIGHT_RATIO = 1.15`, 180–240 m above ground), sweeping across the horizon from
+  edge to edge. The notes hang inside the aurora curtains in the sky at any camera view and never block the city
+  below. The aurora curtain shader (`aurora-curtain.ts`) softly diffuses note lighting with delicate luminous flares,
+  keeping the curtains ethereal and translucent without white blowout.
+- Natural view perspective: Explore and dome world camera views open to a 52° lens (replacing the flat 20° diorama telephoto),
+  giving rich 3D depth and panoramic presence. The overview camera sits at 1.15x cinematic distance, framing the entire
+  world without surrounding void.
+- Calibrated presence: objects maintain full calibrated volume (`IMMERSIVE_OBJECT_SCALE = 1`), with a 110 m immersive plate.
+  Horizon foliage starts right at the plate boundary (`IMMERSIVE_PLATE_M / 2 + 2`), seamlessly integrating city and nature.
+- Sky-wide clouds: clouds drift across the entire sky canopy (`halfWidth: half * 3.6`) at 6–11 m plate altitude, and
+  airplanes cross from horizon to horizon, populating the full sky rather than clustering in the center.

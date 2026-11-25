@@ -325,7 +325,13 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     nav.maxDistance = big ? NAV_DISTANCE_MAX_WORLD_M : NAV_DISTANCE_MAX_M;
     if (nav.state.preset === 'horizon') wide = true;
     else if (nav.state.preset !== null || nav.mode === 'cinematic') wide = false;
-    const fov = nav.mode === 'walk' ? WALK_FOV_DEG : wide && !inSession ? HORIZON_FOV_DEG : DESKTOP_CAMERA_FOV_DEG;
+    const fov = nav.mode === 'walk'
+      ? WALK_FOV_DEG
+      : wide && !inSession
+        ? HORIZON_FOV_DEG
+        : !inSession && (nav.mode === 'explore' || domeStore.enabled)
+          ? 52
+          : DESKTOP_CAMERA_FOV_DEG;
     if (!world.session && world.camera.fov !== fov) {
       world.camera.fov = fov;
       world.camera.updateProjectionMatrix();
