@@ -19,6 +19,7 @@ import {
   Points,
   Group,
   Mesh,
+  Vector3,
   MeshBasicMaterial,
   ShaderMaterial,
   SphereGeometry,
@@ -30,8 +31,6 @@ import {
   ENV_FOG_FAR_M,
   ENV_FOG_NEAR_M,
   ENV_GROUND_RADIUS_M,
-  ENV_HILL_COLUMNS,
-  ENV_HILL_RINGS,
   ENV_SKY_RADIUS_M,
   ENV_STAR_DENSITY,
   IMMERSIVE_PLATE_M,
@@ -132,41 +131,100 @@ function groundTexture(name: string, base = '/ground'): Texture {
 /** Number of draw calls of the environment (requirement 5: ≤ 6). */
 export const ENVIRONMENT_DRAW_CALLS = 4; // underwater templates add one more (the bubbles)
 
-/** One ring of hills: a closed strip, base at y = 0, crest height from seeded harmonics. */
-function hillsGeometry(radii: readonly number[], columns: number, seed: number, near: Color, far: Color, amp = 1, jag = 0.3): BufferGeometry {
+/** Smooth value noise on the plane (seeded lattice, smoothstep blend): seamless around the circle by construction. */
+function valueNoise(seed: number): (x: number, y: number) => number {
+  const lattice = (ix: number, iy: number): number => {
+    const rng = mulberry32(hashSeed(seed, `${ix},${iy}`));
+    return rng();
+  };
+  return (x, y) => {
+    const ix = Math.floor(x);
+    const iy = Math.floor(y);
+    const fx = x - ix;
+    const fy = y - iy;
+    const u = fx * fx * (3 - 2 * fx);
+    const v = fy * fy * (3 - 2 * fy);
+    const a = lattice(ix, iy);
+    const b = lattice(ix + 1, iy);
+    const c = lattice(ix, iy + 1);
+    const d = lattice(ix + 1, iy + 1);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  };
+}
+
+/** Inner and outer radius of the hills (metres before the environment scale) and the grid. */
+const HILLS_INNER_M = 26;
+const HILLS_OUTER_M = ENV_GROUND_RADIUS_M - 6;
+const HILLS_COLUMNS = 128;
+const HILLS_RINGS = 20;
+/** Triangles of the hills: part of the environment budget. */
+export const HILLS_TRIANGLES = HILLS_COLUMNS * HILLS_RINGS * 2;
+
+/**
+ * Rolling hills: a polar height field around the plate, flat where it meets the ground (no wall) and rising to far
+ * mountains; layered value noise (low and broad, then ridged detail by `jag`), vertex colors from near to far (hazy and
+ * bluer with distance, lighter on the crests) with a baked light from the sun side so the slopes read.
+ */
+function hillsGeometry(seed: number, near: Color, far: Color, amp = 1, jag = 0.3): BufferGeometry {
+  const noise = valueNoise(seed);
+  const height = (x: number, z: number, t: number): number => {
+    const broad = noise(x / 34, z / 34);
+    const mid = noise(x / 15 + 31, z / 15 + 17);
+    const fine = noise(x / 6 + 7, z / 6 + 53);
+    const ridged = 1 - Math.abs(2 * noise(x / 22 + 101, z / 22 + 5) - 1);
+    const shape = 0.55 * broad + 0.3 * mid + 0.15 * fine * (0.5 + jag) + jag * 0.5 * ridged * ridged;
+    // Near: gentle rise; far: mountains. `t` runs 0 at the inner edge to 1 at the outer edge.
+    return Math.max(0, shape - 0.16) * amp * (3.2 + 22 * t ** 1.8);
+  };
   const positions: number[] = [];
   const colors: number[] = [];
   const indices: number[] = [];
-  const rng = mulberry32(seed);
-  const tmp = new Color();
-  radii.forEach((radius, ring) => {
-    const base = positions.length / 3;
-    const t = radii.length > 1 ? ring / (radii.length - 1) : 0;
-    const phases = [rng() * Math.PI * 2, rng() * Math.PI * 2, rng() * Math.PI * 2];
-    const heightScale = 3 + 5 * t; // farther rings are taller (they read as mountains)
-    for (let i = 0; i < columns; i++) {
-      const a = (i / columns) * Math.PI * 2;
-      const crest =
-        heightScale *
-        amp *
-        (0.45 +
-          0.3 * Math.sin(a * 3 + phases[0]!) +
-          0.2 * Math.sin(a * 7 + phases[1]!) +
-          0.4 * jag * Math.sin(a * 17 + phases[2]!) +
-          0.25 * jag * Math.sin(a * 41 + phases[0]! * 2));
+  for (let ring = 0; ring <= HILLS_RINGS; ring++) {
+    const t = ring / HILLS_RINGS;
+    const radius = HILLS_INNER_M + (HILLS_OUTER_M - HILLS_INNER_M) * t;
+    for (let i = 0; i < HILLS_COLUMNS; i++) {
+      const a = (i / HILLS_COLUMNS) * Math.PI * 2;
       const x = Math.cos(a) * radius;
       const z = Math.sin(a) * radius;
-      positions.push(x, -0.5, z, x, Math.max(0.4, crest), z);
-      tmp.copy(near).lerp(far, t ** 0.65); // far ridges are lighter and bluer: atmospheric perspective
-      colors.push(tmp.r * 0.6, tmp.g * 0.6, tmp.b * 0.6, tmp.r, tmp.g, tmp.b);
+      const edge = Math.min(1, t * 6); // zero height on the first rings: the hills grow out of the ground
+      const y = height(x, z, t) * edge;
+      positions.push(x, y, z);
     }
-    for (let i = 0; i < columns; i++) {
-      const j = (i + 1) % columns;
-      const a0 = base + i * 2;
-      const b0 = base + j * 2;
-      indices.push(a0, b0, a0 + 1, b0, b0 + 1, a0 + 1);
+  }
+  const sun = new Vector3(-0.5, 0.8, -0.35).normalize();
+  const normal = new Vector3();
+  const tmp = new Color();
+  const at = (ring: number, col: number): number => (ring * HILLS_COLUMNS + ((col + HILLS_COLUMNS) % HILLS_COLUMNS)) * 3;
+  for (let ring = 0; ring <= HILLS_RINGS; ring++) {
+    const t = ring / HILLS_RINGS;
+    for (let i = 0; i < HILLS_COLUMNS; i++) {
+      const r0 = Math.max(0, ring - 1);
+      const r1 = Math.min(HILLS_RINGS, ring + 1);
+      const dx = positions[at(ring, i + 1)]! - positions[at(ring, i - 1)]!;
+      const dyA = positions[at(ring, i + 1) + 1]! - positions[at(ring, i - 1) + 1]!;
+      const dz = positions[at(ring, i + 1) + 2]! - positions[at(ring, i - 1) + 2]!;
+      const ex = positions[at(r1, i)]! - positions[at(r0, i)]!;
+      const eyA = positions[at(r1, i) + 1]! - positions[at(r0, i) + 1]!;
+      const ez = positions[at(r1, i) + 2]! - positions[at(r0, i) + 2]!;
+      // normal = (tangent along the circle) x (tangent across rings), flipped to point up
+      normal.set(dyA * ez - dz * eyA, dz * ex - dx * ez, dx * eyA - dyA * ex).normalize();
+      if (normal.y < 0) normal.negate();
+      const light = 0.55 + 0.45 * Math.max(0, normal.dot(sun));
+      const y = positions[at(ring, i) + 1]!;
+      tmp.copy(near).lerp(far, t ** 0.65).lerp(far, Math.min(0.5, y / 70)); // crests are lighter and bluer
+      colors.push(tmp.r * light, tmp.g * light, tmp.b * light);
     }
-  });
+  }
+  for (let ring = 0; ring < HILLS_RINGS; ring++) {
+    for (let i = 0; i < HILLS_COLUMNS; i++) {
+      const j = (i + 1) % HILLS_COLUMNS;
+      const a = ring * HILLS_COLUMNS + i;
+      const b = ring * HILLS_COLUMNS + j;
+      const c = (ring + 1) * HILLS_COLUMNS + i;
+      const d = (ring + 1) * HILLS_COLUMNS + j;
+      indices.push(a, c, b, b, c, d);
+    }
+  }
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
   geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
@@ -185,7 +243,6 @@ export class EnvironmentView implements WorldView {
   private readonly mist: Mesh<BufferGeometry, MeshBasicMaterial>;
   private landscape: LandscapeId | null = null;
   private readonly seed: number;
-  private readonly radii: number[];
   private readonly offLandscape: () => void;
   private readonly underwater: boolean;
   private readonly bubbles: Points<BufferGeometry, ShaderMaterial> | null = null;
@@ -240,10 +297,8 @@ export class EnvironmentView implements WorldView {
     this.ground.position.y = -0.02; // below the VR floor plane: no z-fight with a floor-level surface
 
     this.seed = hashSeed(plan.seed, 'environment-hills');
-    const radii = Array.from({ length: ENV_HILL_RINGS }, (_, i) => 24 + (i * (ENV_GROUND_RADIUS_M - 12 - 24)) / Math.max(1, ENV_HILL_RINGS - 1));
-    this.radii = radii;
     this.hills = new Mesh(
-      hillsGeometry(radii, ENV_HILL_COLUMNS, hashSeed(plan.seed, 'environment-hills'), colors.hillsNear, colors.hillsFar),
+      hillsGeometry(hashSeed(plan.seed, 'environment-hills'), colors.hillsNear, colors.hillsFar, this.underwater ? 0.12 : 1, this.underwater ? 0.05 : 0.3),
       new MeshBasicMaterial({ vertexColors: true, side: DoubleSide }),
     );
 
@@ -368,7 +423,7 @@ export class EnvironmentView implements WorldView {
     ground.needsUpdate = true;
     const near = id === 'template' ? this.colors.hillsNear : new Color(l.hillsNear);
     const far = id === 'template' ? this.colors.hillsFar : new Color(l.hillsFar);
-    const fresh = hillsGeometry(this.radii, ENV_HILL_COLUMNS, this.seed, near, far, this.underwater ? 0.35 : l.hillAmp, this.underwater ? 0.05 : l.hillJag);
+    const fresh = hillsGeometry(this.seed, near, far, this.underwater ? 0.12 : l.hillAmp, this.underwater ? 0.05 : l.hillJag);
     this.hills.geometry.dispose();
     this.hills.geometry = fresh;
     this.mist.material.color.copy(haze);

@@ -13,6 +13,8 @@ export const DESKTOP_CAMERA_DISTANCE_M = 2.5;
 export const DESKTOP_CAMERA_FOV_DEG = 20;
 /** Lens of the `horizon` view preset: wide enough to show the plate, the horizon and the sky together. */
 export const HORIZON_FOV_DEG = 58;
+/** Lens of the walk mode: a natural field of view, as in a headset, so the sky and the horizon are all in the frame. */
+export const WALK_FOV_DEG = 72;
 /** Aspect ratio the framing above is tuned for (16:9): wider keeps it, narrower moves the camera back (I2). */
 export const DESKTOP_REFERENCE_ASPECT = 16 / 9;
 /** Point the desktop camera looks at, relative to the diorama centre (metres): slightly toward the city. */

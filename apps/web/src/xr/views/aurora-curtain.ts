@@ -33,6 +33,7 @@ uniform vec3 uColorC;
 uniform float uTime;
 uniform float uGlow;
 uniform float uSky;
+uniform float uBands;
 varying vec2 vGrid;
 void main() {
   float shift = 0.5 + 0.5 * sin(vGrid.x * 3.0 + uTime * 0.12);
@@ -42,7 +43,10 @@ void main() {
   float rays = 0.55 + 0.45 * sin(vGrid.x * 160.0 + sin(vGrid.x * 23.0 + uTime * 0.4) * 3.0);
   float fade = mix(pow(1.0 - vGrid.y, 1.6), pow(1.0 - vGrid.y, 1.1) * smoothstep(0.0, 0.08, vGrid.y), uSky); // sky: bright band above a soft lower edge
   float edge = smoothstep(0.0, 0.04, vGrid.x) * smoothstep(1.0, 0.96, vGrid.x);
-  float alpha = fade * mix(1.0, rays, vGrid.y) * edge * 0.42 * uGlow;
+  // Full-circle curtains: drifting patches of light with dark gaps between them, like the real sky.
+  float lightPatch = smoothstep(0.1, 0.8, 0.5 + 0.28 * sin(vGrid.x * 6.2831 * uBands + uTime * 0.05) + 0.22 * sin(vGrid.x * 6.2831 * uBands * 2.3 - uTime * 0.03 + 1.7));
+  float coverage = uBands > 0.5 ? lightPatch : edge;
+  float alpha = fade * mix(1.0, rays, vGrid.y) * coverage * 0.42 * uGlow;
   gl_FragColor = vec4(col, alpha);
   #include <colorspace_fragment>
 }`;
@@ -83,6 +87,37 @@ export function buildCurtainGeometry(path: StaffPath, height: number): BufferGeo
   return geometry;
 }
 
+/** A closed curtain all the way round the viewer: `radius` and heights in plate units, base at `bottomY`. */
+export function buildRingGeometry(radius: number, bottomY: number, height: number, columns = 192): BufferGeometry {
+  const positions: number[] = [];
+  const grid: number[] = [];
+  const normals: number[] = [];
+  const indices: number[] = [];
+  for (let c = 0; c <= columns; c += 1) {
+    const u = c / columns;
+    const a = u * Math.PI * 2;
+    for (let r = 0; r <= CURTAIN_ROWS; r += 1) {
+      const v = r / CURTAIN_ROWS;
+      positions.push(Math.cos(a) * radius, bottomY + v * height, Math.sin(a) * radius);
+      grid.push(u, v);
+      normals.push(Math.cos(a), Math.sin(a));
+    }
+  }
+  const stride = CURTAIN_ROWS + 1;
+  for (let c = 0; c < columns; c += 1) {
+    for (let r = 0; r < CURTAIN_ROWS; r += 1) {
+      const i = c * stride + r;
+      indices.push(i, i + stride, i + 1, i + 1, i + stride, i + stride + 1);
+    }
+  }
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('aGrid', new Float32BufferAttribute(grid, 2));
+  geometry.setAttribute('aNormal', new Float32BufferAttribute(normals, 2));
+  geometry.setIndex(indices);
+  return geometry;
+}
+
 export interface AuroraCurtain {
   readonly mesh: Mesh<BufferGeometry, ShaderMaterial>;
   /** Song time in seconds; with `reducedMotion` the curtain stays still. */
@@ -97,8 +132,9 @@ export function createAuroraCurtain(
   glow: number,
   reducedMotion: boolean,
   sky = false,
+  ring?: { geometry: BufferGeometry; bands: number },
 ): AuroraCurtain {
-  const geometry = buildCurtainGeometry(path, plateSize * 0.22);
+  const geometry = ring?.geometry ?? buildCurtainGeometry(path, plateSize * 0.22);
   const material = new ShaderMaterial({
     vertexShader: VERTEX,
     fragmentShader: FRAGMENT,
@@ -106,6 +142,7 @@ export function createAuroraCurtain(
       uTime: { value: 0 },
       uAmplitude: { value: reducedMotion ? 0 : plateSize * (sky ? 0.09 : 0.035) },
       uSky: { value: sky ? 1 : 0 },
+      uBands: { value: ring?.bands ?? 0 },
       uGlow: { value: glow },
       uColorA: { value: new Color(palette.primary) },
       uColorB: { value: new Color(palette.accent) },

@@ -9,7 +9,7 @@ import { ENVIRONMENT_DRAW_CALLS, EnvironmentView } from './environment-view';
 
 const plan = buildSpawnPlan(demo, DEFAULT_TEMPLATE, 1);
 const DRAW_CALL_BUDGET = 6;
-const TRIANGLE_BUDGET = 5000;
+const TRIANGLE_BUDGET = 8000; // the hills are a 128 x 20 height field (5 k triangles), the rest about 1.3 k
 
 function meshes(root: Object3D): Array<Mesh<BufferGeometry, MeshBasicMaterial | ShaderMaterial>> {
   const found: Array<Mesh<BufferGeometry, MeshBasicMaterial | ShaderMaterial>> = [];

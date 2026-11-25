@@ -15,6 +15,7 @@ import {
   DESKTOP_CAMERA_ELEVATION_DEG,
   DESKTOP_CAMERA_FOV_DEG,
   HORIZON_FOV_DEG,
+  WALK_FOV_DEG,
   DESKTOP_CAMERA_TARGET_OFFSET,
   DESKTOP_REFERENCE_ASPECT,
   DIORAMA_POSITION,
@@ -320,7 +321,7 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     scene.setScaleMode(inSession || nav.mode === 'walk' || domeStore.enabled ? 'immersive' : 'diorama');
     if (nav.state.preset === 'horizon') wide = true;
     else if (nav.state.preset !== null || nav.mode === 'cinematic') wide = false;
-    const fov = wide && !inSession ? HORIZON_FOV_DEG : DESKTOP_CAMERA_FOV_DEG;
+    const fov = nav.mode === 'walk' ? WALK_FOV_DEG : wide && !inSession ? HORIZON_FOV_DEG : DESKTOP_CAMERA_FOV_DEG;
     if (!world.session && world.camera.fov !== fov) {
       world.camera.fov = fov;
       world.camera.updateProjectionMatrix();

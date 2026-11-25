@@ -11,7 +11,7 @@ import { staffPoint } from '@/engine/staff';
 import type { WorldState } from '@/engine/world-state';
 import { skyStore } from '../sky-store';
 import { AURORA_COLORS, AURORA_GREENS, AURORA_TOPS } from './aurora-colors';
-import { createAuroraCurtain, type AuroraCurtain } from './aurora-curtain';
+import { buildRingGeometry, createAuroraCurtain, type AuroraCurtain } from './aurora-curtain';
 import type { WorldView } from './world-view';
 
 export { AURORA_COLORS } from './aurora-colors';
@@ -41,6 +41,20 @@ export class SkyNotesView implements WorldView {
       this.curtains.push(curtain);
       this.object.add(curtain.mesh);
     }
+    // The real thing fills the sky: three curtains all the way round the horizon, at different distances and heights,
+    // with drifting patches of light between dark gaps. Plate units: the landscape reaches about 55 of them.
+    const size = plan.template.terrain.size;
+    const rings = [
+      { radius: size * 3.4, bottom: size * 0.5, height: size * 1.5, bands: 3 },
+      { radius: size * 4.2, bottom: size * 0.8, height: size * 2.1, bands: 4 },
+      { radius: size * 5.0, bottom: size * 1.1, height: size * 2.6, bands: 5 },
+    ];
+    rings.forEach((r, i) => {
+      const colors = { primary: AURORA_GREENS[i % AURORA_GREENS.length]!, accent: AURORA_COLORS[(i + 1) % AURORA_COLORS.length]!, secondary: AURORA_TOPS[i % AURORA_TOPS.length]! };
+      const ring = createAuroraCurtain(path, colors, r.height / 0.22, 0.5, reduced, true, { geometry: buildRingGeometry(r.radius, r.bottom, r.height), bands: r.bands });
+      this.curtains.push(ring);
+      this.object.add(ring.mesh);
+    });
     this.unsubscribe = skyStore.subscribe(() => {
       this.lastT = Number.NaN;
     });

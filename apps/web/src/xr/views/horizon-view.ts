@@ -83,6 +83,18 @@ export function horizonPosition(rng: Rng, clumps: readonly { x: number; z: numbe
   return { x: Math.cos(a) * OUTER_M * 0.8, z: Math.sin(a) * OUTER_M * 0.8 };
 }
 
+/**
+ * Tint of a tree, conifer or bush: the baked colors are pale pastels, so the tint pulls them to deep, varied greens
+ * (broadleaf from lime to forest green with the odd autumn tree, conifers blue-green, bushes olive).
+ */
+export function foliageTint(kind: string, rng: Rng, target: Color): Color {
+  const v = rng();
+  if (kind === 'conifer') return target.setRGB(0.26 + 0.12 * v, 0.5 + 0.18 * v, 0.46 + 0.1 * rng());
+  if (kind === 'bush') return target.setRGB(0.5 + 0.2 * v, 0.58 + 0.18 * v, 0.28 + 0.12 * rng());
+  if (rng() < 0.08) return target.setRGB(0.95, 0.55 + 0.2 * v, 0.2); // an autumn tree
+  return target.setRGB(0.32 + 0.3 * v, 0.55 + 0.2 * (1 - v), 0.24 + 0.1 * rng());
+}
+
 export class HorizonView implements WorldView {
   readonly object = new Group();
   private readonly meshes: InstancedMesh[] = [];
@@ -122,11 +134,12 @@ export class HorizonView implements WorldView {
         const size = 0.7 + 0.7 * rng();
         q.setFromAxisAngle(up, rng() * Math.PI * 2);
         pos.set(x, swims ? 4 + 22 * rng() : 0, z);
-        sc.set(width * size, height * size, width * size);
+        const squash = 0.85 + 0.3 * rng(); // not two trees alike: width and height vary on their own
+        sc.set(width * size * squash, height * size, width * size / squash);
         m.compose(pos, q, sc);
         mesh.setMatrixAt(i, m);
         if (tinted) roleColor(plan.template.palette, roles[Math.floor(rng() * roles.length)]!, color);
-        else color.setRGB(0.8 + 0.2 * rng(), 0.85 + 0.15 * rng(), 0.8 + 0.2 * rng());
+        else foliageTint(kind, rng, color).multiplyScalar(0.62); // unlit vertex colors come out brighter than lit ones
         mesh.setColorAt(i, color);
       }
       mesh.instanceMatrix.needsUpdate = true;
