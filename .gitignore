@@ -38,6 +38,7 @@ __pycache__/
 !apps/api/tests/fixtures/*.flac
 !apps/web/public/demo/*.mp3
 models/
+!apps/web/public/models/
 weights/
 
 # OS / editors

@@ -129,6 +129,9 @@ check: schemas-check check-api check-web arch ## Lint + types + tests + architec
 check-api: test-api ## Lint, format check, types and tests of the API
 	cd $(API) && uv run ruff check . && uv run ruff format --check . && uv run mypy
 
+models: ## Rebuild the 3D models with Blender (pip install bpy in a Python 3.13 venv, then PYTHON=<venv>/bin/python)
+	$(or $(PYTHON),python3) -I scripts/blender/build_models.py --out apps/web/public/models
+
 bundle-check: ## Build the web app and check the bundle budget (the 3D engine stays out of the light pages)
 	pnpm -C $(WEB) build && pnpm -C $(WEB) check-bundle
 

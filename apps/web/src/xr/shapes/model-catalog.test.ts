@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { BoxGeometry } from 'three';
@@ -42,5 +43,28 @@ describe('model catalog (I21)', () => {
     fitModel(raw, { forward: 'x', flip: true }, 0.2, 0.2);
     raw.computeBoundingBox();
     expect(raw.boundingBox!.max.x).toBeCloseTo(0.5, 6);
+  });
+});
+
+describe('model files (Blender build)', () => {
+  it('each GLB parses, is one colored mesh and stays under its triangle budget', async () => {
+    const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
+    const { readFileSync } = await import('node:fs');
+    for (const [kind, spec] of Object.entries(MODELS)) {
+      const bytes = readFileSync(join(MODELS_DIR, `${spec.file}.glb`));
+      const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+      const gltf = await new Promise<{ scene: { traverse(cb: (o: unknown) => void): void } }>((resolve, reject) =>
+        new GLTFLoader().parse(buffer as ArrayBuffer, '', resolve as never, reject),
+      );
+      const meshes: { geometry: { attributes: Record<string, unknown>; index: { count: number } | null; getAttribute(n: string): { count: number } } }[] = [];
+      gltf.scene.traverse((o) => {
+        if ((o as { isMesh?: boolean }).isMesh) meshes.push(o as never);
+      });
+      expect(meshes.length, kind).toBe(1);
+      const g = meshes[0]!.geometry;
+      expect('color' in g.attributes, `${kind} has vertex colors`).toBe(true);
+      const tris = (g.index ? g.index.count : g.getAttribute('position').count) / 3;
+      expect(tris, kind).toBeLessThanOrEqual(840);
+    }
   });
 });

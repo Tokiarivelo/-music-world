@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-24 · **Last updated by:** Claude Code (handoff after phases I10–I17)
+> **Date:** 2026-11-25 · **Last updated by:** Claude Code (I22–I24: layouts, aurora notes, weather, Blender models)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -31,6 +31,12 @@ Read docs/handoff.md and continue with the next actions.
 - I16: layers page on the VR spatial panel (closes the I5 gap). I15: `docs/open-questions.md` created (11 questions, defaults applied); rules now say merge each finished phase and keep going.
 - I8 first slice (phase I18): `cloud tree conifer bush car bicycle airplane` kinds and the Living City template, procedural, now moving via `objectPoseAt`; `director-v5`.
 - Not done and needs you: I8 GLB assets (sourcing), Quest 3 checks (I5–I7, I9 task 9, I16), IWER run and screenshots of I9, R2 bucket + seed.
+
+## 2b. Latest session (I22–I24, branch `claude/practical-wozniak-5py6mf`, not merged)
+
+- I22 layouts + northern-lights notes (pickable when paused), I23 weather of the dome world, I24 Blender-built models and
+  the `.gitignore` fix that makes `apps/web/public/models` tracked. Report: `docs/improvements/i22-aurora-weather-blender.md`.
+- To check on a Quest 3: weather cost, picking sky notes with a ray. Open: PR to `main` (not opened by this session).
 
 ## 3. Next actions
 

@@ -1,5 +1,6 @@
 /**
- * Authored models (I21): CC0 GLB files in `public/models` (see its LICENSE.md) that replace the procedural shapes of
+ * Authored models (I21, rebuilt in Blender in I24 by `scripts/blender/build_models.py`): GLB files in `public/models`
+ * (see its LICENSE.md) that replace the procedural shapes of
  * `object-shapes.ts` / the director's recipes in templates whose `fx.material` is `polished`. Each file is one mesh with
  * its colors baked into vertex colors, so a kind keeps one geometry, one material and one InstancedMesh. The procedural
  * shape is drawn until the file has loaded, and stays if it cannot load. The LLM never sees these files: it only picks
@@ -23,15 +24,10 @@ export const MODELS: Readonly<Record<string, ModelSpec>> = {
   tree: { file: 'tree', forward: 'x' },
   conifer: { file: 'conifer', forward: 'x' },
   bush: { file: 'bush', forward: 'x' },
+  cloud: { file: 'cloud', forward: 'x' },
   car: { file: 'car', forward: 'z' },
   bicycle: { file: 'bicycle', forward: 'x' },
   airplane: { file: 'airplane', forward: 'x' },
-  'recipe:shark': { file: 'shark', forward: 'z' },
-  'recipe:whale': { file: 'whale', forward: 'z' },
-  'recipe:clownfish': { file: 'clownfish', forward: 'z' },
-  'recipe:sea_turtle': { file: 'sea_turtle', forward: 'x' },
-  'recipe:treasure_chest': { file: 'treasure_chest', forward: 'x' },
-  'recipe:shipwreck': { file: 'shipwreck', forward: 'z' },
 };
 
 export function hasModel(kind: string): boolean {
