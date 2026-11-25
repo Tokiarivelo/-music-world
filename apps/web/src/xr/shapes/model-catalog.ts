@@ -17,6 +17,8 @@ export interface ModelSpec {
   readonly forward: 'x' | 'z';
   /** Turn the model around (its nose points to the negative side of `forward`). */
   readonly flip?: boolean;
+  /** Painted in the colours of the real thing (ocean life): the palette only tints it slightly instead of recolouring it. */
+  readonly natural?: boolean;
 }
 
 /** Kind (`tree`, `recipe:shark`…) to model. Kinds not listed keep their procedural shape. */
@@ -30,6 +32,30 @@ export const MODELS: Readonly<Record<string, ModelSpec>> = {
   car_retro: { file: 'car_retro', forward: 'z' },
   bicycle: { file: 'bicycle', forward: 'x' },
   airplane: { file: 'airplane', forward: 'x' },
+  // Ocean life (I37, `scripts/blender/build_ocean.py`): used by polished templates that define a recipe of that name.
+  'recipe:whale': { file: 'whale', forward: 'x', natural: true },
+  'recipe:shark': { file: 'shark', forward: 'x', natural: true },
+  'recipe:dolphin': { file: 'dolphin', forward: 'x', natural: true },
+  'recipe:manta_ray': { file: 'manta_ray', forward: 'x', natural: true },
+  'recipe:sea_turtle': { file: 'sea_turtle', forward: 'x', natural: true },
+  'recipe:jellyfish': { file: 'jellyfish', forward: 'x', natural: true },
+  'recipe:octopus': { file: 'octopus', forward: 'x', natural: true },
+  'recipe:seahorse': { file: 'seahorse', forward: 'x', natural: true },
+  'recipe:clownfish': { file: 'clownfish', forward: 'x', natural: true },
+  'recipe:fish_school': { file: 'fish_school', forward: 'x', natural: true },
+  'recipe:pufferfish': { file: 'pufferfish', forward: 'x', natural: true },
+  'recipe:kelp': { file: 'kelp', forward: 'x', natural: true },
+  'recipe:seagrass': { file: 'seagrass', forward: 'x', natural: true },
+  'recipe:staghorn_coral': { file: 'staghorn_coral', forward: 'x', natural: true },
+  'recipe:brain_coral': { file: 'brain_coral', forward: 'x', natural: true },
+  'recipe:coral_fan': { file: 'coral_fan', forward: 'x', natural: true },
+  'recipe:tube_sponge': { file: 'tube_sponge', forward: 'x', natural: true },
+  'recipe:sea_anemone': { file: 'sea_anemone', forward: 'x', natural: true },
+  'recipe:starfish': { file: 'starfish', forward: 'x', natural: true },
+  'recipe:sea_urchin': { file: 'sea_urchin', forward: 'x', natural: true },
+  'recipe:crab': { file: 'crab', forward: 'x', natural: true },
+  'recipe:seashell': { file: 'seashell', forward: 'x', natural: true },
+  'recipe:shipwreck': { file: 'shipwreck', forward: 'x', natural: true },
 };
 
 /**
@@ -43,6 +69,11 @@ export const MODEL_VARIANTS: Readonly<Record<string, readonly string[]>> = {
 export function variantOf(kind: string, slot: number): number {
   const n = 1 + (MODEL_VARIANTS[kind]?.length ?? 0);
   return n === 1 ? 0 : ((slot % n) + n) % n;
+}
+
+/** Models painted in natural colours (see `ModelSpec.natural`). */
+export function isNaturalModel(kind: string): boolean {
+  return MODELS[kind]?.natural === true;
 }
 
 export function hasModel(kind: string): boolean {

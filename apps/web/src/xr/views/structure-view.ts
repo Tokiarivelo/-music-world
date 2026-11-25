@@ -28,7 +28,7 @@ import { KIND_FOOTPRINT, RECIPE_FOOTPRINT } from '../constants';
 import { objectScale, scaleStore } from '../scale';
 import { lightness, structureColor } from '../palette';
 import { buildShapeGeometry } from '../shapes/builtin-shapes';
-import { fitModel, hasModel, loadModelGeometry, MODEL_VARIANTS, MODELS, variantOf } from '../shapes/model-catalog';
+import { fitModel, hasModel, isNaturalModel, loadModelGeometry, MODEL_VARIANTS, MODELS, variantOf } from '../shapes/model-catalog';
 import { withLitAttributes } from '../shapes/lit-geometry';
 import {
   applyDetailMaps,
@@ -55,12 +55,16 @@ const FOLIAGE_KINDS: ReadonlySet<string> = new Set(['tree', 'conifer', 'bush']);
 /** Lit materials are shaded darker than unlit colors: lift the tint, and the sky reflection, to the same brightness. */
 const POLISH_GAIN = 1.9;
 const POLISH_REFLECTION = 2.2;
+/** Natural-colour models (ocean life): share of the palette tint mixed into their own colours, and their brightness. */
+const NATURAL_TINT = 0.18;
+const NATURAL_GAIN = 1.5;
 const SHADOW_OPACITY = 0.45;
 const SHADOW_SIZE = 1.5; // shadow diameter / footprint
 const SHADOW_LIFT = 0.004; // above the plate, against z-fighting
 const SHADOW_SKY_SPREAD = 1.8; // sky objects: bigger and fainter
 const FLAT = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
 const ZERO = new Matrix4().makeScale(0, 0, 0);
+const WHITE = new Color(1, 1, 1);
 
 export function footprintOf(kind: ShapeKind, template?: WorldTemplate): number {
   if (KIND_FOOTPRINT[kind] !== undefined) return KIND_FOOTPRINT[kind];
@@ -294,7 +298,10 @@ export class StructureView implements WorldView {
       else {
         if (s.structureHex) this.color.set(s.structureHex).multiplyScalar(s.emissive);
         else structureColor(palette, s.colorRole, s.colorT, s.emissive, this.color);
-        if (this.litKinds.has(s.kind)) this.color.multiplyScalar(POLISH_GAIN);
+        if (this.litKinds.has(s.kind) && isNaturalModel(s.kind)) {
+          // The animal keeps its own colours; the palette (water hue) tints it a little so it belongs to the scene.
+          this.color.lerp(WHITE, 1 - NATURAL_TINT).multiplyScalar(NATURAL_GAIN * (0.85 + 0.15 * Math.min(1.4, s.emissive)));
+        } else if (this.litKinds.has(s.kind)) this.color.multiplyScalar(POLISH_GAIN);
         mesh.setColorAt(s.slot, s.kind === 'spike' ? this.color.multiplyScalar(SPIKE_GLOW) : this.color);
       }
     }

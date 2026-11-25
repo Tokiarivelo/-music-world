@@ -17,11 +17,11 @@ describe('model catalog (I21)', () => {
     }
   });
 
-  it('keeps the whole catalog small (a few hundred kilobytes, far under the 40 MB budget)', () => {
+  it('keeps the whole catalog small (about 2 MB, far under the 40 MB budget)', () => {
     const bytes = readdirSync(MODELS_DIR)
       .filter((f) => f.endsWith('.glb'))
       .reduce((n, f) => n + statSync(join(MODELS_DIR, f)).size, 0);
-    expect(bytes).toBeLessThan(2_000_000);
+    expect(bytes).toBeLessThan(3_000_000);
   });
 
   it('fits a model on the plate: base at 0, centred, length along +x, proportions kept', () => {

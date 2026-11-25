@@ -4,8 +4,8 @@
   "name": "Abyssal Currents",
   "license": "CC-BY-4.0",
   "palette": {
-    "background": "#030a24",
-    "terrain": "#0a2b4f",
+    "background": "#04142e",
+    "terrain": "#5b7f86",
     "primary": "#3d9bff",
     "accent": "#8f7bff",
     "secondary": "#2fe0d0",
@@ -130,92 +130,60 @@
   "zones": [],
   "scenery": [
     {
-      "kind": "recipe:whale",
-      "count": 2
-    },
-    {
-      "kind": "recipe:shark",
-      "count": 3
-    },
-    {
-      "kind": "recipe:shipwreck",
-      "count": 3
-    },
-    {
       "kind": "terrain_ridge",
       "count": 3
     },
     {
-      "kind": "recipe:sea_turtle",
-      "count": 6
+      "kind": "recipe:whale",
+      "count": 1
     },
     {
-      "kind": "recipe:treasure_chest",
-      "count": 6
-    },
-    {
-      "kind": "recipe:anchor",
-      "count": 6
-    },
-    {
-      "kind": "building",
+      "kind": "recipe:shark",
       "count": 2
     },
     {
-      "kind": "recipe:octopus",
-      "count": 6
+      "kind": "recipe:shipwreck",
+      "count": 2
     },
     {
-      "kind": "recipe:seashell",
-      "count": 6
+      "kind": "recipe:sea_turtle",
+      "count": 4
     },
     {
-      "kind": "recipe:sea_anemone",
-      "count": 6
-    },
-    {
-      "kind": "recipe:crab",
-      "count": 6
-    },
-    {
-      "kind": "crystal",
+      "kind": "recipe:manta_ray",
       "count": 3
     },
     {
-      "kind": "recipe:coral_fan",
-      "count": 6
+      "kind": "recipe:dolphin",
+      "count": 3
     },
     {
-      "kind": "recipe:starfish",
-      "count": 6
+      "kind": "recipe:octopus",
+      "count": 4
     },
     {
       "kind": "recipe:seahorse",
-      "count": 6
-    },
-    {
-      "kind": "recipe:clownfish",
-      "count": 6
+      "count": 5
     },
     {
       "kind": "recipe:jellyfish",
-      "count": 6
+      "count": 8
     },
     {
-      "kind": "recipe:bubble_column",
-      "count": 6
+      "kind": "recipe:clownfish",
+      "count": 8
     },
     {
-      "kind": "cluster",
-      "count": 3
+      "kind": "recipe:fish_school",
+      "count": 8
     },
     {
-      "kind": "spike",
-      "count": 3
+      "kind": "recipe:pufferfish",
+      "count": 4
     },
     {
       "kind": "recipe:kelp",
-      "count": 24
+      "count": 20
     },
     {
       "kind": "recipe:seagrass",
@@ -223,10 +191,14 @@
     },
     {
       "kind": "recipe:staghorn_coral",
-      "count": 14
+      "count": 12
     },
     {
       "kind": "recipe:brain_coral",
+      "count": 8
+    },
+    {
+      "kind": "recipe:coral_fan",
       "count": 8
     },
     {
@@ -234,24 +206,28 @@
       "count": 8
     },
     {
+      "kind": "recipe:sea_anemone",
+      "count": 8
+    },
+    {
+      "kind": "recipe:starfish",
+      "count": 8
+    },
+    {
       "kind": "recipe:sea_urchin",
       "count": 8
     },
     {
-      "kind": "recipe:manta_ray",
-      "count": 3
+      "kind": "recipe:crab",
+      "count": 6
     },
     {
-      "kind": "recipe:pufferfish",
-      "count": 4
+      "kind": "recipe:seashell",
+      "count": 6
     },
     {
-      "kind": "recipe:fish_school",
-      "count": 8
-    },
-    {
-      "kind": "recipe:dolphin",
-      "count": 3
+      "kind": "recipe:bubble_column",
+      "count": 5
     }
   ],
   "recipes": [
@@ -492,82 +468,6 @@
       },
       "footprint": 1.1,
       "heightScale": 0.5
-    },
-    {
-      "name": "treasure_chest",
-      "parts": [
-        {
-          "op": "box",
-          "width": 0.9,
-          "depth": 0.6,
-          "height": 0.35,
-          "y": 0
-        },
-        {
-          "op": "prism",
-          "width": 0.9,
-          "height": 0.2,
-          "y": 0.35,
-          "sides": 6,
-          "taper": 0.8
-        },
-        {
-          "op": "cluster",
-          "of": "spike",
-          "width": 0.18,
-          "height": 0.3,
-          "y": 0.55,
-          "count": 5,
-          "spread": 0.3,
-          "seedOffset": 4
-        }
-      ],
-      "budget": {
-        "maxTriangles": 600
-      },
-      "footprint": 0.6,
-      "heightScale": 0.3
-    },
-    {
-      "name": "anchor",
-      "parts": [
-        {
-          "op": "prism",
-          "width": 0.1,
-          "height": 0.9,
-          "y": 0,
-          "sides": 4,
-          "taper": 1
-        },
-        {
-          "op": "box",
-          "width": 0.6,
-          "depth": 0.1,
-          "height": 0.1,
-          "y": 0.6
-        },
-        {
-          "op": "box",
-          "width": 0.4,
-          "depth": 0.1,
-          "height": 0.08,
-          "y": 0.9
-        },
-        {
-          "op": "cluster",
-          "of": "spike",
-          "width": 0.3,
-          "height": 0.3,
-          "y": 0,
-          "count": 2,
-          "spread": 0.7
-        }
-      ],
-      "budget": {
-        "maxTriangles": 600
-      },
-      "footprint": 0.5,
-      "heightScale": 0.8
     },
     {
       "name": "sea_anemone",
@@ -1017,6 +917,7 @@
     "bloom": 0.9,
     "beatPulse": true,
     "chordLinks": "light_arc",
-    "environment": "underwater"
+    "environment": "underwater",
+    "material": "polished"
   }
 }

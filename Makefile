@@ -1,5 +1,5 @@
 # Music World — root commands. See .kiro/steering/infrastructure.md and testing.md. `make help` lists the targets.
-.PHONY: help install garage-init garage-up \
+.PHONY: ocean-models help install garage-init garage-up \
 	dev dev-all dev-db-password dev-web-stack kill-web kill-all dev-local dev-redis dev-infra dev-api dev-worker dev-web up down restart ps logs shell \
 	build build-api build-web rebuild \
 	test test-api test-web check check-api check-web bundle-check arch lint format schemas schemas-check \
@@ -153,6 +153,9 @@ check: schemas-check check-api check-web arch ## Lint + types + tests + architec
 
 check-api: test-api ## Lint, format check, types and tests of the API
 	cd $(API) && uv run ruff check . && uv run ruff format --check . && uv run mypy
+
+ocean-models: ## Rebuild the ocean life models (same bpy setup as `make models`)
+	$(or $(PYTHON),python3) -I scripts/blender/build_ocean.py --out apps/web/public/models
 
 models: ## Rebuild the 3D models with Blender (pip install bpy in a Python 3.13 venv, then PYTHON=<venv>/bin/python)
 	$(or $(PYTHON),python3) -I scripts/blender/build_models.py --out apps/web/public/models

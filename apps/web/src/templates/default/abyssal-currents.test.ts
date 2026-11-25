@@ -5,6 +5,7 @@ import { DEMO_ANALYSIS as demo } from '@/engine/__fixtures__/demo-analysis';
 import { buildSpawnPlan } from '@/engine/spawn-plan';
 import { worldStateAt } from '@/engine/world-state';
 import { TemplateSchema } from '@/templates/generated';
+import { isNaturalModel } from '@/xr/shapes/model-catalog';
 import { buildRecipeGeometry } from '@/xr/shapes/recipe-builder';
 
 const FILE = resolve(__dirname, '../../../../api/music_world/templates/infrastructure/featured/abyssal-currents.json');
@@ -16,6 +17,14 @@ describe('abyssal-currents store template', () => {
     expect(ABYSS.fx.environment).toBe('underwater');
     expect(ABYSS.staff.style).toBe('current');
     for (const recipe of ABYSS.recipes) expect(buildRecipeGeometry(recipe), recipe.name).not.toBeNull();
+  });
+
+  it('is polished and every animal and plant has an authored model', () => {
+    expect(ABYSS.fx.material).toBe('polished');
+    for (const r of ABYSS.recipes) {
+      if (r.name === 'bubble_column') continue; // procedural
+      expect(isNaturalModel(`recipe:${r.name}`), r.name).toBe(true);
+    }
   });
 
   it('carries every falling note on a path that ends on its target', () => {

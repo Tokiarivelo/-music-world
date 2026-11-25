@@ -21,5 +21,31 @@ python -I scripts/blender/build_models.py --out apps/web/public/models
 | `airplane.glb` | `airplane` | 1400 |
 | `bicycle.glb` | `bicycle` | 1500 |
 
+| `whale.glb` | `recipe:whale` (ocean life, polished templates) | see `build_ocean.py` |
+| `shark.glb` | `recipe:shark` (ocean life, polished templates) | see `build_ocean.py` |
+| `dolphin.glb` | `recipe:dolphin` (ocean life, polished templates) | see `build_ocean.py` |
+| `manta_ray.glb` | `recipe:manta_ray` (ocean life, polished templates) | see `build_ocean.py` |
+| `sea_turtle.glb` | `recipe:sea_turtle` (ocean life, polished templates) | see `build_ocean.py` |
+| `jellyfish.glb` | `recipe:jellyfish` (ocean life, polished templates) | see `build_ocean.py` |
+| `octopus.glb` | `recipe:octopus` (ocean life, polished templates) | see `build_ocean.py` |
+| `seahorse.glb` | `recipe:seahorse` (ocean life, polished templates) | see `build_ocean.py` |
+| `clownfish.glb` | `recipe:clownfish` (ocean life, polished templates) | see `build_ocean.py` |
+| `fish_school.glb` | `recipe:fish_school` (ocean life, polished templates) | see `build_ocean.py` |
+| `pufferfish.glb` | `recipe:pufferfish` (ocean life, polished templates) | see `build_ocean.py` |
+| `kelp.glb` | `recipe:kelp` (ocean life, polished templates) | see `build_ocean.py` |
+| `seagrass.glb` | `recipe:seagrass` (ocean life, polished templates) | see `build_ocean.py` |
+| `staghorn_coral.glb` | `recipe:staghorn_coral` (ocean life, polished templates) | see `build_ocean.py` |
+| `brain_coral.glb` | `recipe:brain_coral` (ocean life, polished templates) | see `build_ocean.py` |
+| `coral_fan.glb` | `recipe:coral_fan` (ocean life, polished templates) | see `build_ocean.py` |
+| `tube_sponge.glb` | `recipe:tube_sponge` (ocean life, polished templates) | see `build_ocean.py` |
+| `sea_anemone.glb` | `recipe:sea_anemone` (ocean life, polished templates) | see `build_ocean.py` |
+| `starfish.glb` | `recipe:starfish` (ocean life, polished templates) | see `build_ocean.py` |
+| `sea_urchin.glb` | `recipe:sea_urchin` (ocean life, polished templates) | see `build_ocean.py` |
+| `crab.glb` | `recipe:crab` (ocean life, polished templates) | see `build_ocean.py` |
+| `seashell.glb` | `recipe:seashell` (ocean life, polished templates) | see `build_ocean.py` |
+| `shipwreck.glb` | `recipe:shipwreck` (ocean life, polished templates) | see `build_ocean.py` |
+
+Ocean models come from `scripts/blender/build_ocean.py` (`make ocean-models`); their colours are the real colours of the species.
+
 Each file is one mesh with its colors baked into vertex colors (`COLOR_0`), a baked ambient occlusion, no material and no
 texture.
