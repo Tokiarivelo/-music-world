@@ -71,8 +71,41 @@ of a set, and are applied when ready (a load failure leaves the untextured lit l
 multiview. Screenshot: `docs/improvements/i19/textured-immersive.png`. Tuning: `TEXTURE_SET`, `UV_TILING`,
 `NORMAL_SCALE`; the foliage map has the lowest contrast because the raw leaf photo looked blotchy.
 
+## Models (phase I21): investigation and result
+
+Sources searched on the web, licence first. **Kept (all CC0):** Kenney kits (Nature 2.1, Car 3.1, Pirate 2.1, GLB with
+`License.txt`), Quaternius Animated Fish Pack, and single OpenGameArt models (bicycle, toy airplane, turtle).
+**Not usable:** Poly Haven models (photogrammetry, 100 k to 7 M triangles, far above the Quest budget); CGTrader and most
+itch.io packs (paid or CC-BY); Kenney's own download button (`/download-link/` returns 403 to scripts, so the same kits
+were taken from their official OpenGameArt mirrors); Poly Pizza (needs an API key). No cloud model exists in these packs.
+
+Pipeline (Blender 3.0 headless): import, bake each material or palette-texture color into **vertex colors**, merge into one
+mesh, decimate above 800 triangles (sedan 2032 to 700, wreck 2282 to 800), drop animation, export GLB. Result: 12 files,
+**460 KB** in `apps/web/public/models/` with `LICENSE.md` (source, author, licence per file). A crab model was skipped
+(Blender crashed on the source file).
+
+| Kind | Model | Triangles |
+|---|---|---|
+| tree, conifer, bush | Kenney `tree_default`, `tree_pineTallA`, `plant_bushLarge` | 114, 78, 60 |
+| car | Kenney `sedan` | 700 |
+| bicycle, airplane | OpenGameArt bicycle, toy airplane | 274, 366 |
+| `recipe:shark`, `recipe:whale`, `recipe:clownfish` | Quaternius Shark, Whale, Fish1 | 644, 452, 544 |
+| `recipe:sea_turtle` | OpenGameArt turtle | 373 |
+| `recipe:treasure_chest`, `recipe:shipwreck` | Kenney `chest`, `ship-wreck` | 232, 800 |
+
+Integration (`xr/shapes/model-catalog.ts`): a kind's procedural shape is drawn first; when its GLB has loaded (once,
+shared) the geometry of the same `InstancedMesh` is swapped, so **no extra draw call** and a load failure keeps the
+procedural shape. Only for `fx.material: "polished"` templates, so `flat` (neon default) is unchanged. `fitModel` puts the
+base at 0, the length along +x (cars and planes follow their heading) and keeps the model's own proportions under the
+instance scale. Recipes keep their name, scale and budget; the director still only picks names. Measured in IWER:
+Living City 56 draw calls, 355 k triangles; Nemo Reef 84 draw calls (86 with panel and controllers, under 100), 438 k
+triangles, no leak after 3 seeks, 27 of 27 programs compile with multiview. Screenshots: `models-living-city.png`,
+`models-nemo-reef.png`.
+
+Still procedural: clouds (no CC0 cloud model; no ambientCG texture fits a puff), crystals, clusters, and the Nemo recipes
+without a model (anchor, coral fan, crab, jellyfish, octopus, anemone, seahorse, seashell, starfish, bubble column).
+
 ## Not done, and why
 
-- **No GLB models.** Same decision as I8; they would replace the builders of `object-shapes.ts`.
 - Buildings, spikes, terrain and the staff stay unlit on purpose (table above).
 - Quest 3 frame rate of lit materials: to measure (human). If too slow, set `material: "flat"` on the template.
