@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-24 · **Last updated by:** Claude Code (phase I9 editable notes)
+> **Date:** 2026-11-24 · **Last updated by:** Claude Code (handoff after phases I10–I17)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -12,29 +12,24 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 1. Repository state
 
-- Branch `phase-I9-editable-notes` (PR to `main` opened at the end of the phase); otherwise work from `main`. Push with gh credentials:
+- Branch `phase-I18-handoff` (docs only, PR to `main`); otherwise work from `main` (last: PR #39, I17). Push with gh credentials:
   `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
-- Merged: B4 Caddy cache headers (PR #24), phase A4 (#23), phase 9 docs, `08-navigation-mode` (PR #9), I1–I4b (PRs #15–#19), A2 template editor (PR #21 line).
-  Open PRs: #22 `phase-A3-moderation` (spec 10, tasks 1–6) and, stacked on it, `phase-A4-design-system`.
-- Checks at the end of A3: web vitest 348 passed, API 354 passed, ruff / mypy / tsc / eslint clean.
-- No server left running. A `music-world` Compose stack (old images, predates Phase 6) and another project's
-  containers (`angaly_*`) may be running — not started by these sessions; leave them alone.
+- Merged: phases A2–A5, B4, I1–I7, I9–I17 (PRs #15–#39). Open PRs: #22 `phase-A3-moderation` and, stacked on it, `phase-A4-design-system` (check `gh pr list`).
+- Checks on 2026-11-25: web vitest 520 passed (99 files), API pytest 387 passed, `validate-architecture.sh` OK.
+- No server left running. A `music-world` Compose stack (old images) and another project's containers (`angaly_*`) may be
+  running — not started by these sessions; leave them alone. `make dev` and `make up` now also start the local Garage S3 store (I10).
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-24, Claude Code, phase I9 editable notes)
+## 2. Last session (2026-11-25, Claude Code, phases I10–I17 and handoff)
 
-- `11-editable-notes` tasks 1–8 and 10 on `phase-I9-editable-notes`, one commit per task: edit model and history
-  (`engine/edits.ts`), contract (`when.line`, `colorRole: "line"`, `music-world.edits.v1`), voice-line staves, note synth
-  and picking, edit controller, toolbar, per-note and per-line properties, persistence (browser and
-  `GET/PUT /api/projects/{id}/edits`, migration `0006`), "Play my edits" (`ScorePlayer`), VR ray + trigger picking.
-- Task 10 (note accuracy, asked by the author): staff positions are diatonic and octave-folded (the old clamp piled bass
-  notes on one height); analysis drops overtones, enforces one voice for vocals and bass, per-stem minimum length, and
-  checks quiet notes against the mix chroma. Applies to new analyses only. Not measured on a reference recording.
-  An LLM cannot hear audio, so it is not used for notes (rule: algorithms detect, LLMs interpret).
-- VR keyboard (`xr/keyboard-pad.ts`): W A S D glide, arrows or Q E snap turn, Space play, `[` `]` seek, R recenter, G or B
-  scale; documented in `07-xr-mode/design.md`. The score player is driven by the frame loop (no timer).
-- Not done: line list on the VR panel, IWER run, screenshots, README / `PROJECT.md` §6/§7 mention, task 9 (Quest check).
-- The handoff above (sections 1, 3–6) still describes the A3/A4 state; the roadmap items are unchanged.
+- I10 song catalog: S3 client for Garage and Cloudflare R2, `songs` table (migration `0007`), seed script and manifest,
+  note-quality proxies, director prompt v4 (about 20 % fewer input tokens). The Eric Clapton recording stays local (`is_public=false`).
+- I11 long songs: up to 5 minutes analysed whole; longer ones analysed on 5 minutes and played whole with generic notes
+  (`engine/generic-notes.ts`). I12: staff notes wear the color of their layer. I14: pure motion functions for clouds, cars, planes (I8 task 4 only).
+- I13 + I17 lyrics: LRCLIB lookup, then Whisper on the vocal stem (`base`), at upload and on a "Search lyrics" button/job
+  (`search_lyrics.py`, job kind added). Lookup sends artist, title, duration to lrclib.net (documented in `docs/improvements/i13-auto-lyrics.md`).
+- I16: layers page on the VR spatial panel (closes the I5 gap). I15: `docs/open-questions.md` created (11 questions, defaults applied); rules now say merge each finished phase and keep going.
+- Not done and needs you: I8 realistic objects (asset sourcing), Quest 3 checks (I5–I7, I9 task 9, I16), IWER run and screenshots of I9, R2 bucket + seed.
 
 ## 3. Next actions
 
@@ -56,7 +51,8 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
    Update README § Known limitations once done.
 4. **Human** — roadmap 9.3 video, 9.4 Devpost form, 9.5 posts from the drafts in `docs/submission.md` (checklist at
    its top). Run `uvx pip-audit` / `pnpm audit --prod` once before submitting.
-5. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` — B4 done (Caddy cache headers); see the file for the next free one.
+5. **Human** — answer `docs/open-questions.md` (11 rows; I8 assets, R2 bucket, Whisper size, lyrics notice, note filters).
+6. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` — B4 done (Caddy cache headers); see the file for the next free one.
    Optional: `02-music-analysis` 6.1 (Muse Voice); `01-foundation` 6.2/6.3/7.
 
 ## 4. Task ownership
@@ -89,6 +85,10 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | A4 design-system skill, My templates, Nemo Reef | Claude Code (world-builder) | done | branch `phase-A4-design-system`, stacked on #22 |
 | 11-editable-notes 1–8, 10 | Claude Code | done | branch `phase-I9-editable-notes`, one commit per task; 8 partly (panel line list, IWER, screenshots open) |
 | 11-editable-notes 9 | — | blocked | Quest 3 check (human): ray accuracy, drag comfort, tone latency |
+| I10 catalog, I11 long songs, I12, I13, I14, I15, I16, I17 | Claude Code | done | merged PRs #31–#39; I14 = I8 task 4 only |
+| I8 realistic objects (assets, views) | — | blocked | human: asset sourcing, see `docs/open-questions.md` 1–2 |
+| I10 R2 bucket + seed | — | blocked | human: bucket, API token, `--only` seed |
+| I9 task 9, I16, I5–I7 Quest checks | — | blocked | human: Quest 3 |
 | 10-template-moderation 7 | — | blocked | human: review a real hidden template on the public URL |
 | Roadmap 9.3–9.5 | — | blocked | human: video, Devpost, posts; drafts in `docs/submission.md` |
 
