@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AdditiveBlending, Matrix4, Vector3, type InstancedMesh, type MeshBasicMaterial, type Object3D } from 'three';
+import { AdditiveBlending, Matrix4, Vector3, type InstancedMesh, type MeshBasicMaterial, type MeshStandardMaterial, type Object3D } from 'three';
 import { mulberry32 } from '@/engine/prng';
 import { DEMO_ANALYSIS as demo } from '@/engine/__fixtures__/demo-analysis';
 import { buildSpawnPlan } from '@/engine/spawn-plan';
@@ -324,5 +324,47 @@ describe('object kinds: contact shadows and wind (I8)', () => {
     view.update(worldStateAt(objPlan, 3));
     expect(time.value).toBe(3);
     view.dispose();
+  });
+});
+
+describe('polished materials (I19)', () => {
+  const base = {
+    ...DEFAULT_TEMPLATE,
+    mappings: [
+      { when: { pitch: '<60' }, spawn: 'tree', heightFrom: 'duration' },
+      { when: { pitch: '<72' }, spawn: 'car', heightFrom: 'velocity' },
+      { when: {}, spawn: 'building' },
+    ],
+    zones: [
+      { kind: 'tree', xMin: -0.9, xMax: 0.9, zMin: -0.9, zMax: 0 },
+      { kind: 'car', xMin: -0.9, xMax: 0.9, zMin: 0, zMax: 0.9 },
+      { kind: 'building', xMin: -0.9, xMax: 0.9, zMin: -0.9, zMax: 0.9 },
+    ],
+  };
+  const withMaterial = (material: 'flat' | 'polished') =>
+    buildSpawnPlan(demo, { ...base, fx: { ...base.fx, material } } as unknown as typeof DEFAULT_TEMPLATE, 1);
+
+  it('lights objects and keeps the city and spikes unlit when the template is polished', () => {
+    const view = new StructureView(withMaterial('polished'));
+    const material = (k: string) => view.mesh(k as never)!.material as MeshStandardMaterial;
+    expect(material('tree').isMeshStandardMaterial).toBe(true);
+    expect(material('car').metalness).toBeGreaterThan(0.5);
+    expect(material('car').roughness).toBeLessThan(0.4);
+    expect(material('tree').roughness).toBeGreaterThan(0.6);
+    expect(material('building').isMeshStandardMaterial).toBeFalsy();
+    expect(view.mesh('car')!.geometry.hasAttribute('normal')).toBe(true);
+    view.dispose();
+  });
+
+  it('keeps every material unlit when the template is flat', () => {
+    const view = new StructureView(withMaterial('flat'));
+    for (const k of ['tree', 'car', 'building']) {
+      expect((view.mesh(k as never)!.material as MeshStandardMaterial).isMeshStandardMaterial).toBeFalsy();
+    }
+    view.dispose();
+  });
+
+  it('the default look stays flat (reference image)', () => {
+    expect(DEFAULT_TEMPLATE.fx.material).toBe('flat');
   });
 });

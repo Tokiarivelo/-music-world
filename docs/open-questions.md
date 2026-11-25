@@ -17,3 +17,5 @@ the agent applied, so nothing is blocked. Newest at the bottom; strike a line on
 | 9 | I13 | Online lyrics lookup sends artist, title and duration to lrclib.net: add a line to the upload notice? | documented in `docs/improvements/i13-auto-lyrics.md` only |
 | 10 | I11 | Beyond 5 minutes the world plays generic notes (one per beat from the song's own pitch classes): is that the wanted look? | as described |
 | 11 | I10 | Notes were filtered harder (overtones, one voice for vocals and bass, chroma check); on Machine 36 % of notes went with no gain in the in-key proxy. Listen and say which songs sound wrong. | filters kept |
+| 13 | I19 | `neon-nocturne` is `flat` to keep the reference image; should the default template also be `polished`? | flat (one word to change) |
+| 14 | I19 | Quest 3 frame rate of lit PBR materials is unmeasured (IWER only): acceptable? | polished by default, `flat` as the fallback |

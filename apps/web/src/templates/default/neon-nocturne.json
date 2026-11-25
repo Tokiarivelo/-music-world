@@ -37,5 +37,5 @@
     { "kind": "terrain_ridge", "xMin": -0.1, "xMax": 0.72, "zMin": 0.78, "zMax": 0.95 }
   ],
   "budget": { "instancesPerKind": 2000 },
-  "fx": { "particles": "arcs", "bloom": 0.8, "beatPulse": true, "chordLinks": "light_arc" }
+  "fx": { "particles": "arcs", "bloom": 0.8, "beatPulse": true, "chordLinks": "light_arc", "material": "flat" }
 }

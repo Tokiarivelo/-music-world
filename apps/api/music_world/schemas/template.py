@@ -123,6 +123,11 @@ class Fx(ContractModel):
     bloom: float = Field(default=0.8, ge=0, le=2)
     beat_pulse: bool = True
     chord_links: Literal["light_arc", "none"] = "light_arc"
+    material: Literal["flat", "polished"] = Field(
+        default="polished",
+        description="polished: lit PBR with sky reflections on trees, cars, planes, clouds, crystals and recipes; "
+        "flat: unlit colors (the look of the reference image).",
+    )
 
 
 class GeneratedBy(ContractModel):
