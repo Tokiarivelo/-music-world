@@ -13,12 +13,14 @@ FEATURED_OWNER = "00000000-0000-7000-8000-000000000000"
 KIROWEEN_STORE_ID = "00000000-0000-7000-8000-000000000001"
 NEMO_STORE_ID = "00000000-0000-7000-8000-000000000002"
 AURORA_STORE_ID = "00000000-0000-7000-8000-000000000003"
+LIVING_CITY_STORE_ID = "00000000-0000-7000-8000-000000000004"
 FEATURED_AT = datetime(2026, 11, 26, tzinfo=UTC)
 # Store id → file. Fixed UUIDv7-shaped ids so links to a launch template never change.
 FEATURED_FILES: dict[str, str] = {
     KIROWEEN_STORE_ID: "kiroween-pumpkin-night.json",  # Halloween launch template
     NEMO_STORE_ID: "nemo-reef.json",  # ocean launch template
     AURORA_STORE_ID: "aurora-night.json",  # northern lights launch template (staff style aurora)
+    LIVING_CITY_STORE_ID: "living-city.json",  # trees, clouds, cars and planes (I8)
 }
 
 

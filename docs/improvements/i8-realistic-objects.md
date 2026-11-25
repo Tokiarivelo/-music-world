@@ -94,6 +94,16 @@ with kinds × LODs (merge LODs with distance culling, measure). Realism needs li
 - Task 4 (2026-11-24, branch `phase-I14-object-motion`): `engine/motion.ts` with `driftAt` (clouds), `loopAt` (cars on an
   oval ring) and `flightAt` (planes), pure functions of `(seed, objectId, t)` with property tests (same inputs same pose
   whatever was asked before, bounds, speed range, heading along the path). Nothing renders them yet.
+- Tasks 2, 3, 5, 6, 8 as a first slice (2026-11-25, branch `phase-I8-realistic-objects`), with the defaults of
+  `docs/open-questions.md` 1-2: no outside asset (no GLB, no licence), **self-made procedural low-poly geometry with baked
+  vertex colors**, tinted per instance. Seven new built-in kinds in the closed `spawn` / `zones` enum: `cloud`, `tree`,
+  `conifer`, `bush`, `car`, `bicycle`, `airplane` (`xr/shapes/object-shapes.ts`, each under the 600 triangle budget,
+  one `InstancedMesh` per kind). `KIND_HEIGHT` / `KIND_FOOTPRINT` hold the proportions; `KIND_ALTITUDE` lifts clouds and
+  planes into the sky. Mirrored in `BuiltinShapeKind` (Python), `BUILTIN_KINDS`, the editor kind list (en, fr, mg) and
+  the director prompt (`director-v5`). Showcase template **Living City** (`featured/living-city.json`): drums to cars, bass
+  to trees, vocals to clouds, high notes to planes.
+- Still not done: the motion functions (task 4) are not yet applied to the instances (cars, planes and clouds stand
+  still), no GLB / PBR / LODs / IBL / blob shadows (tasks 1, 7), no Quest check (task 9, human).
 - Not started, and blocked on the decisions above: tasks 1 (spike on Quest 3 and asset sourcing), 2 (catalog contract),
   3 (loader), 5-6 (content), 7 (lighting), 8 (director), 9 (Quest pass). The code tasks 2 and 3 are only worth writing once
   the sourcing and the realism target are confirmed.

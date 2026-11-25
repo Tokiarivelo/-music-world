@@ -10,7 +10,22 @@ from collections.abc import Mapping
 from typing import Any
 
 MAX_TEMPLATE_BYTES = 32 * 1024
-BUILTIN_KINDS = frozenset({"terrain_ridge", "building", "spike", "crystal", "cluster"})
+BUILTIN_KINDS = frozenset(
+    {
+        "terrain_ridge",
+        "building",
+        "spike",
+        "crystal",
+        "cluster",
+        "cloud",
+        "tree",
+        "conifer",
+        "bush",
+        "car",
+        "bicycle",
+        "airplane",
+    }
+)
 MIN_STAFF_CONTRAST = 0.2
 _KIND_HINT = "use a built-in shape kind or a recipe defined in `recipes`"
 _FORBIDDEN_TEXT = re.compile(r"(://|www\.|data:|javascript:|[<>\x00-\x1f\x7f])", re.IGNORECASE)

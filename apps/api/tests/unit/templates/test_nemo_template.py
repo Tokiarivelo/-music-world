@@ -10,13 +10,17 @@ from music_world.templates.infrastructure.featured_catalog import KIROWEEN_STORE
 from tests.fakes import StaticProbe
 from tests.integration.test_http import LifespanManager, make_container
 
+OBJECT_KINDS = {"cloud", "tree", "conifer", "bush", "car", "bicycle", "airplane"}  # I8, not part of the reef
+
 
 def test_nemo_has_every_ocean_object_standing_before_the_first_note() -> None:
     [nemo] = [t for t in FileFeaturedCatalog().all() if t.id == NEMO_STORE_ID]
     template = WorldTemplate.model_validate(nemo.document)
     assert len(template.recipes) == 16 and all(r.triangle_count() <= r.budget.max_triangles for r in template.recipes)
     standing = {item.kind for item in template.scenery}
-    assert standing == BUILTIN_KINDS | {f"recipe:{r.name}" for r in template.recipes}  # all 21 kinds are on the plate
+    assert standing == (BUILTIN_KINDS - OBJECT_KINDS) | {
+        f"recipe:{r.name}" for r in template.recipes
+    }  # all 21 kinds are on the plate
     assert {rule.spawn for rule in template.mappings} <= standing  # notes spawn more of the same kinds
     assert sum(item.count for item in template.scenery) <= 400
 

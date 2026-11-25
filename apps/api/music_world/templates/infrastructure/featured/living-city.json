@@ -1,0 +1,50 @@
+{
+  "schema": "music-world.template.v1",
+  "id": "living-city",
+  "name": "Living City",
+  "license": "CC-BY-4.0",
+  "palette": {
+    "background": "#0c1830",
+    "terrain": "#1d3a2c",
+    "primary": "#ffd27a",
+    "accent": "#ff7a6b",
+    "secondary": "#7ad0ff",
+    "staff": "#fff6e0"
+  },
+  "terrain": { "style": "smooth_plate", "mountains": "edges", "size": 14 },
+  "staff": {
+    "style": "glowing_lines",
+    "path": "diagonal_curve",
+    "clef": "treble",
+    "glow": 1.2,
+    "lookahead": 5.0,
+    "fallDuration": 1.2
+  },
+  "mappings": [
+    { "when": { "stem": "drums" }, "spawn": "car", "heightFrom": "velocity", "colorRole": "accent" },
+    { "when": { "stem": "bass" }, "spawn": "tree", "heightFrom": "duration", "colorRole": "secondary" },
+    { "when": { "stem": "vocals" }, "spawn": "cloud", "heightFrom": "duration" },
+    { "when": { "pitch": ">72" }, "spawn": "airplane", "heightFrom": "pitch" },
+    { "when": { "pitch": "<48" }, "spawn": "conifer", "heightFrom": "duration" },
+    { "when": { "pitch": "48-72" }, "spawn": "building", "heightFrom": "velocity" },
+    { "when": {}, "spawn": "bush" }
+  ],
+  "zones": [
+    { "kind": "tree", "xMin": -0.95, "xMax": 0.95, "zMin": -0.95, "zMax": -0.4 },
+    { "kind": "conifer", "xMin": -0.95, "xMax": 0.95, "zMin": -0.95, "zMax": -0.4 },
+    { "kind": "building", "xMin": -0.7, "xMax": 0.7, "zMin": -0.4, "zMax": 0.3 },
+    { "kind": "car", "xMin": -0.9, "xMax": 0.9, "zMin": 0.3, "zMax": 0.6 },
+    { "kind": "bush", "xMin": -0.9, "xMax": 0.9, "zMin": 0.5, "zMax": 0.95 },
+    { "kind": "cloud", "xMin": -0.9, "xMax": 0.9, "zMin": -0.8, "zMax": 0.8 },
+    { "kind": "airplane", "xMin": -0.9, "xMax": 0.9, "zMin": -0.8, "zMax": 0.8 }
+  ],
+  "scenery": [
+    { "kind": "tree", "count": 18 },
+    { "kind": "conifer", "count": 14 },
+    { "kind": "bush", "count": 20 },
+    { "kind": "cloud", "count": 6 },
+    { "kind": "car", "count": 8 }
+  ],
+  "budget": { "instancesPerKind": 1000 },
+  "fx": { "particles": "dust", "bloom": 0.8, "beatPulse": true, "chordLinks": "none" }
+}

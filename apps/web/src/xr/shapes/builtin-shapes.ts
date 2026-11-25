@@ -14,6 +14,7 @@ import {
 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { ShapeKind } from '@/engine/types';
+import { airplane, bicycle, bush, car, cloud, conifer, tree } from './object-shapes';
 import { buildRecipeGeometry, type ShapeRecipe } from './recipe-builder';
 
 function baseAtZero(geometry: BufferGeometry, height: number): BufferGeometry {
@@ -132,6 +133,20 @@ export function buildShapeGeometry(kind: ShapeKind, recipes: readonly ShapeRecip
       return crystal();
     case 'cluster':
       return cluster();
+    case 'cloud':
+      return cloud();
+    case 'tree':
+      return tree();
+    case 'conifer':
+      return conifer();
+    case 'bush':
+      return bush();
+    case 'car':
+      return car();
+    case 'bicycle':
+      return bicycle();
+    case 'airplane':
+      return airplane();
     default: {
       const recipe = recipes.find((r) => `recipe:${r.name}` === kind);
       return (recipe && buildRecipeGeometry(recipe)) || baseAtZero(new BoxGeometry(1, 1, 1), 1);

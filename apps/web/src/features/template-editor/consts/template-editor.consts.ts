@@ -14,7 +14,7 @@ export const MAX_ID_LENGTH = 60;
 export const COPY_SUFFIX = ' (copy)';
 export const FALLBACK_ID = 'my-template';
 
-export const BUILTIN_KINDS = ['terrain_ridge', 'building', 'spike', 'crystal', 'cluster'] as const;
+export const BUILTIN_KINDS = ['terrain_ridge', 'building', 'spike', 'crystal', 'cluster', 'cloud', 'tree', 'conifer', 'bush', 'car', 'bicycle', 'airplane'] as const;
 export const HEIGHT_SOURCES = ['velocity', 'duration', 'pitch'] as const;
 export const COLOR_ROLES = ['primary', 'accent', 'secondary', 'staff', 'line'] as const;
 export const STEMS = ['vocals', 'drums', 'bass', 'other'] as const;

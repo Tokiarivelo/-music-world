@@ -52,6 +52,15 @@ export const KIND_HEIGHT: Readonly<Record<string, { base: number; extra: number 
   spike: { base: 0.8, extra: 2.6 },
   crystal: { base: 0.4, extra: 1.1 },
   cluster: { base: 0.25, extra: 0.7 },
+  // Object kinds (I8): the nominal height (base + extra / 2) over the footprint matches the proportions of the
+  // geometry in `xr/shapes/object-shapes.ts` (cloud 0.48, tree 1.4, conifer 1.5, bush 0.45, car 0.52, bicycle 0.48, airplane 0.23).
+  cloud: { base: 0.3, extra: 0.16 },
+  tree: { base: 0.2, extra: 0.2 },
+  conifer: { base: 0.2, extra: 0.2 },
+  bush: { base: 0.06, extra: 0.06 },
+  car: { base: 0.13, extra: 0.06 },
+  bicycle: { base: 0.08, extra: 0.03 },
+  airplane: { base: 0.1, extra: 0.04 },
 };
 export const RECIPE_HEIGHT = { base: 0.5, extra: 1.0 };
 /** Default footprint of a recipe in metres (`ShapeRecipe.footprint`); `xr/constants.ts` mirrors it. */
