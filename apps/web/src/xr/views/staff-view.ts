@@ -43,6 +43,7 @@ import {
   STAFF_TUBE_SEGMENTS,
 } from '../constants';
 import { skyStore } from '../sky-store';
+import { AURORA_GREENS, AURORA_TOPS, auroraColor } from './aurora-colors';
 import { createAuroraCurtain, type AuroraCurtain } from './aurora-curtain';
 import { bravuraGeometry, noteGlyphGeometry } from '../glyphs/glyph-geometry';
 import { radialAlphaTexture } from '../glyphs/halo-texture';
@@ -116,6 +117,10 @@ function hexOf(r: { colorHex: string | null; stem: Stem | null }): string | null
   return r.colorHex ?? (r.stem ? LAYER_COLORS[r.stem] : null);
 }
 
+/** Height of each line ribbon of the northern-lights mode, in line gaps. */
+const LINE_CURTAIN_GAPS = 4;
+const AURORA_HALO = new Color('#3fd8ff');
+
 export class StaffView implements WorldView {
   readonly object = new Group();
   private readonly glyphMeshes = new Map<GlyphKind, InstancedMesh>();
@@ -130,12 +135,18 @@ export class StaffView implements WorldView {
   private readonly tinted: boolean;
   private readonly glow: Color;
   private readonly tint = new Color();
+  private readonly auroraTint = new Color();
   private readonly up = new Vector3(0, 1, 0);
   /** Reused per update (07-xr-mode requirement 6.2: no steady-state allocation). */
   private readonly counts = new Map<GlyphKind, number>();
   private haloCount = 0;
   private lastT = Number.NaN;
   private readonly curtain: AuroraCurtain | null = null;
+  /** Northern-lights mode: one aurora ribbon per staff line, in place of the tube lines. */
+  private readonly lineCurtains: AuroraCurtain[] = [];
+  private readonly classicParts: Object3D[] = [];
+  private readonly haloMaterial: MeshBasicMaterial;
+  private readonly haloColor: Color;
   /** Lines, halo, clef and curtain: hidden with the `staff` layer. */
   private readonly staffParts: Object3D[] = [];
   private unsubscribe: () => void = () => {};
@@ -149,6 +160,7 @@ export class StaffView implements WorldView {
     const staffGeometry = buildStaffGeometry(plan.staff, staff.clef === 'treble' && (mainLine?.clef ?? 'treble') === 'treble');
     const lines = new Mesh(staffGeometry, material);
     this.staffParts.push(lines);
+    this.classicParts.push(lines);
     this.object.add(lines);
     this.disposables.push(staffGeometry, material);
 
@@ -163,7 +175,10 @@ export class StaffView implements WorldView {
     });
     const haloGeometry = buildStaffGeometry(plan.staff, false, STAFF_HALO_RADIUS);
     const halo = new Mesh(haloGeometry, haloMaterial);
+    this.haloMaterial = haloMaterial;
+    this.haloColor = haloColor;
     this.staffParts.push(halo);
+    this.classicParts.push(halo);
     this.object.add(halo);
     this.disposables.push(haloGeometry, haloMaterial);
 
@@ -175,6 +190,7 @@ export class StaffView implements WorldView {
       const lineGeometry = buildStaffGeometry(plan.staff, line.clef === 'treble', STAFF_TUBE_RADIUS, line.offsetY);
       const mesh = new Mesh(lineGeometry, lineMaterial);
       this.staffParts.push(mesh);
+      this.classicParts.push(mesh);
       this.object.add(mesh);
       this.disposables.push(lineGeometry, lineMaterial);
     }
@@ -185,6 +201,27 @@ export class StaffView implements WorldView {
       this.staffParts.push(this.curtain.mesh);
       this.object.add(this.curtain.mesh);
       this.disposables.push(this.curtain);
+    }
+
+    // Northern-lights mode: each of the five lines is itself an aurora ribbon (green low, violet high).
+    const reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const gap = plan.staff.lineGap;
+    const lift = (p: { x: number; y: number; z: number }, dy: number) => ({ x: p.x, y: p.y + dy, z: p.z });
+    for (let line = 0; line < 5; line += 1) {
+      // The ribbon starts one gap under the path it is given, so the path is raised to sit right on the line.
+      const dy = (line + 1) * gap;
+      const path = { ...plan.staff, start: lift(plan.staff.start, dy), control: lift(plan.staff.control, dy), end: lift(plan.staff.end, dy) };
+      const colors = {
+        primary: AURORA_GREENS[line % AURORA_GREENS.length]!,
+        accent: AURORA_GREENS[(line + 1) % AURORA_GREENS.length]!,
+        secondary: AURORA_TOPS[line % AURORA_TOPS.length]!,
+      };
+      const ribbon = createAuroraCurtain(path, colors, (gap * LINE_CURTAIN_GAPS) / 0.22, 1.6, reducedMotion, true);
+      ribbon.mesh.visible = false;
+      ribbon.mesh.name = 'aurora-line';
+      this.object.add(ribbon.mesh);
+      this.lineCurtains.push(ribbon);
+      this.disposables.push(ribbon);
     }
 
     for (const r of plan.records) this.indexOf.set(r.noteId, r.index);
@@ -248,15 +285,23 @@ export class StaffView implements WorldView {
     this.lastT = state.t;
     this.curtain?.update(state.t);
     const hidden = layerStore.hidden;
-    const sky = skyStore.enabled; // the aurora sky shows the notes itself: no staff, no sliding or falling glyphs
-    for (const part of this.staffParts) part.visible = !hidden.has('staff') && !sky;
+    const sky = skyStore.enabled; // northern lights: the lines are aurora ribbons, the notes keep their staff glyphs
+    const staffOn = !hidden.has('staff');
+    for (const part of this.staffParts) part.visible = staffOn && !sky;
+    for (const part of this.classicParts) part.visible = staffOn && !sky;
+    if (this.curtain) this.curtain.mesh.visible = staffOn && !sky;
+    for (const ribbon of this.lineCurtains) {
+      ribbon.mesh.visible = staffOn && sky;
+      if (sky) ribbon.update(state.t);
+    }
+    this.haloMaterial.color.copy(sky ? AURORA_HALO : this.haloColor);
     this.counts.clear();
     this.haloCount = 0;
-    if (!sky) for (const n of state.notesOnStaff) if (isRecordShown(this.plan, n.index, hidden)) this.place(n.glyph, n.position, n.u, hexOf(this.plan.records[n.index]!));
-    for (const f of sky ? [] : state.fallingNotes) {
-      if (isRecordShown(this.plan, f.index, hidden)) this.place(f.glyph, f.position, this.plan.staff.playheadU, hexOf(this.plan.records[f.index]!));
+    for (const n of state.notesOnStaff) if (isRecordShown(this.plan, n.index, hidden)) this.place(n.glyph, n.position, n.u, this.noteHex(n.index));
+    for (const f of state.fallingNotes) {
+      if (isRecordShown(this.plan, f.index, hidden)) this.place(f.glyph, f.position, this.plan.staff.playheadU, this.noteHex(f.index));
     }
-    if (!sky) this.placeEditMarks(state);
+    this.placeEditMarks(state);
     for (const [kind, mesh] of this.glyphMeshes) {
       mesh.count = this.counts.get(kind) ?? 0;
       mesh.instanceMatrix.needsUpdate = true;
@@ -308,6 +353,13 @@ export class StaffView implements WorldView {
     if (this.tinted) mesh.setColorAt(n, this.colorOf(hex));
     this.counts.set(glyph, n + 1);
     if (this.haloCount < this.halos.instanceMatrix.count) this.halos.setMatrixAt(this.haloCount++, this.m);
+  }
+
+  /** Hex of a note's glyph: its own color, or in the northern-lights mode a color of the aurora following its pitch. */
+  private noteHex(index: number): string | null {
+    const r = this.plan.records[index]!;
+    if (!skyStore.enabled) return hexOf(r);
+    return `#${auroraColor((r.midi - 36) / 60, this.auroraTint).getHexString()}`;
   }
 
   /** Glyph color: the note's own color times the staff glow, else the shared glow color. */

@@ -35,7 +35,7 @@
   "colors.contrast": "Fifanoherana",
   "nav.walk": "Mandeha",
   "nav.walkReset": "Hiverina eo am-piandohana",
-  "nav.walkHint": "Tarao na tazony ny bokotra havanana hijerena manodidina · WASD handeha · volomboasary hijery · Shift handeha haingana · Q / E hihodina · R hiverina · G hivoaka",
+  "nav.walkHint": "Tazony ny bokotra amin'ny totozy hijerena manodidina (havanana foana, havia rehefa milalao ny hira) · WASD handeha · volomboasary hijery · Shift handeha haingana · Q / E hihodina · R hiverina · G hivoaka",
   "layers.title": "Sosona",
   "layers.presets": "Safidy voalohany momba ny sosona",
   "layers.preset.everything": "Rehetra",

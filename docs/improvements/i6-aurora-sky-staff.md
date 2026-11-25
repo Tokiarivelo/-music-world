@@ -86,3 +86,13 @@ cost on Quest: measure before adding octaves. "Pretty" is subjective: iterate wi
   tiers for Quest, re-coloring through the I4 palette override (the curtain reads the template palette), the desktop
   camera is not re-framed for a high staff (it fits because the ratio is modest), a Quest 3 fps check, and agreeing the
   "pretty" with the author on photos.
+
+## Northern-lights mode, lines and notes (phase I30)
+
+The "Northern lights mode" toggle (`skyStore`) no longer draws orbs and rays for the notes. The staff view now turns its
+**five lines into aurora ribbons** (one `AuroraCurtain` per line, green low and violet high, five draw calls when on) and
+keeps the **note glyphs sliding along the staff as in the normal view**, colored by pitch with the aurora colors
+(`xr/views/aurora-colors.ts`: low green, mid cyan, high violet) with a cyan halo. The three big backdrop curtains stay
+(`sky-notes-view.ts`). Notes are picked and dragged on the staff like in the normal view (the picking no longer uses the
+sky positions). `engine/sky.ts` and `worldState.skyNotes` are still computed but no longer drawn: a candidate for removal.
+The staff stays at its own height (it is not lifted into the sky), so the picking positions are unchanged.

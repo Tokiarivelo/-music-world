@@ -35,7 +35,7 @@
   "colors.contrast": "Contrast",
   "nav.walk": "Walk",
   "nav.walkReset": "Back to start",
-  "nav.walkHint": "Drag or hold the right button to look all around · WASD to walk · arrows to look · Shift to run · Q / E to turn · R back to start · G to leave",
+  "nav.walkHint": "Hold a mouse button to look all around (right button anytime, left button while the song plays) · WASD to walk · arrows to look · Shift to run · Q / E to turn · R back to start · G to leave",
   "layers.title": "Layers",
   "layers.presets": "Layer presets",
   "layers.preset.everything": "Everything",

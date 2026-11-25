@@ -380,7 +380,8 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   const detachKeyboard = keyboardPad.attach(window, () => inSession);
   const unbindNav = bindNavigationInput(canvas, nav.input, () => nav.acceptsInput, {
     wheelPerPixel: NAV_WHEEL_ZOOM,
-    lockLook: () => nav.mode === 'walk',
+    // Walk mode: hold the right button anytime, or the left one while the song plays (paused, it picks and drags notes).
+    lockLook: (button) => nav.mode === 'walk' && (button === 2 || (button === 0 && baseClock?.isPlaying?.() === true)),
   });
   const unbind = (): void => {
     unbindNav();
