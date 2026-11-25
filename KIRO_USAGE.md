@@ -360,3 +360,8 @@ repository:
 
 - Skills used: `shape-kind`, `xr-verify`. ambientCG CC0 maps (5 sets, 256 px) with licence file; box-projected UVs built into
   the geometry (no shader cost); IWER multiview check on Living City. No hooks fired (outside the Kiro IDE).
+
+### 2026-11-25 — I21 authored models (Claude Code)
+
+- Skills used: `shape-kind`, `xr-verify`. Web research of CC0 sources and their licences, Blender batch conversion to GLB,
+  `model-catalog.ts` loader with procedural fallback; IWER check on Living City and Nemo Reef (84 draw calls). No hooks fired.

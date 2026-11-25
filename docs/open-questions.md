@@ -19,3 +19,4 @@ the agent applied, so nothing is blocked. Newest at the bottom; strike a line on
 | 11 | I10 | Notes were filtered harder (overtones, one voice for vocals and bass, chroma check); on Machine 36 % of notes went with no gain in the in-key proxy. Listen and say which songs sound wrong. | filters kept |
 | 13 | I19 | `neon-nocturne` is `flat` to keep the reference image; should the default template also be `polished`? | flat (one word to change) |
 | 14 | I19 | Quest 3 frame rate of lit PBR materials is unmeasured (IWER only): acceptable? | polished by default, `flat` as the fallback |
+| 15 | I21 | Models come from CC0 packs and look different from the procedural shapes; keep this style, or look for others? Anchor, coral, jellyfish, octopus, crab, clouds still have no model. | kept; remaining kinds procedural |

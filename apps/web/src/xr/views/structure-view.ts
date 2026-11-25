@@ -23,9 +23,11 @@ import { recipeScale } from '@/engine/recipe-scale';
 import type { ShapeKind, WorldTemplate } from '@/engine/types';
 import type { WorldState } from '@/engine/world-state';
 import { layerStore } from '../layer-store';
+import { KIND_HEIGHT, RECIPE_HEIGHT } from '@/engine/constants';
 import { KIND_FOOTPRINT, RECIPE_FOOTPRINT } from '../constants';
 import { lightness, structureColor } from '../palette';
 import { buildShapeGeometry } from '../shapes/builtin-shapes';
+import { fitModel, hasModel, loadModelGeometry, MODELS } from '../shapes/model-catalog';
 import { withLitAttributes } from '../shapes/lit-geometry';
 import {
   applyDetailMaps,
@@ -62,6 +64,13 @@ const ZERO = new Matrix4().makeScale(0, 0, 0);
 export function footprintOf(kind: ShapeKind, template?: WorldTemplate): number {
   if (KIND_FOOTPRINT[kind] !== undefined) return KIND_FOOTPRINT[kind];
   return template ? recipeScale(template, kind).footprint : RECIPE_FOOTPRINT;
+}
+
+/** Instance height (m) of a kind before the per-note factor: what `engine/spawn-plan.ts` uses as base + extra / 2. */
+function nominalHeightOf(kind: ShapeKind, template: WorldTemplate): number {
+  const { base, extra } = KIND_HEIGHT[kind] ?? RECIPE_HEIGHT;
+  const scale = kind.startsWith('recipe:') ? recipeScale(template, kind).heightScale : 1;
+  return (base + extra / 2) * scale;
 }
 
 export class StructureView implements WorldView {
@@ -123,6 +132,7 @@ export class StructureView implements WorldView {
     this.addShadows();
     if (polished) {
       for (const kind of this.litKinds) {
+        if (hasModel(kind)) this.useModel(kind);
         const set = TEXTURE_SET[kind];
         const material = this.materials.get(kind) as MeshStandardMaterial;
         if (set) {
@@ -136,6 +146,24 @@ export class StructureView implements WorldView {
         for (const material of this.materials.values()) if ((material as MeshStandardMaterial).isMeshStandardMaterial) applySky(material as MeshStandardMaterial, sky);
       });
     }
+  }
+
+  /** Swaps the procedural shape of `kind` for its authored model when the file has loaded. */
+  private useModel(kind: ShapeKind): void {
+    void loadModelGeometry(kind).then((raw) => {
+      const mesh = this.meshes.get(kind);
+      if (!raw || !mesh || this.disposed) return;
+      const fitted = fitModel(raw, MODELS[kind]!, footprintOf(kind, this.plan.template), nominalHeightOf(kind, this.plan.template));
+      const geometry = withLitAttributes(fitted);
+      if (geometry !== fitted) fitted.dispose();
+      const old = mesh.geometry;
+      mesh.geometry = geometry;
+      old.dispose();
+      const material = this.materials.get(kind) as MeshStandardMaterial;
+      material.vertexColors = geometry.hasAttribute('color');
+      material.needsUpdate = true;
+      this.lastT = Number.NaN; // redraw at once, even while paused
+    });
   }
 
   /** One extra InstancedMesh (one draw call) of blob shadows under every object of the kinds above. */
