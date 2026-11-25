@@ -1,6 +1,6 @@
 # Music World — root commands. See .kiro/steering/infrastructure.md and testing.md. `make help` lists the targets.
 .PHONY: help install garage-init garage-up \
-	dev dev-all dev-web-stack kill-web kill-all dev-local dev-redis dev-infra dev-api dev-worker dev-web up down restart ps logs shell \
+	dev dev-all dev-db-password dev-web-stack kill-web kill-all dev-local dev-redis dev-infra dev-api dev-worker dev-web up down restart ps logs shell \
 	build build-api build-web rebuild \
 	test test-api test-web check check-api check-web bundle-check arch lint format schemas schemas-check \
 	deploy check-env db-password \
@@ -196,6 +196,11 @@ check-env: ## Validate a production env file (default infra/.env; ENV_FILE=path)
 db-password: ## Local stack: set the Postgres user's password to the current infra/.env value (fixes "password authentication failed" on an old pgdata volume)
 	$(DC) exec -T postgres sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "ALTER USER \"$$POSTGRES_USER\" PASSWORD '"'"'$$POSTGRES_PASSWORD'"'"'"'
 	$(DC) up -d --no-build --force-recreate api worker
+
+dev-db-password: ## Host dev: give the Docker Postgres user the password found in DATABASE_URL of apps/api/.env (fixes "password authentication failed" in dev-api)
+	@PW=$$(sed -n 's|^DATABASE_URL=[^:]*://[^:]*:\([^@]*\)@.*|\1|p' $(API)/.env 2>/dev/null | head -n1); PW=$${PW:-music_world}; \
+	$(DC) -f $(COMPOSE_DEV) exec -T -e NEWPW="$$PW" postgres sh -c 'echo "ALTER USER \"$$POSTGRES_USER\" PASSWORD :'"'"'pw'"'"';" | psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -v ON_ERROR_STOP=1 -v pw="$$NEWPW"' \
+	&& echo "Postgres password aligned with $(API)/.env"
 
 # ---------------------------------------------------------------------------------------------------------------
 # Disk: prune and clean. Docker volumes (pgdata, storage, Let's Encrypt certificates) are touched only by
