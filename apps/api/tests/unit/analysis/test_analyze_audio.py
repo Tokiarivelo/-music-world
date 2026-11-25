@@ -317,3 +317,26 @@ async def test_search_lyrics_updates_the_stored_analysis_and_leaves_it_alone_whe
     assert after is not None and after.lyrics_source == "whisper" and after.notes == before.notes
     assert [s.text for s in after.lyrics] == ["first line", "second line", "late line"]
     assert after.lyrics[-1].end == DURATION  # clamped to the song
+
+
+async def test_search_lyrics_uses_the_typed_artist_and_title_and_needs_no_vocal_stem_for_the_catalog() -> None:
+    from music_world.analysis.application.lyrics_finder import LyricsFinder
+    from music_world.analysis.application.ports import FoundLyrics, ProjectAudio
+    from music_world.analysis.application.use_cases.search_lyrics import SearchLyrics, save_query
+
+    use_case, repo, store = make()
+    await use_case.execute(INPUT, Recorder())
+    for key in [k for k in store.objects if "/stems/" in k or "vocals" in k]:
+        store.objects.pop(key)  # no vocal stem: speech recognition is impossible
+
+    class Projects:
+        async def get(self, project_id: str) -> ProjectAudio:
+            return ProjectAudio(HASH, "audio/x.wav", None)
+
+    catalog = [LyricLine(float(i * 10), float(i * 10 + 5), f"line {i}") for i in range(1, 11)]
+    lookup, asr = FakeLookup(FoundLyrics(tuple(catalog))), CountingAsr([])
+    search = SearchLyrics(Projects(), repo, store, LyricsFinder(store, lookup, None, asr))
+    assert await search.execute("p") == 0 and lookup.queries == []  # no tags and nothing typed: no query
+    await save_query(store, HASH, " Eric Clapton ", "Layla")
+    assert await search.execute("p") > 0
+    assert lookup.queries == [("Eric Clapton", "Layla")] and asr.calls == 0

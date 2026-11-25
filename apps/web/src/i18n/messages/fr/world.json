@@ -108,6 +108,10 @@
   "layers.searchLyrics": "Rechercher les paroles",
   "layers.searching": "Recherche des paroles…",
   "layers.lyricsNotFound": "Aucune parole trouvée pour ce morceau.",
+  "layers.lyricsTypeIt": "Pas le bon morceau ? Saisis l'artiste et le titre :",
+  "layers.lyricsArtist": "Artiste",
+  "layers.lyricsTitle": "Titre",
+  "layers.lyricsSearchTyped": "Chercher avec ce nom",
   "layers.lyricsFailed": "La recherche des paroles a échoué. Réessayez plus tard.",
   "layers.noVoice": "Aucune voix détectée dans ce morceau : ajoutez un fichier .lrc à l’envoi."
 }

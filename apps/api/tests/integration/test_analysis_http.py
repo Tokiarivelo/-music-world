@@ -97,5 +97,10 @@ async def test_lyrics_search_is_409_before_the_analysis_and_queues_a_job_after()
         )
         queued = await c.post(f"/api/projects/{created['projectId']}/lyrics-search")
         missing = await c.post("/api/projects/00000000-0000-7000-8000-000000000000/lyrics-search")
+        typed = await c.post(
+            f"/api/projects/{created['projectId']}/lyrics-search", json={"artist": "Eric Clapton", "title": "Layla"}
+        )
+        invalid = await c.post(f"/api/projects/{created['projectId']}/lyrics-search", json={"artist": "", "title": "x"})
+    assert typed.status_code == 202 and invalid.status_code == 422
     assert queued.status_code == 202 and queued.json()["jobId"] and queued.json()["projectId"] == created["projectId"]
     assert missing.status_code == 404

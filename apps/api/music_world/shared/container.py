@@ -318,6 +318,7 @@ class Container:
     analysis_cache: AnalysisCache
     get_project_analysis: GetProjectAnalysis
     get_project_audio: GetProjectAudio
+    object_store: ObjectStoreAdapter
     director: DirectorServices
     accounts: AccountServices
     templates: TemplateServices
@@ -427,6 +428,7 @@ def build_container(settings: Settings, *, with_analysis: bool = False) -> Conta
         analysis_cache=analysis_cache,
         get_project_analysis=get_project_analysis,
         get_project_audio=GetProjectAudio(projects, store),
+        object_store=store,
         director=build_director(settings, store, get_project_analysis),
         accounts=build_accounts(
             settings,

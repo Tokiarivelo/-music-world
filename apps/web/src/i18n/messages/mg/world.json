@@ -108,6 +108,10 @@
   "layers.searchLyrics": "Karohy ny tononkira",
   "layers.searching": "Mikaroka tononkira…",
   "layers.lyricsNotFound": "Tsy nahita tononkira ho an'ity hira ity.",
+  "layers.lyricsTypeIt": "Tsy ilay hira marina ? Soraty ny mpanakanto sy ny lohateny:",
+  "layers.lyricsArtist": "Mpanakanto",
+  "layers.lyricsTitle": "Lohateny",
+  "layers.lyricsSearchTyped": "Karohy amin'io anarana io",
   "layers.lyricsFailed": "Tsy nahomby ny fikarohana. Andramo indray any aoriana.",
   "layers.noVoice": "Tsy nisy feo hita tamin'ity hira ity: ampio rakitra .lrc rehefa mandefa azy."
 }
