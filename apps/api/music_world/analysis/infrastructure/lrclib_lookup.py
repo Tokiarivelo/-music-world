@@ -5,7 +5,7 @@ import httpx
 import structlog
 
 from music_world.analysis.application.ports import FoundLyrics
-from music_world.analysis.domain.lyrics import MAX_DURATION_DIFF_SEC, LyricLine, parse_lrc
+from music_world.analysis.domain.lyrics import MAX_DURATION_DIFF_SEC, MAX_STRETCH_RATIO, LyricLine, parse_lrc
 
 log = structlog.get_logger(__name__)
 
@@ -49,23 +49,25 @@ class LrclibLookup:
         )
         if search.status_code != 200 or not isinstance(search.json(), list):
             return None
-        for item in search.json()[:10]:
-            found = _read(item, duration_sec)
-            if found is not None:
-                return found
-        return None
+        candidates = [found for item in search.json()[:10] if (found := _read(item, duration_sec)) is not None]
+        # The closest length first: an exact version beats a near one whose timings have to be stretched.
+        candidates.sort(key=lambda found: abs((found.duration or duration_sec) - duration_sec))
+        return candidates[0] if candidates else None
 
 
 def _read(item: object, duration_sec: float) -> FoundLyrics | None:
     if not isinstance(item, dict):
         return None
     length = item.get("duration")
+    stretch: float | None = None
     if isinstance(length, int | float) and abs(float(length) - duration_sec) > MAX_DURATION_DIFF_SEC:
-        return None  # another version of the song: its timings would not match the audio
+        if duration_sec <= 0 or abs(float(length) - duration_sec) > MAX_STRETCH_RATIO * duration_sec:
+            return None  # another version of the song: its timings would not match the audio
+        stretch = float(length)
     if item.get("instrumental") is True:
         return FoundLyrics((), instrumental=True)
     synced = item.get("syncedLyrics")
     if not isinstance(synced, str) or not synced.strip():
         return None
     lines: list[LyricLine] = parse_lrc(synced)
-    return FoundLyrics(tuple(lines)) if lines else None
+    return FoundLyrics(tuple(lines), duration=stretch) if lines else None

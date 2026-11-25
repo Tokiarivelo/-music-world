@@ -50,3 +50,12 @@ about 0.1 s with "No lyrics found". Fixes: when nothing is found the panel asks 
 `analysis.lyrics_search` (source, line count, whether a stem existed, whether a query was typed; never the text).
 LRCLIB still rejects a version whose length differs by more than 4 s from the audio (its timings would not match): for
 a live or edited recording the answer stays "not found", and the remedy is a `.lrc` at upload.
+
+## File-name guess and near versions (phase I24)
+
+- **Upload name.** The upload keeps the file name in `work/<hash>/name-hint.json`. When the tags give nothing, the finder
+  guesses `Artist - Title` from it (`guess_artist_title`: extension, track number, `_` and bracketed noise dropped) and
+  queries the catalog with that. Priority: typed query, then tags, then the file name.
+- **Near versions.** A catalog track whose length differs from the audio by more than 4 s but by at most 10 % is no
+  longer refused: its timings are stretched by `audio length / track length` (`stretch_lyrics`). An exact version still
+  wins over a near one. Beyond 10 % the answer stays "not found" (another cut: add a `.lrc`).

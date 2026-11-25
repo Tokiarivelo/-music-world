@@ -11,13 +11,23 @@ from pathlib import Path
 from typing import Any
 
 from music_world.analysis.application.ports import LyricsLookup, LyricsTranscriber, ObjectStore, TagReader
-from music_world.analysis.domain.lyrics import LyricLine, fit_lyrics, is_plausible_lyrics
+from music_world.analysis.domain.lyrics import (
+    LyricLine,
+    fit_lyrics,
+    guess_artist_title,
+    is_plausible_lyrics,
+    stretch_lyrics,
+)
 
 JSON_CONTENT_TYPE = "application/json"
 
 
 def work_key(audio_hash: str, name: str) -> str:
     return f"work/{audio_hash.removeprefix('sha256:')}/{name}.json"
+
+
+# Written at upload by the projects context (same key format): the uploaded file's name, a last-resort query.
+NAME_HINT = "name-hint"
 
 
 class LyricsFinder:
@@ -49,12 +59,17 @@ class LyricsFinder:
             query = (artist, title) if artist and title else None
             if query is None and self._tags is not None:
                 query = await self._tags.read(source)
+            if query is None:
+                query = await self._name_guess(audio_hash)
             if query is not None:
                 found = await self._lookup.find(query[0], query[1], duration)
                 if found is not None and found.instrumental:
                     instrumental = True
                 elif found is not None and is_plausible_lyrics(found.lines, duration):
-                    lines = fit_lyrics(found.lines, duration)
+                    shifted = list(found.lines)
+                    if found.duration and found.duration > 0:  # another cut of the song: stretch to this audio
+                        shifted = stretch_lyrics(shifted, duration / found.duration)
+                    lines = fit_lyrics(shifted, duration)
                     await self._save(key, "lrclib", lines)
                     return lines, "lrclib"
         if instrumental or not allow_asr:
@@ -63,6 +78,15 @@ class LyricsFinder:
         name = "whisper" if lines else "none"
         await self._save(key, name, lines)
         return lines, name
+
+    async def _name_guess(self, audio_hash: str) -> tuple[str, str] | None:
+        raw = await self._store.get_bytes(work_key(audio_hash, NAME_HINT))
+        if raw is None:
+            return None
+        try:
+            return guess_artist_title(str(json.loads(raw).get("name", "")))
+        except (ValueError, AttributeError):
+            return None
 
     async def _load(self, key: str) -> dict[str, Any] | None:
         raw = await self._store.get_bytes(key)

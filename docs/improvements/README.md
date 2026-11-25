@@ -22,6 +22,7 @@ convert it to a spec in `.kiro/specs/<NN>-<name>/` (`requirements.md`, `design.m
 | I20 | same file, § Textures | Image textures on the objects | 0.5 day | no — **done**: CC0 bark, foliage, paint, metal, rock with box-projected UVs |
 | I21 | same file, § Models | Authored 3D models for the objects | 1 day | style check (`open-questions.md` 15) — **done**: 12 CC0 GLB (Kenney, Quaternius, OpenGameArt) in the same instanced meshes |
 | I22 | — | "Search lyrics" finds nothing for a file without tags: type artist and title; the catalog no longer needs the vocal stem | 0.5 day | no — **done** (branch `phase-I22-lyrics-search-query`) |
+| I24 | [`i13-auto-lyrics.md`](i13-auto-lyrics.md) | Lyrics: artist and title guessed from the upload name; near-length catalog versions stretched | 0.5 day | no — **done** |
 
 See also [`next-improvements.md`](next-improvements.md): the proposed next tasks and future features.
 
