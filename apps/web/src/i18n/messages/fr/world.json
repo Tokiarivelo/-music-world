@@ -9,7 +9,7 @@
   "nav.exploring": "Exploration",
   "nav.reset": "Réinitialiser la vue",
   "nav.presetsLabel": "Vues prédéfinies",
-  "nav.hint": "Glisser pour orbiter · clic droit pour déplacer · molette pour zoomer · WASD pour avancer · R pour réinitialiser",
+  "nav.hint": "Glisser pour orbiter · clic droit pour déplacer · molette ou + / − pour zoomer · WASD pour avancer · Q / E ou ← → pour tourner · ↑ ↓ pour incliner · Maj pour accélérer · 1–5 vues · R pour réinitialiser · G pour marcher",
   "preset.overview": "Vue d'ensemble",
   "preset.staff": "Portée",
   "preset.city": "Ville",

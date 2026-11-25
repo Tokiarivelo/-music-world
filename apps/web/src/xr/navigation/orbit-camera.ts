@@ -45,11 +45,11 @@ export interface OrbitPose {
 }
 
 export type ViewPresetId = 'overview' | 'horizon' | 'staff' | 'city' | 'top';
-export const VIEW_PRESET_IDS: readonly ViewPresetId[] = ['overview', 'horizon', 'staff', 'city', 'top'];
+export const VIEW_PRESET_IDS: readonly ViewPresetId[] = ['overview', 'staff', 'city', 'top', 'horizon'];
 
 /** Keyboard axes held this frame: each in {−1, 0, 1}. */
 export interface FlyKeys {
-  /** Walk mode only: arrow Up / Down tilt the head (+1 up). Absent in the explore mode. */
+  /** Arrow Up / Down: tilt the head in the walk mode, raise / lower the camera around the target in the explore mode (+1 up). */
   tilt?: number;
   /** +1 forward (W), −1 backward (S). */
   forward: number;
@@ -173,7 +173,8 @@ export function zoom(pose: OrbitPose, factor: number): OrbitPose {
 /** Keyboard fly (requirement 3.1): ground move relative to the view, turn and zoom; `dtSec` capped. */
 export function fly(pose: OrbitPose, keys: FlyKeys, dtSec: number): OrbitPose {
   const dt = clamp(dtSec, 0, NAV_MAX_STEP_SEC);
-  if (dt === 0 || (keys.forward === 0 && keys.right === 0 && keys.turn === 0 && keys.zoom === 0)) return pose;
+  const tilt = keys.tilt ?? 0;
+  if (dt === 0 || (keys.forward === 0 && keys.right === 0 && keys.turn === 0 && keys.zoom === 0 && tilt === 0)) return pose;
   const speed = NAV_FLY_SPEED * pose.distance * (keys.fast ? NAV_FAST_FACTOR : 1) * dt;
   const sin = Math.sin(pose.yaw);
   const cos = Math.cos(pose.yaw);
@@ -182,7 +183,7 @@ export function fly(pose: OrbitPose, keys: FlyKeys, dtSec: number): OrbitPose {
   return clampPose({
     target: { x: pose.target.x + r * cos - f * sin, y: pose.target.y, z: pose.target.z - r * sin - f * cos },
     yaw: pose.yaw + keys.turn * NAV_TURN_SPEED_RAD * dt,
-    pitch: pose.pitch,
+    pitch: pose.pitch + tilt * NAV_TURN_SPEED_RAD * 0.6 * dt,
     distance: pose.distance * Math.exp(-keys.zoom * NAV_KEY_ZOOM_RATE * dt),
   });
 }

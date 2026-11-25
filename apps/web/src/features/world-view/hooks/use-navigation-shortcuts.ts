@@ -18,7 +18,7 @@ export interface NavigationCommands {
 }
 
 /**
- * `N` toggles the explore mode, `G` the walk mode, `R` resets the view, `1`–`4` select presets (08-navigation-mode requirement 3.2–3.3).
+ * `N` toggles the explore mode, `G` the walk mode, `R` resets the view, `1`–`5` select presets (08-navigation-mode requirement 3.2–3.3).
  * Ignored in text fields, with Ctrl / Alt / Meta, with auto-repeat, and while disabled (VR session).
  */
 export function useNavigationShortcuts(

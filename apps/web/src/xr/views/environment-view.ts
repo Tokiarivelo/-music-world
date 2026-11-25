@@ -34,8 +34,9 @@ import {
   ENV_HILL_RINGS,
   ENV_SKY_RADIUS_M,
   ENV_STAR_DENSITY,
+  IMMERSIVE_PLATE_M,
 } from '../constants';
-import { environmentScale, fogRange, scaleStore, type ScaleMode } from '../scale';
+import { environmentScale, fogRange, plateWidthM, scaleStore, type ScaleMode } from '../scale';
 import { environmentColors, underwaterColors, type EnvironmentColors } from '../palette';
 import type { WorldState } from '@/engine/world-state';
 import { LANDSCAPES, type LandscapeId } from '@/engine/landscapes';
@@ -320,6 +321,16 @@ export class EnvironmentView implements WorldView {
     this.fog.near = near * water;
     this.fog.far = far * water;
     this.sky.scale.setScalar(k);
+    this.fitGroundTexture(k);
+  }
+
+  /** The ground tile keeps its size relative to the plate (grass stays grass-sized on the table-top diorama too). */
+  private fitGroundTexture(k: number): void {
+    const map = this.ground.material.map;
+    const tileM = LANDSCAPES[this.landscape ?? 'template'].tileM;
+    if (!map || !tileM) return;
+    const plateRatio = plateWidthM(scaleStore.mode) / IMMERSIVE_PLATE_M;
+    map.repeat.setScalar((ENV_GROUND_RADIUS_M * 2 * k) / (tileM * plateRatio));
   }
 
   /**
@@ -345,8 +356,8 @@ export class EnvironmentView implements WorldView {
     geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
     if (l.texture) {
       const texture = groundTexture(l.texture);
-      texture.repeat.setScalar((ENV_GROUND_RADIUS_M * 2 * environmentScale('immersive')) / l.tileM);
       ground.map = texture;
+      this.fitGroundTexture(environmentScale(scaleStore.mode));
     } else ground.map = null;
     ground.needsUpdate = true;
     const near = id === 'template' ? this.colors.hillsNear : new Color(l.hillsNear);
