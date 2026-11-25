@@ -221,13 +221,13 @@ export function bindNavigationInput(
   canvas: HTMLElement,
   input: NavigationInput,
   isEnabled: () => boolean,
-  options: { wheelPerPixel: number; win?: Window; lockLook?: () => boolean },
+  options: { wheelPerPixel: number; win?: Window; lockLook?: (button: number) => boolean },
 ): () => void {
   const win = options.win ?? window;
   const down = (e: PointerEvent): void => {
     if (!isEnabled()) return;
-    // Walk mode: holding the right button locks the pointer, so the head turns without end (360°, up and down).
-    if (e.button === BUTTON_RIGHT && e.pointerType === 'mouse' && options.lockLook?.() === true) {
+    // Walk mode: holding a button locks the pointer, so the head turns without end (360°, up and down).
+    if (e.pointerType === 'mouse' && options.lockLook?.(e.button) === true) {
       canvas.requestPointerLock?.();
       return;
     }
@@ -241,7 +241,7 @@ export function bindNavigationInput(
     else input.pointerMove(e.pointerId, e.clientX, e.clientY);
   };
   const up = (e: PointerEvent): void => {
-    if (e.button === BUTTON_RIGHT && locked()) canvas.ownerDocument.exitPointerLock();
+    if (locked()) canvas.ownerDocument.exitPointerLock();
     input.pointerUp(e.pointerId);
     if (canvas.hasPointerCapture?.(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
   };
@@ -255,7 +255,7 @@ export function bindNavigationInput(
   };
   const keyDown = (e: KeyboardEvent): void => {
     if (!isEnabled() || hasCommandModifier(e) || isEditableTarget(e.target) || !isNavigationKey(e.code)) return;
-    if (e.code.startsWith('Arrow') && options.lockLook?.() === true) e.preventDefault(); // arrows look, the page must not scroll
+    if (e.code.startsWith('Arrow') && options.lockLook?.(BUTTON_RIGHT) === true) e.preventDefault(); // arrows look, the page must not scroll
     input.key(e.code, true);
   };
   const keyUp = (e: KeyboardEvent): void => input.key(e.code, false);

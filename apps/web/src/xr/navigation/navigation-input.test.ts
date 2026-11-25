@@ -193,7 +193,7 @@ describe('pointer lock look in the walk mode (I29)', () => {
     };
     const input = new NavigationInput();
     const walking = { on: false };
-    const unbind = bindNavigationInput(canvas, input, () => true, { wheelPerPixel: 0.001, lockLook: () => walking.on });
+    const unbind = bindNavigationInput(canvas, input, () => true, { wheelPerPixel: 0.001, lockLook: (button) => walking.on && button === 2 });
     const press = (button: number) => {
       const e = new MouseEvent('pointerdown', { button, bubbles: true }) as PointerEvent;
       Object.defineProperty(e, 'pointerId', { value: 1 });

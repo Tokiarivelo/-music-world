@@ -109,3 +109,6 @@ turn while walking. Changes:
 - Hints (`nav.walkHint`, `view.domeHint`) updated in en, fr, mg; they wrongly said the arrows walk.
 - VR was reviewed: head pitch and yaw come from the headset, the stick glides and snap-turns the plate around the head
   (`locomotion.ts`); nothing to change. A Quest check of the dome default in VR stays on the human list.
+
+Phase I30: in the walk mode the **left button** also locks the pointer for a turn without end, while the song plays
+(paused, the left button keeps picking and dragging notes). Right button: always.

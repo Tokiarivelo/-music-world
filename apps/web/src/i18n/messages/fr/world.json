@@ -35,7 +35,7 @@
   "colors.contrast": "Contraste",
   "nav.walk": "Marcher",
   "nav.walkReset": "Retour au départ",
-  "nav.walkHint": "Glisse ou maintiens le clic droit pour regarder partout · WASD pour marcher · flèches pour regarder · Maj pour courir · Q / E pour tourner · R retour au départ · G pour quitter",
+  "nav.walkHint": "Maintiens un bouton de la souris pour regarder partout (clic droit toujours, clic gauche pendant la lecture) · WASD pour marcher · flèches pour regarder · Maj pour courir · Q / E pour tourner · R retour au départ · G pour quitter",
   "layers.title": "Calques",
   "layers.presets": "Préréglages de calques",
   "layers.preset.everything": "Tout",
