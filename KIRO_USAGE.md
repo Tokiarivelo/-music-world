@@ -339,3 +339,9 @@ repository:
 - Skills used: `start`, `handoff`. Spec `11-editable-notes` tasks 1–8 and 10, one commit per task. Property tests
   (edit history round trip, monophony never overlaps) and `scripts/agents/validate-architecture.sh` caught a timer in the
   score player (replaced by the frame loop). No hooks fired (outside the Kiro IDE).
+
+### 2026-11-25 — Phases I10–I17 and handoff (Claude Code)
+
+- Skills used: `start`, `handoff`. Song catalog and S3 (I10), long songs (I11), layer colors (I12), automatic lyrics (I13, I17),
+  motion functions (I14), VR layers page (I16), open questions file (I15). Steering: rules now merge finished phases and
+  keep going. No hooks fired (outside the Kiro IDE).
