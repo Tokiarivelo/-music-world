@@ -340,3 +340,30 @@ async def test_search_lyrics_uses_the_typed_artist_and_title_and_needs_no_vocal_
     await save_query(store, HASH, " Eric Clapton ", "Layla")
     assert await search.execute("p") > 0
     assert lookup.queries == [("Eric Clapton", "Layla")] and asr.calls == 0
+
+
+def test_guess_artist_title_reads_the_usual_file_names() -> None:
+    from music_world.analysis.domain.lyrics import guess_artist_title
+
+    assert guess_artist_title("Eric Clapton - Layla (Unplugged).mp3") == ("Eric Clapton", "Layla")
+    assert guess_artist_title("01 - Eric_Clapton - Tears in Heaven [HD].flac") == ("Eric Clapton", "Tears in Heaven")
+    assert guess_artist_title("C:\\music\\Artist - Song.wav") == ("Artist", "Song")
+    assert guess_artist_title("recording.mp3") is None and guess_artist_title(" - x.mp3") is None
+
+
+async def test_the_lookup_falls_back_on_the_upload_name_and_stretches_a_near_version() -> None:
+    import json
+
+    from music_world.analysis.application.lyrics_finder import LyricsFinder
+    from music_world.analysis.application.ports import FoundLyrics
+
+    store = InMemoryObjectStore()
+    await store.put_bytes(
+        f"work/{'a' * 64}/name-hint.json", json.dumps({"name": "Eric Clapton - Layla.mp3"}).encode(), "x"
+    )
+    catalog = tuple(LyricLine(float(i * 10), float(i * 10 + 5), f"line {i}") for i in range(1, 11))
+    lookup = FakeLookup(FoundLyrics(catalog, duration=110.0))  # the catalog track is 110 s, the audio 100 s
+    finder = LyricsFinder(store, lookup, None, CountingAsr([]))
+    lines, source = await finder.find("sha256:" + "a" * 64, Path("x"), Path("v"), 100.0, allow_asr=False)
+    assert source == "lrclib" and lookup.queries == [("Eric Clapton", "Layla")]
+    assert lines[0].start == pytest.approx(10 * 100 / 110)

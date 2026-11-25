@@ -79,3 +79,15 @@ def test_vocal_activity_separates_silence_from_singing() -> None:
     half = np.concatenate([sung[: rate * 2], silence[: rate * 2]])
     assert 0.4 < vocal_activity(half, rate) < 0.6
     assert vocal_activity(np.zeros(10, dtype=np.float32), rate) == 0.0
+
+
+async def test_a_near_version_is_kept_with_its_length_and_an_exact_one_wins() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/api/get":
+            return httpx.Response(404, json={})
+        return httpx.Response(
+            200, json=[{"duration": 130.0, "syncedLyrics": LRC}, {"duration": 400.0, "syncedLyrics": LRC}]
+        )
+
+    near = await LrclibLookup(_client(httpx.MockTransport(handler))).find("A", "T", 120.0)
+    assert near is not None and near.duration == 130.0  # 8 % longer: stretched later; 400 s is refused

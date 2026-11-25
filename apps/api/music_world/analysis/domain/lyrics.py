@@ -109,3 +109,28 @@ def fit_lyrics(lines: Iterable[LyricLine], duration_sec: float) -> list[LyricLin
     return [
         LyricLine(line.start, min(line.end, duration_sec), line.text) for line in lines if line.start <= duration_sec
     ]
+
+
+# A catalog track whose length is within this ratio of the audio's is the same song in another cut: its timings are
+# stretched to the audio instead of the track being refused.
+MAX_STRETCH_RATIO = 0.10
+
+_NOISE = re.compile(r"[\(\[][^\)\]]*[\)\]]")  # "(Official Video)", "[HD]", "(Unplugged)"
+_TRACK_NUMBER = re.compile(r"^\s*\d{1,3}\s*[-._)]*\s+")
+
+
+def guess_artist_title(file_name: str) -> tuple[str, str] | None:
+    """`Artist - Title` out of an upload's file name (extension, track number and bracketed noise dropped); None when
+    the name does not have that shape. Only a guess: it feeds the catalog lookup, which then checks the duration."""
+    stem = file_name.replace("\\", "/").rsplit("/", 1)[-1].rsplit(".", 1)[0].replace("_", " ")
+    stem = _TRACK_NUMBER.sub("", _NOISE.sub(" ", stem))
+    artist, sep, title = stem.partition(" - ")
+    artist, title = " ".join(artist.split()), " ".join(title.split())
+    if not sep or not artist or not title:
+        return None
+    return artist[:200], title[:200]
+
+
+def stretch_lyrics(lines: Sequence[LyricLine], factor: float) -> list[LyricLine]:
+    """Scales every timing by `factor` (found track length → audio length)."""
+    return [LyricLine(line.start * factor, line.end * factor, line.text) for line in lines]

@@ -95,7 +95,7 @@ async def create_project(
         raise RateLimitedError("too many songs uploaded, try again later")
     lrc = await _read_lrc(lyrics)
     async with _spooled(audio) as path:
-        created = await use_case.execute(path, lrc, owner_id=caller.user_id)
+        created = await use_case.execute(path, lrc, owner_id=caller.user_id, file_name=audio.filename)
     return ProjectCreated(
         project_id=created.project.id,
         job_id=created.job.id if created.job else None,

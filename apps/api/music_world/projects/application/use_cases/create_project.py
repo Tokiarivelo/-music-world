@@ -1,5 +1,7 @@
 import asyncio
 import hashlib
+import json
+import tempfile
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -61,7 +63,9 @@ class CreateProject:
         self._repo, self._store, self._probe, self._analyses = repo, store, probe, analyses
         self._enqueue_job, self._new_id, self._clock = enqueue_job, new_id, clock
 
-    async def execute(self, audio_path: Path, lrc: bytes | None = None, owner_id: str | None = None) -> CreatedProject:
+    async def execute(
+        self, audio_path: Path, lrc: bytes | None = None, owner_id: str | None = None, file_name: str | None = None
+    ) -> CreatedProject:
         header, audio_hash, size = await asyncio.to_thread(_read_header_and_hash, audio_path)
         check_audio_size(size)
         audio_format = sniff_audio_format(header)
@@ -73,6 +77,8 @@ class CreateProject:
         audio_key = f"audio/{audio_hash.removeprefix('sha256:')}.{audio_format}"
         await self._store.put_file(audio_key, audio_path, CONTENT_TYPES[audio_format])
 
+        if file_name:
+            await self._save_name_hint(audio_hash, file_name)
         project = Project(
             id=self._new_id(),
             audio_hash=audio_hash,
@@ -91,3 +97,12 @@ class CreateProject:
         project = replace(project, job_id=job.id)
         await self._repo.save(project)
         return CreatedProject(project, job)
+
+    async def _save_name_hint(self, audio_hash: str, file_name: str) -> None:
+        """The uploaded file's name, kept next to the work files: the lyrics lookup guesses artist and title from it
+        when the file has no tags (key format shared with the analysis context's `work/<hash>/` folder)."""
+        key = f"work/{audio_hash.removeprefix('sha256:')}/name-hint.json"
+        with tempfile.TemporaryDirectory(prefix="mw-name-") as tmp:
+            path = Path(tmp) / "name-hint.json"
+            path.write_text(json.dumps({"name": file_name[:300]}), encoding="utf-8")
+            await self._store.put_file(key, path, "application/json")

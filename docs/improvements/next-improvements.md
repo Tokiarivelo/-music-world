@@ -7,8 +7,8 @@ Each item becomes a phase (`I23`…) with its own file in this folder when it st
 
 | # | Task | Why | Needs |
 |---|---|---|---|
-| 1 | Keep artist and title with the project; prefill the "Search lyrics" form from the uploaded file name | Today only the file's tags feed the catalog lookup; the project keeps no original name (I22) | no |
-| 2 | Tolerate a different catalog duration: accept a close version and shift or stretch its timings instead of rejecting it beyond 4 s | A live or edited recording still answers "not found" (`MAX_DURATION_DIFF_SEC`) | no |
+| 1 | **Done (I24)** Keep artist and title with the project; prefill the "Search lyrics" form from the uploaded file name | Today only the file's tags feed the catalog lookup; the project keeps no original name (I22) | no |
+| 2 | **Done (I24)** Tolerate a different catalog duration: accept a close version and shift or stretch its timings instead of rejecting it beyond 4 s | A live or edited recording still answers "not found" (`MAX_DURATION_DIFF_SEC`) | no |
 | 3 | Onboarding: first screen leads in one click to the demo song, with a short guided tour (Layers, pause and click a note, VR) | Judges open the app cold | no |
 | 4 | Quest performance pass: draw-call budget with the 12 GLB models, LOD, texture compression | Main risk after I21; budget is ≥ 72 fps, < 100 draw calls | a Quest 3 |
 

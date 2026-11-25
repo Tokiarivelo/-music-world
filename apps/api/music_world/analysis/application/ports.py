@@ -71,6 +71,7 @@ class LyricsTranscriber(Protocol):
 class FoundLyrics:
     lines: tuple[LyricLine, ...]
     instrumental: bool = False  # the catalog says the track has no vocals: nothing to transcribe either
+    duration: float | None = None  # length of the catalog track, when it differs from the audio's (timings to stretch)
 
 
 class LyricsLookup(Protocol):
