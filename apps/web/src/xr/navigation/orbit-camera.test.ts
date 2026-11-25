@@ -23,7 +23,6 @@ import {
   orbit,
   pan,
   poseToCamera,
-  posesEqual,
   zoom,
   type OrbitPose,
 } from './orbit-camera';
