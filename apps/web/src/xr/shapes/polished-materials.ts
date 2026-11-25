@@ -5,7 +5,16 @@
  * instance color tints them, the scene's ambient and sun lights shade them, and the night-sky HDRI (`public/env`, CC0,
  * see `public/env/LICENSE.md`) gives the reflections. One material per kind, shared by one InstancedMesh.
  */
-import { EquirectangularReflectionMapping, MeshStandardMaterial, type Texture } from 'three';
+import {
+  EquirectangularReflectionMapping,
+  MeshStandardMaterial,
+  NoColorSpace,
+  RepeatWrapping,
+  SRGBColorSpace,
+  TextureLoader,
+  Vector2,
+  type Texture,
+} from 'three';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { FOLIAGE_SWAY, FOLIAGE_SWAY_SPEED } from './city-materials';
 
@@ -38,6 +47,61 @@ export function isPolishedKind(kind: string): boolean {
 
 export function surfaceOf(kind: string): Surface {
   return SURFACES[kind] ?? DEFAULT_SURFACE;
+}
+
+/** Detail texture set of a kind (`public/textures/<set>-{detail,normal,rough}.jpg`, CC0 ambientCG), when it has one. */
+export const TEXTURE_SET: Readonly<Record<string, string>> = {
+  tree: 'bark',
+  conifer: 'bark',
+  bush: 'foliage',
+  car: 'paint',
+  bicycle: 'paint',
+  airplane: 'metal',
+  cluster: 'rock',
+};
+const NORMAL_SCALE = 0.8;
+
+export interface DetailMaps {
+  readonly detail: Texture;
+  readonly normal: Texture;
+  readonly rough: Texture;
+}
+
+const detailCache = new Map<string, Promise<DetailMaps | null>>();
+
+function loadTexture(loader: TextureLoader, url: string, srgb: boolean): Promise<Texture> {
+  return loader.loadAsync(url).then((texture) => {
+    texture.wrapS = texture.wrapT = RepeatWrapping;
+    texture.colorSpace = srgb ? SRGBColorSpace : NoColorSpace;
+    texture.anisotropy = 4;
+    return texture;
+  });
+}
+
+/** The three maps of a set, loaded once and shared; `null` when they cannot be loaded (the material stays untextured). */
+export function loadDetailMaps(set: string, base = '/textures'): Promise<DetailMaps | null> {
+  let promise = detailCache.get(set);
+  if (!promise) {
+    const loader = new TextureLoader();
+    promise = Promise.all([
+      loadTexture(loader, `${base}/${set}-detail.jpg`, true),
+      loadTexture(loader, `${base}/${set}-normal.jpg`, false),
+      loadTexture(loader, `${base}/${set}-rough.jpg`, false),
+    ])
+      .then(([detail, normal, rough]) => ({ detail, normal, rough }))
+      .catch(() => null);
+    detailCache.set(set, promise);
+  }
+  return promise;
+}
+
+/** Gives a polished material its detail maps once they have loaded. */
+export function applyDetailMaps(material: MeshStandardMaterial, maps: DetailMaps): void {
+  material.map = maps.detail;
+  material.normalMap = maps.normal;
+  material.normalScale = new Vector2(NORMAL_SCALE, NORMAL_SCALE);
+  material.roughnessMap = maps.rough;
+  material.needsUpdate = true;
 }
 
 let skyPromise: Promise<Texture | null> | null = null;
