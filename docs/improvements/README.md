@@ -23,6 +23,8 @@ convert it to a spec in `.kiro/specs/<NN>-<name>/` (`requirements.md`, `design.m
 | I21 | same file, § Models | Authored 3D models for the objects | 1 day | style check (`open-questions.md` 15) — **done**: 12 CC0 GLB (Kenney, Quaternius, OpenGameArt) in the same instanced meshes |
 | I22 | — | "Search lyrics" finds nothing for a file without tags: type artist and title; the catalog no longer needs the vocal stem | 0.5 day | no — **done** (branch `phase-I22-lyrics-search-query`) |
 
+See also [`next-improvements.md`](next-improvements.md): the proposed next tasks and future features.
+
 ## Order and schedule
 
 Today is 2026-11-24; **feature freeze 2026-12-03**, submission 2026-12-04 14:00 PT. The deploy (roadmap phase 8) and the
