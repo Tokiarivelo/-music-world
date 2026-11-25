@@ -7,7 +7,7 @@ the agent applied, so nothing is blocked. Newest at the bottom; strike a line on
 |---|---|---|---|
 | 1 | I8 | Asset sourcing for realistic objects: CC0 packs (Kenney, Quaternius, Poly Pizza), author-made, or generated? | nothing sourced; only the motion functions are built |
 | 2 | I8 | Is "very realistic" on Quest 3 = PBR mid-poly models with baked light and blob shadows (not photorealism)? | assumed yes |
-| 12 | I8 | The seven object kinds are procedural low-poly shapes with baked colors, still (no motion applied yet). Good enough, or wait for authored GLB models? | procedural kept, motion wiring left for a later phase |
+| 12 | I8 | The seven object kinds are procedural low-poly shapes with baked colors, moving along seeded paths. Good enough, or wait for authored GLB models? | procedural kept, lighting and GLB left for later |
 | 3 | I9 | Sampled instrument tone (needs a CC0 sample set) instead of the synthesized tone? | synthesized tone |
 | 4 | I9 | Should "Play my edits" honor mute / solo per line? | yes (proposed in the spec) |
 | 5 | I10 | Upload duration guard: keep the 30 minute refusal, or remove it (the 25 MB limit already applies)? | 30 minute guard kept |
