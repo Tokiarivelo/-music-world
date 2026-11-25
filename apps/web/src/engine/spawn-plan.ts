@@ -21,6 +21,8 @@ import {
 } from './constants';
 import { DEFAULT_LAYOUT, pitchFraction, placeNote, zonesFor, type LayoutMode, type ZoneRect } from './layout';
 import { mapNote, type MappedNote } from './mapping';
+import { MOVING_KINDS } from './motion';
+import { buildRoads, clearOfRoads, templateHasRoads } from './roads';
 import { noteStream, uniform } from './prng';
 import { recipeScale } from './recipe-scale';
 import { applyEdits, linesOf, staffUOfSnapped, MAIN_LINE_ID, type LayoutEdits, type StaffLine } from './edits';
@@ -152,12 +154,29 @@ function kindSize(kind: ShapeKind, template: WorldTemplate): { base: number; ext
  * Template scenery as records that landed long before t = 0: same placement rule as a note (seeded, inside the zones of
  * its kind) with a random pitch column, so a new seed rearranges the whole scene. Pure, deterministic per seed.
  */
+/** Half footprint of a fixed object, to keep it clear of the roads (plate metres). */
+const FIXED_RADIUS: Readonly<Record<string, number>> = { terrain_ridge: 0.45, building: 0.25, tree: 0.28, conifer: 0.26, bush: 0.2, spike: 0.35, crystal: 0.15, cluster: 0.2 };
+
+/** Where a fixed object really stands: its landing point pushed out of the roads, so a car never meets it (I38). */
+function settler(template: WorldTemplate, seed: number): (kind: ShapeKind, at: Vec3) => Vec3 {
+  if (!templateHasRoads(template)) return (_kind, at) => at;
+  const network = buildRoads(seed, template.terrain.size);
+  const half = template.terrain.size / 2;
+  return (kind, at) => {
+    if (MOVING_KINDS.has(kind)) return at;
+    const radius = kind.startsWith('recipe:') ? recipeScale(template, kind).footprint / 2 : (FIXED_RADIUS[kind] ?? 0.25);
+    const p = clearOfRoads(network, at.x, at.z, radius, half);
+    return { x: p.x, y: at.y, z: p.z };
+  };
+}
+
 function sceneryRecords(
   template: WorldTemplate,
   seed: number,
   fallDuration: number,
   zonesOf: (kind: ShapeKind) => ZoneRect[],
   layout: LayoutMode,
+  settle: (kind: ShapeKind, at: Vec3) => Vec3,
 ): Omit<SpawnRecord, 'index' | 'slot'>[] {
   const records: Omit<SpawnRecord, 'index' | 'slot'>[] = [];
   let n = 0;
@@ -183,7 +202,7 @@ function sceneryRecords(
         glyph: 'quarter',
         landAt: SCENERY_LANDED_AT,
         growSec: MIN_GROW_SEC,
-        target: placeNote(seed, id, midi, null, zonesOf(item.kind), layout),
+        target: settle(item.kind, placeNote(seed, id, midi, null, zonesOf(item.kind), layout)),
         height: size.base + size.extra * rng(),
         emissive: EMISSIVE_BASE + EMISSIVE_VELOCITY_SCALE * velocity,
         colorRole: null,
@@ -231,7 +250,8 @@ export function buildSpawnPlan(
     return slot;
   };
 
-  const scenery = sceneryRecords(template, seed, fallDuration, zonesOf, layout).map(
+  const settle = settler(template, seed);
+  const scenery = sceneryRecords(template, seed, fallDuration, zonesOf, layout, settle).map(
     (r, index): SpawnRecord => ({ ...r, index, slot: claimSlot(r.kind, index) }),
   );
   const first = scenery.length;
@@ -261,7 +281,7 @@ export function buildSpawnPlan(
       glyph: glyphOf(note.duration, analysis.tempoBpm),
       landAt: note.time + fallDuration,
       growSec: Math.max(MIN_GROW_SEC, note.duration),
-      target: placeNote(seed, note.id, note.midi, mapped.pitchRange, zones, layout),
+      target: settle(mapped.kind, placeNote(seed, note.id, note.midi, mapped.pitchRange, zones, layout)),
       height: size.base + size.extra * heightFactor(note, mapped, analysis.tempoBpm),
       emissive: EMISSIVE_BASE + EMISSIVE_VELOCITY_SCALE * velocity,
       colorRole: mapped.colorRole === 'line' ? null : mapped.colorRole,

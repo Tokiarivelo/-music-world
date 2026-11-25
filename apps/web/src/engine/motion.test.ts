@@ -80,8 +80,8 @@ describe('object motion (I8 task 4)', () => {
         const b = flightAt(seed, id, t + 0.1, lane);
         if (Math.abs(b.x - a.x) < lane.halfLength) {
           const speed = Math.abs(b.x - a.x) / 0.1;
-          expect(speed).toBeGreaterThanOrEqual(6 - 1e-6);
-          expect(speed).toBeLessThanOrEqual(14 + 1e-6);
+          expect(speed).toBeGreaterThanOrEqual(2.2 - 1e-6);
+          expect(speed).toBeLessThanOrEqual(4.5 + 1e-6);
         }
       }),
     );

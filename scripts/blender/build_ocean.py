@@ -24,7 +24,7 @@ from mathutils import Euler, Matrix, Vector  # noqa: E402
 
 BUDGET = {
     "whale": 2600, "shark": 2200, "dolphin": 2000, "manta_ray": 1800, "sea_turtle": 2400, "jellyfish": 1800,
-    "octopus": 2600, "seahorse": 1800, "clownfish": 1200, "fish_school": 3200, "pufferfish": 1600, "kelp": 1800,
+    "octopus": 2600, "seahorse": 1800, "clownfish": 1200, "fish_school": 3600, "pufferfish": 1600, "kelp": 1800,
     "seagrass": 1400, "staghorn_coral": 2600, "brain_coral": 1600, "coral_fan": 1800, "tube_sponge": 1600,
     "sea_anemone": 2200, "starfish": 1000, "sea_urchin": 2200, "crab": 2200, "seashell": 1200, "shipwreck": 3000,
 }
@@ -122,7 +122,7 @@ def fish_profile(length, height, width, back, belly, accent=None, bands=(), nose
     return stations, color
 
 
-def fish(b: Builder, o, length, height, width, back, belly, fin, bands=(), yaw=0.0, eye=0.045, tail_h=1.0, dorsal=1.0, seed=0.0, seg=10):
+def fish(b: Builder, o, length, height, width, back, belly, fin, bands=(), yaw=0.0, eye=0.045, tail_h=1.0, dorsal=1.0, seed=0.0, seg=10, simple=False):
     """A fish at offset `o` (a Vector), nose toward +X; fins as flattened ellipsoids."""
     stations, color = fish_profile(length, height, width, back, belly, bands=bands)
     shifted = [(x + o[0], ry, rz, o[1], o[2]) for x, ry, rz, _y, _z in stations]
@@ -131,6 +131,8 @@ def fish(b: Builder, o, length, height, width, back, belly, fin, bands=(), yaw=0
     ox, oy, oz = o
     ell(b, (ox - L * 0.55, oy, oz), (L * 0.11, L * 0.014, H * 0.42 * tail_h), fin, rot=(0, 0, 0), seg=7, rings=4)  # tail
     ell(b, (ox - L * 0.05, oy, oz + H * 0.5), (L * 0.2, L * 0.012, H * 0.3 * dorsal), fin, rot=(0, 0.35, 0), seg=7, rings=4)  # dorsal
+    if simple:  # schools: the body, the tail and the dorsal fin read from afar, the rest costs triangles
+        return
     ell(b, (ox - L * 0.1, oy, oz - H * 0.45), (L * 0.1, L * 0.012, H * 0.16), fin, rot=(0, -0.3, 0), seg=6, rings=4)  # anal
     for s in (-1, 1):
         ell(b, (ox + L * 0.12, oy + s * width * 0.45, oz - H * 0.15), (L * 0.09, L * 0.012, H * 0.14), fin, rot=(s * 0.5, 0.4, 0), seg=6, rings=4)
@@ -266,13 +268,17 @@ def pufferfish() -> bpy.types.Object:
 
 
 def fish_school() -> bpy.types.Object:
+    """A horde of 36 small silver fish swimming the same way, in a loose ellipsoid (golden-angle spiral, no two alike)."""
     b = Builder()
-    back, belly, fin = lin("#4f86a8"), lin("#e1eef4"), lin("#6a97b3")
-    spots = [(0.0, 0.0, 0.0), (0.45, 0.2, 0.12), (-0.42, 0.25, -0.08), (0.2, -0.3, 0.18), (-0.15, -0.35, -0.1), (0.7, -0.15, -0.06), (-0.75, -0.05, 0.14),
-             (0.35, 0.5, -0.12), (-0.5, 0.55, 0.1), (0.95, 0.25, 0.04), (-0.95, 0.4, -0.04), (0.0, 0.1, 0.34), (0.55, -0.55, 0.0), (-0.3, -0.7, 0.08)]
-    for i, (x, y, z) in enumerate(spots):
-        k = 1.0 + 0.12 * math.sin(i * 1.9)
-        fish(b, Vector((x, y, 0.2 + z)), 0.3 * k, 0.1 * k, 0.06 * k, tint(back, i * 3.7, 0.1), belly, fin, eye=0.05, seg=7)
+    back, belly, fin = lin("#5a8fb0"), lin("#e6f1f6"), lin("#7aa5be")
+    n = 36
+    for i in range(n):
+        a = i * 2.399
+        c = 1 - 2 * (i + 0.5) / n
+        r = math.sqrt(max(0.0, 1 - c * c))
+        x, y, z = math.cos(a) * r * 1.0, math.sin(a) * r * 0.55, c * 0.3
+        k = 1.0 + 0.14 * math.sin(i * 1.9)
+        fish(b, Vector((x + 0.06 * math.sin(i * 3.1), y, 0.32 + z)), 0.26 * k, 0.085 * k, 0.05 * k, tint(back, i * 3.7, 0.12), belly, fin, seg=6, simple=True)
     return b.finish("fish_school", BUDGET["fish_school"], 0.12)
 
 

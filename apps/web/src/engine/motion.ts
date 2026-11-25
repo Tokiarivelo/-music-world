@@ -19,6 +19,8 @@ export interface Pose extends Vec3 {
   readonly pitch?: number;
   /** Bank around the heading, + = right side down, radians; only swimming animals have it. */
   readonly roll?: number;
+  /** The record has left the scene (its kind shows only its most recent ones): draw nothing. */
+  readonly hidden?: boolean;
 }
 
 export interface Bounds {
@@ -90,14 +92,21 @@ export interface FlightLane {
   readonly halfWidth: number; // lanes are spread across z
 }
 
-/** A plane crossing the area at constant speed (6–14 m/s) along x, in its own lane and altitude, restarting at the edge. */
-export function flightAt(seed: number, objectId: string, t: number, lane: FlightLane): Pose {
+/**
+ * A plane crossing the area at a calm constant speed (2–4.5 m/s) along x, restarting at the edge. With `slot` (its place
+ * among the planes) it gets its own altitude and lane from the golden ratio, so planes never share a level or a line.
+ */
+export function flightAt(seed: number, objectId: string, t: number, lane: FlightLane, slot?: number): Pose {
   const rng = stream(seed, objectId);
   const offset = uniform(rng, 0, lane.halfLength * 2);
-  const speed = uniform(rng, 6, 14);
+  const speed = uniform(rng, 2.2, 4.5);
   const direction = rng() < 0.5 ? 1 : -1;
-  const z = uniform(rng, -lane.halfWidth, lane.halfWidth);
-  const y = uniform(rng, lane.altitude[0], lane.altitude[1]);
+  let z = uniform(rng, -lane.halfWidth, lane.halfWidth);
+  let y = uniform(rng, lane.altitude[0], lane.altitude[1]);
+  if (slot !== undefined) {
+    z = (((slot * 0.382 + 0.1) % 1) * 2 - 1) * lane.halfWidth;
+    y = lane.altitude[0] + ((slot * 0.618) % 1) * (lane.altitude[1] - lane.altitude[0]);
+  }
   const along = wrap(offset + speed * t, lane.halfLength * 2) - lane.halfLength;
   return { x: along * direction, y, z, yaw: direction === 1 ? 0 : Math.PI };
 }
@@ -116,7 +125,7 @@ export function objectPoseAt(kind: string, seed: number, index: number, t: numbe
     case 'cloud':
       return driftAt(seed, id, t, { halfWidth: half * 3.6, halfDepth: half * 3.6 }, [6, 11]);
     case 'airplane':
-      return flightAt(seed, id, t, { halfLength: half * 3.8, halfWidth: half * 2.6, altitude: [10, 15] });
+      return flightAt(seed, id, t, { halfLength: half * 3.8, halfWidth: half * 2.6, altitude: [14, 19] }, index);
     case 'car':
       return loopAt(seed, id, t, { cx: 0, cz: 0, rx: half * 0.7, rz: half * 0.5, y: 0 });
     case 'bicycle':

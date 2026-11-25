@@ -147,11 +147,11 @@
     },
     {
       "kind": "recipe:sea_turtle",
-      "count": 4
+      "count": 3
     },
     {
       "kind": "recipe:manta_ray",
-      "count": 3
+      "count": 2
     },
     {
       "kind": "recipe:dolphin",
@@ -159,75 +159,75 @@
     },
     {
       "kind": "recipe:octopus",
-      "count": 4
+      "count": 2
     },
     {
       "kind": "recipe:seahorse",
-      "count": 5
+      "count": 3
     },
     {
       "kind": "recipe:jellyfish",
-      "count": 8
+      "count": 5
     },
     {
       "kind": "recipe:clownfish",
-      "count": 8
+      "count": 5
     },
     {
       "kind": "recipe:fish_school",
-      "count": 8
+      "count": 3
     },
     {
       "kind": "recipe:pufferfish",
-      "count": 4
+      "count": 2
     },
     {
       "kind": "recipe:kelp",
-      "count": 20
+      "count": 16
     },
     {
       "kind": "recipe:seagrass",
-      "count": 30
+      "count": 24
     },
     {
       "kind": "recipe:staghorn_coral",
-      "count": 12
+      "count": 10
     },
     {
       "kind": "recipe:brain_coral",
-      "count": 8
+      "count": 6
     },
     {
       "kind": "recipe:coral_fan",
-      "count": 8
+      "count": 6
     },
     {
       "kind": "recipe:tube_sponge",
-      "count": 8
+      "count": 6
     },
     {
       "kind": "recipe:sea_anemone",
-      "count": 8
+      "count": 6
     },
     {
       "kind": "recipe:starfish",
-      "count": 8
+      "count": 6
     },
     {
       "kind": "recipe:sea_urchin",
-      "count": 8
+      "count": 6
     },
     {
       "kind": "recipe:crab",
-      "count": 6
+      "count": 3
     },
     {
       "kind": "recipe:seashell",
-      "count": 6
+      "count": 5
     },
     {
       "kind": "recipe:bubble_column",
-      "count": 5
+      "count": 4
     }
   ],
   "recipes": [
@@ -910,7 +910,7 @@
     }
   ],
   "budget": {
-    "instancesPerKind": 300
+    "instancesPerKind": 40
   },
   "fx": {
     "particles": "dust",

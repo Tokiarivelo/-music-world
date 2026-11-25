@@ -26,22 +26,24 @@ export interface SwimSpec {
   readonly sideways?: boolean;
   /** Quick random-looking wiggle of the heading, in radians (small reef fish). */
   readonly wiggle?: number;
+  /** How many of this species are in the water at once (the most recent ones). */
+  readonly cap: number;
 }
 
 /** Swimming kinds (`recipe:<name>`); the animals that stay put (starfish, urchin, anemone, plants) are not here. */
 export const SWIMMERS: Readonly<Record<string, SwimSpec>> = {
-  'recipe:whale': { speed: 0.9, roam: 1.5, depth: [0.2, 0.46], wave: 40 },
-  'recipe:shark': { speed: 1.7, roam: 1.3, depth: [0.08, 0.3], wave: 24 },
-  'recipe:dolphin': { speed: 2.8, roam: 1.3, depth: [0.06, 0.4], wave: 9 },
-  'recipe:manta_ray': { speed: 1.0, roam: 1.2, depth: [0.1, 0.28], wave: 32 },
-  'recipe:sea_turtle': { speed: 0.55, roam: 0.9, depth: [0.05, 0.22], wave: 28 },
-  'recipe:jellyfish': { speed: 0.16, roam: 0.7, depth: [0.06, 0.32], wave: 5, upright: true },
-  'recipe:octopus': { speed: 0.28, roam: 0.6, depth: [0, 0.05], wave: 14, upright: true },
-  'recipe:seahorse': { speed: 0.14, roam: 0.4, depth: [0.03, 0.14], wave: 12, upright: true },
-  'recipe:clownfish': { speed: 0.55, roam: 0.4, depth: [0.02, 0.1], wave: 10, wiggle: 0.5 },
-  'recipe:fish_school': { speed: 1.8, roam: 1.1, depth: [0.05, 0.26], wave: 18 },
-  'recipe:pufferfish': { speed: 0.4, roam: 0.7, depth: [0.04, 0.18], wave: 16 },
-  'recipe:crab': { speed: 0.22, roam: 0.4, depth: [0, 0], wave: 10, upright: true, sideways: true },
+  'recipe:whale': { speed: 0.4, roam: 1.5, depth: [0.2, 0.46], wave: 40, cap: 2 },
+  'recipe:shark': { speed: 0.7, roam: 1.3, depth: [0.08, 0.3], wave: 24, cap: 3 },
+  'recipe:dolphin': { speed: 1.1, roam: 1.3, depth: [0.06, 0.4], wave: 9, cap: 4 },
+  'recipe:manta_ray': { speed: 0.45, roam: 1.2, depth: [0.1, 0.28], wave: 32, cap: 3 },
+  'recipe:sea_turtle': { speed: 0.25, roam: 0.9, depth: [0.05, 0.22], wave: 28, cap: 4 },
+  'recipe:jellyfish': { speed: 0.08, roam: 0.7, depth: [0.06, 0.32], wave: 5, upright: true, cap: 8 },
+  'recipe:octopus': { speed: 0.14, roam: 0.6, depth: [0, 0.05], wave: 14, upright: true, cap: 3 },
+  'recipe:seahorse': { speed: 0.07, roam: 0.4, depth: [0.03, 0.14], wave: 12, upright: true, cap: 5 },
+  'recipe:clownfish': { speed: 0.28, roam: 0.4, depth: [0.02, 0.1], wave: 10, wiggle: 0.5, cap: 8 },
+  'recipe:fish_school': { speed: 0.8, roam: 1.1, depth: [0.05, 0.26], wave: 18, cap: 6 },
+  'recipe:pufferfish': { speed: 0.2, roam: 0.7, depth: [0.04, 0.18], wave: 16, cap: 4 },
+  'recipe:crab': { speed: 0.12, roam: 0.4, depth: [0, 0], wave: 10, upright: true, sideways: true, cap: 5 },
 };
 
 const MAX_PITCH = 0.45;

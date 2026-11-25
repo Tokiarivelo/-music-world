@@ -35,3 +35,24 @@
   audio clock, so it freezes with the pause; the phase comes from the instance id (the position changes as they swim).
 - Not verified on screen (no browser run here): look at the amplitudes and speeds (`SWIMMERS`, `SWIM_MODES`) and the
   crowd collision of big swimmers on a Quest 3.
+
+## Calm, collision-free movement (I38)
+
+- **Slower, harmonious time.** The musical clock now varies between 0.6 and about 1.15 (was 0.45 to 2.25) and a beat is a
+  soft nudge. Swimmer speeds are about 2.5 times lower, planes cross at 2.2 to 4.5 m/s (was 6 to 14).
+- **Roads** (`engine/roads.ts`, drawn by `xr/shapes/road-geometry.ts`, one draw call): up to three closed roads per plate
+  (two for cars, a small one for bicycles) that cross each other. At each crossing one road goes **over** (flyover with
+  ramps, deck, parapets and pillars) or **under** (tunnel with portals; the car sinks below the plate); crossings too
+  close on one road are joined into one long viaduct. Cars drive in two lanes per road, evenly spaced at one speed, so no
+  car ever catches another and two roads never meet at the same level.
+- **Nothing stands on a road.** `engine/spawn-plan.ts` pushes the landing point of every fixed object (trees, stones,
+  houses, ridges, coral…) out of the road corridor, so a car never drives through anything. This replaced the dodging code.
+- **Few at a time.** Each moving kind shows only its most recent records: cars 22, bicycles 8, planes 3, clouds 10, and per
+  species whale 2, shark 3, dolphin 4, manta 3, turtle 4, jellyfish 8, octopus 3, seahorse 5, clownfish 8, fish schools 6,
+  pufferfish 4, crab 5 (`SwimSpec.cap`). Planes get their own altitude (above the clouds) and lane.
+- **Hordes of small fish**: the `fish_school` model is a horde of 36 silver fish all heading the same way; it appears on
+  chords and as scenery.
+- **Rainbow touch**: an object (tree, car, plane, cloud, animal…) that a falling note passes through blinks in rainbow
+  colours for 2.6 s (`StructureView.touch / rainbow`, view-only state, forgotten on a seek back).
+- Abyssal Currents: scenery and `budget.instancesPerKind` (40) reduced.
+- Not seen on screen: check the road look (width, bridge height, tunnel portals), the lane speed, and the touch radius on a Quest 3.

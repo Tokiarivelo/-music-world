@@ -8,6 +8,7 @@ import {
   Group,
   InstancedMesh,
   Matrix4,
+  Mesh,
   MeshBasicMaterial,
   PlaneGeometry,
   Euler,
@@ -18,7 +19,9 @@ import {
   type MeshStandardMaterial,
 } from 'three';
 import { isRecordShown } from '@/engine/layers';
-import { crowdItemsOf, crowdObstaclesOf, crowdPosesAt, type CrowdItem, type Obstacle } from '@/engine/crowd';
+import { crowdItemsOf, crowdPosesAt, type CrowdItem } from '@/engine/crowd';
+import { buildRoads, templateHasRoads } from '@/engine/roads';
+import { buildRoadGeometry } from '../shapes/road-geometry';
 import type { SpawnPlan } from '@/engine/spawn-plan';
 import { recipeScale } from '@/engine/recipe-scale';
 import type { ShapeKind, WorldTemplate } from '@/engine/types';
@@ -58,6 +61,11 @@ const POLISH_REFLECTION = 2.2;
 /** Natural-colour models (ocean life): share of the palette tint mixed into their own colours, and their brightness. */
 const NATURAL_TINT = 0.18;
 const NATURAL_GAIN = 1.5;
+/** Rainbow of an object touched by a falling note: how long it lasts, blinks per second, hue turns per second, touch margin (m). */
+const RAINBOW_SEC = 2.6;
+const RAINBOW_BLINK_HZ = 3;
+const RAINBOW_HUE_SPEED = 0.8;
+const TOUCH_MARGIN = 0.15;
 const SHADOW_OPACITY = 0.45;
 const SHADOW_SIZE = 1.5; // shadow diameter / footprint
 const SHADOW_LIFT = 0.004; // above the plate, against z-fighting
@@ -90,6 +98,7 @@ export class StructureView implements WorldView {
   private readonly m = new Matrix4();
   private readonly q = new Quaternion();
   private readonly euler = new Euler();
+  private readonly rainbowColor = new Color();
   private readonly pos = new Vector3();
   private readonly scale = new Vector3();
   private readonly color = new Color();
@@ -98,16 +107,17 @@ export class StructureView implements WorldView {
   private lastT = Number.NaN;
   /** Moving records and their radius (half the footprint): the crowd keeps them apart (I31). */
   private crowd: readonly CrowdItem[] = [];
-  /** Fixed records the cars and bicycles drive around. */
-  private obstacles: readonly Obstacle[] = [];
+  /** When each object was last touched by a falling note (it then blinks in rainbow colours for a while). */
+  private readonly touched = new Map<number, number>();
+  private lastTouchT = 0;
+  private roadMesh: Mesh | null = null;
   private readonly unsubscribe: () => void;
 
   constructor(private readonly plan: SpawnPlan) {
     const sizeCrowd = (): void => {
       // Collision radii follow the size the instances are drawn at, which depends on the scale mode.
       const unit = objectScale(scaleStore.mode);
-      this.crowd = crowdItemsOf(plan, (kind) => (footprintOf(kind as ShapeKind, plan.template) / 2) * unit);
-      this.obstacles = crowdObstaclesOf(plan, (kind) => (footprintOf(kind as ShapeKind, plan.template) / 2) * 0.9 * unit);
+      this.crowd = crowdItemsOf(plan, (kind: string) => (footprintOf(kind as ShapeKind, plan.template) / 2) * unit);
     };
     sizeCrowd();
     this.object.name = 'structures';
@@ -158,6 +168,13 @@ export class StructureView implements WorldView {
       this.object.add(mesh);
     }
     this.addShadows();
+    if (templateHasRoads(plan.template)) {
+      const geometry = buildRoadGeometry(buildRoads(plan.seed, plan.template.terrain.size));
+      this.roadMesh = new Mesh(geometry, new MeshBasicMaterial({ vertexColors: true }));
+      this.roadMesh.name = 'roads';
+      this.roadMesh.frustumCulled = false;
+      this.object.add(this.roadMesh);
+    }
     if (polished) {
       for (const kind of this.litKinds) {
         if (hasModel(kind)) this.useModel(kind);
@@ -250,11 +267,36 @@ export class StructureView implements WorldView {
     this.object.add(mesh);
   }
 
+  /** Marks an object as touched when a falling note passes through it. */
+  private touch(s: { index: number }, state: WorldState, x: number, y: number, z: number, footprint: number): void {
+    const r = footprint * 0.5 + TOUCH_MARGIN;
+    for (const n of state.fallingNotes) {
+      if (n.index === s.index) continue;
+      const dx = n.position.x - x;
+      const dy = n.position.y - y;
+      const dz = n.position.z - z;
+      if (dx * dx + dy * dy + dz * dz < r * r) {
+        this.touched.set(s.index, state.t);
+        return;
+      }
+    }
+  }
+
+  /** Blinking rainbow colour of a touched object, or null once it has calmed down (fades out over `RAINBOW_SEC`). */
+  private rainbow(index: number, t: number): Color | null {
+    const since = t - (this.touched.get(index) ?? Number.NEGATIVE_INFINITY);
+    if (!(since >= 0) || since >= RAINBOW_SEC) return null;
+    const fade = 1 - (since / RAINBOW_SEC) ** 2;
+    const blink = 0.7 + 0.3 * Math.sin(t * RAINBOW_BLINK_HZ * Math.PI * 2);
+    this.rainbowColor.setHSL((t * RAINBOW_HUE_SPEED + index * 0.07) % 1, 1, 0.55);
+    return this.rainbowColor.multiplyScalar(blink * (0.5 + 0.5 * fade));
+  }
+
   /** Number of InstancedMeshes (one draw call each). */
   drawCalls(): number {
     let variants = 0;
     for (const list of this.variantMeshes.values()) variants += list.length;
-    return this.meshes.size + variants + (this.shadows ? 1 : 0);
+    return this.meshes.size + variants + (this.shadows ? 1 : 0) + (this.roadMesh ? 1 : 0);
   }
 
   mesh(kind: ShapeKind): InstancedMesh | undefined {
@@ -273,8 +315,10 @@ export class StructureView implements WorldView {
       const time = material.userData.mwTime as { value: number } | undefined;
       if (time) time.value = state.t;
     }
+    if (state.t < this.lastTouchT) this.touched.clear(); // seek backwards: forget what was touched later
+    this.lastTouchT = state.t;
     const unit = objectScale(scaleStore.mode);
-    const poses = this.crowd.length > 0 ? crowdPosesAt(this.plan, this.crowd, state.t, this.obstacles) : null;
+    const poses = this.crowd.length > 0 ? crowdPosesAt(this.plan, this.crowd, state.t) : null;
     let shadowCount = 0;
     for (const s of state.structures) {
       if (!isRecordShown(this.plan, s.index, hidden)) continue;
@@ -283,6 +327,7 @@ export class StructureView implements WorldView {
       const footprint = footprintOf(s.kind, this.plan.template) * (0.6 + 0.4 * s.growth) * unit;
       this.scale.set(footprint, Math.max(MIN_SCALE, s.height) * unit, footprint);
       const pose = poses?.get(s.index) ?? null;
+      if (pose?.hidden) continue; // this animal, plane or car has left: its kind shows only its most recent ones
       if (pose) this.q.setFromEuler(this.euler.set(pose.roll ?? 0, -pose.yaw, pose.pitch ?? 0, 'YZX')); // yaw, then nose pitch, then bank
       else this.q.identity();
       this.m.compose(
@@ -291,6 +336,7 @@ export class StructureView implements WorldView {
         this.scale,
       );
       mesh.setMatrixAt(s.slot, this.m);
+      this.touch(s, state, this.m.elements[12]!, this.m.elements[13]! + (s.height * unit) / 2, this.m.elements[14]!, footprint);
       if (this.shadows && SHADOW_KINDS.has(s.kind) && shadowCount < this.shadows.instanceMatrix.count) {
         const sky = pose ? pose.y > 1 : false;
         const d = footprint * SHADOW_SIZE * (sky ? SHADOW_SKY_SPREAD : 1);
@@ -302,7 +348,9 @@ export class StructureView implements WorldView {
       else {
         if (s.structureHex) this.color.set(s.structureHex).multiplyScalar(s.emissive);
         else structureColor(palette, s.colorRole, s.colorT, s.emissive, this.color);
-        if (this.litKinds.has(s.kind) && isNaturalModel(s.kind)) {
+        const rainbow = this.rainbow(s.index, state.t);
+        if (rainbow) this.color.copy(rainbow).multiplyScalar(POLISH_GAIN);
+        else if (this.litKinds.has(s.kind) && isNaturalModel(s.kind)) {
           // The animal keeps its own colours; the palette (water hue) tints it a little so it belongs to the scene.
           this.color.lerp(WHITE, 1 - NATURAL_TINT).multiplyScalar(NATURAL_GAIN * (0.85 + 0.15 * Math.min(1.4, s.emissive)));
         } else if (this.litKinds.has(s.kind)) this.color.multiplyScalar(POLISH_GAIN);
@@ -329,5 +377,9 @@ export class StructureView implements WorldView {
       (this.shadows.material as MeshBasicMaterial).dispose();
     }
     this.shadowMap?.dispose();
+    if (this.roadMesh) {
+      this.roadMesh.geometry.dispose();
+      (this.roadMesh.material as MeshBasicMaterial).dispose();
+    }
   }
 }
