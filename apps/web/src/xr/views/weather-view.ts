@@ -44,7 +44,7 @@ import { weatherStore } from '../weather-store';
 import type { WorldView } from './world-view';
 
 /** Instance and vertex counts: the whole cost of the weather, in one place. */
-export const WEATHER_BUDGET = { clouds: 90, raindrops: 1400, birds: 24 } as const;
+export const WEATHER_BUDGET = { clouds: 36, raindrops: 1400, birds: 24 } as const;
 /** Number of draw calls of the weather view. */
 export const WEATHER_DRAW_CALLS = 7;
 
@@ -273,7 +273,7 @@ export class WeatherView implements WorldView {
       const az = rng() * Math.PI * 2;
       const el = 0.03 + 0.34 * rng();
       const speed = 0.002 + 0.004 * rng();
-      const w = R * (0.22 + 0.22 * rng());
+      const w = R * (0.13 + 0.15 * rng());
       for (let k = 0; k < 3; k += 1) {
         const pw = w * (0.7 + 0.5 * rng());
         this.cloudBase.push({ az: az + (rng() - 0.5) * 0.16, el: el + (rng() - 0.5) * 0.05, speed, w: pw, h: pw * (0.4 + 0.15 * rng()) });

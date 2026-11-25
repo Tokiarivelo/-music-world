@@ -14,6 +14,7 @@ import {
   IMMERSIVE_PLATE_M,
   IMMERSIVE_START_Z_M,
 } from './constants';
+import type { Vec3 } from './navigation/orbit-camera';
 
 export type ScaleMode = 'diorama' | 'immersive';
 
@@ -52,15 +53,56 @@ export function cameraFar(mode: ScaleMode): number {
   return mode === 'immersive' ? IMMERSIVE_CAMERA_FAR_M : CAMERA_FAR_M;
 }
 
+/**
+ * The orbit camera (explore and cinematic views) is tuned in diorama metres. In the immersive scale (dome world) the
+ * same pose is mapped to the big world: relative to the plate centre, multiplied by the plate width ratio.
+ */
+export const VIEW_SCALE = IMMERSIVE_PLATE_M / DIORAMA_WIDTH_M;
+
+export function viewToWorld(p: Vec3, mode: ScaleMode, out: Vec3 = { x: 0, y: 0, z: 0 }): Vec3 {
+  if (mode !== 'immersive') {
+    out.x = p.x;
+    out.y = p.y;
+    out.z = p.z;
+    return out;
+  }
+  const at = anchorPlacement('immersive');
+  out.x = at.x + (p.x - DIORAMA_POSITION.x) * VIEW_SCALE;
+  out.y = at.y + (p.y - DIORAMA_POSITION.y) * VIEW_SCALE;
+  out.z = at.z + (p.z - DIORAMA_POSITION.z) * VIEW_SCALE;
+  return out;
+}
+
 type Listener = (mode: ScaleMode) => void;
 
 /** Shared scale mode of one page (one music world per page): views subscribe instead of being rebuilt. */
 class ScaleStore {
   private current: ScaleMode = 'diorama';
   private readonly listeners = new Set<Listener>();
+  private boost = 1;
+  private readonly boostListeners = new Set<(boost: number) => void>();
 
   get mode(): ScaleMode {
     return this.current;
+  }
+
+  /** Fog distance multiplier (>= 1): the explore camera floats far above the plate, the fog must not swallow it. */
+  get fogBoost(): number {
+    return this.boost;
+  }
+
+  setFogBoost(boost: number): void {
+    const next = Math.max(1, Math.round(boost * 20) / 20);
+    if (next === this.boost) return;
+    this.boost = next;
+    for (const listener of this.boostListeners) listener(next);
+  }
+
+  onFogBoost(listener: (boost: number) => void): () => void {
+    this.boostListeners.add(listener);
+    return () => {
+      this.boostListeners.delete(listener);
+    };
   }
 
   set(mode: ScaleMode): void {

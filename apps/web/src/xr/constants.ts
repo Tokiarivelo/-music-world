@@ -19,8 +19,8 @@ export const DESKTOP_REFERENCE_ASPECT = 16 / 9;
 export const DESKTOP_CAMERA_TARGET_OFFSET = { x: 0.0, y: 0.09, z: 0.0 } as const;
 
 /** Environment (I2): sky dome and ground radii, fog range, hill rings and columns, star share of sky cells (metres). */
-export const ENV_SKY_RADIUS_M = 120;
-export const ENV_GROUND_RADIUS_M = 60;
+export const ENV_SKY_RADIUS_M = 130;
+export const ENV_GROUND_RADIUS_M = 110;
 export const ENV_FOG_NEAR_M = 14;
 export const ENV_FOG_FAR_M = 58;
 export const ENV_HILL_RINGS = 5;
@@ -107,13 +107,13 @@ export const KIND_FOOTPRINT: Readonly<Record<string, number>> = {
   spike: 0.8,
   crystal: 0.2,
   cluster: 0.22,
-  cloud: 0.8,
-  tree: 0.22,
-  conifer: 0.2,
-  bush: 0.2,
-  car: 0.3,
-  bicycle: 0.2,
-  airplane: 0.5,
+  cloud: 2,
+  tree: 0.48,
+  conifer: 0.44,
+  bush: 0.36,
+  car: 0.75,
+  bicycle: 0.3,
+  airplane: 1.25,
 };
 export const RECIPE_FOOTPRINT = 0.25;
 

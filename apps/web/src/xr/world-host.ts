@@ -315,9 +315,9 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   // The horizon preset opens the lens (the 20 degree tele lens only frames the plate); any other preset restores it.
   let wide = false;
   const applyScale = (): void => {
-    // Explore and cinematic always see the whole world as a diorama (the orbit poses are tuned for it); the dome world
-    // only changes the landscape there. Eye-level scale is for the walk mode and VR.
-    scene.setScaleMode(inSession || nav.mode === 'walk' ? 'immersive' : 'diorama');
+    // The dome world is the big world in every mode: the orbit camera (explore, cinematic) is mapped to it by
+    // `viewToWorld`, so the whole landscape around the plate is in the frame.
+    scene.setScaleMode(inSession || nav.mode === 'walk' || domeStore.enabled ? 'immersive' : 'diorama');
     if (nav.state.preset === 'horizon') wide = true;
     else if (nav.state.preset !== null || nav.mode === 'cinematic') wide = false;
     const fov = wide && !inSession ? HORIZON_FOV_DEG : DESKTOP_CAMERA_FOV_DEG;

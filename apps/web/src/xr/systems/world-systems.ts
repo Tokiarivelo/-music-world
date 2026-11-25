@@ -16,6 +16,7 @@ import type { SpawnPlan } from '@/engine/spawn-plan';
 import { worldStateAt, type WorldState } from '@/engine/world-state';
 import { anchorPlacement, cameraFar, rootScale, scaleStore, type ScaleMode } from '../scale';
 import { EnvironmentView } from '../views/environment-view';
+import { HorizonView } from '../views/horizon-view';
 import { FxView } from '../views/fx-view';
 import { SkyNotesView } from '../views/sky-notes-view';
 import { StaffView } from '../views/staff-view';
@@ -123,6 +124,7 @@ export const StructureSystem = viewSystem((plan) => new StructureView(plan));
 export const FxSystem = viewSystem((plan) => new FxView(plan));
 export const SkySystem = viewSystem((plan) => new SkyNotesView(plan));
 export const WeatherSystem = viewSystem((plan) => new WeatherView(plan), true);
+export const HorizonSystem = viewSystem((plan) => new HorizonView(plan), true);
 export const EnvironmentSystem = viewSystem((plan) => new EnvironmentView(plan), true);
 
 /** Snapshot of `renderer.info` (04-default-template requirement 7.3). */
@@ -183,6 +185,7 @@ export function installMusicSystems(world: World, options: { perfLog?: boolean }
   world.registerSystem(FxSystem);
   world.registerSystem(SkySystem);
   world.registerSystem(WeatherSystem);
+  world.registerSystem(HorizonSystem);
   world.registerSystem(EnvironmentSystem);
   // The sky dome is far away: the default far plane would clip it.
   const applyFar = (mode: ScaleMode) => {

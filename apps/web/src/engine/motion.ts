@@ -39,7 +39,7 @@ export function driftAt(seed: number, objectId: string, t: number, area: Bounds,
   const x0 = uniform(rng, -area.halfWidth, area.halfWidth);
   const z0 = uniform(rng, -area.halfDepth, area.halfDepth);
   const heading = uniform(rng, 0, Math.PI * 2);
-  const speed = uniform(rng, 0.05, 0.25);
+  const speed = uniform(rng, 0.03, 0.12); // slow: a few metres a second at the big scale
   const height = uniform(rng, heightRange[0], heightRange[1]);
   const bobPhase = uniform(rng, 0, Math.PI * 2);
   const width = area.halfWidth * 2;
@@ -104,9 +104,9 @@ export function objectPoseAt(kind: string, seed: number, index: number, t: numbe
   const half = size / 2;
   switch (kind) {
     case 'cloud':
-      return driftAt(seed, id, t, { halfWidth: half, halfDepth: half }, [2, 3.2]);
+      return driftAt(seed, id, t, { halfWidth: half * 1.6, halfDepth: half * 1.6 }, [5, 8]);
     case 'airplane':
-      return flightAt(seed, id, t, { halfLength: half * 1.2, halfWidth: half * 0.8, altitude: [3.2, 4.6] });
+      return flightAt(seed, id, t, { halfLength: half * 1.2, halfWidth: half * 0.8, altitude: [8, 12] });
     case 'car':
       return loopAt(seed, id, t, { cx: 0, cz: 0, rx: half * 0.7, rz: half * 0.5, y: 0 });
     case 'bicycle':

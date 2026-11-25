@@ -302,7 +302,11 @@ export class EnvironmentView implements WorldView {
     this.object.add(this.sky, this.ground, this.hills, this.mist);
     this.applyScale(scaleStore.mode);
     const offScale = scaleStore.subscribe((mode) => this.applyScale(mode));
-    this.unsubscribe = offScale;
+    const offBoost = scaleStore.onFogBoost(() => this.applyScale(scaleStore.mode));
+    this.unsubscribe = () => {
+      offScale();
+      offBoost();
+    };
     this.offLandscape = domeStore.subscribe(() => this.applyLandscape());
     this.applyLandscape();
   }
@@ -317,9 +321,11 @@ export class EnvironmentView implements WorldView {
     this.mist.scale.setScalar(k);
     this.bubbles?.scale.setScalar(k);
     const { near, far } = fogRange(mode);
-    const water = this.underwater ? 0.55 : 1; // water swallows the distance sooner than air
-    this.fog.near = near * water;
-    this.fog.far = far * water;
+    const water = (this.underwater ? 0.55 : 1) * scaleStore.fogBoost; // water swallows the distance sooner than air
+    // Never past the edge of the ground, so the horizon stays a haze and not a visible disc.
+    const edge = ENV_GROUND_RADIUS_M * environmentScale(mode) * 0.85;
+    this.fog.near = Math.min(near * water, edge * 0.4);
+    this.fog.far = Math.min(far * water, edge);
     this.sky.scale.setScalar(k);
     this.fitGroundTexture(k);
   }

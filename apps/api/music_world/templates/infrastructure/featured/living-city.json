@@ -23,8 +23,8 @@
   "mappings": [
     { "when": { "stem": "drums" }, "spawn": "car", "heightFrom": "velocity", "colorRole": "accent" },
     { "when": { "stem": "bass" }, "spawn": "tree", "heightFrom": "duration", "colorRole": "secondary" },
-    { "when": { "stem": "vocals" }, "spawn": "cloud", "heightFrom": "duration" },
-    { "when": { "pitch": ">72" }, "spawn": "airplane", "heightFrom": "pitch" },
+    { "when": { "stem": "vocals", "velocity": ">0.85" }, "spawn": "cloud", "heightFrom": "duration" },
+    { "when": { "pitch": ">84", "velocity": ">0.8" }, "spawn": "airplane", "heightFrom": "pitch" },
     { "when": { "pitch": "<48" }, "spawn": "conifer", "heightFrom": "duration" },
     { "when": { "pitch": "48-72" }, "spawn": "building", "heightFrom": "velocity" },
     { "when": {}, "spawn": "bush" }
@@ -42,7 +42,8 @@
     { "kind": "tree", "count": 18 },
     { "kind": "conifer", "count": 14 },
     { "kind": "bush", "count": 20 },
-    { "kind": "cloud", "count": 6 },
+    { "kind": "cloud", "count": 3 },
+    { "kind": "airplane", "count": 2 },
     { "kind": "car", "count": 8 }
   ],
   "budget": { "instancesPerKind": 1000 },

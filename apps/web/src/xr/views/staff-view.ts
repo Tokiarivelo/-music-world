@@ -118,7 +118,7 @@ function hexOf(r: { colorHex: string | null; stem: Stem | null }): string | null
 }
 
 /** Height of each line ribbon of the northern-lights mode, in line gaps. */
-const LINE_CURTAIN_GAPS = 4;
+const LINE_CURTAIN_GAPS = 1.7; // short ribbons: five distinct lines of light, not one blob
 const AURORA_HALO = new Color('#3fd8ff');
 
 export class StaffView implements WorldView {
@@ -216,7 +216,7 @@ export class StaffView implements WorldView {
         accent: AURORA_GREENS[(line + 1) % AURORA_GREENS.length]!,
         secondary: AURORA_TOPS[line % AURORA_TOPS.length]!,
       };
-      const ribbon = createAuroraCurtain(path, colors, (gap * LINE_CURTAIN_GAPS) / 0.22, 1.6, reducedMotion, true);
+      const ribbon = createAuroraCurtain(path, colors, (gap * LINE_CURTAIN_GAPS) / 0.22, 0.75, reducedMotion, true);
       ribbon.mesh.visible = false;
       ribbon.mesh.name = 'aurora-line';
       this.object.add(ribbon.mesh);
