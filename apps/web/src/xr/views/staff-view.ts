@@ -24,6 +24,7 @@ import {
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { isRecordShown } from '@/engine/layers';
 import type { SpawnPlan } from '@/engine/spawn-plan';
+import { skyPath, skyU } from '@/engine/sky';
 import { staffNotePosition, staffPoint, type StaffPath } from '@/engine/staff';
 import { staffUOf as staffUOfMidi } from '@/engine/spawn-plan';
 import type { GlyphKind } from '@/engine/types';
@@ -44,7 +45,7 @@ import {
 } from '../constants';
 import { skyStore } from '../sky-store';
 import { AURORA_TOPS, auroraColor } from './aurora-colors';
-import { createAuroraCurtain, NOTE_LIGHTS, type AuroraCurtain } from './aurora-curtain';
+import { createAuroraCurtain, type AuroraCurtain } from './aurora-curtain';
 import { bravuraGeometry, noteGlyphGeometry } from '../glyphs/glyph-geometry';
 import { radialAlphaTexture } from '../glyphs/halo-texture';
 import type { WorldView } from './world-view';
@@ -125,6 +126,9 @@ export class StaffView implements WorldView {
   readonly object = new Group();
   private readonly glyphMeshes = new Map<GlyphKind, InstancedMesh>();
   private readonly halos: InstancedMesh;
+  /** The staff path lifted into the aurora and the glyph size there (the sky line gap is roomier). */
+  private readonly skyStaff: StaffPath;
+  private readonly skyScale: number;
   private readonly disposables: Array<{ dispose(): void }> = [];
   private readonly m = new Matrix4();
   private readonly q = new Quaternion();
@@ -238,6 +242,8 @@ export class StaffView implements WorldView {
     }
     const size = plan.staff.lineGap * GLYPH_SCALE;
     this.scale = new Vector3(size, size, size);
+    this.skyStaff = skyPath(plan);
+    this.skyScale = this.skyStaff.lineGap * GLYPH_SCALE;
     let capacity = 0;
     for (const kind of GLYPH_KINDS) {
       const total = plan.records.filter((r) => r.glyph === kind).length;
@@ -292,22 +298,26 @@ export class StaffView implements WorldView {
     for (const part of this.staffParts) part.visible = staffOn && !sky;
     for (const part of this.classicParts) part.visible = staffOn && !sky;
     if (this.curtain) this.curtain.mesh.visible = staffOn && !sky;
-    for (let line = 0; line < this.lineCurtains.length; line += 1) {
-      const ribbon = this.lineCurtains[line]!;
-      ribbon.mesh.visible = staffOn && sky;
-      if (!sky) continue;
-      ribbon.update(state.t);
-      ribbon.setNotes(this.noteLights(state, line));
-    }
+    for (const ribbon of this.lineCurtains) ribbon.mesh.visible = false; // in the aurora the notes hang in the sky curtains
     this.haloMaterial.color.copy(sky ? AURORA_HALO : this.haloColor);
     const noteHalo = this.halos.material as MeshBasicMaterial;
     const base = (noteHalo.userData.base ??= noteHalo.opacity) as number;
     noteHalo.opacity = sky ? base * 0.3 : base; // in the aurora the note is a point of the light, not a blob
     this.counts.clear();
     this.haloCount = 0;
-    for (const n of state.notesOnStaff) if (isRecordShown(this.plan, n.index, hidden)) this.place(n.glyph, n.position, n.u, this.noteHex(n.index));
-    for (const f of state.fallingNotes) {
-      if (isRecordShown(this.plan, f.index, hidden)) this.place(f.glyph, f.position, this.plan.staff.playheadU, this.noteHex(f.index));
+    if (sky) {
+      // Northern lights: the notes float inside the aurora curtains, at the height of their pitch, drifting with the song.
+      for (const n of state.skyNotes) {
+        if (!isRecordShown(this.plan, n.index, hidden)) continue;
+        const r = this.plan.records[n.index]!;
+        const size = this.skyScale * (0.7 + 0.3 * n.glow + (n.sounding ? 0.3 : 0));
+        this.place(r.glyph, n.position, skyU(this.plan, r, state.t), this.noteHex(n.index), this.skyStaff, size);
+      }
+    } else {
+      for (const n of state.notesOnStaff) if (isRecordShown(this.plan, n.index, hidden)) this.place(n.glyph, n.position, n.u, this.noteHex(n.index));
+      for (const f of state.fallingNotes) {
+        if (isRecordShown(this.plan, f.index, hidden)) this.place(f.glyph, f.position, this.plan.staff.playheadU, this.noteHex(f.index));
+      }
     }
     this.placeEditMarks(state);
     for (const [kind, mesh] of this.glyphMeshes) {
@@ -327,6 +337,15 @@ export class StaffView implements WorldView {
       const index = this.indexOf.get(noteId);
       const r = index === undefined ? undefined : this.plan.records[index];
       if (!r) return;
+      if (skyStore.enabled) {
+        // In the aurora a mark is a bigger halo around the note, where it hangs in its curtain.
+        const sn = midi === null ? state.skyNotes.find((x) => x.index === r.index) : undefined;
+        if (!sn) return;
+        this.q.setFromAxisAngle(this.up, staffHeading(this.skyStaff, skyU(this.plan, r, state.t)));
+        this.m.compose(this.pos.set(sn.position.x, sn.position.y, sn.position.z), this.q, this.markScale.setScalar(this.skyScale * scale));
+        if (this.haloCount < this.halos.instanceMatrix.count) this.halos.setMatrixAt(this.haloCount++, this.m);
+        return;
+      }
       const n = state.notesOnStaff.find((x) => x.index === r.index);
       const f = state.fallingNotes.find((x) => x.index === r.index);
       if (!n && !f) return;
@@ -353,40 +372,30 @@ export class StaffView implements WorldView {
     if (edit.ghost) mark(edit.ghost.noteId, edit.ghost.midi, 1.2, edit.ghost.dt);
   }
 
-  private place(glyph: GlyphKind, position: { x: number; y: number; z: number }, u: number, hex: string | null = null): void {
+  private place(
+    glyph: GlyphKind,
+    position: { x: number; y: number; z: number },
+    u: number,
+    hex: string | null = null,
+    path: StaffPath = this.plan.staff,
+    size = 0,
+  ): void {
     const mesh = this.glyphMeshes.get(glyph);
     const n = this.counts.get(glyph) ?? 0;
     if (!mesh || n >= mesh.instanceMatrix.count) return;
-    this.q.setFromAxisAngle(this.up, staffHeading(this.plan.staff, u));
-    this.m.compose(this.pos.set(position.x, position.y, position.z), this.q, this.scale);
+    this.q.setFromAxisAngle(this.up, staffHeading(path, u));
+    this.m.compose(this.pos.set(position.x, position.y, position.z), this.q, size > 0 ? this.markScale.setScalar(size) : this.scale);
     mesh.setMatrixAt(n, this.m);
     if (this.tinted) mesh.setColorAt(n, this.colorOf(hex));
     this.counts.set(glyph, n + 1);
     if (this.haloCount < this.halos.instanceMatrix.count) this.halos.setMatrixAt(this.haloCount++, this.m);
   }
 
-  /**
-   * The notes that feed the light of one ribbon (the main staff only): those that sit on this line or in the space
-   * next to it, nearest to the playhead first, so the aurora swells exactly where a note is.
-   */
-  private noteLights(state: WorldState, line: number): { x: number; strength: number }[] {
-    const { playheadU } = this.plan.staff;
-    const out: { x: number; strength: number }[] = [];
-    for (const n of state.notesOnStaff) {
-      const r = this.plan.records[n.index]!;
-      if (r.lineY !== 0 || !isRecordShown(this.plan, n.index, layerStore.hidden)) continue;
-      const weight = 1 - Math.abs(line - r.staffU * 4);
-      if (weight <= 0) continue;
-      out.push({ x: n.u, strength: weight * (0.25 + 0.75 * Math.exp(-(n.u - playheadU) / 0.12)) });
-    }
-    return out.sort((a, b) => a.x - b.x).slice(0, NOTE_LIGHTS);
-  }
-
   /** Hex of a note's glyph: its own color, or in the northern-lights mode a color of the aurora following its pitch. */
   private noteHex(index: number): string | null {
     const r = this.plan.records[index]!;
     if (!skyStore.enabled) return hexOf(r);
-    return `#${auroraColor((r.midi - 60) / 20, this.auroraTint).getHexString()}`; // treble staff: E4 on the first line, F5 on the last
+    return `#${auroraColor(Math.min(1, Math.max(0, (r.midi - 48) / 36)), this.auroraTint).getHexString()}`; // low green to high violet over the usual range of a melody (C3 to C6)
   }
 
   /** Glyph color: the note's own color times the staff glow, else the shared glow color. */

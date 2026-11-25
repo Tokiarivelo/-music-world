@@ -13,7 +13,7 @@ export const CURTAIN_ROWS = 6;
 export const CURTAIN_TRIANGLES = CURTAIN_COLUMNS * CURTAIN_ROWS * 2;
 
 /** Notes that light a ribbon at once (the nearest to the playhead). */
-export const NOTE_LIGHTS = 12;
+export const NOTE_LIGHTS = 20;
 
 const VERTEX = /* glsl */ `
 attribute vec2 aGrid; // x: along the staff (0..1), y: up the curtain (0..1)
@@ -37,7 +37,7 @@ uniform float uTime;
 uniform float uGlow;
 uniform float uSky;
 uniform float uBands;
-uniform vec3 uNotes[${NOTE_LIGHTS}]; // x: position along the staff (0..1), y: strength of the light, z: unused
+uniform vec3 uNotes[${NOTE_LIGHTS}]; // x: along the curtain (0..1), y: strength, z: height up the curtain (0..1), or -1 for a column at the foot
 varying vec2 vGrid;
 void main() {
   float shift = 0.5 + 0.5 * sin(vGrid.x * 3.0 + uTime * 0.12);
@@ -56,9 +56,10 @@ void main() {
   float lit = 0.0;
   for (int i = 0; i < ${NOTE_LIGHTS}; i++) {
     float d = (vGrid.x - uNotes[i].x) / 0.03;
-    lit += uNotes[i].y * exp(-d * d);
+    float up = uNotes[i].z < 0.0 ? pow(1.0 - vGrid.y, 0.9) : exp(-pow((vGrid.y - uNotes[i].z) / 0.13, 2.0));
+    lit += uNotes[i].y * exp(-d * d) * up;
   }
-  lit = min(lit, 1.0) * pow(1.0 - vGrid.y, 0.9) * mix(1.0, rays, 0.5);
+  lit = min(lit, 1.0) * mix(1.0, rays, 0.5);
   alpha = min(1.0, alpha * (1.0 + 2.4 * lit) + 0.28 * lit * uGlow);
   col = mix(col, vec3(1.0), 0.35 * lit);
   gl_FragColor = vec4(col, alpha);
@@ -137,7 +138,7 @@ export interface AuroraCurtain {
   /** Song time in seconds; with `reducedMotion` the curtain stays still. */
   update(t: number): void;
   /** Lights the ribbon under the given notes: `x` along the staff (0..1), `strength` 0..1. At most `NOTE_LIGHTS`. */
-  setNotes(notes: readonly { x: number; strength: number }[]): void;
+  setNotes(notes: readonly { x: number; strength: number; y?: number }[]): void;
   dispose(): void;
 }
 
@@ -159,7 +160,7 @@ export function createAuroraCurtain(
       uAmplitude: { value: reducedMotion ? 0 : plateSize * (sky ? 0.09 : 0.035) },
       uSky: { value: sky ? 1 : 0 },
       uBands: { value: ring?.bands ?? 0 },
-      uNotes: { value: Array.from({ length: NOTE_LIGHTS }, () => new Vector3()) },
+      uNotes: { value: Array.from({ length: NOTE_LIGHTS }, () => new Vector3(0, 0, -1)) },
       uGlow: { value: glow },
       uColorA: { value: new Color(palette.primary) },
       uColorB: { value: new Color(palette.accent) },
@@ -184,8 +185,8 @@ export function createAuroraCurtain(
       const lights = material.uniforms.uNotes!.value as Vector3[];
       for (let i = 0; i < NOTE_LIGHTS; i += 1) {
         const n = notes[i];
-        if (n) lights[i]!.set(n.x, n.strength, 0);
-        else lights[i]!.set(0, 0, 0);
+        if (n) lights[i]!.set(n.x, n.strength, n.y ?? -1);
+        else lights[i]!.set(0, 0, -1);
       }
     },
     dispose() {

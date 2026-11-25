@@ -59,15 +59,29 @@ function clamp01(v: number): number {
   return Math.min(1, Math.max(0, v));
 }
 
+/** Pitch of a note over the piano range, 0..1: its height in the aurora and its color. */
+export function skyPitch(midi: number): number {
+  return clamp01((midi - PIANO_LOW_MIDI) / (PIANO_HIGH_MIDI - PIANO_LOW_MIDI));
+}
+
+/** Height of a note in its curtain as a fraction of the curtain's height. */
+export function skyHeightFraction(midi: number): number {
+  return 0.08 + 0.84 * skyPitch(midi);
+}
+
 function hash01(seed: number, noteId: string, salt: string): number {
   return (hashSeed(seed, `${noteId}:${salt}`) >>> 0) / 4294967296;
 }
 
+/** Position along the sky path (0..1) of a record at time t: the horizontal axis of the sky is the song time. */
+export function skyU(plan: SpawnPlan, r: SpawnRecord, t: number): number {
+  const along = clamp01((r.onset - t + SKY_PAST_SEC) / (SKY_PAST_SEC + skyFutureSec(plan)));
+  return SKY_U_MIN + (SKY_U_MAX - SKY_U_MIN) * along;
+}
+
 /** Sky position of one record at time t; the horizontal axis is the song time, the height is the pitch. */
 export function skyPosition(plan: SpawnPlan, r: SpawnRecord, t: number): { position: Vec3; curtain: number } {
-  const future = skyFutureSec(plan);
-  const along = clamp01((r.onset - t + SKY_PAST_SEC) / (SKY_PAST_SEC + future));
-  const u = SKY_U_MIN + (SKY_U_MAX - SKY_U_MIN) * along;
+  const u = skyU(plan, r, t);
   const path = skyPath(plan);
   const base = staffPoint(path, u);
   const a = staffPoint(path, Math.max(0, u - 0.01));
@@ -77,7 +91,6 @@ export function skyPosition(plan: SpawnPlan, r: SpawnRecord, t: number): { posit
   const nz = (b.x - a.x) / len;
   const curtain = Math.min(SKY_CURTAINS - 1, Math.floor(hash01(plan.seed, r.noteId, 'curtain') * SKY_CURTAINS));
   const side = (curtain - (SKY_CURTAINS - 1) / 2) * SKY_CURTAIN_SPACING_GAPS * path.lineGap;
-  const pitch = clamp01((r.midi - PIANO_LOW_MIDI) / (PIANO_HIGH_MIDI - PIANO_LOW_MIDI));
   const phase = hash01(plan.seed, r.noteId, 'bob') * Math.PI * 2;
   const bob = Math.sin(t * 0.6 + phase) * path.lineGap * 0.35;
   const sway = Math.sin(t * 0.35 + phase * 1.7) * path.lineGap * 0.5;
@@ -85,7 +98,7 @@ export function skyPosition(plan: SpawnPlan, r: SpawnRecord, t: number): { posit
     curtain,
     position: {
       x: base.x + nx * (side + sway),
-      y: base.y + path.lineGap * SKY_HEIGHT_GAPS * (0.08 + 0.84 * pitch) + bob,
+      y: base.y + path.lineGap * SKY_HEIGHT_GAPS * skyHeightFraction(r.midi) + bob,
       z: base.z + nz * (side + sway),
     },
   };

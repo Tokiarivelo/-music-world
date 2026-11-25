@@ -10,6 +10,7 @@ import { staffNotePosition } from '@/engine/staff';
 import type { Vec3 } from '@/engine/types';
 import { worldStateAt, type WorldState } from '@/engine/world-state';
 import { editStore } from '../edit-store';
+import { skyStore } from '../sky-store';
 import { pickAtRay, pickAtScreen, pickables, type Pickable, type Projector, type ScreenPoint } from '../picking';
 
 export interface NoteMove {
@@ -146,6 +147,7 @@ export class EditController {
       this.setHover(index === null || !plan ? null : plan.records[index]!.noteId);
       return;
     }
+    if (skyStore.enabled) return;
     const midi = this.midiAtRay(ray);
     if (midi === null || this.active === null) return;
     const r = this.record(this.active);
@@ -172,6 +174,7 @@ export class EditController {
       return;
     }
     if (this.mode === 'pressed' && Math.hypot(p.x - this.down.x, p.y - this.down.y) < DRAG_THRESHOLD_PX) return;
+    if (skyStore.enabled) return; // notes hang in the aurora: a click picks and plays them, the staff drag is for the staff
     this.mode = 'dragging';
     const midi = this.midiAt(p);
     const r = this.active === null ? undefined : this.record(this.active);
@@ -263,7 +266,7 @@ export class EditController {
     const t = this.deps.now();
     if (this.frame?.plan !== plan || this.frame.t !== t) {
       const state = worldStateAt(plan, t);
-      this.frame = { plan, t, state, items: pickables(state, plan, this.deps.hidden()) };
+      this.frame = { plan, t, state, items: pickables(state, plan, this.deps.hidden(), skyStore.enabled) };
     }
     return this.frame;
   }

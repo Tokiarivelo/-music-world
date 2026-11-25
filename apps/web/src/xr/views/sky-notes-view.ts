@@ -6,12 +6,12 @@
  */
 import { Group } from 'three';
 import type { SpawnPlan } from '@/engine/spawn-plan';
-import { SKY_CURTAINS, SKY_CURTAIN_SPACING_GAPS, SKY_HEIGHT_GAPS, skyPath } from '@/engine/sky';
+import { SKY_CURTAINS, SKY_CURTAIN_SPACING_GAPS, SKY_HEIGHT_GAPS, skyHeightFraction, skyPath, skyU } from '@/engine/sky';
 import { staffPoint } from '@/engine/staff';
 import type { WorldState } from '@/engine/world-state';
 import { skyStore } from '../sky-store';
 import { AURORA_COLORS, AURORA_GREENS, AURORA_TOPS } from './aurora-colors';
-import { buildRingGeometry, createAuroraCurtain, type AuroraCurtain } from './aurora-curtain';
+import { buildRingGeometry, createAuroraCurtain, NOTE_LIGHTS, type AuroraCurtain } from './aurora-curtain';
 import type { WorldView } from './world-view';
 
 export { AURORA_COLORS } from './aurora-colors';
@@ -22,7 +22,7 @@ export class SkyNotesView implements WorldView {
   private readonly unsubscribe: () => void;
   private lastT = Number.NaN;
 
-  constructor(plan: SpawnPlan) {
+  constructor(private readonly plan: SpawnPlan) {
     const path = skyPath(plan);
     const gap = path.lineGap;
     const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -67,6 +67,18 @@ export class SkyNotesView implements WorldView {
     if (!on || state.t === this.lastT) return;
     this.lastT = state.t;
     for (const c of this.curtains) c.update(state.t);
+    // The notes hang in the three curtains: each curtain glows around the notes that sit on it, at their own height.
+    for (let i = 0; i < SKY_CURTAINS; i += 1) {
+      const lights = state.skyNotes
+        .filter((n) => n.curtain === i)
+        .map((n) => {
+          const r = this.plan.records[n.index]!;
+          return { x: skyU(this.plan, r, state.t), y: skyHeightFraction(r.midi), strength: n.sounding ? 1 : n.glow * 0.7 };
+        })
+        .sort((a, b) => b.strength - a.strength)
+        .slice(0, NOTE_LIGHTS);
+      this.curtains[i]!.setNotes(lights);
+    }
   }
 
   dispose(): void {

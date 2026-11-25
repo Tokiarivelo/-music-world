@@ -42,6 +42,8 @@
   (`loopAt`), so head-on cars pass each other. Planes and clouds keep the old push-apart rule.
 - Note editor: a drag now also moves the note along the staff in time (50 ms grid); releasing it plants the note at its
   new pitch and onset (`NoteMove.time`, `editStore.ghost.dt`, undoable like any edit). VR rays still change pitch only.
-- Northern-lights mode: each staff-line ribbon swells in a soft column of its own colour over every note that sits on
-  or next to the line (`uNotes` in `aurora-curtain.ts`), strongest at the playhead, so the notes read as knots of the
-  aurora and not as separate objects.
+- Northern-lights mode: the notes now hang inside the aurora curtains in the sky (the positions of `engine/sky.ts`,
+  height = pitch, drifting with the song time), not on the plate staff. Each curtain glows in a soft knot of its own
+  colour around every note that hangs in it (`uNotes`, with a height, in `aurora-curtain.ts`), strongest for the note
+  that sounds. Notes are coloured from green (low) to violet (high). A click still picks and plays a sky note; the
+  pitch/time drag belongs to the staff and is off in this mode.
