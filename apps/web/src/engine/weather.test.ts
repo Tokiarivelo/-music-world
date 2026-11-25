@@ -75,7 +75,9 @@ describe('sky photos', () => {
     expect(skyWeights({ cloudCover: 0.05, storm: 0 }, 'day').clear).toBeGreaterThan(0.9);
     expect(skyWeights({ cloudCover: 1, storm: 1 }, 'day').storm).toBe(1);
     expect(skyWeights({ cloudCover: 0, storm: 0 }, 'night').night).toBe(1);
-    expect(skyWeights({ cloudCover: 0.1, storm: 0 }, 'sunset').sunset).toBeGreaterThan(0.9);
+    expect(skyWeights({ cloudCover: 0.05, storm: 0 }, 'sunset').dusk).toBeGreaterThan(0.9);
+    expect(skyWeights({ cloudCover: 0.5, storm: 0 }, 'sunset').sunset).toBeGreaterThan(0.5);
+    expect(skyWeights({ cloudCover: 0.6, storm: 0 }, 'day').dramatic).toBeGreaterThan(0.1);
   });
 
   it('resolves auto from the background luminance', () => {

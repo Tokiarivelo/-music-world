@@ -1,6 +1,6 @@
 /**
  * Weather of the infinite world: a sun (or a moon on dark palettes), drifting clouds, rain, lightning and flocks of
- * birds around the viewer, all driven by `weatherAt(plan, t)` (the music), never by wall-clock time. Six draw calls:
+ * birds around the viewer, all driven by `weatherAt(plan, t)` (the music), never by wall-clock time. Seven draw calls:
  * sun sprite, cloud puffs (one InstancedMesh), rain (one LineSegments animated in the vertex shader), overcast / flash
  * dome, bolt (one Line) and birds (one InstancedMesh flapping in the vertex shader). Fixed in the world like the
  * environment, scaled with it (`environmentScale`). `prefers-reduced-motion`: no flash, no flapping, still clouds.
@@ -16,7 +16,6 @@ import {
   Float32BufferAttribute,
   Group,
   InstancedMesh,
-  Line,
   LineBasicMaterial,
   LineSegments,
   Matrix4,
@@ -47,13 +46,18 @@ import type { WorldView } from './world-view';
 /** Instance and vertex counts: the whole cost of the weather, in one place. */
 export const WEATHER_BUDGET = { clouds: 90, raindrops: 1400, birds: 24 } as const;
 /** Number of draw calls of the weather view. */
-export const WEATHER_DRAW_CALLS = 6;
+export const WEATHER_DRAW_CALLS = 7;
 
 const R = ENV_SKY_RADIUS_M;
 const RAIN_RADIUS_M = 34;
 const RAIN_HEIGHT_M = 30;
 const RAIN_SPEED = 22;
 const BIRD_SPAN_M = 0.9;
+/** A bolt is a jagged trunk of 13 segments and three forks of 5 (the forked bolt of the reference photos). */
+const BOLT_TRUNK = 13;
+const BOLT_FORKS = 3;
+const BOLT_FORK_LEN = 5;
+const BOLT_SEGMENTS = BOLT_TRUNK + BOLT_FORKS * BOLT_FORK_LEN;
 
 const RAIN_VERTEX = /* glsl */ `
 attribute float aEnd;   // 0 = top of the streak, 1 = bottom
@@ -127,7 +131,7 @@ uniform float uFlap;
 void main() {
   float phase = instanceMatrix[3][0] * 0.7 + instanceMatrix[3][2] * 0.3;
   vec3 p = position;
-  p.y += aWing * aWing * sin(uTime * 9.0 + phase) * 0.45 * uFlap;
+  p.y += aWing * aWing * (sin(uTime * 8.0 + phase) * 0.5 + 0.15) * uFlap; // tips beat up and down, the elbow follows
   gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(p, 1.0);
 }`;
 const BIRD_FRAGMENT = /* glsl */ `
@@ -137,15 +141,33 @@ void main() {
   #include <colorspace_fragment>
 }`;
 
-/** Bird shape: a flat "V" of two wing triangles around a body point (3 vertices each side). */
+/**
+ * Bird shape: a tapered body with a tail and two wings of two segments each (a gull-like "M" when the tips flap up), 8
+ * triangles. `aWing` is 0 on the body and rises to 1 at the wing tip, so the vertex shader bends the outer part most.
+ */
 function birdGeometry(): BufferGeometry {
   const g = new BufferGeometry();
   const s = BIRD_SPAN_M;
-  g.setAttribute(
-    'position',
-    new Float32BufferAttribute([0, 0, 0.35 * s, -s, 0, -0.1 * s, 0, 0, -0.2 * s, 0, 0, 0.35 * s, s, 0, -0.1 * s, 0, 0, -0.2 * s], 3),
-  );
-  g.setAttribute('aWing', new Float32BufferAttribute([0, -1, 0, 0, 1, 0], 1));
+  const v: number[] = [];
+  const w: number[] = [];
+  const tri = (a: number[], wa: number, b: number[], wb: number, c: number[], wc: number): void => {
+    v.push(...a, ...b, ...c);
+    w.push(wa, wb, wc);
+  };
+  for (const side of [-1, 1]) {
+    const shoulderF: number[] = [side * 0.06 * s, 0, 0.1 * s];
+    const shoulderB: number[] = [side * 0.06 * s, 0, -0.18 * s];
+    const elbowF: number[] = [side * 0.5 * s, 0, 0.12 * s];
+    const elbowB: number[] = [side * 0.5 * s, 0, -0.22 * s];
+    const tip: number[] = [side * 1.0 * s, 0, -0.34 * s];
+    tri(shoulderF, 0, elbowF, 0.5, shoulderB, 0);
+    tri(shoulderB, 0, elbowF, 0.5, elbowB, 0.5);
+    tri(elbowF, 0.5, tip, 1, elbowB, 0.5);
+  }
+  tri([0, 0, 0.3 * s], 0, [-0.06 * s, 0, 0.05 * s], 0, [0.06 * s, 0, 0.05 * s], 0); // head
+  tri([0, 0, -0.18 * s], 0, [-0.1 * s, 0, -0.5 * s], 0, [0.1 * s, 0, -0.5 * s], 0); // tail
+  g.setAttribute('position', new Float32BufferAttribute(v, 3));
+  g.setAttribute('aWing', new Float32BufferAttribute(w, 1));
   return g;
 }
 
@@ -161,7 +183,8 @@ export class WeatherView implements WorldView {
   private readonly cloudBase: Array<{ az: number; el: number; speed: number; w: number; h: number }> = [];
   private readonly rain: LineSegments;
   private readonly overcast: Mesh<SphereGeometry, MeshBasicMaterial>;
-  private readonly bolt: Line;
+  private readonly bolt: LineSegments;
+  private readonly boltGlow: Sprite;
   private readonly photo: Mesh<SphereGeometry, ShaderMaterial>;
   private readonly luminance: number;
   private readonly polished: boolean;
@@ -295,9 +318,13 @@ export class WeatherView implements WorldView {
 
     // Lightning bolt: a jagged line, re-drawn (seeded) when a new strike starts.
     const boltGeometry = new BufferGeometry();
-    boltGeometry.setAttribute('position', new BufferAttribute(new Float32Array(14 * 3), 3));
-    const boltMaterial = new LineBasicMaterial({ color: '#e9f0ff', transparent: true, opacity: 0, fog: false, depthWrite: false });
-    this.bolt = new Line(boltGeometry, boltMaterial);
+    boltGeometry.setAttribute('position', new BufferAttribute(new Float32Array(BOLT_SEGMENTS * 2 * 3), 3));
+    const boltMaterial = new LineBasicMaterial({ color: '#efe6ff', transparent: true, opacity: 0, fog: false, depthWrite: false, blending: AdditiveBlending });
+    this.bolt = new LineSegments(boltGeometry, boltMaterial);
+    const glowMaterial = new SpriteMaterial({ color: '#b9a8ff', alphaMap: puff, transparent: true, opacity: 0, blending: AdditiveBlending, depthWrite: false, fog: false });
+    this.boltGlow = new Sprite(glowMaterial);
+    this.boltGlow.visible = false;
+    this.disposables.push(glowMaterial);
     this.bolt.frustumCulled = false;
     this.bolt.visible = false;
     this.disposables.push(boltGeometry, boltMaterial);
@@ -319,7 +346,7 @@ export class WeatherView implements WorldView {
       this.birdBase.push({ radius: 16 + 34 * rng(), height: 10 + 18 * rng(), phase: rng() * Math.PI * 2, speed: (0.12 + 0.1 * rng()) * (rng() < 0.5 ? 1 : -1) });
     }
 
-    this.object.add(this.photo, this.overcast, this.sun, this.clouds, this.rain, this.bolt, this.birds);
+    this.object.add(this.photo, this.overcast, this.sun, this.clouds, this.rain, this.bolt, this.boltGlow, this.birds);
     this.applyScale(scaleStore.mode);
     const offScale = scaleStore.subscribe((mode) => this.applyScale(mode));
     this.unsubscribe = offScale;
@@ -423,23 +450,49 @@ export class WeatherView implements WorldView {
   private updateBolt(w: Weather): void {
     const on = !this.reduced && w.flash > 0.25 && w.strike >= 0;
     this.bolt.visible = on;
+    this.boltGlow.visible = on;
     if (!on) return;
-    (this.bolt.material as LineBasicMaterial).opacity = Math.min(1, w.flash * 1.5);
+    (this.bolt.material as LineBasicMaterial).opacity = Math.min(1, w.flash * 1.6);
+    (this.boltGlow.material as SpriteMaterial).opacity = Math.min(0.9, w.flash * 1.1);
     if (w.strike === this.lastStrike) return;
     this.lastStrike = w.strike;
     const rng = mulberry32(hashSeed(this.plan.seed, `bolt:${w.strike}`));
     const az = rng() * Math.PI * 2;
     const dist = 38 + 24 * rng();
-    let x = Math.cos(az) * dist;
-    const z = Math.sin(az) * dist;
-    let y = 34 + 8 * rng();
+    const bx = Math.cos(az) * dist;
+    const bz = Math.sin(az) * dist;
+    const top = 38 + 8 * rng();
+    const step = top / BOLT_TRUNK;
     const attr = this.bolt.geometry.getAttribute('position') as BufferAttribute;
-    for (let i = 0; i < 14; i += 1) {
-      attr.setXYZ(i, x, y, z);
-      x += (rng() - 0.5) * 5;
-      y -= 34 / 13;
+    const trunk: Array<[number, number, number]> = [];
+    let x = bx;
+    let z = bz;
+    for (let i = 0; i <= BOLT_TRUNK; i += 1) {
+      trunk.push([x, top - i * step, z]);
+      x += (rng() - 0.5) * 6;
+      z += (rng() - 0.5) * 6;
+    }
+    let seg = 0;
+    const put = (a: [number, number, number], b: [number, number, number]): void => {
+      attr.setXYZ(seg * 2, ...a);
+      attr.setXYZ(seg * 2 + 1, ...b);
+      seg += 1;
+    };
+    for (let i = 0; i < BOLT_TRUNK; i += 1) put(trunk[i]!, trunk[i + 1]!);
+    for (let f = 0; f < BOLT_FORKS; f += 1) {
+      // A fork leaves the trunk in the upper two thirds and spreads sideways while it falls.
+      const start = trunk[2 + Math.floor(rng() * (BOLT_TRUNK - 6))]!;
+      const dir = rng() * Math.PI * 2;
+      let p: [number, number, number] = [...start];
+      for (let i = 0; i < BOLT_FORK_LEN; i += 1) {
+        const q: [number, number, number] = [p[0] + Math.cos(dir) * (2 + 3 * rng()), p[1] - step * (0.6 + 0.5 * rng()), p[2] + Math.sin(dir) * (2 + 3 * rng())];
+        put(p, q);
+        p = q;
+      }
     }
     attr.needsUpdate = true;
+    this.boltGlow.position.set(bx, top * 0.55, bz);
+    this.boltGlow.scale.setScalar(top * 0.9);
   }
 
   private updateBirds(w: Weather, t: number): void {
