@@ -105,6 +105,17 @@ with kinds × LODs (merge LODs with distance culling, measure). Realism needs li
 - Motion wired (phase I8b): `objectPoseAt` (`engine/motion.ts`) gives clouds a drift, cars and bicycles a ring road and planes a
   flight lane, from `(seed, kind:index, t)`; `StructureView` uses it for position and heading, so seek equals play.
   Property tests cover purity, sky/ground heights and plate bounds.
+- Lighting and check (phase I8c): contact **blob shadows** (one extra `InstancedMesh`, so one more draw call, under every
+  tree, car, bicycle, plane, cloud and bush; bigger and fainter under sky objects) and **wind sway** on foliage (vertex
+  shader, `mwTime` = audio clock, so it is pure in `t`). `scripts/xr-check.mjs` now takes `MW_STORE_JSON` / `MW_STORE_ID`
+  to run the whole IWER check on Living City without the API. Result on 2026-11-25 in IWER (no Quest 3 available): 20 of 20
+  programs compile with `OVR_multiview2` (incl. the foliage shader), **58 draw calls** in VR with the panel, 341 k triangles,
+  no geometry/texture leak after 3 seeks, ~10 ms per frame with ANGLE vulkan on this laptop GPU (not a Quest figure).
+  Screenshots: `docs/improvements/i8/living-city-desktop.png`, `living-city-immersive.png`.
+- **Decision, closing the phase without GLB:** the sourcing questions stay open, but the objects are procedural so there is
+  no GLB, KTX2 atlas, PBR texture or IBL (the scene is unlit by design, `city-materials.ts`). LODs are not built: every
+  kind is already ≤ 600 triangles in one draw call, and a lower level would add draw calls for no gain. If real models are
+  wanted later, they replace `object-shapes.ts` builders behind the same kind names.
 - Still not done: no GLB / PBR / LODs / IBL / blob shadows (tasks 1, 7), no Quest check (task 9, human).
 - Not started, and blocked on the decisions above: tasks 1 (spike on Quest 3 and asset sourcing), 2 (catalog contract),
   3 (loader), 5-6 (content), 7 (lighting), 8 (director), 9 (Quest pass). The code tasks 2 and 3 are only worth writing once

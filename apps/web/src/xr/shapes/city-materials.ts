@@ -7,7 +7,7 @@
  *   multiview and color chunks.
  * - Spikes: additive, depth-write off, vertex colors fading toward the top of each needle (equalizer glow).
  */
-import { AdditiveBlending, MeshBasicMaterial } from 'three';
+import { AdditiveBlending, DataTexture, LinearFilter, MeshBasicMaterial, RedFormat, type IUniform } from 'three';
 import {
   BUILDING_ROOF_LIGHT,
   BUILDING_WALL_LIGHT,
@@ -90,4 +90,54 @@ export function spikeMaterial(): MeshBasicMaterial {
     blending: AdditiveBlending,
     depthWrite: false,
   });
+}
+
+/** Wind: peak sideways shift of a treetop, as a share of the footprint, and its speed (rad/s). */
+export const FOLIAGE_SWAY = 0.12;
+export const FOLIAGE_SWAY_SPEED = 1.7;
+
+/** Foliage material: vertex colors, and a sway that grows with height. `userData.mwTime` is set from the audio clock. */
+export function foliageMaterial(): MeshBasicMaterial {
+  const material = new MeshBasicMaterial({ color: 0xffffff, vertexColors: true });
+  const time: IUniform<number> = { value: 0 };
+  material.userData.mwTime = time;
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.mwTime = time;
+    shader.vertexShader =
+      'uniform float mwTime;\n' +
+      shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+#ifdef USE_INSTANCING
+  float mwPhase = instanceMatrix[3].x * 3.1 + instanceMatrix[3].z * 2.3;
+#else
+  float mwPhase = 0.0;
+#endif
+  transformed.x += sin(mwTime * ${FOLIAGE_SWAY_SPEED.toFixed(2)} + mwPhase) * position.y * position.y * ${FOLIAGE_SWAY.toFixed(3)};`,
+      );
+  };
+  material.customProgramCacheKey = () => 'mw-foliage-sway-v1';
+  return material;
+}
+
+/** Soft round blob (red channel = opacity) used as a contact shadow under objects. */
+export function blobShadowTexture(): DataTexture {
+  const size = 32;
+  const data = new Uint8Array(size * size);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const d = Math.hypot((x + 0.5) / size - 0.5, (y + 0.5) / size - 0.5) * 2;
+      data[y * size + x] = Math.round(255 * Math.max(0, 1 - d) ** 1.5);
+    }
+  }
+  const texture = new DataTexture(data, size, size, RedFormat);
+  texture.magFilter = LinearFilter;
+  texture.minFilter = LinearFilter;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/** Contact shadow material: black, alpha from the blob, no depth write (it lies on the plate). */
+export function blobShadowMaterial(map: DataTexture, opacity: number): MeshBasicMaterial {
+  return new MeshBasicMaterial({ color: 0x000000, alphaMap: map, transparent: true, opacity, depthWrite: false });
 }

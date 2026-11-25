@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AdditiveBlending, Matrix4, Vector3, type InstancedMesh, type Object3D } from 'three';
+import { AdditiveBlending, Matrix4, Vector3, type InstancedMesh, type MeshBasicMaterial, type Object3D } from 'three';
 import { mulberry32 } from '@/engine/prng';
 import { DEMO_ANALYSIS as demo } from '@/engine/__fixtures__/demo-analysis';
 import { buildSpawnPlan } from '@/engine/spawn-plan';
@@ -270,5 +270,59 @@ describe('paused steady state (07-xr-mode requirement 6.2)', () => {
     for (const view of [staff, fx, structures]) view.update(worldStateAt(plan, 20.5));
     expect(buffers().some((v, i) => v !== before[i])).toBe(true);
     for (const view of [staff, fx, structures]) view.dispose();
+  });
+});
+
+describe('object kinds: contact shadows and wind (I8)', () => {
+  const objects = {
+    ...DEFAULT_TEMPLATE,
+    mappings: [
+      { when: { pitch: '<60' }, spawn: 'tree', heightFrom: 'duration' },
+      { when: { pitch: '<72' }, spawn: 'car', heightFrom: 'velocity' },
+      { when: {}, spawn: 'cloud', heightFrom: 'pitch' },
+    ],
+    zones: [
+      { kind: 'tree', xMin: -0.9, xMax: 0.9, zMin: -0.9, zMax: 0 },
+      { kind: 'car', xMin: -0.9, xMax: 0.9, zMin: 0, zMax: 0.9 },
+      { kind: 'cloud', xMin: -0.9, xMax: 0.9, zMin: -0.9, zMax: 0.9 },
+    ],
+    scenery: [{ kind: 'bush', count: 6 }],
+  } as unknown as typeof DEFAULT_TEMPLATE;
+  const objPlan = buildSpawnPlan(demo, objects, 1);
+
+  it('adds one shadow draw call and keeps the world under budget', () => {
+    const view = new StructureView(objPlan);
+    expect(view.drawCalls()).toBe(objPlan.tracks.length + 1);
+    expect(drawCalls(view.object)).toBe(view.drawCalls());
+    view.dispose();
+  });
+
+  it('puts a shadow under every shown object, flat on the plate, and replays the same after a seek', () => {
+    const view = new StructureView(objPlan);
+    const shadows = view.object.getObjectByName('structures:shadows') as InstancedMesh;
+    const state = worldStateAt(objPlan, 20);
+    view.update(state);
+    const shown = state.structures.length;
+    expect(shadows.count).toBe(shown);
+    expect(shown).toBeGreaterThan(0);
+    const m = new Matrix4();
+    shadows.getMatrixAt(0, m);
+    expect(m.elements[13]).toBeLessThan(0.01);
+    const first = Array.from(shadows.instanceMatrix.array.slice(0, shown * 16));
+    view.update(worldStateAt(objPlan, 5));
+    view.update(worldStateAt(objPlan, 20));
+    expect(Array.from(shadows.instanceMatrix.array.slice(0, shown * 16))).toEqual(first);
+    view.dispose();
+  });
+
+  it('sways foliage from the audio clock only', () => {
+    const view = new StructureView(objPlan);
+    const mesh = view.mesh('tree')!;
+    const time = (mesh.material as MeshBasicMaterial).userData.mwTime as { value: number };
+    view.update(worldStateAt(objPlan, 12.5));
+    expect(time.value).toBe(12.5);
+    view.update(worldStateAt(objPlan, 3));
+    expect(time.value).toBe(3);
+    view.dispose();
   });
 });
