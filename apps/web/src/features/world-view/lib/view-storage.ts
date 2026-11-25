@@ -15,7 +15,7 @@ export interface ViewPrefs {
   landscape: LandscapeId;
 }
 
-export const DEFAULT_VIEW: ViewPrefs = { layout: DEFAULT_LAYOUT, aurora: false, weather: DEFAULT_WEATHER, time: DEFAULT_TIME, realSky: true, dome: false, landscape: DEFAULT_LANDSCAPE };
+export const DEFAULT_VIEW: ViewPrefs = { layout: DEFAULT_LAYOUT, aurora: false, weather: DEFAULT_WEATHER, time: DEFAULT_TIME, realSky: true, dome: true, landscape: DEFAULT_LANDSCAPE };
 
 export function loadViewPrefs(): ViewPrefs {
   try {
@@ -26,7 +26,7 @@ export function loadViewPrefs(): ViewPrefs {
       weather: isWeatherMode(v.weather) ? v.weather : DEFAULT_WEATHER,
       time: isTimeMode(v.time) ? v.time : DEFAULT_TIME,
       realSky: v.realSky !== false,
-      dome: v.dome === true,
+      dome: v.dome !== false,
       landscape: isLandscapeId(v.landscape) ? v.landscape : DEFAULT_LANDSCAPE,
     };
   } catch {

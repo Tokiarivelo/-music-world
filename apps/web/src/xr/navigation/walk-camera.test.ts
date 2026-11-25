@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { EYE_HEIGHT_M, WALK_MARGIN_M } from '../constants';
+import { EYE_HEIGHT_M, WALK_LOOK_RAD_PER_PX, WALK_MARGIN_M, WALK_PITCH_LIMIT_RAD } from '../constants';
 import type { FlyKeys } from './orbit-camera';
 import { WALKER_RADIUS_M, clampToBounds, look, obstaclesAt, pushOut, startPose, walk, walkCamera, type Circle } from './walk-camera';
 
@@ -39,8 +39,34 @@ describe('walk camera', () => {
   });
 
   it('limits the pitch of the look', () => {
-    expect(look({ x: 0, z: 0, yaw: 0, pitch: 0 }, 0, -1e6).pitch).toBeLessThan(1.3);
-    expect(look({ x: 0, z: 0, yaw: 0, pitch: 0 }, 0, 1e6).pitch).toBeGreaterThan(-1.3);
+    const up = look({ x: 0, z: 0, yaw: 0, pitch: 0 }, 0, -1e6).pitch;
+    const down = look({ x: 0, z: 0, yaw: 0, pitch: 0 }, 0, 1e6).pitch;
+    expect(up).toBe(WALK_PITCH_LIMIT_RAD);
+    expect(down).toBe(-WALK_PITCH_LIMIT_RAD);
+    expect(up).toBeGreaterThan(1.4); // the sky overhead is almost reachable (about 86°)
+    expect(up).toBeLessThan(Math.PI / 2); // never straight up: lookAt would lose its up axis
+  });
+
+  it('looks all the way round: 360° of mouse travel come back to the start', () => {
+    let pose = { x: 0, z: 0, yaw: 0, pitch: 0 };
+    const px = (2 * Math.PI) / WALK_LOOK_RAD_PER_PX;
+    for (let i = 0; i < 10; i += 1) pose = look(pose, px / 10, 0);
+    expect(Math.abs(pose.yaw)).toBeCloseTo(2 * Math.PI, 6);
+  });
+
+  it('E turns to the right and Q to the left, arrow keys tilt the head', () => {
+    const at = { x: 0, z: 0, yaw: 0, pitch: 0 };
+    expect(walk(at, keys({ turn: 1 }), 0.1, bounds, []).yaw).toBeLessThan(0); // negative yaw = toward +x = right
+    expect(walk(at, keys({ turn: -1 }), 0.1, bounds, []).yaw).toBeGreaterThan(0);
+    expect(walk(at, keys({ tilt: 1 }), 0.1, bounds, []).pitch).toBeGreaterThan(0);
+    expect(walk(at, keys({ tilt: -1 }), 10, bounds, []).pitch).toBeGreaterThanOrEqual(-WALK_PITCH_LIMIT_RAD);
+  });
+
+  it('keeps the head turned by the mouse while walking forward', () => {
+    const turned = look({ x: 0, z: 0, yaw: 0, pitch: 0 }, 200, -100);
+    const moved = walk(turned, keys({ forward: 1 }), 0.1, bounds, []);
+    expect(moved.yaw).toBe(turned.yaw);
+    expect(moved.pitch).toBe(turned.pitch);
   });
 
   it('never leaves bounds nor enters an obstacle, whatever the input', () => {

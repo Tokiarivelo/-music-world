@@ -39,8 +39,10 @@ export const WALK_MARGIN_M = 25;
 /** Walk speed (m/s), Shift multiplier, mouse look (rad per px), glide and snap turn in VR. */
 export const WALK_SPEED_MPS = 3;
 export const WALK_FAST_FACTOR = 3;
-export const WALK_LOOK_RAD_PER_PX = 0.004;
-export const WALK_PITCH_LIMIT_RAD = 1.2;
+export const WALK_LOOK_RAD_PER_PX = 0.005;
+export const WALK_PITCH_LIMIT_RAD = 1.5; // ≈ 86°: straight up is almost reachable, lookAt stays defined
+/** Keyboard look in the walk mode: arrow keys turn and tilt the head at this rate (rad/s). */
+export const WALK_KEY_LOOK_RAD_PER_SEC = 1.6;
 export const VR_GLIDE_SPEED_MPS = 2;
 export const VR_STICK_DEADZONE = 0.25;
 export const VR_SNAP_TURN_RAD = Math.PI / 6;

@@ -7,6 +7,7 @@ import type { FlyKeys } from './orbit-camera';
 
 /** Mouse buttons (`PointerEvent.button`). */
 const BUTTON_LEFT = 0;
+const BUTTON_RIGHT = 2;
 
 /** Deltas since the last frame, written by `drain` into a caller-owned object (no per-frame allocation). */
 export interface NavigationDelta {
@@ -29,7 +30,7 @@ export function emptyDelta(): NavigationDelta {
     panY: 0,
     zoom: 1,
     moved: false,
-    keys: { forward: 0, right: 0, turn: 0, zoom: 0, fast: false },
+    keys: { forward: 0, right: 0, turn: 0, tilt: 0, zoom: 0, fast: false },
   };
 }
 
@@ -53,6 +54,10 @@ const MOVE_KEYS: ReadonlySet<string> = new Set([
   'NumpadSubtract',
   'ShiftLeft',
   'ShiftRight',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowUp',
+  'ArrowDown',
 ]);
 
 export function isNavigationKey(code: string): boolean {
@@ -109,6 +114,14 @@ export class NavigationInput {
     }
   }
 
+  /** Mouse look with a locked pointer (no button, no screen edge): relative motion in pixels. */
+  look(dx: number, dy: number): void {
+    if (dx === 0 && dy === 0) return;
+    this.orbitX += dx;
+    this.orbitY += dy;
+    this.moved = true;
+  }
+
   pointerUp(id: number): void {
     this.pointers.delete(id);
     if (this.pointers.size === 2) this.updatePair();
@@ -144,7 +157,8 @@ export class NavigationInput {
     const has = (code: string): number => (this.held.has(code) ? 1 : 0);
     k.forward = has('KeyW') - has('KeyS');
     k.right = has('KeyD') - has('KeyA');
-    k.turn = has('KeyE') - has('KeyQ');
+    k.turn = has('KeyE') - has('KeyQ') + has('ArrowRight') - has('ArrowLeft');
+    k.tilt = has('ArrowUp') - has('ArrowDown');
     k.zoom = Math.sign(has('Equal') + has('NumpadAdd')) - Math.sign(has('Minus') + has('NumpadSubtract'));
     k.fast = this.held.has('ShiftLeft') || this.held.has('ShiftRight');
     out.orbitX = this.orbitX;
@@ -152,7 +166,7 @@ export class NavigationInput {
     out.panX = this.panX;
     out.panY = this.panY;
     out.zoom = this.zoomFactor;
-    out.moved = this.moved || k.forward !== 0 || k.right !== 0 || k.turn !== 0 || k.zoom !== 0;
+    out.moved = this.moved || k.forward !== 0 || k.right !== 0 || k.turn !== 0 || k.tilt !== 0 || k.zoom !== 0;
     this.reset();
     return out;
   }
@@ -207,18 +221,27 @@ export function bindNavigationInput(
   canvas: HTMLElement,
   input: NavigationInput,
   isEnabled: () => boolean,
-  options: { wheelPerPixel: number; win?: Window },
+  options: { wheelPerPixel: number; win?: Window; lockLook?: () => boolean },
 ): () => void {
   const win = options.win ?? window;
   const down = (e: PointerEvent): void => {
     if (!isEnabled()) return;
+    // Walk mode: holding the right button locks the pointer, so the head turns without end (360°, up and down).
+    if (e.button === BUTTON_RIGHT && e.pointerType === 'mouse' && options.lockLook?.() === true) {
+      canvas.requestPointerLock?.();
+      return;
+    }
     input.pointerDown(e.pointerId, e.clientX, e.clientY, e.button, e.shiftKey);
     canvas.setPointerCapture?.(e.pointerId);
   };
+  const locked = (): boolean => canvas.ownerDocument?.pointerLockElement === canvas;
   const move = (e: PointerEvent): void => {
-    if (isEnabled()) input.pointerMove(e.pointerId, e.clientX, e.clientY);
+    if (!isEnabled()) return;
+    if (locked()) input.look(e.movementX, e.movementY);
+    else input.pointerMove(e.pointerId, e.clientX, e.clientY);
   };
   const up = (e: PointerEvent): void => {
+    if (e.button === BUTTON_RIGHT && locked()) canvas.ownerDocument.exitPointerLock();
     input.pointerUp(e.pointerId);
     if (canvas.hasPointerCapture?.(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
   };
@@ -232,6 +255,7 @@ export function bindNavigationInput(
   };
   const keyDown = (e: KeyboardEvent): void => {
     if (!isEnabled() || hasCommandModifier(e) || isEditableTarget(e.target) || !isNavigationKey(e.code)) return;
+    if (e.code.startsWith('Arrow') && options.lockLook?.() === true) e.preventDefault(); // arrows look, the page must not scroll
     input.key(e.code, true);
   };
   const keyUp = (e: KeyboardEvent): void => input.key(e.code, false);
