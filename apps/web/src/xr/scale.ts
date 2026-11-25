@@ -11,6 +11,7 @@ import {
   ENV_FOG_NEAR_M,
   IMMERSIVE_CAMERA_FAR_M,
   IMMERSIVE_ENV_SCALE,
+  IMMERSIVE_OBJECT_SCALE,
   IMMERSIVE_PLATE_M,
   IMMERSIVE_START_Z_M,
 } from './constants';
@@ -32,6 +33,11 @@ export function plateWidthM(mode: ScaleMode): number {
 /** Scale of the scene root: plate metres (template units) to world metres. */
 export function rootScale(mode: ScaleMode, terrainSize: number): number {
   return plateWidthM(mode) / (terrainSize > 0 ? terrainSize : 1);
+}
+
+/** Size factor of instances: in the wide immersive plate objects keep their calibrated size (see `IMMERSIVE_OBJECT_SCALE`). */
+export function objectScale(mode: ScaleMode): number {
+  return mode === 'immersive' ? IMMERSIVE_OBJECT_SCALE : 1;
 }
 
 /** Where the plate centre sits. Immersive: the plate top is the floor and the viewer starts inside its near edge. */

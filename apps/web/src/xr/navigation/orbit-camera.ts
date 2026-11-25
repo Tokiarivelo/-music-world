@@ -137,7 +137,7 @@ export function cinematicPose(aspect: number = DESKTOP_REFERENCE_ASPECT): OrbitP
  * scenery, notes) is in the frame and the ground below does not dominate.
  */
 export function overviewPose(aspect: number = DESKTOP_REFERENCE_ASPECT): OrbitPose {
-  return presetPose({ x: 0, y: 0.05, z: 0 }, DESKTOP_CAMERA_AZIMUTH_DEG, 46, cinematicDistance(aspect) * 1.35);
+  return presetPose({ x: 0, y: 0.05, z: 0 }, DESKTOP_CAMERA_AZIMUTH_DEG, 46, cinematicDistance(aspect) * 1.8);
 }
 
 /** View presets (requirement 4.1, `design.md` § Camera pose). The city of `neon-nocturne` lies on the −x side. */

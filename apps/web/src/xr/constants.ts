@@ -21,8 +21,8 @@ export const DESKTOP_REFERENCE_ASPECT = 16 / 9;
 export const DESKTOP_CAMERA_TARGET_OFFSET = { x: 0.0, y: 0.09, z: 0.0 } as const;
 
 /** Environment (I2): sky dome and ground radii, fog range, hill rings and columns, star share of sky cells (metres). */
-export const ENV_SKY_RADIUS_M = 130;
-export const ENV_GROUND_RADIUS_M = 110;
+export const ENV_SKY_RADIUS_M = 240;
+export const ENV_GROUND_RADIUS_M = 200;
 export const ENV_FOG_NEAR_M = 14;
 export const ENV_FOG_FAR_M = 58;
 export const ENV_HILL_RINGS = 5;
@@ -32,11 +32,16 @@ export const ENV_STAR_DENSITY = 0.012;
  * Immersive scale (I7): plate width in metres, how far the viewer starts from the plate centre (inside its near edge),
  * eye height, environment scale (ground, hills, fog), far plane, and the margin the viewer may walk past the plate.
  */
-export const IMMERSIVE_PLATE_M = 80;
-export const IMMERSIVE_START_Z_M = 30;
+export const IMMERSIVE_PLATE_M = 170;
+export const IMMERSIVE_START_Z_M = 45;
+/**
+ * The plate is wide so the song's world fills the landscape, but objects keep the size calibrated on an 80 m plate:
+ * instance sizes are multiplied by this in the immersive scale, only their positions spread.
+ */
+export const IMMERSIVE_OBJECT_SCALE = 80 / IMMERSIVE_PLATE_M;
 export const EYE_HEIGHT_M = 1.6;
 export const IMMERSIVE_ENV_SCALE = 3;
-export const IMMERSIVE_CAMERA_FAR_M = 700;
+export const IMMERSIVE_CAMERA_FAR_M = 1600;
 export const WALK_MARGIN_M = 25;
 /** Walk speed (m/s), Shift multiplier, mouse look (rad per px), glide and snap turn in VR. */
 export const WALK_SPEED_MPS = 3;
@@ -179,8 +184,8 @@ export const NAV_PITCH_MIN_DEG = 5;
 export const NAV_PITCH_MAX_DEG = 85;
 export const NAV_DISTANCE_MIN_M = 0.35;
 export const NAV_DISTANCE_MAX_M = 9;
-/** In the big world the explore camera stops inside the sky dome (130 m x 3): 53 x 4.2 = 224 m from the target. */
-export const NAV_DISTANCE_MAX_WORLD_M = 4.2;
+/** In the big world the explore camera stops inside the sky dome (130 m x 3): 113 x 3.4 = 385 m from the target. */
+export const NAV_DISTANCE_MAX_WORLD_M = 3.4;
 /** The orbit target stays within this horizontal distance of the plate centre (per axis). */
 export const NAV_TARGET_RADIUS_M = 0.9;
 /** The orbit target stays between the plate top and this height above it. */

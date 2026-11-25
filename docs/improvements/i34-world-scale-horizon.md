@@ -47,3 +47,13 @@
   colour around every note that hangs in it (`uNotes`, with a height, in `aurora-curtain.ts`), strongest for the note
   that sounds. Notes are coloured from green (low) to violet (high). A click still picks and plays a sky note; the
   pitch/time drag belongs to the staff and is off in this mode.
+
+## Follow-up: the song's world fills the landscape
+
+- The plate of the immersive scale is 170 m wide (was 80 m) and the landscape around it is bigger (ground radius 600 m,
+  sky 720 m, camera far plane 1600 m, hills start beyond the plate), so the scenes, cars, aurora notes and clouds are
+  spread over the whole view and not only at its centre.
+- Objects keep the size calibrated on the 80 m plate (`IMMERSIVE_OBJECT_SCALE`): instance sizes, collision radii and
+  walk obstacles are multiplied by it, only their positions spread. The sky rings and the sky note glyphs follow it.
+- The overview pose sits farther (1.8x the cinematic distance) and zooming out stops at 385 m, inside the sky dome.
+- The horizon ring has 1600 trees, bushes and rocks over 100 to 330 m around the plate.

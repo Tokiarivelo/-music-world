@@ -25,6 +25,7 @@ import type { WorldState } from '@/engine/world-state';
 import { layerStore } from '../layer-store';
 import { KIND_HEIGHT, RECIPE_HEIGHT } from '@/engine/constants';
 import { KIND_FOOTPRINT, RECIPE_FOOTPRINT } from '../constants';
+import { objectScale, scaleStore } from '../scale';
 import { lightness, structureColor } from '../palette';
 import { buildShapeGeometry } from '../shapes/builtin-shapes';
 import { fitModel, hasModel, loadModelGeometry, MODEL_VARIANTS, MODELS, variantOf } from '../shapes/model-catalog';
@@ -91,18 +92,32 @@ export class StructureView implements WorldView {
   private shadowMap: DataTexture | null = null;
   private lastT = Number.NaN;
   /** Moving records and their radius (half the footprint): the crowd keeps them apart (I31). */
-  private readonly crowd: readonly CrowdItem[];
+  private crowd: readonly CrowdItem[] = [];
   /** Fixed records the cars and bicycles drive around. */
-  private readonly obstacles: readonly Obstacle[];
+  private obstacles: readonly Obstacle[] = [];
   private readonly unsubscribe: () => void;
 
   constructor(private readonly plan: SpawnPlan) {
-    this.crowd = crowdItemsOf(plan, (kind) => footprintOf(kind as ShapeKind, plan.template) / 2);
-    this.obstacles = crowdObstaclesOf(plan, (kind) => (footprintOf(kind as ShapeKind, plan.template) / 2) * 0.9);
+    const sizeCrowd = (): void => {
+      // Collision radii follow the size the instances are drawn at, which depends on the scale mode.
+      const unit = objectScale(scaleStore.mode);
+      this.crowd = crowdItemsOf(plan, (kind) => (footprintOf(kind as ShapeKind, plan.template) / 2) * unit);
+      this.obstacles = crowdObstaclesOf(plan, (kind) => (footprintOf(kind as ShapeKind, plan.template) / 2) * 0.9 * unit);
+    };
+    sizeCrowd();
     this.object.name = 'structures';
-    this.unsubscribe = layerStore.subscribe(() => {
+    const redraw = () => {
       this.lastT = Number.NaN; // redraw at once, even while paused
+    };
+    const offLayers = layerStore.subscribe(redraw);
+    const offScale = scaleStore.subscribe(() => {
+      sizeCrowd();
+      redraw();
     });
+    this.unsubscribe = () => {
+      offLayers();
+      offScale();
+    };
     const { palette } = plan.template;
     // Ridges are mountains: terrain hue (lifted toward the primary), not the pitch gradient (requirement 2.4).
     this.ridgeColor = new Color(palette.terrain)
@@ -250,14 +265,15 @@ export class StructureView implements WorldView {
       const time = material.userData.mwTime as { value: number } | undefined;
       if (time) time.value = state.t;
     }
+    const unit = objectScale(scaleStore.mode);
     const poses = this.crowd.length > 0 ? crowdPosesAt(this.plan, this.crowd, state.t, this.obstacles) : null;
     let shadowCount = 0;
     for (const s of state.structures) {
       if (!isRecordShown(this.plan, s.index, hidden)) continue;
       const mesh = this.meshFor(s.kind, s.slot);
       if (!mesh || s.slot >= mesh.count) continue;
-      const footprint = footprintOf(s.kind, this.plan.template) * (0.6 + 0.4 * s.growth);
-      this.scale.set(footprint, Math.max(MIN_SCALE, s.height), footprint);
+      const footprint = footprintOf(s.kind, this.plan.template) * (0.6 + 0.4 * s.growth) * unit;
+      this.scale.set(footprint, Math.max(MIN_SCALE, s.height) * unit, footprint);
       const pose = poses?.get(s.index) ?? null;
       if (pose) this.q.setFromAxisAngle(UP, -pose.yaw);
       else this.q.identity();

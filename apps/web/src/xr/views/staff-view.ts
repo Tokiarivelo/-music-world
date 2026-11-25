@@ -43,6 +43,7 @@ import {
   STAFF_TUBE_RADIUS,
   STAFF_TUBE_SEGMENTS,
 } from '../constants';
+import { objectScale, scaleStore } from '../scale';
 import { skyStore } from '../sky-store';
 import { AURORA_TOPS, auroraColor } from './aurora-colors';
 import { createAuroraCurtain, type AuroraCurtain } from './aurora-curtain';
@@ -310,7 +311,7 @@ export class StaffView implements WorldView {
       for (const n of state.skyNotes) {
         if (!isRecordShown(this.plan, n.index, hidden)) continue;
         const r = this.plan.records[n.index]!;
-        const size = this.skyScale * (0.7 + 0.3 * n.glow + (n.sounding ? 0.3 : 0));
+        const size = this.skyScale * objectScale(scaleStore.mode) * (0.7 + 0.3 * n.glow + (n.sounding ? 0.3 : 0));
         this.place(r.glyph, n.position, skyU(this.plan, r, state.t), this.noteHex(n.index), this.skyStaff, size);
       }
     } else {
@@ -342,7 +343,7 @@ export class StaffView implements WorldView {
         const sn = midi === null ? state.skyNotes.find((x) => x.index === r.index) : undefined;
         if (!sn) return;
         this.q.setFromAxisAngle(this.up, staffHeading(this.skyStaff, skyU(this.plan, r, state.t)));
-        this.m.compose(this.pos.set(sn.position.x, sn.position.y, sn.position.z), this.q, this.markScale.setScalar(this.skyScale * scale));
+        this.m.compose(this.pos.set(sn.position.x, sn.position.y, sn.position.z), this.q, this.markScale.setScalar(this.skyScale * objectScale(scaleStore.mode) * scale));
         if (this.haloCount < this.halos.instanceMatrix.count) this.halos.setMatrixAt(this.haloCount++, this.m);
         return;
       }

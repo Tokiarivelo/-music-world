@@ -22,14 +22,14 @@ import { hashSeed, mulberry32, type Rng } from '@/engine/prng';
 import { recipeScale } from '@/engine/recipe-scale';
 import type { SpawnPlan } from '@/engine/spawn-plan';
 import type { ShapeKind } from '@/engine/types';
-import { IMMERSIVE_PLATE_M, KIND_FOOTPRINT, RECIPE_FOOTPRINT, ENV_GROUND_RADIUS_M, IMMERSIVE_ENV_SCALE } from '../constants';
+import { IMMERSIVE_OBJECT_SCALE, IMMERSIVE_PLATE_M, KIND_FOOTPRINT, RECIPE_FOOTPRINT, ENV_GROUND_RADIUS_M, IMMERSIVE_ENV_SCALE } from '../constants';
 import { roleColor } from '../palette';
 import { anchorPlacement, plateWidthM, rootScale, scaleStore, type ScaleMode } from '../scale';
 import { buildShapeGeometry } from '../shapes/builtin-shapes';
 import type { WorldView } from './world-view';
 
 /** Instances over all kinds, and the most kinds drawn (one draw call each). */
-export const HORIZON_BUDGET = { instances: 720, kinds: 8 } as const;
+export const HORIZON_BUDGET = { instances: 1600, kinds: 8 } as const;
 /** Trees, bushes and rocks of a template without scenery of its own. */
 const FALLBACK_KINDS: readonly ShapeKind[] = ['tree', 'conifer', 'bush'];
 /** Sea creatures that swim above the seabed instead of standing on it (underwater templates only). */
@@ -41,7 +41,7 @@ const SKIPPED: ReadonlySet<string> = new Set(['building', 'cloud', ...MOVING_KIN
 /** The inner edge (m from the plate centre, in the big world): the plate is 80 m wide. */
 const INNER_M = IMMERSIVE_PLATE_M / 2 + 8;
 /** The ground disc is centred on the world origin, the plate 30 m off it: stay well inside. */
-const OUTER_M = ENV_GROUND_RADIUS_M * IMMERSIVE_ENV_SCALE - 40;
+const OUTER_M = Math.min(ENV_GROUND_RADIUS_M * IMMERSIVE_ENV_SCALE - 60, 330);
 const CLUMPS = 16;
 
 export function horizonKinds(plan: SpawnPlan): ShapeKind[] {
@@ -50,7 +50,7 @@ export function horizonKinds(plan: SpawnPlan): ShapeKind[] {
 }
 
 function sizeOf(kind: ShapeKind, plan: SpawnPlan): { width: number; height: number } {
-  const unit = rootScale('immersive', plan.template.terrain.size);
+  const unit = rootScale('immersive', plan.template.terrain.size) * IMMERSIVE_OBJECT_SCALE;
   const scale = kind.startsWith('recipe:') ? recipeScale(plan.template, kind) : null;
   const footprint = KIND_FOOTPRINT[kind] ?? scale?.footprint ?? RECIPE_FOOTPRINT;
   const { base, extra } = KIND_HEIGHT[kind] ?? RECIPE_HEIGHT;

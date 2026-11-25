@@ -153,7 +153,7 @@ function valueNoise(seed: number): (x: number, y: number) => number {
 }
 
 /** Inner and outer radius of the hills (metres before the environment scale) and the grid. */
-const HILLS_INNER_M = 26;
+const HILLS_INNER_M = 56; // beyond the corners of the 170 m plate (anchor 45 m off the origin)
 const HILLS_OUTER_M = ENV_GROUND_RADIUS_M - 6;
 const HILLS_COLUMNS = 128;
 const HILLS_RINGS = 20;
