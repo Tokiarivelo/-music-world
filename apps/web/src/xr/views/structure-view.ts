@@ -26,7 +26,16 @@ import { layerStore } from '../layer-store';
 import { KIND_FOOTPRINT, RECIPE_FOOTPRINT } from '../constants';
 import { lightness, structureColor } from '../palette';
 import { buildShapeGeometry } from '../shapes/builtin-shapes';
-import { applySky, isPolishedKind, loadSkyEnvironment, polishedMaterial } from '../shapes/polished-materials';
+import { withLitAttributes } from '../shapes/lit-geometry';
+import {
+  applyDetailMaps,
+  applySky,
+  isPolishedKind,
+  loadDetailMaps,
+  loadSkyEnvironment,
+  polishedMaterial,
+  TEXTURE_SET,
+} from '../shapes/polished-materials';
 import { blobShadowMaterial, blobShadowTexture, buildingMaterial, foliageMaterial, spikeMaterial } from '../shapes/city-materials';
 import type { WorldView } from './world-view';
 
@@ -85,9 +94,10 @@ export class StructureView implements WorldView {
     const polished = plan.template.fx.material === 'polished';
     for (const track of plan.tracks) {
       const capacity = Math.min(plan.budget, track.recordIndices.length);
-      const geometry = buildShapeGeometry(track.kind, plan.template.recipes);
+      const built = buildShapeGeometry(track.kind, plan.template.recipes);
       const lit = polished && isPolishedKind(track.kind);
-      if (lit && !geometry.hasAttribute('normal')) geometry.computeVertexNormals();
+      const geometry = lit ? withLitAttributes(built) : built;
+      if (geometry !== built) built.dispose();
       const material: Material =
         track.kind === 'building'
           ? buildingMaterial()
@@ -112,6 +122,15 @@ export class StructureView implements WorldView {
     }
     this.addShadows();
     if (polished) {
+      for (const kind of this.litKinds) {
+        const set = TEXTURE_SET[kind];
+        const material = this.materials.get(kind) as MeshStandardMaterial;
+        if (set) {
+          void loadDetailMaps(set).then((maps) => {
+            if (maps && !this.disposed) applyDetailMaps(material, maps);
+          });
+        }
+      }
       void loadSkyEnvironment().then((sky) => {
         if (!sky || this.disposed) return;
         for (const material of this.materials.values()) if ((material as MeshStandardMaterial).isMeshStandardMaterial) applySky(material as MeshStandardMaterial, sky);

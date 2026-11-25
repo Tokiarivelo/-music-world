@@ -355,3 +355,8 @@ repository:
 
 - Skills used: `shape-kind`, `xr-verify`, `world-template`. New contract field `fx.material` through the schema pipeline;
   CC0 sky HDRI (Poly Haven) with its licence file; IWER multiview check compiled the lit materials. No hooks fired.
+
+### 2026-11-25 — I20 object textures (Claude Code)
+
+- Skills used: `shape-kind`, `xr-verify`. ambientCG CC0 maps (5 sets, 256 px) with licence file; box-projected UVs built into
+  the geometry (no shader cost); IWER multiview check on Living City. No hooks fired (outside the Kiro IDE).

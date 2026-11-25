@@ -55,12 +55,24 @@ On Living City (`MW_STORE_JSON` / `MW_STORE_ID` of `scripts/xr-check.mjs`), 2026
 no leak after 3 seeks, about 10 to 14 ms per frame with ANGLE vulkan on a laptop GPU (not a Quest figure; the Quest 3
 check is still a human task). Screenshots: `docs/improvements/i19/polished-desktop.png`, `polished-immersive.png`.
 
+## Textures (phase I20)
+
+Found with the ambientCG API (all CC0) and downloaded at 1K: Bark014 (trees, conifers), Leaf001 (bushes), Metal049A
+(cars, bicycles), Metal064 (airplanes), Rock064 (clusters). Each is reduced to **256 x 256** and split into three small
+JPGs in `apps/web/public/textures/` (204 KB for the 15 files): a grayscale **detail** map (contrast reduced, so the
+template keeps control of the hue: it multiplies the vertex and instance colors), a **normal** map (relief) and a
+**roughness** map. Licences and sources: `public/textures/LICENSE.md`.
+
+The "no UVs" problem was solved **at build time, not in the shader**: `xr/shapes/lit-geometry.ts` projects each triangle
+along the axis its face looks to (box projection) once, so the material is a plain `MeshStandardMaterial` with `map`,
+`normalMap` and `roughnessMap` and the fragment cost is three texture reads. Maps load once, are shared by all kinds
+of a set, and are applied when ready (a load failure leaves the untextured lit look). Measured in IWER on Living City:
+58 draw calls (unchanged), textures 13 to 25, no leak after 3 seeks, same frame time, 27 of 27 programs compile with
+multiview. Screenshot: `docs/improvements/i19/textured-immersive.png`. Tuning: `TEXTURE_SET`, `UV_TILING`,
+`NORMAL_SCALE`; the foliage map has the lowest contrast because the raw leaf photo looked blotchy.
+
 ## Not done, and why
 
-- **No downloaded texture maps (bark, asphalt, metal).** The shapes have no UV coordinates (they are built from
-  procedural parts), so a tiling image needs triplanar mapping in a custom shader, which adds fragment cost on Quest for
-  a detail that is hardly visible at 1 m on 0.2 m objects. Color and shape detail come from vertex colors, smooth
-  normals, baked occlusion and the sky reflection instead.
 - **No GLB models.** Same decision as I8; they would replace the builders of `object-shapes.ts`.
 - Buildings, spikes, terrain and the staff stay unlit on purpose (table above).
 - Quest 3 frame rate of lit materials: to measure (human). If too slow, set `material: "flat"` on the template.
