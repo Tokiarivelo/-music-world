@@ -40,12 +40,12 @@ export function useLyricsSearch(
     };
   }, []);
 
-  const start = useCallback(() => {
+  const start = useCallback<LyricsSearch['start']>((query) => {
     if (status === 'searching') return;
     setStatus('searching');
     void (async () => {
       try {
-        const jobId = await startLyricsSearch(projectId);
+        const jobId = await (query ? startLyricsSearch(projectId, query) : startLyricsSearch(projectId));
         for (let i = 0; i < MAX_POLLS && alive.current; i++) {
           await new Promise((resolve) => setTimeout(resolve, POLL_MS));
           const job = await getJobStatus(jobId);

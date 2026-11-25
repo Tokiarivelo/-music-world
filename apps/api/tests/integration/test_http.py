@@ -71,6 +71,7 @@ def make_container(
         analysis_cache=cache,
         get_project_analysis=analysis,
         get_project_audio=GetProjectAudio(projects, store),
+        object_store=store,
         director=build_director(settings, store, analysis, providers),
         accounts=build_accounts(
             settings,

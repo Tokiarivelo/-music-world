@@ -1,8 +1,8 @@
 # Improvement phases (post-MVP)
 
-Nine improvements asked on 2026-11-24, one file per phase (I9 added the same day). Each file has: goal (the request), current state (checked in
+Improvements asked from 2026-11-24 on, one file per phase (I1–I9 that day; I10–I22 later, see the table). I1–I9 and I19–I22 are built; I8 is done as procedural shapes then upgraded by I19–I21. Each file has: goal (the request), current state (checked in
 the code), requirements with acceptance criteria, design, tasks (one commit per task, like the roadmap phases),
-verification and the decisions that need a human. They are plans: nothing here is implemented yet. When a phase starts,
+verification and the decisions that need a human. The first nine started as plans; the table says what is built. When a phase starts,
 convert it to a spec in `.kiro/specs/<NN>-<name>/` (`requirements.md`, `design.md`, `tasks.md`) as the workflow requires.
 
 | Phase | File | Request | Effort | Needs a human |
@@ -16,6 +16,14 @@ convert it to a spec in `.kiro/specs/<NN>-<name>/` (`requirements.md`, `design.m
 | I7 | [`i7-immersive-scale.md`](i7-immersive-scale.md) | Immersion and explore: you stand inside the world | 2–3 days | Quest check, comfort — **first slice done** (walk, scale, VR glide) |
 | I8 | [`i8-realistic-objects.md`](i8-realistic-objects.md) | Clouds, cars, bicycles, planes, plants… very realistic | 5+ days | asset sourcing and licences — **done as procedural**: seven kinds, Living City, motion, blob shadows, wind; CC0 GLB models for 12 kinds (I21); PBR, textures, LOD not needed (see the file); Quest 3 check open |
 | I9 | [`i9-editable-notes.md`](i9-editable-notes.md) | Click a note when paused to hear it, move it to other lines, create a new line | 6–8 days | decided: lines are full staves, per-note and per-line colors; open: sampled tone |
+| I10 | [`i10-song-catalog.md`](i10-song-catalog.md) | Song catalog on S3 (Garage, R2), seed script, note-quality proxies | 1 day | R2 bucket — **done** (Clapton recording local only) |
+| I13 | [`i13-auto-lyrics.md`](i13-auto-lyrics.md) | Lyrics found automatically (LRCLIB, then Whisper) | 1 day | no — **done**; I17 added the "Search lyrics" button |
+| I19 | [`i19-polished-objects.md`](i19-polished-objects.md) | Every 3D object polished, reflective, more realistic | 1 day | Quest check — **done**: lit PBR materials, sky reflections, CC0 sky |
+| I20 | same file, § Textures | Image textures on the objects | 0.5 day | no — **done**: CC0 bark, foliage, paint, metal, rock with box-projected UVs |
+| I21 | same file, § Models | Authored 3D models for the objects | 1 day | style check (`open-questions.md` 15) — **done**: 12 CC0 GLB (Kenney, Quaternius, OpenGameArt) in the same instanced meshes |
+| I22 | — | "Search lyrics" finds nothing for a file without tags: type artist and title; the catalog no longer needs the vocal stem | 0.5 day | no — **done** (branch `phase-I22-lyrics-search-query`) |
+
+See also [`next-improvements.md`](next-improvements.md): the proposed next tasks and future features.
 
 ## Order and schedule
 

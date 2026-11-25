@@ -40,7 +40,9 @@ class LyricsFinder:
         """`(lines, source)` with source `lrclib`, `whisper` or `none`."""
         key = work_key(audio_hash, "lyrics")
         saved = await self._load(key)
-        if saved is not None and (saved["source"] != "none" or not allow_asr):
+        typed = bool(artist and title)
+        # A cached "none" is final only when nothing new can change it: no typed query and no speech recognition left.
+        if saved is not None and (saved["source"] != "none" or (not allow_asr and not typed)):
             return [LyricLine(**line) for line in saved["lines"]], str(saved["source"])
         instrumental = False
         if self._lookup is not None:

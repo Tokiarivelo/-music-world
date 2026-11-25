@@ -35,3 +35,23 @@ Skies (used, see `apps/web/public/sky/LICENSE.md`): `kloofendal_43d_clear_puresk
 Candidates for models and textures (decimate before use, they are photogrammetry): `shrub_03`, `shrub_02`,
 `fir_sapling`, `pine_sapling_small`, `jacaranda_tree`, `rock_07`, `rock_09`, `stone_01`; ambientCG `Bark014`, `Bark012`,
 `Leaf001`, `Grass004`, `Rock064`, `Metal049A`, `PaintedMetal002`.
+
+## Downloaded References Location
+
+All reference images have been downloaded into the local non-committed folder `docs/reference/`:
+- **Location:** `docs/reference/` (git-ignored via `.gitignore`)
+- **Total assets:** 96 images (28.8 MB)
+  - `01_tree/` (7 images: oak whole tree, silhouette, roots flare, crown clusters, Jacaranda CC0 render, Bark012/014 CC0 textures)
+  - `02_conifer/` (6 images: Norway spruce whole tree, drooping branches, silhouette, needles, fir & pine sapling CC0 renders)
+  - `03_bush/` (5 images: boxwood clump, hedge foliage, leaf texture, shrub_02/03 CC0 renders, Leaf001 CC0 texture)
+  - `04_cloud/` (5 images: cumulus flat base, cumulus humilis, stratocumulus, cumulonimbus anvil, wasteland clouds pure sky)
+  - `05_car/` (7 images: technical blueprint, sedan profile, hatchback front, alloy rim, headlight, Metal049A & PaintedMetal002 textures)
+  - `06_airplane/` (14 images: Cessna 172 3-view, Piper Cherokee 3-view, A320 3-view, Concorde 3-view, Boeing 737 front orthographic, Cessna 172 front photo, Cirrus SR22 flight, light aircraft top, propeller plane side, airliner profile, A380 widebody, DHC-2 Beaver seaplane, Beech staggerwing biplane, propeller blade detail)
+  - `07_bicycle/` (4 images: city bicycle side view, frame geometry diagram, wheel spokes and hub)
+  - `08_bird/` (4 images: seagull wings-up, gull gliding wings-down, swallow flight, flock silhouette)
+  - `09_sun_moon/` (5 images: sun rays crepuscular, full moon disc, crescent moon earthshine, Qwantani dusk & Syferfontein clear skies)
+  - `10_rain_storm/` (5 images: forked lightning, cloud branch discharges, shelf cloud, rain streaks under lamp, downpour curtain)
+  - `11_ground_hills/` (10 images: grassland horizon, rolling hills mist, distant mountains haze, Table Mountain & Snow Field skies, rock_07/09 & stone_01 models, Grass004 & Rock064 textures)
+  - `12_aurora/` (4 images: green curtains, snowy mountain backdrop, green ribbon over snow, auroral corona)
+  - `13_polyhaven_ambientcg/` (20 assets: all listed Poly Haven 3D models/skies and ambientCG PBR textures)
+- **Catalog & License manifest:** See `docs/reference/README.md` and `docs/reference/metadata.json` for per-image licensing and source links.

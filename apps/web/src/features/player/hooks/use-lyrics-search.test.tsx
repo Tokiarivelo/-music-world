@@ -53,4 +53,14 @@ describe("lyrics search (I17)", () => {
     await act(() => vi.advanceTimersByTimeAsync(10));
     expect(result.current.status).toBe("failed");
   });
+
+  it("sends the artist and title typed by the listener", async () => {
+    api.startLyricsSearch.mockResolvedValue("job-3");
+    api.getJobStatus.mockResolvedValue({ status: "done" });
+    api.getProjectAnalysis.mockResolvedValue(withNotes("vocals", 10));
+    const { result } = renderHook(() => useLyricsSearch("p1", withNotes("vocals", 10), vi.fn()));
+    act(() => result.current.start({ artist: "Eric Clapton", title: "Layla" }));
+    await act(() => vi.advanceTimersByTimeAsync(POLL_MS * 2));
+    expect(api.startLyricsSearch).toHaveBeenCalledWith("p1", { artist: "Eric Clapton", title: "Layla" });
+  });
 });
