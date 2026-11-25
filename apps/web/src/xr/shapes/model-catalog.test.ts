@@ -64,7 +64,7 @@ describe('model files (Blender build)', () => {
       const g = meshes[0]!.geometry;
       expect('color' in g.attributes, `${kind} has vertex colors`).toBe(true);
       const tris = (g.index ? g.index.count : g.getAttribute('position').count) / 3;
-      expect(tris, kind).toBeLessThanOrEqual(840);
+      expect(tris, kind).toBeLessThanOrEqual(1850);
     }
   });
 });

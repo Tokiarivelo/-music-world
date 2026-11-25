@@ -124,5 +124,21 @@
   "view.weather.clear": "Mazava",
   "view.weather.cloudy": "Rahona",
   "view.weather.rain": "Orana",
-  "view.weather.storm": "Tafio-drivotra"
+  "view.weather.storm": "Tafio-drivotra",
+  "view.time": "Fotoana",
+  "view.time.auto": "Auto",
+  "view.time.day": "Andro",
+  "view.time.sunset": "Hariva",
+  "view.time.night": "Alina",
+  "view.realSky": "Lanitra tena izy",
+  "preset.horizon": "Faravodilanitra",
+  "view.dome": "Tontolo tafo",
+  "view.domeHint": "Tsy misy lovia: ao anaty tafo tsy misy farany ianao. Tsy afaka mivoaka.",
+  "view.landscape": "Tontolo",
+  "view.landscape.template": "Modely",
+  "view.landscape.meadow": "Ala",
+  "view.landscape.desert": "Efitra",
+  "view.landscape.snow": "Oram-panala",
+  "view.landscape.rocky": "Vatolampy",
+  "view.landscape.city": "Tanàna"
 }

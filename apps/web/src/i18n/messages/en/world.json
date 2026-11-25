@@ -124,5 +124,21 @@
   "view.weather.clear": "Clear",
   "view.weather.cloudy": "Cloudy",
   "view.weather.rain": "Rain",
-  "view.weather.storm": "Storm"
+  "view.weather.storm": "Storm",
+  "view.time": "Time of day",
+  "view.time.auto": "Auto",
+  "view.time.day": "Day",
+  "view.time.sunset": "Sunset",
+  "view.time.night": "Night",
+  "view.realSky": "Photographic sky",
+  "preset.horizon": "Horizon",
+  "view.dome": "Dome world",
+  "view.domeHint": "No plate: you stand inside an infinite dome. Drag to look, WASD to walk. You cannot leave it.",
+  "view.landscape": "Landscape",
+  "view.landscape.template": "Template",
+  "view.landscape.meadow": "Meadow",
+  "view.landscape.desert": "Desert",
+  "view.landscape.snow": "Snow",
+  "view.landscape.rocky": "Rocky",
+  "view.landscape.city": "City"
 }

@@ -124,5 +124,21 @@
   "view.weather.clear": "Dégagé",
   "view.weather.cloudy": "Nuageux",
   "view.weather.rain": "Pluie",
-  "view.weather.storm": "Orage"
+  "view.weather.storm": "Orage",
+  "view.time": "Moment de la journée",
+  "view.time.auto": "Auto",
+  "view.time.day": "Jour",
+  "view.time.sunset": "Crépuscule",
+  "view.time.night": "Nuit",
+  "view.realSky": "Ciel photographique",
+  "preset.horizon": "Horizon",
+  "view.dome": "Monde en dôme",
+  "view.domeHint": "Sans plateau : vous êtes à l'intérieur d'un dôme infini. Glissez pour regarder, ZQSD pour marcher. Impossible d'en sortir.",
+  "view.landscape": "Paysage",
+  "view.landscape.template": "Modèle",
+  "view.landscape.meadow": "Prairie",
+  "view.landscape.desert": "Désert",
+  "view.landscape.snow": "Neige",
+  "view.landscape.rocky": "Rocailleux",
+  "view.landscape.city": "Ville"
 }

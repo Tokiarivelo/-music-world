@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { analysisArb } from './__fixtures__/analyses';
 import { makeTemplate } from './__fixtures__/templates';
 import { buildSpawnPlan } from './spawn-plan';
-import { WEATHER_MODES, isMinorChord, weatherAt } from './weather';
+import { SKY_IDS, TIME_MODES, WEATHER_MODES, isMinorChord, resolveTime, skyWeights, weatherAt } from './weather';
 
 const TPL = makeTemplate();
 const UNIT = ['cloudCover', 'rain', 'storm', 'flash', 'sun', 'birds', 'wind'] as const;
@@ -54,5 +54,35 @@ describe('weather', () => {
     const flashes = kicks.map((k) => weatherAt(plan, k + 0.01, 'storm').flash);
     expect(flashes.some((f) => f > 0.5)).toBe(true);
     expect(kicks.every((k) => weatherAt(plan, k + 0.01, 'clear').flash === 0)).toBe(true);
+  });
+});
+
+describe('sky photos', () => {
+  it('weights sum to 1 and stay in [0, 1] for every weather and time', () => {
+    fc.assert(
+      fc.property(fc.double({ min: 0, max: 1, noNaN: true }), fc.double({ min: 0, max: 1, noNaN: true }), fc.constantFrom('day', 'sunset', 'night' as const), (cloudCover, storm, time) => {
+        const w = skyWeights({ cloudCover, storm }, time as 'day');
+        expect(SKY_IDS.reduce((n, id) => n + w[id], 0)).toBeCloseTo(1, 9);
+        for (const id of SKY_IDS) {
+          expect(w[id]).toBeGreaterThanOrEqual(-1e-9);
+          expect(w[id]).toBeLessThanOrEqual(1 + 1e-9);
+        }
+      }),
+    );
+  });
+
+  it('picks the matching photo', () => {
+    expect(skyWeights({ cloudCover: 0.05, storm: 0 }, 'day').clear).toBeGreaterThan(0.9);
+    expect(skyWeights({ cloudCover: 1, storm: 1 }, 'day').storm).toBe(1);
+    expect(skyWeights({ cloudCover: 0, storm: 0 }, 'night').night).toBe(1);
+    expect(skyWeights({ cloudCover: 0.1, storm: 0 }, 'sunset').sunset).toBeGreaterThan(0.9);
+  });
+
+  it('resolves auto from the background luminance', () => {
+    expect(TIME_MODES).toContain('auto');
+    expect(resolveTime('auto', 0.009)).toBe('night');
+    expect(resolveTime('auto', 0.05)).toBe('sunset');
+    expect(resolveTime('auto', 0.4)).toBe('day');
+    expect(resolveTime('day', 0)).toBe('day');
   });
 });

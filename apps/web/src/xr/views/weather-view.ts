@@ -26,13 +26,16 @@ import {
   Quaternion,
   ShaderMaterial,
   SphereGeometry,
+  SRGBColorSpace,
   Sprite,
   SpriteMaterial,
+  Texture,
+  TextureLoader,
   Vector3,
 } from 'three';
 import { hashSeed, mulberry32 } from '@/engine/prng';
 import type { SpawnPlan } from '@/engine/spawn-plan';
-import { weatherAt, type Weather } from '@/engine/weather';
+import { SKY_IDS, resolveTime, skyWeights, weatherAt, type SkyId, type Weather } from '@/engine/weather';
 import type { WorldState } from '@/engine/world-state';
 import { ENV_SKY_RADIUS_M } from '../constants';
 import { radialAlphaTexture } from '../glyphs/halo-texture';
@@ -77,6 +80,46 @@ void main() {
   #include <colorspace_fragment>
 }`;
 
+const PHOTO_VERTEX = /* glsl */ `
+varying vec3 vDir;
+void main() {
+  vDir = normalize(position);
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+const PHOTO_FRAGMENT = /* glsl */ `
+uniform sampler2D uA;
+uniform sampler2D uB;
+uniform float uMix;
+uniform float uFlash;
+uniform vec3 uHaze;
+varying vec3 vDir;
+const float PI = 3.14159265;
+void main() {
+  vec3 d = normalize(vDir);
+  vec2 uv = vec2(atan(d.z, d.x) / (2.0 * PI) + 0.5, asin(clamp(d.y, -1.0, 1.0)) / PI + 0.5);
+  vec3 col = mix(texture2D(uA, uv).rgb, texture2D(uB, uv).rgb, uMix);
+  col = mix(uHaze, col, smoothstep(-0.04, 0.1, d.y)); // below and at the horizon the photo melts into the ground haze
+  col += vec3(0.55, 0.62, 0.8) * uFlash * (0.4 + 0.6 * smoothstep(0.0, 0.5, d.y));
+  gl_FragColor = vec4(col, 1.0);
+  #include <colorspace_fragment>
+}`;
+
+/** Sky photos are shared by every view of the page and loaded the first time a weight asks for them. */
+const skyTextures = new Map<SkyId, Texture>();
+function skyTexture(id: SkyId, base = '/sky'): Texture {
+  let texture = skyTextures.get(id);
+  if (!texture) {
+    texture = new TextureLoader().load(`${base}/${id}.jpg`);
+    texture.colorSpace = SRGBColorSpace;
+    skyTextures.set(id, texture);
+  }
+  return texture;
+}
+function skyLoaded(id: SkyId): boolean {
+  const image = skyTextures.get(id)?.image as { width?: number } | undefined;
+  return !!image && (image.width ?? 0) > 0;
+}
+
 const BIRD_VERTEX = /* glsl */ `
 attribute float aWing; // -1 left tip, 0 body, 1 right tip
 uniform float uTime;
@@ -119,6 +162,9 @@ export class WeatherView implements WorldView {
   private readonly rain: LineSegments;
   private readonly overcast: Mesh<SphereGeometry, MeshBasicMaterial>;
   private readonly bolt: Line;
+  private readonly photo: Mesh<SphereGeometry, ShaderMaterial>;
+  private readonly luminance: number;
+  private readonly polished: boolean;
   private readonly birds: InstancedMesh;
   private readonly birdBase: Array<{ radius: number; height: number; phase: number; speed: number }> = [];
   private lastStrike = -1;
@@ -135,7 +181,9 @@ export class WeatherView implements WorldView {
     const colors = environmentColors(plan.template.palette);
     this.horizon = colors.horizon;
     const bg = new Color(plan.template.palette.background);
-    this.dark = 0.2126 * bg.r + 0.7152 * bg.g + 0.0722 * bg.b < 0.05;
+    this.luminance = 0.2126 * bg.r + 0.7152 * bg.g + 0.0722 * bg.b;
+    this.dark = this.luminance < 0.05;
+    this.polished = plan.template.fx.material === 'polished';
     const rng = mulberry32(hashSeed(plan.seed, 'weather'));
     const puff = radialAlphaTexture(64);
     this.disposables.push(puff);
@@ -162,6 +210,24 @@ export class WeatherView implements WorldView {
     this.overcast.renderOrder = -9;
     this.overcast.frustumCulled = false;
     this.disposables.push(this.overcast.geometry, this.overcast.material);
+
+    // Photographic sky: two equirectangular photos crossfaded by the weather and the time of day.
+    const placeholder = new Texture();
+    this.photo = new Mesh(
+      new SphereGeometry(R * 0.99, 48, 24),
+      new ShaderMaterial({
+        vertexShader: PHOTO_VERTEX,
+        fragmentShader: PHOTO_FRAGMENT,
+        uniforms: { uA: { value: placeholder }, uB: { value: placeholder }, uMix: { value: 0 }, uFlash: { value: 0 }, uHaze: { value: this.horizon.clone() } },
+        side: BackSide,
+        depthWrite: false,
+        fog: false,
+      }),
+    );
+    this.photo.renderOrder = -9;
+    this.photo.frustumCulled = false;
+    this.photo.visible = false;
+    this.disposables.push(this.photo.geometry, this.photo.material, placeholder);
 
     // Clouds: soft puffs on the dome, facing the viewer, drifting around it at their own slow speed.
     const puffGeometry = new PlaneGeometry(1, 1);
@@ -253,7 +319,7 @@ export class WeatherView implements WorldView {
       this.birdBase.push({ radius: 16 + 34 * rng(), height: 10 + 18 * rng(), phase: rng() * Math.PI * 2, speed: (0.12 + 0.1 * rng()) * (rng() < 0.5 ? 1 : -1) });
     }
 
-    this.object.add(this.overcast, this.sun, this.clouds, this.rain, this.bolt, this.birds);
+    this.object.add(this.photo, this.overcast, this.sun, this.clouds, this.rain, this.bolt, this.birds);
     this.applyScale(scaleStore.mode);
     const offScale = scaleStore.subscribe((mode) => this.applyScale(mode));
     this.unsubscribe = offScale;
@@ -264,13 +330,47 @@ export class WeatherView implements WorldView {
   }
 
   update(state: WorldState): void {
-    const w = weatherAt(this.plan, state.t, weatherStore.mode);
+    const settings = weatherStore.settings;
+    const w = weatherAt(this.plan, state.t, settings.mode);
     const t = state.t;
+    const photo = this.updatePhoto(w, settings.realSky && this.polished, resolveTime(settings.time, this.luminance));
     this.updateSky(w, t);
     this.updateClouds(w, t);
+    // A real sky already has its sun, clouds and overcast: the drawn ones only stay as the fallback.
+    if (photo) {
+      this.sun.visible = false;
+      this.clouds.visible = false;
+      this.overcast.visible = false;
+    }
     this.updateRain(w, t);
     this.updateBolt(w);
     this.updateBirds(w, t);
+  }
+
+  /** Shows the photographic sky and returns true when it is drawn (its photos are loaded). */
+  private updatePhoto(w: Weather, enabled: boolean, time: 'day' | 'sunset' | 'night'): boolean {
+    if (!enabled) {
+      this.photo.visible = false;
+      return false;
+    }
+    const weights = skyWeights(w, time);
+    for (const id of SKY_IDS) if (weights[id] > 0.001) skyTexture(id); // start loading what the weather is heading to
+    const ranked = [...SKY_IDS].sort((a, b) => weights[b] - weights[a]);
+    const [first, second] = [ranked[0]!, ranked[1]!];
+    const a = skyTexture(first);
+    const b = skyTexture(second);
+    if (!skyLoaded(first) || !skyLoaded(second)) {
+      this.photo.visible = false;
+      return false;
+    }
+    const total = weights[first] + weights[second];
+    const u = this.photo.material.uniforms;
+    u.uA!.value = a;
+    u.uB!.value = b;
+    u.uMix!.value = total > 0 ? weights[second] / total : 0;
+    u.uFlash!.value = this.reduced ? 0 : w.flash * 0.6;
+    this.photo.visible = true;
+    return true;
   }
 
   private updateSky(w: Weather, t: number): void {

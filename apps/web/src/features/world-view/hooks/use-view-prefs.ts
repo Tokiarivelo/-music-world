@@ -11,6 +11,8 @@ export function useViewPrefs(handle: WorldHandle | null): [ViewPrefs, (patch: Pa
     handle?.setLayout(prefs.layout);
     handle?.setAuroraSky(prefs.aurora);
     handle?.setWeather(prefs.weather);
+    handle?.setDome({ enabled: prefs.dome, landscape: prefs.landscape });
+    handle?.setSky({ time: prefs.time, realSky: prefs.realSky });
   }, [handle, prefs]);
   const update = useCallback((patch: Partial<ViewPrefs>) => {
     setPrefs((p) => {

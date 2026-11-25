@@ -24,7 +24,7 @@ import bpy  # first: it registers the bmesh and mathutils modules
 import bmesh  # noqa: E402
 from mathutils import Matrix, Vector, noise  # noqa: E402
 
-BUDGET = {"tree": 700, "conifer": 600, "bush": 500, "cloud": 420, "car": 800, "airplane": 700, "bicycle": 800}
+BUDGET = {"tree": 1500, "conifer": 1200, "bush": 800, "cloud": 700, "car": 1800, "airplane": 1400, "bicycle": 1500}
 
 
 def lin(hex_color: str, gain: float = 1.0) -> tuple[float, float, float, float]:
@@ -140,66 +140,110 @@ class Builder:
         return obj
 
 
+def shade(color, k: float) -> tuple[float, float, float, float]:
+    return (min(1.0, color[0] * k), min(1.0, color[1] * k), min(1.0, color[2] * k), 1.0)
+
+
+def tint(color, seed: float, amount: float = 0.22) -> tuple[float, float, float, float]:
+    """A seeded variation of a color (value and a slight hue drift toward yellow-green), like real foliage."""
+    n = noise.noise(Vector((seed, seed * 1.7, seed * 0.6)))
+    k = 1.0 + amount * n
+    return (min(1.0, color[0] * (k + 0.08 * n)), min(1.0, color[1] * k), min(1.0, color[2] * (k - 0.1 * n)), 1.0)
+
+
 def tree() -> bpy.types.Object:
     b = Builder()
     bark, leaf = lin("#8f6742"), lin("#6cc45f")
-    b.cylinder((0, 0, 0), (0.02, 0, 0.55), 0.075, 0.05, bark, seg=7)
-    b.cylinder((0.02, 0, 0.5), (0.2, 0.05, 0.78), 0.035, 0.02, bark, seg=5)
-    b.cylinder((0.02, 0, 0.55), (-0.18, -0.06, 0.82), 0.032, 0.018, bark, seg=5)
-    for i, (c, r, s) in enumerate([((0.0, 0.0, 0.95), (0.34, 0.32, 0.3), 1), ((0.22, 0.06, 0.82), (0.24, 0.22, 0.2), 2), ((-0.2, -0.05, 0.86), (0.25, 0.23, 0.21), 3), ((0.02, 0.02, 1.2), (0.22, 0.2, 0.2), 4)]):
-        shade = 1.0 + 0.12 * (i - 1.5) / 1.5
-        b.sphere(c, r, tuple(min(1.0, v * shade) for v in leaf[:3]) + (1.0,), seg=9, rings=6, noise_amp=0.22, seed=s * 3.1)
+    # Trunk with a root flare and a slight lean, then six limbs reaching into the crown.
+    b.cylinder((0, 0, -0.02), (0, 0, 0.12), 0.12, 0.085, bark, seg=9)
+    b.cylinder((0, 0, 0.1), (0.03, 0.01, 0.62), 0.085, 0.055, bark, seg=9)
+    limbs = [((0.03, 0.01, 0.5), (0.3, 0.1, 0.95)), ((0.03, 0.01, 0.55), (-0.27, -0.12, 0.98)), ((0.03, 0.01, 0.6), (0.06, 0.3, 1.0)), ((0.03, 0.01, 0.58), (-0.05, -0.28, 0.94)), ((0.03, 0.01, 0.6), (0.2, -0.2, 1.12)), ((0.03, 0.01, 0.62), (-0.18, 0.2, 1.15))]
+    for p0, p1 in limbs:
+        b.cylinder(p0, p1, 0.035, 0.016, bark, seg=6)
+    crown = [((0.3, 0.1, 1.0), 0.2), ((-0.27, -0.12, 1.02), 0.21), ((0.06, 0.3, 1.04), 0.2), ((-0.05, -0.28, 0.98), 0.2), ((0.2, -0.2, 1.17), 0.19), ((-0.18, 0.2, 1.2), 0.19), ((0.03, 0.0, 1.22), 0.26), ((0.38, -0.05, 1.2), 0.16), ((-0.38, 0.05, 1.18), 0.17), ((0.0, 0.0, 1.45), 0.2), ((0.18, 0.12, 1.4), 0.16), ((-0.16, -0.1, 1.38), 0.16)]
+    for i, (c, r) in enumerate(crown):
+        height = (c[2] - 0.9) / 0.7
+        col = tint(shade(leaf, 0.85 + 0.35 * max(0.0, min(1.0, height))), i * 5.3)
+        b.sphere(c, (r, r * 0.95, r * 0.88), col, seg=10, rings=7, noise_amp=0.28, seed=i * 3.7)
     return b.finish("tree", BUDGET["tree"], 0.32)
 
 
 def conifer() -> bpy.types.Object:
     b = Builder()
     bark, leaf = lin("#7a5636"), lin("#4fae68")
-    b.cylinder((0, 0, 0), (0, 0, 0.3), 0.06, 0.045, bark, seg=6)
-    for i in range(5):
-        z = 0.18 + i * 0.27
-        r = 0.46 - i * 0.075
-        shade = 0.8 + 0.1 * i
-        c = tuple(min(1.0, v * shade) for v in leaf[:3]) + (1.0,)
-        b.cylinder((0, 0, z), (0.01 * i, 0, z + 0.42), r, 0.012, c, seg=9, cap=True)
+    b.cylinder((0, 0, 0), (0, 0, 0.35), 0.075, 0.05, bark, seg=7)
+    tiers = 8
+    for i in range(tiers):
+        z = 0.2 + i * 0.2
+        r = 0.5 - i * 0.055
+        col = tint(shade(leaf, 0.78 + 0.05 * i), i * 2.9, 0.15)
+        verts = b.cylinder((0, 0, z), (0.004 * i, 0.003 * i, z + 0.34), r, 0.015, col, seg=14, cap=True)
+        for v in verts:  # ragged, drooping rim: the lower ring is pushed in and out and pulled down
+            rim = v.co.z < z + 0.1
+            if rim:
+                n = noise.noise(Vector((v.co.x * 5 + i, v.co.y * 5, i * 1.3)))
+                v.co.x *= 1.0 + 0.18 * n
+                v.co.y *= 1.0 + 0.18 * n
+                v.co.z -= 0.045 * (1 + n)
     return b.finish("conifer", BUDGET["conifer"], 0.3)
 
 
 def bush() -> bpy.types.Object:
     b = Builder()
     leaf = lin("#74c866")
-    for i, (c, r, s) in enumerate([((0, 0, 0.22), (0.4, 0.34, 0.24), 1), ((0.28, 0.08, 0.17), (0.26, 0.24, 0.18), 2), ((-0.27, -0.06, 0.17), (0.28, 0.25, 0.18), 3), ((0.02, 0.2, 0.3), (0.2, 0.2, 0.16), 4), ((-0.04, -0.2, 0.28), (0.22, 0.2, 0.15), 5)]):
-        shade = 0.9 + 0.08 * (i % 3)
-        b.sphere(c, r, tuple(min(1.0, v * shade) for v in leaf[:3]) + (1.0,), seg=8, rings=5, noise_amp=0.2, seed=s * 2.3)
+    clumps = [((0, 0, 0.22), (0.4, 0.34, 0.24)), ((0.28, 0.08, 0.17), (0.26, 0.24, 0.18)), ((-0.27, -0.06, 0.17), (0.28, 0.25, 0.18)), ((0.02, 0.2, 0.3), (0.2, 0.2, 0.16)), ((-0.04, -0.2, 0.28), (0.22, 0.2, 0.15)), ((0.15, -0.15, 0.14), (0.2, 0.18, 0.13)), ((-0.18, 0.14, 0.15), (0.2, 0.19, 0.13)), ((0.0, 0.0, 0.38), (0.22, 0.2, 0.15)), ((0.4, -0.02, 0.1), (0.15, 0.14, 0.1))]
+    for i, (c, r) in enumerate(clumps):
+        b.sphere(c, r, tint(shade(leaf, 0.82 + 0.06 * (i % 4)), i * 4.1), seg=9, rings=6, noise_amp=0.26, seed=i * 2.3)
     return b.finish("bush", BUDGET["bush"], 0.32, flat_bottom=0.02)
 
 
 def cloud() -> bpy.types.Object:
     b = Builder()
     white = lin("#f4f7ff")
-    puffs = [((0, 0, 0.3), (0.5, 0.4, 0.3)), ((0.45, 0.05, 0.22), (0.38, 0.32, 0.22)), ((-0.46, -0.04, 0.2), (0.4, 0.33, 0.22)), ((0.14, 0.12, 0.5), (0.34, 0.3, 0.26)), ((-0.18, -0.1, 0.46), (0.3, 0.26, 0.22)), ((0.75, 0.0, 0.14), (0.24, 0.2, 0.14)), ((-0.8, 0.02, 0.13), (0.24, 0.2, 0.13))]
+    puffs = [((0.3, 0.12, 0.6), (0.3, 0.26, 0.24)), ((-0.35, -0.12, 0.55), (0.28, 0.24, 0.22)), ((0, 0, 0.3), (0.5, 0.4, 0.3)), ((0.45, 0.05, 0.22), (0.38, 0.32, 0.22)), ((-0.46, -0.04, 0.2), (0.4, 0.33, 0.22)), ((0.14, 0.12, 0.5), (0.34, 0.3, 0.26)), ((-0.18, -0.1, 0.46), (0.3, 0.26, 0.22)), ((0.75, 0.0, 0.14), (0.24, 0.2, 0.14)), ((-0.8, 0.02, 0.13), (0.24, 0.2, 0.13))]
     for i, (c, r) in enumerate(puffs):
-        b.sphere(c, r, white, seg=9, rings=6, noise_amp=0.12, seed=i * 4.7)
+        b.sphere(c, r, white, seg=11, rings=7, noise_amp=0.16, seed=i * 4.7)
     return b.finish("cloud", BUDGET["cloud"], 0.35, flat_bottom=0.05)
 
 
 def car() -> bpy.types.Object:
-    # Length along Y, nose toward -Y, wheels on the ground (z = 0 is the ground).
+    """Length along Y, nose toward -Y, ground at z = 0. Body from a real side profile, extruded and bevelled."""
     b = Builder()
-    paint, glass, dark, tire, rim = lin("#d8dde6"), lin("#1c2430"), lin("#15171c"), lin("#101114"), lin("#b9c0cc")
-    b.box((0, 0, 0.3), (0.74, 1.9, 0.26), paint, bevel=0.07)  # lower body
-    b.box((0, 0.1, 0.52), (0.62, 0.95, 0.24), paint, bevel=0.08)  # cabin roof block
-    b.box((0, 0.1, 0.52), (0.645, 0.9, 0.17), glass, bevel=0.05)  # glass band
-    b.box((0, -0.62, 0.43), (0.7, 0.55, 0.06), paint, bevel=0.025)  # bonnet
-    b.box((0, -0.97, 0.26), (0.68, 0.08, 0.1), dark, bevel=0.03)  # front bumper
-    b.box((0, 0.97, 0.26), (0.68, 0.08, 0.1), dark, bevel=0.03)  # rear bumper
-    for sx in (-0.26, 0.26):
-        b.box((sx, -0.955, 0.34), (0.15, 0.05, 0.06), lin("#fff3b0", 1.3), bevel=0.015)  # headlights
-        b.box((sx, 0.955, 0.34), (0.15, 0.05, 0.06), lin("#c8261e", 1.1), bevel=0.015)  # tail lights
+    paint, glass, dark, tire, rim = lin("#d8dde6"), lin("#18202c"), lin("#15171c"), lin("#101114"), lin("#b9c0cc")
+    profile = [(-0.96, 0.17), (-0.97, 0.34), (-0.9, 0.42), (-0.45, 0.47), (-0.16, 0.72), (0.34, 0.74), (0.74, 0.52), (0.95, 0.47), (0.97, 0.3), (0.94, 0.17)]
+    half = 0.38
+    bm = b.bm
+    left = [bm.verts.new((-half, y, z)) for y, z in profile]
+    right = [bm.verts.new((half, y, z)) for y, z in profile]
+    faces = [bm.faces.new(left[::-1]), bm.faces.new(right)]
+    for i in range(len(profile)):
+        j = (i + 1) % len(profile)
+        faces.append(bm.faces.new((left[i], left[j], right[j], right[i])))
+    for f in faces:
+        b._paint([f], paint)
+    edges = {e for f in faces for e in f.edges}
+    res = bmesh.ops.bevel(bm, geom=list(edges), offset=0.045, segments=2, affect="EDGES", profile=0.6)
+    b._paint(res["faces"], paint)
+    # Windows: faces of the cabin (above the beltline, between the pillars) get the glass color.
+    for f in bm.faces:
+        c = f.calc_center_median()
+        if c.z > 0.5 and -0.3 < c.y < 0.62 and (abs(f.normal.x) > 0.6 or abs(f.normal.y) > 0.3 and c.z < 0.72):
+            b._paint([f], glass)
+    b.box((0, -0.97, 0.26), (0.7, 0.07, 0.09), dark, bevel=0.03)  # front bumper
+    b.box((0, 0.97, 0.26), (0.7, 0.07, 0.09), dark, bevel=0.03)  # rear bumper
+    b.box((0, -0.975, 0.35), (0.3, 0.03, 0.07), dark, bevel=0.01)  # grille
+    for sx in (-0.27, 0.27):
+        b.box((sx, -0.965, 0.37), (0.15, 0.05, 0.06), lin("#fff3b0", 1.3), bevel=0.015)  # headlights
+        b.box((sx, 0.965, 0.37), (0.15, 0.05, 0.06), lin("#c8261e", 1.1), bevel=0.015)  # tail lights
+    for sx in (-0.41, 0.41):
+        b.box((sx, -0.22, 0.52), (0.06, 0.09, 0.05), paint, bevel=0.015)  # mirrors
     for sy in (-0.58, 0.6):
         for sx in (-0.4, 0.4):
-            b.torus((sx, sy, 0.17), 0.12, 0.055, tire, axis="X", seg=14, ring=5)
-            b.cylinder((sx - 0.02, sy, 0.17), (sx + 0.02, sy, 0.17), 0.1, 0.1, rim, seg=8)
+            b.torus((sx, sy, 0.17), 0.12, 0.055, tire, axis="X", seg=16, ring=6)
+            b.cylinder((sx - 0.03, sy, 0.17), (sx + 0.03, sy, 0.17), 0.1, 0.1, rim, seg=10)
+            for k in range(5):  # spokes
+                a = k * 2 * math.pi / 5
+                b.cylinder((sx, sy, 0.17), (sx + 0.04 * (1 if sx > 0 else -1), sy + 0.085 * math.cos(a), 0.17 + 0.085 * math.sin(a)), 0.008, 0.008, dark, seg=4)
     return rotate_axis(b.finish("car", BUDGET["car"], 0.4), "car")
 
 

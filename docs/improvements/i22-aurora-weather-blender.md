@@ -46,3 +46,28 @@ infinite dome world with sun, clouds, birds, rain and storms that follows the mu
 Web: 106 files, 567 tests, `tsc` clean. Screenshots by Playwright on `/play/demo` (software GL): aurora mode, storm with
 overcast sky and rain, Living City with the new models, looked at by eye. Not measured: Quest 3 frame rate of the weather
 (6 draw calls, 1400 line segments), and picking the sky notes with a VR ray. Both are human checks.
+
+## I25 — Photographic sky, dome world and landscapes (follow-up request)
+
+- **Photographic sky** (`xr/views/weather-view.ts`, `engine/weather.ts`): seven Poly Haven HDRI skies (CC0) tone-mapped by
+  `scripts/blender/hdri_to_jpg.py` into `public/sky` (2048 x 1024 JPEG, 540 KB in total, `LICENSE.md`). `skyWeights(weather,
+  time)` gives crossfade weights (clear, cloudy, overcast, storm by day; sunset; night, night with clouds); the dome shader
+  blends the two heaviest. Time of day (Auto reads the palette, Day, Sunset, Night) and the toggle are in the View popover.
+  Only `fx.material: "polished"` templates use it; `flat` templates (the neon reference image) keep their gradient sky. While
+  the photos load, the drawn sun, clouds and overcast stay as the fallback.
+- **Horizon view** (`ViewPresetId` `horizon`): low camera and a 58 degree lens (`HORIZON_FOV_DEG`), used automatically when a
+  polished world loads in the default view, so the dome is in the frame; any other preset restores the 20 degree lens.
+- **Dome world** (`xr/dome-store.ts`, "Dome world" in the View popover; the viewer's `mitsinjo-grid`-style controls of
+  `08-navigation-mode` are kept): the plate is hidden, the world uses the immersive scale (80 m of ground around the viewer,
+  ground and hills out to the horizon), the camera is the walk camera (drag to look, WASD) at the centre of the dome and
+  `clampToBounds` keeps it inside a circle (`DOME_WALK_RATIO` 0.85 of the half width): it cannot leave. Buildings and trees stop it
+  as before.
+- **Landscapes** (`engine/landscapes.ts`, data only): `template` (palette, unchanged), `meadow`, `desert`, `snow`, `rocky`,
+  `city`. Each gives the ground a photographic tile (ambientCG CC0: Grass001, Ground054, Snow014, Ground111, Asphalt033, 512 px,
+  `public/ground`, built by `scripts/blender/ground_textures.py`), its own haze (scene fog follows it) and its own hills (height
+  and ruggedness). Adding a landscape is one entry plus one tile.
+- **Models**: more detail (tree with limbs and 12 foliage clumps with color drift, conifer in 8 ragged tiers, bush of 9 clumps, car from a
+  real side profile with windows, mirrors, spokes) and larger budgets (up to 1800 triangles).
+- Keywords of the reference images still wanted: `docs/reference-images.md`.
+- Not done: models are still modelled from primitives (no photo textures on the meshes, only the runtime detail maps), no bird
+  model (the birds are flat V shapes), Quest 3 cost of the photographic sky and of 1800 triangle cars unmeasured.

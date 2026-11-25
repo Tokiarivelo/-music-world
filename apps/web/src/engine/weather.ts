@@ -108,3 +108,45 @@ export function weatherAt(plan: SpawnPlan, t: number, mode: WeatherMode = DEFAUL
   const wind = clamp01(0.2 + 0.5 * e + 0.3 * storm);
   return { cloudCover, rain, storm, sun, birds, wind, ...lightning(plan, t, storm) };
 }
+
+/** Time of day of the photographic sky. `auto` reads the template palette (dark palette: night). */
+export const TIME_MODES = ['auto', 'day', 'sunset', 'night'] as const;
+export type TimeMode = (typeof TIME_MODES)[number];
+export const DEFAULT_TIME: TimeMode = 'auto';
+
+export function isTimeMode(value: unknown): value is TimeMode {
+  return typeof value === 'string' && (TIME_MODES as readonly string[]).includes(value);
+}
+
+/** Resolves `auto` from the linear luminance of the template background. */
+export function resolveTime(mode: TimeMode, backgroundLuminance: number): Exclude<TimeMode, 'auto'> {
+  if (mode !== 'auto') return mode;
+  return backgroundLuminance < 0.02 ? 'night' : backgroundLuminance < 0.1 ? 'sunset' : 'day';
+}
+
+/** Photos of `public/sky/<id>.jpg` (equirectangular, CC0 Poly Haven HDRIs tone-mapped by `scripts/blender/hdri_to_jpg.py`). */
+export const SKY_IDS = ['clear', 'cloudy', 'overcast', 'storm', 'sunset', 'night', 'nightcloud'] as const;
+export type SkyId = (typeof SKY_IDS)[number];
+
+/** Crossfade weights (sum 1) of the sky photos for a weather and a time of day. Pure. */
+export function skyWeights(w: Pick<Weather, 'cloudCover' | 'storm'>, time: Exclude<TimeMode, 'auto'>): Record<SkyId, number> {
+  const out: Record<SkyId, number> = { clear: 0, cloudy: 0, overcast: 0, storm: 0, sunset: 0, night: 0, nightcloud: 0 };
+  const heavy = smooth(0.55, 0.9, w.cloudCover);
+  const storm = clamp01(w.storm);
+  if (time === 'night') {
+    const cloud = Math.max(storm, smooth(0.2, 0.8, w.cloudCover));
+    out.nightcloud = cloud;
+    out.night = 1 - cloud;
+    return out;
+  }
+  out.storm = storm;
+  out.overcast = (1 - storm) * heavy;
+  if (time === 'sunset') {
+    out.sunset = 1 - out.storm - out.overcast;
+    return out;
+  }
+  const light = (1 - storm) * (1 - heavy);
+  out.cloudy = light * smooth(0.15, 0.55, w.cloudCover);
+  out.clear = light - out.cloudy;
+  return out;
+}

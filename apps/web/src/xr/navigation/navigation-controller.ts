@@ -61,6 +61,16 @@ export class NavigationController {
   private walkPoseValue: WalkPose | null = null;
   private walkDirty = false;
 
+  /** Dome world: the walker is confined to the dome and starts at its centre; switches to the walk mode (and back). */
+  setDome(on: boolean): void {
+    if (this.walkBounds) this.walkBounds = { ...this.walkBounds, dome: on };
+    if (on) {
+      this.walkPoseValue = this.walkBounds ? startPose(this.walkBounds) : null;
+      this.walkDirty = true;
+      this.setMode('walk');
+    } else if (this.modeValue === 'walk') this.setMode('cinematic');
+  }
+
   /** The plate the walker stands on and the circles it cannot enter (set by the host, which knows the scale). */
   configureWalk(bounds: WalkBounds, obstacles: () => readonly Circle[]): void {
     this.walkBounds = bounds;

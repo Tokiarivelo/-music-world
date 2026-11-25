@@ -38,12 +38,17 @@ export interface WalkBounds {
   cx: number;
   cz: number;
   half: number;
+  /** Dome world: the walker stays inside a circle (`DOME_WALK_RATIO` of the half width) and starts at the centre. */
+  dome?: boolean;
 }
+
+/** Share of the half width the walker may reach inside the dome. */
+export const DOME_WALK_RATIO = 0.85;
 
 /** Radius of the walker's body (m). */
 export const WALKER_RADIUS_M = 0.4;
 
-export function startPose(bounds: WalkBounds, startZ = bounds.cz + 30): WalkPose {
+export function startPose(bounds: WalkBounds, startZ = bounds.dome ? bounds.cz : bounds.cz + 30): WalkPose {
   return { x: bounds.cx, z: startZ, yaw: 0, pitch: 0 };
 }
 
@@ -53,6 +58,13 @@ function clamp(v: number, min: number, max: number): number {
 
 /** Keeps the walker on the plate plus the margin. Non-finite values fall back to the plate centre. */
 export function clampToBounds(x: number, z: number, b: WalkBounds): { x: number; z: number } {
+  if (b.dome) {
+    const px = Number.isFinite(x) ? x - b.cx : 0;
+    const pz = Number.isFinite(z) ? z - b.cz : 0;
+    const max = b.half * DOME_WALK_RATIO;
+    const d = Math.hypot(px, pz);
+    return d <= max ? { x: b.cx + px, z: b.cz + pz } : { x: b.cx + (px / d) * max, z: b.cz + (pz / d) * max };
+  }
   const limit = b.half + WALK_MARGIN_M;
   const cx = Number.isFinite(x) ? x : b.cx;
   const cz = Number.isFinite(z) ? z : b.cz;

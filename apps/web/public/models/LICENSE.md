@@ -11,13 +11,13 @@ python -I scripts/blender/build_models.py --out apps/web/public/models
 
 | File | Kind | Triangle budget |
 |---|---|---|
-| `tree.glb` | `tree` | 700 |
-| `conifer.glb` | `conifer` | 600 |
-| `bush.glb` | `bush` | 500 |
-| `cloud.glb` | `cloud` | 420 |
-| `car.glb` | `car` | 800 |
-| `airplane.glb` | `airplane` | 700 |
-| `bicycle.glb` | `bicycle` | 800 |
+| `tree.glb` | `tree` | 1500 |
+| `conifer.glb` | `conifer` | 1200 |
+| `bush.glb` | `bush` | 800 |
+| `cloud.glb` | `cloud` | 700 |
+| `car.glb` | `car` | 1800 |
+| `airplane.glb` | `airplane` | 1400 |
+| `bicycle.glb` | `bicycle` | 1500 |
 
 Each file is one mesh with its colors baked into vertex colors (`COLOR_0`), a baked ambient occlusion, no material and no
 texture.

@@ -7,6 +7,10 @@
 import {
   BackSide,
   BufferGeometry,
+  RepeatWrapping,
+  SRGBColorSpace,
+  TextureLoader,
+  Texture,
   CircleGeometry,
   Color,
   DoubleSide,
@@ -31,6 +35,8 @@ import {
 } from '../constants';
 import { environmentScale, fogRange, scaleStore, type ScaleMode } from '../scale';
 import { environmentColors, type EnvironmentColors } from '../palette';
+import { LANDSCAPES, type LandscapeId } from '@/engine/landscapes';
+import { domeStore } from '../dome-store';
 import type { WorldView } from './world-view';
 
 const SKY_VERTEX = /* glsl */ `
@@ -70,11 +76,26 @@ void main() {
   #include <colorspace_fragment>
 }`;
 
+const groundTextures = new Map<string, Texture>();
+/** Ground tiles are shared by every environment of the page and repeat over the ground disc. */
+function groundTexture(name: string, base = '/ground'): Texture {
+  let texture = groundTextures.get(name);
+  if (!texture) {
+    texture = new TextureLoader().load(`${base}/${name}.jpg`);
+    texture.wrapS = RepeatWrapping;
+    texture.wrapT = RepeatWrapping;
+    texture.colorSpace = SRGBColorSpace;
+    texture.anisotropy = 8;
+    groundTextures.set(name, texture);
+  }
+  return texture;
+}
+
 /** Number of draw calls of the environment (requirement 5: ≤ 6). */
 export const ENVIRONMENT_DRAW_CALLS = 3;
 
 /** One ring of hills: a closed strip, base at y = 0, crest height from seeded harmonics. */
-function hillsGeometry(radii: readonly number[], columns: number, seed: number, near: Color, far: Color): BufferGeometry {
+function hillsGeometry(radii: readonly number[], columns: number, seed: number, near: Color, far: Color, amp = 1, jag = 0.3): BufferGeometry {
   const positions: number[] = [];
   const colors: number[] = [];
   const indices: number[] = [];
@@ -89,7 +110,12 @@ function hillsGeometry(radii: readonly number[], columns: number, seed: number, 
       const a = (i / columns) * Math.PI * 2;
       const crest =
         heightScale *
-        (0.45 + 0.3 * Math.sin(a * 3 + phases[0]!) + 0.2 * Math.sin(a * 7 + phases[1]!) + 0.12 * Math.sin(a * 17 + phases[2]!));
+        amp *
+        (0.45 +
+          0.3 * Math.sin(a * 3 + phases[0]!) +
+          0.2 * Math.sin(a * 7 + phases[1]!) +
+          0.4 * jag * Math.sin(a * 17 + phases[2]!) +
+          0.25 * jag * Math.sin(a * 41 + phases[0]! * 2));
       const x = Math.cos(a) * radius;
       const z = Math.sin(a) * radius;
       positions.push(x, -0.5, z, x, Math.max(0.4, crest), z);
@@ -117,7 +143,11 @@ export class EnvironmentView implements WorldView {
   readonly colors: EnvironmentColors;
   private readonly sky: Mesh<SphereGeometry, ShaderMaterial>;
   private readonly ground: Mesh<CircleGeometry, MeshBasicMaterial>;
-  private readonly hills: Mesh<BufferGeometry, MeshBasicMaterial>;
+  private hills: Mesh<BufferGeometry, MeshBasicMaterial>;
+  private landscape: LandscapeId | null = null;
+  private readonly seed: number;
+  private readonly radii: number[];
+  private readonly offLandscape: () => void;
 
   constructor(plan: SpawnPlan) {
     const colors = environmentColors(plan.template.palette);
@@ -158,7 +188,9 @@ export class EnvironmentView implements WorldView {
     this.ground = new Mesh(groundGeometry, new MeshBasicMaterial({ vertexColors: true, side: DoubleSide }));
     this.ground.position.y = -0.02; // below the VR floor plane: no z-fight with a floor-level surface
 
+    this.seed = hashSeed(plan.seed, 'environment-hills');
     const radii = Array.from({ length: ENV_HILL_RINGS }, (_, i) => 24 + (i * (ENV_GROUND_RADIUS_M - 12 - 24)) / Math.max(1, ENV_HILL_RINGS - 1));
+    this.radii = radii;
     this.hills = new Mesh(
       hillsGeometry(radii, ENV_HILL_COLUMNS, hashSeed(plan.seed, 'environment-hills'), colors.hillsNear, colors.hillsFar),
       new MeshBasicMaterial({ vertexColors: true, side: DoubleSide }),
@@ -166,7 +198,10 @@ export class EnvironmentView implements WorldView {
 
     this.object.add(this.sky, this.ground, this.hills);
     this.applyScale(scaleStore.mode);
-    this.unsubscribe = scaleStore.subscribe((mode) => this.applyScale(mode));
+    const offScale = scaleStore.subscribe((mode) => this.applyScale(mode));
+    this.unsubscribe = offScale;
+    this.offLandscape = domeStore.subscribe(() => this.applyLandscape());
+    this.applyLandscape();
   }
 
   private readonly unsubscribe: () => void;
@@ -182,11 +217,47 @@ export class EnvironmentView implements WorldView {
     this.sky.scale.setScalar(k);
   }
 
+  /**
+   * Dome world: the viewer's landscape recolors the ground (a photographic tile fading into the haze) and rebuilds the
+   * hills; the plate world and the `template` landscape keep the palette look. Cheap: about 2 k triangles.
+   */
+  private applyLandscape(): void {
+    const { enabled, landscape } = domeStore.settings;
+    const id: LandscapeId = enabled ? landscape : 'template';
+    if (id === this.landscape) return;
+    this.landscape = id;
+    const l = LANDSCAPES[id];
+    const ground = this.ground.material;
+    const geometry = this.ground.geometry;
+    const count = geometry.getAttribute('position').count;
+    const colors: number[] = [];
+    const haze = id === 'template' ? this.colors.horizon : new Color(l.haze);
+    const centre = id === 'template' ? this.colors.ground : new Color(l.gain, l.gain, l.gain);
+    for (let i = 0; i < count; i++) {
+      const c = centre.clone().lerp(haze, i === 0 ? 0 : 1);
+      colors.push(c.r, c.g, c.b);
+    }
+    geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
+    if (l.texture) {
+      const texture = groundTexture(l.texture);
+      texture.repeat.setScalar((ENV_GROUND_RADIUS_M * 2 * environmentScale('immersive')) / l.tileM);
+      ground.map = texture;
+    } else ground.map = null;
+    ground.needsUpdate = true;
+    const near = id === 'template' ? this.colors.hillsNear : new Color(l.hillsNear);
+    const far = id === 'template' ? this.colors.hillsFar : new Color(l.hillsFar);
+    const fresh = hillsGeometry(this.radii, ENV_HILL_COLUMNS, this.seed, near, far, l.hillAmp, l.hillJag);
+    this.hills.geometry.dispose();
+    this.hills.geometry = fresh;
+    this.fog.color.copy(haze); // the ground and the hills melt into the haze of the landscape
+  }
+
   /** Static: nothing changes with the world state. */
   update(): void {}
 
   dispose(): void {
     this.unsubscribe();
+    this.offLandscape();
     for (const mesh of [this.sky, this.ground, this.hills]) {
       mesh.geometry.dispose();
       mesh.material.dispose();

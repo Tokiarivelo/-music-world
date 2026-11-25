@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { LANDSCAPE_IDS } from "@/engine/landscapes";
 import { LAYOUT_MODES } from "@/engine/layout";
-import { WEATHER_MODES } from "@/engine/weather";
+import { TIME_MODES, WEATHER_MODES } from "@/engine/weather";
 import { useT } from "@/i18n";
 import type { ViewPrefs } from "../lib/view-storage";
 
@@ -25,11 +26,35 @@ export function ViewPopover({ prefs, onChange }: ViewPopoverProps) {
       {open && (
         <section
           aria-label={t("view.title")}
-          className="w-72 max-w-full space-y-3 rounded-2xl border border-white/20 bg-black/70 p-4 text-sm text-white backdrop-blur"
+          className="max-h-[calc(100vh-13rem)] w-72 max-w-full space-y-3 overflow-y-auto rounded-2xl border border-white/20 bg-black/70 p-4 text-sm text-white backdrop-blur"
           onKeyDown={(e) => {
             if (e.key === "Escape") setOpen(false);
           }}
         >
+          <button
+            aria-pressed={prefs.dome}
+            className={`${BUTTON} w-full text-left ${prefs.dome ? ACTIVE : ""}`}
+            onClick={() => onChange({ dome: !prefs.dome })}
+            type="button"
+          >
+            {t("view.dome")}
+          </button>
+          <p className="px-1 text-xs text-white/80">{t("view.domeHint")}</p>
+          {prefs.dome && (
+            <div aria-label={t("view.landscape")} className="flex flex-wrap gap-2" role="group">
+              {LANDSCAPE_IDS.map((id) => (
+                <button
+                  aria-pressed={prefs.landscape === id}
+                  className={`${BUTTON} ${prefs.landscape === id ? ACTIVE : ""}`}
+                  key={id}
+                  onClick={() => onChange({ landscape: id })}
+                  type="button"
+                >
+                  {t(`view.landscape.${id}`)}
+                </button>
+              ))}
+            </div>
+          )}
           <button
             aria-pressed={prefs.aurora}
             className={`${BUTTON} w-full text-left ${prefs.aurora ? ACTIVE : ""}`}
@@ -65,6 +90,27 @@ export function ViewPopover({ prefs, onChange }: ViewPopoverProps) {
               </button>
             ))}
           </div>
+          <div aria-label={t("view.time")} className="flex flex-wrap gap-2" role="group">
+            {TIME_MODES.map((id) => (
+              <button
+                aria-pressed={prefs.time === id}
+                className={`${BUTTON} ${prefs.time === id ? ACTIVE : ""}`}
+                key={id}
+                onClick={() => onChange({ time: id })}
+                type="button"
+              >
+                {t(`view.time.${id}`)}
+              </button>
+            ))}
+          </div>
+          <button
+            aria-pressed={prefs.realSky}
+            className={`${BUTTON} w-full text-left ${prefs.realSky ? ACTIVE : ""}`}
+            onClick={() => onChange({ realSky: !prefs.realSky })}
+            type="button"
+          >
+            {t("view.realSky")}
+          </button>
         </section>
       )}
       <button aria-expanded={open} className={BUTTON} onClick={() => setOpen(!open)} type="button">
