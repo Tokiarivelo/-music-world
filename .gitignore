@@ -47,6 +47,7 @@ weights/
 
 # Local object storage and analysis work dirs (development)
 .data/
+docs/reference/
 
 # Database and storage backups (infra/scripts/backup-db.sh)
 infra/backups/
