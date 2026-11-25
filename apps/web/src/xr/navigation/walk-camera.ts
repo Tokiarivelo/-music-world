@@ -11,6 +11,7 @@ import {
   NAV_MAX_STEP_SEC,
   RECIPE_FOOTPRINT,
   WALK_FAST_FACTOR,
+  WALK_KEY_LOOK_RAD_PER_SEC,
   WALK_LOOK_RAD_PER_PX,
   WALK_MARGIN_M,
   WALK_PITCH_LIMIT_RAD,
@@ -114,8 +115,10 @@ export function walk(
   turnRate = 1.4,
 ): WalkPose {
   const dt = clamp(Number.isFinite(dtSec) ? dtSec : 0, 0, NAV_MAX_STEP_SEC);
-  if (dt === 0 || (keys.forward === 0 && keys.right === 0 && keys.turn === 0)) return pose;
-  const yaw = pose.yaw + keys.turn * turnRate * dt;
+  const tilt = keys.tilt ?? 0;
+  if (dt === 0 || (keys.forward === 0 && keys.right === 0 && keys.turn === 0 && tilt === 0)) return pose;
+  const yaw = pose.yaw - keys.turn * turnRate * dt;
+  const pitch = clamp(pose.pitch + tilt * WALK_KEY_LOOK_RAD_PER_SEC * dt, -WALK_PITCH_LIMIT_RAD, WALK_PITCH_LIMIT_RAD);
   const speed = WALK_SPEED_MPS * (keys.fast ? WALK_FAST_FACTOR : 1) * dt;
   const sin = Math.sin(yaw);
   const cos = Math.cos(yaw);
@@ -123,7 +126,7 @@ export function walk(
   const z = pose.z - keys.right * speed * sin - keys.forward * speed * cos;
   const free = pushOut(x, z, WALKER_RADIUS_M, obstacles);
   const inside = clampToBounds(free.x, free.z, bounds);
-  return { x: inside.x, z: inside.z, yaw, pitch: pose.pitch };
+  return { x: inside.x, z: inside.z, yaw, pitch };
 }
 
 /** Camera position and the point it looks at, for `camera.position` and `camera.lookAt`. */

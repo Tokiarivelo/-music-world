@@ -49,13 +49,13 @@ describe('NavigationInput', () => {
     for (const code of ['KeyW', 'KeyD', 'KeyQ', 'Equal', 'ShiftLeft']) input.key(code, true);
     input.key('KeyX', true); // not a navigation key
     let d = drain(input);
-    expect(d.keys).toEqual({ forward: 1, right: 1, turn: -1, zoom: 1, fast: true });
+    expect(d.keys).toEqual({ forward: 1, right: 1, turn: -1, tilt: 0, zoom: 1, fast: true });
     expect(d.moved).toBe(true);
     input.key('KeyW', false);
     expect(drain(input).keys.forward).toBe(0);
     input.clear();
     d = drain(input);
-    expect(d.keys).toEqual({ forward: 0, right: 0, turn: 0, zoom: 0, fast: false });
+    expect(d.keys).toEqual({ forward: 0, right: 0, turn: 0, tilt: 0, zoom: 0, fast: false });
     expect(d.moved).toBe(false);
   });
 
@@ -167,5 +167,54 @@ describe('bindNavigationInput', () => {
     canvas.dispatchEvent(pointer('pointermove', { id: 1, x: 12, y: 0 }));
     window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyW' }));
     expect(input.drain(emptyDelta()).moved).toBe(false);
+  });
+});
+
+describe('look without a button (pointer lock, I29)', () => {
+  it('turns relative mouse motion into look deltas and arrow keys into turn and tilt', () => {
+    const input = new NavigationInput();
+    input.look(12, -5);
+    input.key('ArrowLeft', true);
+    input.key('ArrowUp', true);
+    const d = drain(input);
+    expect([d.orbitX, d.orbitY, d.moved]).toEqual([12, -5, true]);
+    expect([d.keys.turn, d.keys.tilt]).toEqual([-1, 1]);
+  });
+});
+
+describe('pointer lock look in the walk mode (I29)', () => {
+  it('a right press locks the pointer only while walking, and locked motion turns the head', () => {
+    const canvas = document.createElement('canvas');
+    document.body.appendChild(canvas);
+    let locks = 0;
+    canvas.requestPointerLock = () => {
+      locks += 1;
+      return Promise.resolve();
+    };
+    const input = new NavigationInput();
+    const walking = { on: false };
+    const unbind = bindNavigationInput(canvas, input, () => true, { wheelPerPixel: 0.001, lockLook: () => walking.on });
+    const press = (button: number) => {
+      const e = new MouseEvent('pointerdown', { button, bubbles: true }) as PointerEvent;
+      Object.defineProperty(e, 'pointerId', { value: 1 });
+      Object.defineProperty(e, 'pointerType', { value: 'mouse' });
+      canvas.dispatchEvent(e);
+    };
+    press(2);
+    expect(locks).toBe(0); // explore mode: the right button still pans
+    input.clear();
+    walking.on = true;
+    press(2);
+    expect(locks).toBe(1);
+    Object.defineProperty(document, 'pointerLockElement', { value: canvas, configurable: true });
+    const move = new MouseEvent('pointermove', { bubbles: true }) as PointerEvent;
+    Object.defineProperty(move, 'pointerId', { value: 1 });
+    Object.defineProperty(move, 'movementX', { value: 30 });
+    Object.defineProperty(move, 'movementY', { value: -10 });
+    canvas.dispatchEvent(move);
+    Object.defineProperty(document, 'pointerLockElement', { value: null, configurable: true });
+    const d = input.drain(emptyDelta());
+    expect([d.orbitX, d.orbitY]).toEqual([30, -10]);
+    unbind();
   });
 });

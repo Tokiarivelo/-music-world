@@ -49,6 +49,8 @@ export const VIEW_PRESET_IDS: readonly ViewPresetId[] = ['overview', 'horizon', 
 
 /** Keyboard axes held this frame: each in {−1, 0, 1}. */
 export interface FlyKeys {
+  /** Walk mode only: arrow Up / Down tilt the head (+1 up). Absent in the explore mode. */
+  tilt?: number;
   /** +1 forward (W), −1 backward (S). */
   forward: number;
   /** +1 right (D), −1 left (A). */

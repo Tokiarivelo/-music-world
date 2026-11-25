@@ -378,7 +378,10 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   canvas.addEventListener('pointercancel', onUp, true);
   globalThis.addEventListener?.('keydown', onKey);
   const detachKeyboard = keyboardPad.attach(window, () => inSession);
-  const unbindNav = bindNavigationInput(canvas, nav.input, () => nav.acceptsInput, { wheelPerPixel: NAV_WHEEL_ZOOM });
+  const unbindNav = bindNavigationInput(canvas, nav.input, () => nav.acceptsInput, {
+    wheelPerPixel: NAV_WHEEL_ZOOM,
+    lockLook: () => nav.mode === 'walk',
+  });
   const unbind = (): void => {
     unbindNav();
     detachKeyboard();

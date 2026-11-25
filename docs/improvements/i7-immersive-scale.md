@@ -92,3 +92,20 @@ Screenshots over the demo song: `docs/improvements/i7/walk-start.png`, `walk-for
   `comfortAssistLevel`) that moves `world.player`. We kept our own system (the plate moves around the head) so the panel and
   the scale toggle stay simple; switching to the IWSDK locomotor (teleport + vignette for free, needs a
   `LocomotionEnvironment` floor) is the way to close the teleport and vignette gaps.
+
+## Looking around in the walk and dome modes (phase I29)
+
+Reported: in the immersive (walk) and dome modes the view could not go up, could not turn a full 360° and was hard to
+turn while walking. Changes:
+
+- **Dome is the default view** (`DEFAULT_VIEW.dome`; a saved choice still wins).
+- **Pitch limit 1.2 rad → 1.5 rad** (about 86°): the sky overhead is reachable; never 90°, where `lookAt` loses its up axis.
+- **Hold the right mouse button** (walk mode): the pointer is locked, so the head turns without end and without a screen
+  edge, up and down, while WASD keeps walking. Release to get the cursor back; the left drag still looks and still
+  leaves notes clickable when paused.
+- **Arrow keys look** (left / right turn, up / down tilt), so a keyboard alone can look all around. Look speed
+  0.004 → 0.005 rad per pixel.
+- **Bug fixed:** E (turn right) turned the view to the left, because the yaw sign was inverted for the keys only.
+- Hints (`nav.walkHint`, `view.domeHint`) updated in en, fr, mg; they wrongly said the arrows walk.
+- VR was reviewed: head pitch and yaw come from the headset, the stick glides and snap-turns the plate around the head
+  (`locomotion.ts`); nothing to change. A Quest check of the dome default in VR stays on the human list.
