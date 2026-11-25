@@ -50,9 +50,15 @@ export function projectEditsRemote(projectId: string): EditsRemote {
 }
 
 /** `POST /api/projects/{id}/lyrics-search`: looks the lyrics up online, then transcribes the voice; returns the job id. */
-export async function startLyricsSearch(projectId: string): Promise<string> {
+export async function startLyricsSearch(
+  projectId: string,
+  query?: { artist: string; title: string },
+): Promise<string> {
   const url = `/api/projects/${encodeURIComponent(projectId)}/lyrics-search`;
-  const created = ProjectCreatedSchema.parse(await apiJson(url, { method: 'POST' }));
+  const init: RequestInit = query
+    ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(query) }
+    : { method: 'POST' };
+  const created = ProjectCreatedSchema.parse(await apiJson(url, init));
   if (created.jobId === null) throw new ApiError('UNKNOWN', 500);
   return created.jobId;
 }

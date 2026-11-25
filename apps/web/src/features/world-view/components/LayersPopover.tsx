@@ -113,12 +113,17 @@ export function LayersPopover({ hidden, onChange, hasLyrics, palette, activity, 
                           <button
                             className={`${BUTTON} w-full`}
                             disabled={lyricsSearch.status === "searching"}
-                            onClick={lyricsSearch.start}
+                            onClick={() => lyricsSearch.start()}
                             type="button"
                           >
                             {t(lyricsSearch.status === "searching" ? "layers.searching" : "layers.searchLyrics")}
                           </button>
-                          {lyricsSearch.status === "notFound" && <p role="status">{t("layers.lyricsNotFound")}</p>}
+                          {lyricsSearch.status === "notFound" && (
+                            <>
+                              <p role="status">{t("layers.lyricsNotFound")}</p>
+                              <LyricsQueryForm search={lyricsSearch} />
+                            </>
+                          )}
                           {lyricsSearch.status === "failed" && <p role="alert">{t("layers.lyricsFailed")}</p>}
                         </>
                       ) : (
@@ -136,5 +141,43 @@ export function LayersPopover({ hidden, onChange, hasLyrics, palette, activity, 
         {t("layers.title")}
       </button>
     </div>
+  );
+}
+
+/** Asks for the artist and title when the file's own tags led nowhere (I22). */
+function LyricsQueryForm({ search }: { search: LyricsSearch }) {
+  const t = useT("world");
+  const [artist, setArtist] = useState("");
+  const [title, setTitle] = useState("");
+  const ready = artist.trim() !== "" && title.trim() !== "";
+  return (
+    <form
+      className="space-y-1"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (ready) search.start({ artist: artist.trim(), title: title.trim() });
+      }}
+    >
+      <p>{t("layers.lyricsTypeIt")}</p>
+      <input
+        aria-label={t("layers.lyricsArtist")}
+        className="w-full rounded bg-white/10 px-2 py-1"
+        maxLength={200}
+        onChange={(event) => setArtist(event.target.value)}
+        placeholder={t("layers.lyricsArtist")}
+        value={artist}
+      />
+      <input
+        aria-label={t("layers.lyricsTitle")}
+        className="w-full rounded bg-white/10 px-2 py-1"
+        maxLength={200}
+        onChange={(event) => setTitle(event.target.value)}
+        placeholder={t("layers.lyricsTitle")}
+        value={title}
+      />
+      <button className={`${BUTTON} w-full`} disabled={!ready} type="submit">
+        {t("layers.lyricsSearchTyped")}
+      </button>
+    </form>
   );
 }
