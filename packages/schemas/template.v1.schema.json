@@ -181,7 +181,14 @@
                 "building",
                 "spike",
                 "crystal",
-                "cluster"
+                "cluster",
+                "cloud",
+                "tree",
+                "conifer",
+                "bush",
+                "car",
+                "bicycle",
+                "airplane"
               ],
               "type": "string"
             },
@@ -406,7 +413,14 @@
                 "building",
                 "spike",
                 "crystal",
-                "cluster"
+                "cluster",
+                "cloud",
+                "tree",
+                "conifer",
+                "bush",
+                "car",
+                "bicycle",
+                "airplane"
               ],
               "type": "string"
             },
@@ -622,7 +636,14 @@
                 "building",
                 "spike",
                 "crystal",
-                "cluster"
+                "cluster",
+                "cloud",
+                "tree",
+                "conifer",
+                "bush",
+                "car",
+                "bicycle",
+                "airplane"
               ],
               "type": "string"
             },

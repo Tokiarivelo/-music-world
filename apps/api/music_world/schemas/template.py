@@ -18,7 +18,20 @@ MAX_SCENERY_TOTAL = 400
 
 HexColor = Annotated[str, StringConstraints(pattern=r"^#[0-9a-fA-F]{6}$")]
 
-BuiltinShapeKind = Literal["terrain_ridge", "building", "spike", "crystal", "cluster"]
+BuiltinShapeKind = Literal[
+    "terrain_ridge",
+    "building",
+    "spike",
+    "crystal",
+    "cluster",
+    "cloud",
+    "tree",
+    "conifer",
+    "bush",
+    "car",
+    "bicycle",
+    "airplane",
+]
 RecipeShapeKind = Annotated[str, StringConstraints(pattern=r"^recipe:[a-z0-9_]{1,40}$")]
 ShapeKind = BuiltinShapeKind | RecipeShapeKind
 

@@ -29,7 +29,8 @@ Read docs/handoff.md and continue with the next actions.
 - I13 + I17 lyrics: LRCLIB lookup, then Whisper on the vocal stem (`base`), at upload and on a "Search lyrics" button/job
   (`search_lyrics.py`, job kind added). Lookup sends artist, title, duration to lrclib.net (documented in `docs/improvements/i13-auto-lyrics.md`).
 - I16: layers page on the VR spatial panel (closes the I5 gap). I15: `docs/open-questions.md` created (11 questions, defaults applied); rules now say merge each finished phase and keep going.
-- Not done and needs you: I8 realistic objects (asset sourcing), Quest 3 checks (I5–I7, I9 task 9, I16), IWER run and screenshots of I9, R2 bucket + seed.
+- I8 first slice (phase I18): `cloud tree conifer bush car bicycle airplane` kinds and the Living City template, procedural and static; `director-v5`. Next: apply `engine/motion.ts` to them.
+- Not done and needs you: I8 GLB assets (sourcing), Quest 3 checks (I5–I7, I9 task 9, I16), IWER run and screenshots of I9, R2 bucket + seed.
 
 ## 3. Next actions
 
@@ -51,7 +52,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
    Update README § Known limitations once done.
 4. **Human** — roadmap 9.3 video, 9.4 Devpost form, 9.5 posts from the drafts in `docs/submission.md` (checklist at
    its top). Run `uvx pip-audit` / `pnpm audit --prod` once before submitting.
-5. **Human** — answer `docs/open-questions.md` (11 rows; I8 assets, R2 bucket, Whisper size, lyrics notice, note filters).
+5. **Human** — answer `docs/open-questions.md` (12 rows; I8 assets, R2 bucket, Whisper size, lyrics notice, note filters).
 6. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` — B4 done (Caddy cache headers); see the file for the next free one.
    Optional: `02-music-analysis` 6.1 (Muse Voice); `01-foundation` 6.2/6.3/7.
 
@@ -86,7 +87,8 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | 11-editable-notes 1–8, 10 | Claude Code | done | branch `phase-I9-editable-notes`, one commit per task; 8 partly (panel line list, IWER, screenshots open) |
 | 11-editable-notes 9 | — | blocked | Quest 3 check (human): ray accuracy, drag comfort, tone latency |
 | I10 catalog, I11 long songs, I12, I13, I14, I15, I16, I17 | Claude Code | done | merged PRs #31–#39; I14 = I8 task 4 only |
-| I8 realistic objects (assets, views) | — | blocked | human: asset sourcing, see `docs/open-questions.md` 1–2 |
+| I8 seven procedural object kinds + Living City | Claude Code | done | PR phase-I8-realistic-objects; static, no motion wired |
+| I8 motion wiring, GLB/PBR, lighting | — | todo | next agent task; GLB needs the sourcing decision (`docs/open-questions.md` 1–2, 12) |
 | I10 R2 bucket + seed | — | blocked | human: bucket, API token, `--only` seed |
 | I9 task 9, I16, I5–I7 Quest checks | — | blocked | human: Quest 3 |
 | 10-template-moderation 7 | — | blocked | human: review a real hidden template on the public URL |

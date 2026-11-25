@@ -5,15 +5,16 @@ from typing import Any
 
 from music_world.director.application.summary import AnalysisSummary
 
-PROMPT_VERSION = "director-v4"
+PROMPT_VERSION = "director-v5"
 
 # Closed enums repeated in plain words (requirement 2.2); the JSON Schema below is the authority.
 _ENUMS = """Allowed values (closed lists, use nothing else):
 - terrain.style: cracked_plate | smooth_plate; terrain.mountains: edges | none; terrain.size: 4-40
 - staff.path: diagonal_curve | straight; staff.clef: treble | none; staff.glow 0-3; staff.lookahead 1-8;
   staff.fallDuration 0.1-2
-- mappings[].spawn and zones[].kind: terrain_ridge | building | spike | crystal, or "recipe:<name>" for a shape you
-  define in "recipes"
+- mappings[].spawn and zones[].kind: terrain_ridge | building | spike | crystal | cluster | cloud | tree |
+  conifer | bush | car | bicycle | airplane, or "recipe:<name>" for a shape you define in "recipes".
+  cloud and airplane float in the sky; tree, conifer and bush are plants; car and bicycle are small vehicles
 - recipes (optional, at most 4): {"name": "a_b_1" (lowercase, digits, underscore), "parts": 1-8 items, "budget":
   {"maxTriangles": 12-2000}}; every "recipe:<name>" used must have a recipe of that name
 - recipe part "op": box | prism | spike | stack | cluster; numbers (footprint is the unit square): width, depth,

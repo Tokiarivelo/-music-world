@@ -10,7 +10,7 @@ import { recipeScale } from '@/engine/recipe-scale';
 import type { ShapeKind, WorldTemplate } from '@/engine/types';
 import type { WorldState } from '@/engine/world-state';
 import { layerStore } from '../layer-store';
-import { KIND_FOOTPRINT, RECIPE_FOOTPRINT } from '../constants';
+import { KIND_ALTITUDE, KIND_FOOTPRINT, RECIPE_FOOTPRINT } from '../constants';
 import { lightness, structureColor } from '../palette';
 import { buildShapeGeometry } from '../shapes/builtin-shapes';
 import { buildingMaterial, spikeMaterial } from '../shapes/city-materials';
@@ -97,7 +97,7 @@ export class StructureView implements WorldView {
       if (!mesh || s.slot >= mesh.count) continue;
       const footprint = footprintOf(s.kind, this.plan.template) * (0.6 + 0.4 * s.growth);
       this.scale.set(footprint, Math.max(MIN_SCALE, s.height), footprint);
-      this.m.compose(this.pos.set(s.position.x, s.position.y, s.position.z), this.q, this.scale);
+      this.m.compose(this.pos.set(s.position.x, s.position.y + (KIND_ALTITUDE[s.kind] ?? 0), s.position.z), this.q, this.scale);
       mesh.setMatrixAt(s.slot, this.m);
       if (s.kind === RIDGE_KIND) mesh.setColorAt(s.slot, this.color.copy(this.ridgeColor));
       else {

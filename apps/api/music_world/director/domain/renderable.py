@@ -8,7 +8,22 @@ import json
 from collections.abc import Mapping
 from typing import Any
 
-BUILTIN_KINDS = frozenset({"terrain_ridge", "building", "spike", "crystal", "cluster"})
+BUILTIN_KINDS = frozenset(
+    {
+        "terrain_ridge",
+        "building",
+        "spike",
+        "crystal",
+        "cluster",
+        "cloud",
+        "tree",
+        "conifer",
+        "bush",
+        "car",
+        "bicycle",
+        "airplane",
+    }
+)
 MAX_TEMPLATE_BYTES = 32 * 1024
 AI_MAX_RECIPES = 4
 MIN_STAFF_CONTRAST = 0.2
