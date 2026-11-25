@@ -10,6 +10,7 @@ import {
   Matrix4,
   MeshBasicMaterial,
   PlaneGeometry,
+  Euler,
   Quaternion,
   Vector3,
   type DataTexture,
@@ -48,7 +49,6 @@ const RIDGE_PRIMARY_MIX = 0;
 const RIDGE_LIGHT = 1.2;
 /** Equalizer needles are additive and thin: boost their instance color so they read as light (requirement 5.2). */
 const SPIKE_GLOW = 2.2;
-const UP = new Vector3(0, 1, 0);
 /** Objects (I8) that cast a blob shadow, and the foliage that sways in the wind. */
 const SHADOW_KINDS: ReadonlySet<string> = new Set(['tree', 'conifer', 'bush', 'car', 'bicycle', 'airplane', 'cloud']);
 const FOLIAGE_KINDS: ReadonlySet<string> = new Set(['tree', 'conifer', 'bush']);
@@ -89,6 +89,7 @@ export class StructureView implements WorldView {
   private readonly ridgeColor: Color;
   private readonly m = new Matrix4();
   private readonly q = new Quaternion();
+  private readonly euler = new Euler();
   private readonly pos = new Vector3();
   private readonly scale = new Vector3();
   private readonly color = new Color();
@@ -188,6 +189,9 @@ export class StructureView implements WorldView {
       old.dispose();
       const material = this.materials.get(kind) as MeshStandardMaterial;
       material.vertexColors = geometry.hasAttribute('color');
+      geometry.computeBoundingBox();
+      const height = material.userData.mwHeight as { value: number } | undefined;
+      if (height) height.value = geometry.boundingBox!.max.y; // the body motion of ocean life is relative to it
       material.needsUpdate = true;
       this.lastT = Number.NaN; // redraw at once, even while paused
     });
@@ -279,7 +283,7 @@ export class StructureView implements WorldView {
       const footprint = footprintOf(s.kind, this.plan.template) * (0.6 + 0.4 * s.growth) * unit;
       this.scale.set(footprint, Math.max(MIN_SCALE, s.height) * unit, footprint);
       const pose = poses?.get(s.index) ?? null;
-      if (pose) this.q.setFromAxisAngle(UP, -pose.yaw);
+      if (pose) this.q.setFromEuler(this.euler.set(pose.roll ?? 0, -pose.yaw, pose.pitch ?? 0, 'YZX')); // yaw, then nose pitch, then bank
       else this.q.identity();
       this.m.compose(
         pose ? this.pos.set(pose.x, pose.y, pose.z) : this.pos.set(s.position.x, s.position.y, s.position.z),

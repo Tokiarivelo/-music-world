@@ -14,6 +14,7 @@
  */
 import { hashSeed, mulberry32 } from './prng';
 import { MOVING_KINDS, objectPoseAt, type Pose } from './motion';
+import { isSwimmer } from './swim';
 import type { SpawnPlan } from './spawn-plan';
 
 /** Rate of the musical clock: calm floor, extra rate at full energy, and the surge of a beat. */
@@ -231,17 +232,19 @@ function shortestAngle(from: number, to: number, weight: number): number {
 }
 
 /** Moving records of a plan as crowd items (collision radius from `radiusOf(kind)`), in record order. */
-export function crowdItemsOf(plan: Pick<SpawnPlan, 'records'>, radiusOf: (kind: string) => number): CrowdItem[] {
+export function crowdItemsOf(plan: Pick<SpawnPlan, 'records' | 'template'>, radiusOf: (kind: string) => number): CrowdItem[] {
   const items: CrowdItem[] = [];
-  for (const r of plan.records) if (MOVING_KINDS.has(r.kind)) items.push({ index: r.index, kind: r.kind, radius: radiusOf(r.kind) });
+  const sea = plan.template.fx.environment === 'underwater'; // animals swim only in water
+  for (const r of plan.records) if (MOVING_KINDS.has(r.kind) || (sea && isSwimmer(r.kind))) items.push({ index: r.index, kind: r.kind, radius: radiusOf(r.kind) });
   return items;
 }
 
 /** Fixed records of a plan as obstacles (collision radius from `radiusOf(kind)`), for the ground traffic to drive around. */
-export function crowdObstaclesOf(plan: Pick<SpawnPlan, 'records'>, radiusOf: (kind: string) => number): Obstacle[] {
+export function crowdObstaclesOf(plan: Pick<SpawnPlan, 'records' | 'template'>, radiusOf: (kind: string) => number): Obstacle[] {
   const out: Obstacle[] = [];
+  const sea = plan.template.fx.environment === 'underwater';
   for (const r of plan.records) {
-    if (MOVING_KINDS.has(r.kind)) continue;
+    if (MOVING_KINDS.has(r.kind) || (sea && isSwimmer(r.kind))) continue;
     out.push({ x: r.target.x, z: r.target.z, radius: radiusOf(r.kind) });
   }
   return out;
@@ -279,7 +282,7 @@ export function crowdPosesAt(plan: SpawnPlan, items: readonly CrowdItem[], t: nu
       const smooth = weight * weight * (3 - 2 * weight);
       if (Math.hypot(vx, vz) > 1e-6) yaw = shortestAngle(basePose.yaw, Math.atan2(vz, vx), smooth);
     }
-    out.set(index, { x: body.x, y: body.y, z: body.z, yaw });
+    out.set(index, { x: body.x, y: Math.max(0, body.y), z: body.z, yaw, pitch: basePose.pitch, roll: basePose.roll });
   }
   return out;
 }

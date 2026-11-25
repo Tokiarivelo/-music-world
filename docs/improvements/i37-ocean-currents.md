@@ -21,3 +21,17 @@
   written in the script.
 - The land objects of Nemo Reef (buildings, crystals, spikes, treasure chests, anchors) are not in this template.
 - Check on screen and on a Quest 3: the look of each model in the water column (fog, lights), draw calls (24 kinds).
+
+## Swimming animals (third pass)
+
+- `engine/swim.ts`: every swimming animal of an underwater world (`fx.environment: "underwater"`) roams freely instead
+  of standing where it landed. Pure function of `(seed, id, musical time)`: an epicycle path (never stops, no spin, long
+  gentle turns, the odd loop), heading = direction of the velocity, nose pitch from the vertical speed, bank into turns,
+  species depths (dolphin porpoises, manta glides, crab walks sideways on the seabed, seahorse and jellyfish stay
+  upright). Speeds follow the musical clock of I31: calm passages drift, loud ones rush. `Pose` gained optional `pitch` and `roll`.
+- Animals that stay put like the real ones do (starfish, urchin, anemone, plants) are not in `SWIMMERS`.
+- Body motion in the vertex shader (`SWIM_MODES` in `polished-materials.ts`): tail beat of fish and sharks, fluke beat of
+  whale and dolphin, manta wing flap, jellyfish bell pulse, kelp / seagrass / anemone / fan swaying in the current. On the
+  audio clock, so it freezes with the pause; the phase comes from the instance id (the position changes as they swim).
+- Not verified on screen (no browser run here): look at the amplitudes and speeds (`SWIMMERS`, `SWIM_MODES`) and the
+  crowd collision of big swimmers on a Quest 3.

@@ -24,7 +24,8 @@ import {
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { isRecordShown } from '@/engine/layers';
 import type { SpawnPlan } from '@/engine/spawn-plan';
-import { skyPath, skyU } from '@/engine/sky';
+import { hashSeed } from '@/engine/prng';
+import { auroraDescentPosition, rainbowHex, skyPath, skyPosition } from '@/engine/sky';
 import { staffNotePosition, staffPoint, type StaffPath } from '@/engine/staff';
 import { staffUOf as staffUOfMidi } from '@/engine/spawn-plan';
 import type { GlyphKind } from '@/engine/types';
@@ -161,7 +162,7 @@ export class StaffView implements WorldView {
     this.object.name = 'staff';
     const mainLine = plan.lines.find((l) => l.id === 'main');
     const glow = new Color(mainLine?.color ?? palette.staff).multiplyScalar(staff.glow);
-    const material = new MeshBasicMaterial({ color: glow, side: DoubleSide });
+    const material = new MeshBasicMaterial({ color: glow, side: DoubleSide, fog: false });
     const staffGeometry = buildStaffGeometry(plan.staff, staff.clef === 'treble' && (mainLine?.clef ?? 'treble') === 'treble');
     const lines = new Mesh(staffGeometry, material);
     this.staffParts.push(lines);
@@ -177,6 +178,7 @@ export class StaffView implements WorldView {
       opacity: STAFF_HALO_OPACITY * staff.glow,
       blending: AdditiveBlending,
       depthWrite: false,
+      fog: false,
     });
     const haloGeometry = buildStaffGeometry(plan.staff, false, STAFF_HALO_RADIUS);
     const halo = new Mesh(haloGeometry, haloMaterial);
@@ -238,7 +240,7 @@ export class StaffView implements WorldView {
     this.tinted = true; // every note carries its layer color (or its own), see `hexOf`
     let glyphMaterial: MeshBasicMaterial = material;
     if (this.tinted) {
-      glyphMaterial = new MeshBasicMaterial({ color: 0xffffff, side: DoubleSide });
+      glyphMaterial = new MeshBasicMaterial({ color: 0xffffff, side: DoubleSide, fog: false });
       this.disposables.push(glyphMaterial);
     }
     const size = plan.staff.lineGap * GLYPH_SCALE;
@@ -269,6 +271,7 @@ export class StaffView implements WorldView {
       blending: AdditiveBlending,
       depthWrite: false,
       side: DoubleSide,
+      fog: false,
     });
     const quad = new PlaneGeometry(HALO_SIZE.w, HALO_SIZE.h).translate(HALO_SIZE.x, HALO_SIZE.y, -0.01);
     this.halos = new InstancedMesh(quad, glyphHaloMaterial, Math.max(1, capacity) + MARK_CAPACITY);
@@ -303,16 +306,39 @@ export class StaffView implements WorldView {
     this.haloMaterial.color.copy(sky ? AURORA_HALO : this.haloColor);
     const noteHalo = this.halos.material as MeshBasicMaterial;
     const base = (noteHalo.userData.base ??= noteHalo.opacity) as number;
-    noteHalo.opacity = sky ? base * 0.3 : base; // in the aurora the note is a point of the light, not a blob
+    noteHalo.opacity = sky ? base * 1.2 : base; // fluorescent radiant halo in aurora mode
     this.counts.clear();
     this.haloCount = 0;
     if (sky) {
-      // Northern lights: the notes float inside the aurora curtains, at the height of their pitch, drifting with the song.
+      // Northern lights:
+      // 1. Upcoming notes float in a circular ring above the mountain horizon surrounding us.
       for (const n of state.skyNotes) {
         if (!isRecordShown(this.plan, n.index, hidden)) continue;
         const r = this.plan.records[n.index]!;
-        const size = this.skyScale * objectScale(scaleStore.mode) * (0.7 + 0.3 * n.glow + (n.sounding ? 0.3 : 0));
-        this.place(r.glyph, n.position, skyU(this.plan, r, state.t), this.noteHex(n.index), this.skyStaff, size);
+        // If note has reached onset, it descends in the falling notes phase below
+        if (state.t >= r.onset) continue;
+        const size = this.skyScale * objectScale(scaleStore.mode) * (1.15 + 0.45 * n.glow);
+        const heading = Math.atan2(n.position.x, n.position.z) + Math.PI;
+        this.placeAt(r.glyph, n.position, heading, this.noteHex(n.index), size);
+      }
+      // 2. Currently descending notes: as the music progresses, notes descend gradually
+      // from the mountain horizon down into the scene, radiant with multicolor rainbow hues like an arc-en-ciel,
+      // planting into the ground where 3D structures grow and come to life.
+      for (const f of state.fallingNotes) {
+        if (!isRecordShown(this.plan, f.index, hidden)) continue;
+        const r = this.plan.records[f.index]!;
+        const horizon = skyPosition(this.plan, r, r.onset).position;
+        const pos = auroraDescentPosition(
+          horizon,
+          r.target,
+          hashSeed(this.plan.seed, r.noteId),
+          f.progress,
+          this.plan.template.terrain.size,
+        );
+        const hex = rainbowHex(f.progress, state.t, r.midi, this.noteHex(f.index));
+        const size = this.skyScale * objectScale(scaleStore.mode) * (1.1 - 0.35 * f.progress);
+        const heading = Math.atan2(pos.x, pos.z) + Math.PI;
+        this.placeAt(r.glyph, pos, heading, hex, size);
       }
     } else {
       for (const n of state.notesOnStaff) if (isRecordShown(this.plan, n.index, hidden)) this.place(n.glyph, n.position, n.u, this.noteHex(n.index));
@@ -342,7 +368,8 @@ export class StaffView implements WorldView {
         // In the aurora a mark is a bigger halo around the note, where it hangs in its curtain.
         const sn = midi === null ? state.skyNotes.find((x) => x.index === r.index) : undefined;
         if (!sn) return;
-        this.q.setFromAxisAngle(this.up, staffHeading(this.skyStaff, skyU(this.plan, r, state.t)));
+        const heading = Math.atan2(sn.position.x, sn.position.z) + Math.PI;
+        this.q.setFromAxisAngle(this.up, heading);
         this.m.compose(this.pos.set(sn.position.x, sn.position.y, sn.position.z), this.q, this.markScale.setScalar(this.skyScale * objectScale(scaleStore.mode) * scale));
         if (this.haloCount < this.halos.instanceMatrix.count) this.halos.setMatrixAt(this.haloCount++, this.m);
         return;
@@ -373,6 +400,24 @@ export class StaffView implements WorldView {
     if (edit.ghost) mark(edit.ghost.noteId, edit.ghost.midi, 1.2, edit.ghost.dt);
   }
 
+  private placeAt(
+    glyph: GlyphKind,
+    position: { x: number; y: number; z: number },
+    heading: number,
+    hex: string | null = null,
+    size = 0,
+  ): void {
+    const mesh = this.glyphMeshes.get(glyph);
+    const n = this.counts.get(glyph) ?? 0;
+    if (!mesh || n >= mesh.instanceMatrix.count) return;
+    this.q.setFromAxisAngle(this.up, heading);
+    this.m.compose(this.pos.set(position.x, position.y, position.z), this.q, size > 0 ? this.markScale.setScalar(size) : this.scale);
+    mesh.setMatrixAt(n, this.m);
+    if (this.tinted) mesh.setColorAt(n, this.colorOf(hex));
+    this.counts.set(glyph, n + 1);
+    if (this.haloCount < this.halos.instanceMatrix.count) this.halos.setMatrixAt(this.haloCount++, this.m);
+  }
+
   private place(
     glyph: GlyphKind,
     position: { x: number; y: number; z: number },
@@ -381,27 +426,33 @@ export class StaffView implements WorldView {
     path: StaffPath = this.plan.staff,
     size = 0,
   ): void {
-    const mesh = this.glyphMeshes.get(glyph);
-    const n = this.counts.get(glyph) ?? 0;
-    if (!mesh || n >= mesh.instanceMatrix.count) return;
-    this.q.setFromAxisAngle(this.up, staffHeading(path, u));
-    this.m.compose(this.pos.set(position.x, position.y, position.z), this.q, size > 0 ? this.markScale.setScalar(size) : this.scale);
-    mesh.setMatrixAt(n, this.m);
-    if (this.tinted) mesh.setColorAt(n, this.colorOf(hex));
-    this.counts.set(glyph, n + 1);
-    if (this.haloCount < this.halos.instanceMatrix.count) this.halos.setMatrixAt(this.haloCount++, this.m);
+    this.placeAt(glyph, position, staffHeading(path, u), hex, size);
   }
 
-  /** Hex of a note's glyph: its own color, or in the northern-lights mode a color of the aurora following its pitch. */
+  /** Hex of a note's glyph: harmonized with the initial note analyzed by the AI. */
   private noteHex(index: number): string | null {
     const r = this.plan.records[index]!;
-    if (!skyStore.enabled) return hexOf(r);
-    return `#${auroraColor(Math.min(1, Math.max(0, (r.midi - 48) / 36)), this.auroraTint).getHexString()}`; // low green to high violet over the usual range of a melody (C3 to C6)
+    const analyzed = hexOf(r);
+    if (!skyStore.enabled) return analyzed;
+
+    // Harmonized with the initial note analyzed by the AI:
+    // Preserves the AI-analyzed instrument/stem layer color, blended with harmonic pitch tint
+    if (analyzed) {
+      const pitch01 = Math.min(1, Math.max(0, (r.midi - 48) / 36));
+      const harmonic = auroraColor(pitch01, this.auroraTint);
+      // Harmonize: 75% analyzed stem color from AI, 25% harmonic aurora tint
+      const col = new Color(analyzed).lerp(harmonic, 0.25);
+      return `#${col.getHexString()}`;
+    }
+    return `#${auroraColor(Math.min(1, Math.max(0, (r.midi - 48) / 36)), this.auroraTint).getHexString()}`;
   }
 
-  /** Glyph color: the note's own color times the staff glow, else the shared glow color. */
+  /** Glyph color: the note's own color times the staff glow, else the shared glow color. Fluorescent boost in aurora mode. */
   private colorOf(hex: string | null): Color {
-    return hex ? this.tint.set(hex).multiplyScalar(this.plan.template.staff.glow) : this.tint.copy(this.glow);
+    const boost = skyStore.enabled ? 1.5 : 1.0;
+    return hex
+      ? this.tint.set(hex).multiplyScalar(this.plan.template.staff.glow * boost)
+      : this.tint.copy(this.glow).multiplyScalar(boost);
   }
 
   visibleHalos(): number {

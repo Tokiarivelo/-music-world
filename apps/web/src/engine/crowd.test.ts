@@ -10,7 +10,7 @@ function fakePlan(kinds: string[], opts: { beats?: number[]; energy?: number } =
     durationSec: 120,
     beats: opts.beats ?? [],
     energy: { times: [0, 120], values: [opts.energy ?? 0.5, opts.energy ?? 0.5] },
-    template: { terrain: { size: SIZE } },
+    template: { terrain: { size: SIZE }, fx: { environment: 'land' } },
     records: kinds.map((kind, index) => ({ index, kind })),
   } as unknown as SpawnPlan;
 }

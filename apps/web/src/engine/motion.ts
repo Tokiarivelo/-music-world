@@ -4,6 +4,7 @@
  * been (the world stays a function of `(plan, t)`). Distances are plate metres; angles radians.
  */
 import { hashSeed, mulberry32, uniform } from './prng';
+import { swimAt } from './swim';
 
 export interface Vec3 {
   readonly x: number;
@@ -14,6 +15,10 @@ export interface Vec3 {
 export interface Pose extends Vec3 {
   /** Heading around the up axis (0 = +x), so a car or a plane faces where it goes. */
   readonly yaw: number;
+  /** Nose up (+) or down (-), radians; only swimming animals have it. */
+  readonly pitch?: number;
+  /** Bank around the heading, + = right side down, radians; only swimming animals have it. */
+  readonly roll?: number;
 }
 
 export interface Bounds {
@@ -117,6 +122,6 @@ export function objectPoseAt(kind: string, seed: number, index: number, t: numbe
     case 'bicycle':
       return loopAt(seed, id, t, { cx: 0, cz: 0, rx: half * 0.45, rz: half * 0.3, y: 0 });
     default:
-      return null;
+      return swimAt(kind, seed, id, t, size);
   }
 }
