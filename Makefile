@@ -1,6 +1,6 @@
 # Music World — root commands. See .kiro/steering/infrastructure.md and testing.md. `make help` lists the targets.
 .PHONY: help install garage-init garage-up \
-	dev dev-web-stack dev-local dev-redis dev-infra dev-api dev-worker dev-web up down restart ps logs shell \
+	dev dev-web-stack kill-web kill-all dev-local dev-redis dev-infra dev-api dev-worker dev-web up down restart ps logs shell \
 	build build-api build-web rebuild \
 	test test-api test-web check check-api check-web bundle-check arch lint format schemas schemas-check \
 	deploy check-env db-password \
@@ -43,9 +43,24 @@ dev: ## Full stack in Docker (production-like) plus the local Garage S3 store. B
 	@$(MAKE) --no-print-directory garage-up
 	$(DC) -f $(COMPOSE_DEV) up --no-build
 
-dev-web-stack: ## Start the Docker services except api and web (Postgres, Redis, Garage + bucket), then the web dev server on WEB_PORT
+dev-web-stack: ## Stop stray web dev servers, start the Docker services except api and web (Postgres, Redis, Garage + bucket), then the web dev server on WEB_PORT
+	@$(MAKE) --no-print-directory kill-web
 	@$(MAKE) --no-print-directory dev-infra garage-up
 	@$(MAKE) --no-print-directory dev-web
+
+# Stops the host processes whose command matches PATTERN and whose working directory is DIR. Next allows one dev server
+# per folder, so a forgotten one makes the next `make dev-web` fail. The Docker stack is not touched (see make down).
+define stop_in
+	@for pid in $$(pgrep -f '$(2)'); do \
+		if [ "$$(readlink /proc/$$pid/cwd 2>/dev/null)" = "$(CURDIR)/$(1)" ]; then echo "stop $$pid: $$(ps -o args= -p $$pid | cut -c1-70)"; kill $$pid 2>/dev/null; fi; \
+	done; true
+endef
+
+kill-web: ## Stop the web dev servers still running on this machine, whatever their port
+	$(call stop_in,$(WEB),next)
+
+kill-all: kill-web ## Stop every host dev process of the project (web, api, worker); Docker containers keep running (make down)
+	$(call stop_in,$(API),uvicorn|arq)
 
 dev-local: ## Everything on the host, no Docker: API (SQLite) + web, plus Redis and the worker when redis-server is installed
 	@mkdir -p $(API)/.data
