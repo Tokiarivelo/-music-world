@@ -31,6 +31,9 @@ import type { WorldView } from './world-view';
 
 /** The colors of a real aurora: oxygen green low, cyan, then nitrogen violet and magenta high up. */
 export const AURORA_COLORS = ['#35ffa0', '#3fd8ff', '#b36bff'] as const;
+/** Each curtain is green low and violet / magenta high (aurora photographs). */
+const AURORA_GREENS = ['#35ffa0', '#5dffb4', '#8affcc'] as const;
+const AURORA_TOPS = ['#b36bff', '#ff6bd6', '#8f7bff'] as const;
 const ORB_RADIUS_GAPS = 0.17;
 const RAY_HEIGHT_GAPS = 5;
 const SELECTED_SCALE = 1.5;
@@ -70,7 +73,7 @@ export class SkyNotesView implements WorldView {
     for (let i = 0; i < SKY_CURTAINS; i += 1) {
       const base = AURORA_COLORS[i]!;
       const next = AURORA_COLORS[(i + 1) % AURORA_COLORS.length]!;
-      const curtain = createAuroraCurtain(path, { primary: base, accent: next, secondary: AURORA_COLORS[2]! }, gap * SKY_HEIGHT_GAPS / 0.22, 1.25, reduced);
+      const curtain = createAuroraCurtain(path, { primary: AURORA_GREENS[i % AURORA_GREENS.length]!, accent: next, secondary: AURORA_TOPS[i % AURORA_TOPS.length]! }, gap * SKY_HEIGHT_GAPS / 0.22, 1.5, reduced, true);
       const side = (i - (SKY_CURTAINS - 1) / 2) * SKY_CURTAIN_SPACING_GAPS * gap;
       curtain.mesh.position.set(nx * side, 0, nz * side);
       this.curtains.push(curtain);

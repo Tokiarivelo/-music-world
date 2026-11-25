@@ -88,3 +88,23 @@ meshes are modelled from scratch in `scripts/blender/build_models.py` (no photo 
   than the other models: check the frame time on a Quest 3 and lower `BUDGET["car"]` if needed.
 - Not matched exactly: paint is a neutral light grey (the template tints it), body details are geometry only (no decals,
   no plate or badge text), wheel arches are dark discs, not cut openings.
+
+## I27 — Environments improved from the author's reference images
+
+Source: `451f084b-reference.zip` (96 images, README with sources and licences; kept outside the repository, only CC0 items
+may be bundled). What the references showed, and what changed:
+
+- **Layered landscapes** (`rolling_hills_mist_layers`, `distant_mountains_haze_layers`): far ridges are lighter and bluer, with a
+  band of mist near the ground. `EnvironmentView` now has 5 hill rings (was 2) coloured by atmospheric perspective
+  (`t ** 0.65` toward the landscape haze) and a mist band (one more draw call, 4 in total, `ENVIRONMENT_DRAW_CALLS`).
+- **Aurora** (`aurora_borealis_over_snowy_mountains`, `aurora_borealis_green_curtains`): green glow low, violet / magenta far up
+  the rays, wide folds. The sky curtains use a `sky` shader mode (taller folds, bright band over a soft lower edge, height tint).
+- **Lightning** (`lightning_forked_bolt_night`): a bolt is now a jagged trunk with three forks, drawn additive, with a lilac glow
+  sprite; the sky flash stays. Seeded by the drum hit, so a seek gives the same bolt. The weather view has 7 draw calls.
+- **Birds** (`bird_flight_*`, `swallow_flight_profile`): a body, head and tail with two-segment wings; the tips beat and the
+  elbow follows.
+- **Skies**: two more Poly Haven CC0 HDRIs from the reference set, `dusk` (`qwantani_dusk_1_puresky`, calm low sun) and `dramatic`
+  (`wasteland_clouds_puresky`, thick banks of cloud by day). `skyWeights` now crossfades nine photos: day (clear, cloudy, dramatic,
+  overcast, storm), sunset (dusk, sunset, overcast, storm), night (night, night with clouds).
+- Still reference only (not CC0, not bundled): oak, spruce, boxwood, cumulus, car and aircraft photos and blueprints, the
+  Wikimedia images. The aircraft blueprints (Cessna 172, Piper, A320, Concorde) are the next input for the airplane model.

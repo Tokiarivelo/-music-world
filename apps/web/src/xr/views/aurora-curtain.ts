@@ -32,12 +32,15 @@ uniform vec3 uColorB;
 uniform vec3 uColorC;
 uniform float uTime;
 uniform float uGlow;
+uniform float uSky;
 varying vec2 vGrid;
 void main() {
   float shift = 0.5 + 0.5 * sin(vGrid.x * 3.0 + uTime * 0.12);
   vec3 col = mix(mix(uColorA, uColorB, vGrid.x), uColorC, shift * vGrid.y);
+  // Real aurora (reference photos): green glow low, violet and magenta far up the rays.
+  col = mix(col, mix(uColorA, uColorC, smoothstep(0.3, 1.0, vGrid.y)), uSky);
   float rays = 0.55 + 0.45 * sin(vGrid.x * 160.0 + sin(vGrid.x * 23.0 + uTime * 0.4) * 3.0);
-  float fade = pow(1.0 - vGrid.y, 1.6);
+  float fade = mix(pow(1.0 - vGrid.y, 1.6), pow(1.0 - vGrid.y, 1.1) * smoothstep(0.0, 0.08, vGrid.y), uSky); // sky: bright band above a soft lower edge
   float edge = smoothstep(0.0, 0.04, vGrid.x) * smoothstep(1.0, 0.96, vGrid.x);
   float alpha = fade * mix(1.0, rays, vGrid.y) * edge * 0.42 * uGlow;
   gl_FragColor = vec4(col, alpha);
@@ -93,6 +96,7 @@ export function createAuroraCurtain(
   plateSize: number,
   glow: number,
   reducedMotion: boolean,
+  sky = false,
 ): AuroraCurtain {
   const geometry = buildCurtainGeometry(path, plateSize * 0.22);
   const material = new ShaderMaterial({
@@ -100,7 +104,8 @@ export function createAuroraCurtain(
     fragmentShader: FRAGMENT,
     uniforms: {
       uTime: { value: 0 },
-      uAmplitude: { value: reducedMotion ? 0 : plateSize * 0.035 },
+      uAmplitude: { value: reducedMotion ? 0 : plateSize * (sky ? 0.09 : 0.035) },
+      uSky: { value: sky ? 1 : 0 },
       uGlow: { value: glow },
       uColorA: { value: new Color(palette.primary) },
       uColorB: { value: new Color(palette.accent) },

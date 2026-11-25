@@ -125,12 +125,12 @@ export function resolveTime(mode: TimeMode, backgroundLuminance: number): Exclud
 }
 
 /** Photos of `public/sky/<id>.jpg` (equirectangular, CC0 Poly Haven HDRIs tone-mapped by `scripts/blender/hdri_to_jpg.py`). */
-export const SKY_IDS = ['clear', 'cloudy', 'overcast', 'storm', 'sunset', 'night', 'nightcloud'] as const;
+export const SKY_IDS = ['clear', 'cloudy', 'dramatic', 'overcast', 'storm', 'dusk', 'sunset', 'night', 'nightcloud'] as const;
 export type SkyId = (typeof SKY_IDS)[number];
 
 /** Crossfade weights (sum 1) of the sky photos for a weather and a time of day. Pure. */
 export function skyWeights(w: Pick<Weather, 'cloudCover' | 'storm'>, time: Exclude<TimeMode, 'auto'>): Record<SkyId, number> {
-  const out: Record<SkyId, number> = { clear: 0, cloudy: 0, overcast: 0, storm: 0, sunset: 0, night: 0, nightcloud: 0 };
+  const out: Record<SkyId, number> = { clear: 0, cloudy: 0, dramatic: 0, overcast: 0, storm: 0, dusk: 0, sunset: 0, night: 0, nightcloud: 0 };
   const heavy = smooth(0.55, 0.9, w.cloudCover);
   const storm = clamp01(w.storm);
   if (time === 'night') {
@@ -141,12 +141,16 @@ export function skyWeights(w: Pick<Weather, 'cloudCover' | 'storm'>, time: Exclu
   }
   out.storm = storm;
   out.overcast = (1 - storm) * heavy;
+  const light = (1 - storm) * (1 - heavy);
   if (time === 'sunset') {
-    out.sunset = 1 - out.storm - out.overcast;
+    out.dusk = light * (1 - smooth(0.1, 0.45, w.cloudCover)); // a calm low sun
+    out.sunset = light - out.dusk; // a sunset with clouds
     return out;
   }
-  const light = (1 - storm) * (1 - heavy);
-  out.cloudy = light * smooth(0.15, 0.55, w.cloudCover);
-  out.clear = light - out.cloudy;
+  const cloudy = light * smooth(0.15, 0.55, w.cloudCover);
+  const bank = smooth(0.35, 0.7, w.cloudCover); // thicker banks of cloud, lit from the side
+  out.dramatic = cloudy * bank;
+  out.cloudy = cloudy - out.dramatic;
+  out.clear = light - cloudy;
   return out;
 }

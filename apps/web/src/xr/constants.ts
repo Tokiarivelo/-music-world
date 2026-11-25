@@ -23,7 +23,7 @@ export const ENV_SKY_RADIUS_M = 120;
 export const ENV_GROUND_RADIUS_M = 60;
 export const ENV_FOG_NEAR_M = 14;
 export const ENV_FOG_FAR_M = 58;
-export const ENV_HILL_RINGS = 2;
+export const ENV_HILL_RINGS = 5;
 export const ENV_HILL_COLUMNS = 160;
 export const ENV_STAR_DENSITY = 0.012;
 /**

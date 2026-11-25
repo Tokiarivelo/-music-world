@@ -13,3 +13,5 @@ Seven equirectangular sky photos (2048 x 1024 JPEG) for the photographic sky of 
 | `sunset.jpg` | `qwantani_sunset_puresky` | Greg Zaal and Jarod Guest |
 | `night.jpg` | `qwantani_night_puresky` | Greg Zaal and Jarod Guest |
 | `nightcloud.jpg` | `kloppenheim_07_puresky` | Greg Zaal |
+| `dusk.jpg` | `qwantani_dusk_1_puresky` | Greg Zaal and Jarod Guest |
+| `dramatic.jpg` | `wasteland_clouds_puresky` | Greg Zaal |

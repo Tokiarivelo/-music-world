@@ -92,7 +92,7 @@ function groundTexture(name: string, base = '/ground'): Texture {
 }
 
 /** Number of draw calls of the environment (requirement 5: ≤ 6). */
-export const ENVIRONMENT_DRAW_CALLS = 3;
+export const ENVIRONMENT_DRAW_CALLS = 4;
 
 /** One ring of hills: a closed strip, base at y = 0, crest height from seeded harmonics. */
 function hillsGeometry(radii: readonly number[], columns: number, seed: number, near: Color, far: Color, amp = 1, jag = 0.3): BufferGeometry {
@@ -119,7 +119,7 @@ function hillsGeometry(radii: readonly number[], columns: number, seed: number, 
       const x = Math.cos(a) * radius;
       const z = Math.sin(a) * radius;
       positions.push(x, -0.5, z, x, Math.max(0.4, crest), z);
-      tmp.copy(near).lerp(far, t);
+      tmp.copy(near).lerp(far, t ** 0.65); // far ridges are lighter and bluer: atmospheric perspective
       colors.push(tmp.r * 0.6, tmp.g * 0.6, tmp.b * 0.6, tmp.r, tmp.g, tmp.b);
     }
     for (let i = 0; i < columns; i++) {
@@ -144,6 +144,7 @@ export class EnvironmentView implements WorldView {
   private readonly sky: Mesh<SphereGeometry, ShaderMaterial>;
   private readonly ground: Mesh<CircleGeometry, MeshBasicMaterial>;
   private hills: Mesh<BufferGeometry, MeshBasicMaterial>;
+  private readonly mist: Mesh<BufferGeometry, MeshBasicMaterial>;
   private landscape: LandscapeId | null = null;
   private readonly seed: number;
   private readonly radii: number[];
@@ -196,7 +197,30 @@ export class EnvironmentView implements WorldView {
       new MeshBasicMaterial({ vertexColors: true, side: DoubleSide }),
     );
 
-    this.object.add(this.sky, this.ground, this.hills);
+    // A low band of mist between the hills and the viewer: opaque at the ground, fading out above (like the reference photos).
+    const mistGeometry = new BufferGeometry();
+    const mistPositions: number[] = [];
+    const mistColors: number[] = [];
+    const mistIndices: number[] = [];
+    const MIST_COLUMNS = 64;
+    for (let i = 0; i < MIST_COLUMNS; i++) {
+      const a = (i / MIST_COLUMNS) * Math.PI * 2;
+      const x = Math.cos(a) * (ENV_GROUND_RADIUS_M - 14);
+      const z = Math.sin(a) * (ENV_GROUND_RADIUS_M - 14);
+      mistPositions.push(x, 0, z, x, 7, z);
+      mistColors.push(1, 1, 1, 0.5, 1, 1, 1, 0);
+      const j = (i + 1) % MIST_COLUMNS;
+      mistIndices.push(i * 2, j * 2, i * 2 + 1, j * 2, j * 2 + 1, i * 2 + 1);
+    }
+    mistGeometry.setAttribute('position', new Float32BufferAttribute(mistPositions, 3));
+    mistGeometry.setAttribute('color', new Float32BufferAttribute(mistColors, 4));
+    mistGeometry.setIndex(mistIndices);
+    this.mist = new Mesh(mistGeometry, new MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, side: DoubleSide, fog: false }));
+    this.mist.material.color.copy(colors.horizon);
+    this.mist.renderOrder = 1;
+    this.mist.frustumCulled = false;
+
+    this.object.add(this.sky, this.ground, this.hills, this.mist);
     this.applyScale(scaleStore.mode);
     const offScale = scaleStore.subscribe((mode) => this.applyScale(mode));
     this.unsubscribe = offScale;
@@ -211,6 +235,7 @@ export class EnvironmentView implements WorldView {
     const k = environmentScale(mode);
     this.ground.scale.setScalar(k);
     this.hills.scale.setScalar(k);
+    this.mist.scale.setScalar(k);
     const { near, far } = fogRange(mode);
     this.fog.near = near;
     this.fog.far = far;
@@ -249,6 +274,7 @@ export class EnvironmentView implements WorldView {
     const fresh = hillsGeometry(this.radii, ENV_HILL_COLUMNS, this.seed, near, far, l.hillAmp, l.hillJag);
     this.hills.geometry.dispose();
     this.hills.geometry = fresh;
+    this.mist.material.color.copy(haze);
     this.fog.color.copy(haze); // the ground and the hills melt into the haze of the landscape
   }
 
@@ -258,7 +284,7 @@ export class EnvironmentView implements WorldView {
   dispose(): void {
     this.unsubscribe();
     this.offLandscape();
-    for (const mesh of [this.sky, this.ground, this.hills]) {
+    for (const mesh of [this.sky, this.ground, this.hills, this.mist]) {
       mesh.geometry.dispose();
       mesh.material.dispose();
     }
