@@ -43,7 +43,7 @@ import {
   STAFF_TUBE_SEGMENTS,
 } from '../constants';
 import { skyStore } from '../sky-store';
-import { AURORA_GREENS, AURORA_TOPS, auroraColor } from './aurora-colors';
+import { AURORA_TOPS, auroraColor } from './aurora-colors';
 import { createAuroraCurtain, type AuroraCurtain } from './aurora-curtain';
 import { bravuraGeometry, noteGlyphGeometry } from '../glyphs/glyph-geometry';
 import { radialAlphaTexture } from '../glyphs/halo-texture';
@@ -211,9 +211,11 @@ export class StaffView implements WorldView {
       // The ribbon starts one gap under the path it is given, so the path is raised to sit right on the line.
       const dy = (line + 1) * gap;
       const path = { ...plan.staff, start: lift(plan.staff.start, dy), control: lift(plan.staff.control, dy), end: lift(plan.staff.end, dy) };
+      // The ribbon of a line wears the aurora color of the notes that sit on it (low = green, high = violet).
+      const t = (line + 0.5) / 5;
       const colors = {
-        primary: AURORA_GREENS[line % AURORA_GREENS.length]!,
-        accent: AURORA_GREENS[(line + 1) % AURORA_GREENS.length]!,
+        primary: `#${auroraColor(t, this.auroraTint).getHexString()}`,
+        accent: `#${auroraColor(Math.min(1, t + 0.18), this.auroraTint).getHexString()}`,
         secondary: AURORA_TOPS[line % AURORA_TOPS.length]!,
       };
       const ribbon = createAuroraCurtain(path, colors, (gap * LINE_CURTAIN_GAPS) / 0.22, 0.75, reducedMotion, true);
@@ -295,6 +297,9 @@ export class StaffView implements WorldView {
       if (sky) ribbon.update(state.t);
     }
     this.haloMaterial.color.copy(sky ? AURORA_HALO : this.haloColor);
+    const noteHalo = this.halos.material as MeshBasicMaterial;
+    const base = (noteHalo.userData.base ??= noteHalo.opacity) as number;
+    noteHalo.opacity = sky ? base * 0.3 : base; // in the aurora the note is a point of the light, not a blob
     this.counts.clear();
     this.haloCount = 0;
     for (const n of state.notesOnStaff) if (isRecordShown(this.plan, n.index, hidden)) this.place(n.glyph, n.position, n.u, this.noteHex(n.index));
@@ -359,7 +364,7 @@ export class StaffView implements WorldView {
   private noteHex(index: number): string | null {
     const r = this.plan.records[index]!;
     if (!skyStore.enabled) return hexOf(r);
-    return `#${auroraColor((r.midi - 36) / 60, this.auroraTint).getHexString()}`;
+    return `#${auroraColor((r.midi - 60) / 20, this.auroraTint).getHexString()}`; // treble staff: E4 on the first line, F5 on the last
   }
 
   /** Glyph color: the note's own color times the staff glow, else the shared glow color. */

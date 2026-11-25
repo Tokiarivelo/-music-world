@@ -16,6 +16,8 @@ import {
   DESKTOP_CAMERA_FOV_DEG,
   HORIZON_FOV_DEG,
   WALK_FOV_DEG,
+  NAV_DISTANCE_MAX_M,
+  NAV_DISTANCE_MAX_WORLD_M,
   DESKTOP_CAMERA_TARGET_OFFSET,
   DESKTOP_REFERENCE_ASPECT,
   DIORAMA_POSITION,
@@ -318,7 +320,9 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   const applyScale = (): void => {
     // The dome world is the big world in every mode: the orbit camera (explore, cinematic) is mapped to it by
     // `viewToWorld`, so the whole landscape around the plate is in the frame.
-    scene.setScaleMode(inSession || nav.mode === 'walk' || domeStore.enabled ? 'immersive' : 'diorama');
+    const big = inSession || nav.mode === 'walk' || domeStore.enabled;
+    scene.setScaleMode(big ? 'immersive' : 'diorama');
+    nav.maxDistance = big ? NAV_DISTANCE_MAX_WORLD_M : NAV_DISTANCE_MAX_M;
     if (nav.state.preset === 'horizon') wide = true;
     else if (nav.state.preset !== null || nav.mode === 'cinematic') wide = false;
     const fov = nav.mode === 'walk' ? WALK_FOV_DEG : wide && !inSession ? HORIZON_FOV_DEG : DESKTOP_CAMERA_FOV_DEG;

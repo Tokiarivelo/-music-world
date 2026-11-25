@@ -179,6 +179,8 @@ export const NAV_PITCH_MIN_DEG = 5;
 export const NAV_PITCH_MAX_DEG = 85;
 export const NAV_DISTANCE_MIN_M = 0.35;
 export const NAV_DISTANCE_MAX_M = 9;
+/** In the big world the explore camera stops inside the sky dome (130 m x 3): 53 x 4.2 = 224 m from the target. */
+export const NAV_DISTANCE_MAX_WORLD_M = 4.2;
 /** The orbit target stays within this horizontal distance of the plate centre (per axis). */
 export const NAV_TARGET_RADIUS_M = 0.9;
 /** The orbit target stays between the plate top and this height above it. */

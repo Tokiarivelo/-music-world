@@ -24,3 +24,12 @@
 - Aurora: three full-circle curtains (`buildRingGeometry`, patches of light with dark gaps) fill the whole horizon, on
   top of the three curtains over the plate. The shader variable `patch` is reserved in GLSL: it is `lightPatch`.
 - Walk lens: 72 degrees (was the 20 degree tele lens of the diorama), so Walk is an immersive view like VR.
+
+## Follow-up: zoom out and notes in the aurora
+
+- Zooming out in the big world took the camera outside the sky dome: the dome showed as a black ball and the ground as a
+  sand ring. Camera poses are now capped at 4.2 diorama metres (224 m) while the world is big (`NavigationController.maxDistance`,
+  set by the host); the diorama keeps 9 m.
+- Northern lights: the ribbon of each staff line wears the aurora color of the notes on it (`auroraColor`, treble staff:
+  E4 to F5 from green through cyan to violet) and the note halo is reduced to 30 %, so the notes are points of the aurora
+  and not blobs.
