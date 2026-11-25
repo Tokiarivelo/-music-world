@@ -1,6 +1,6 @@
 import * as fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { driftAt, flightAt, loopAt, wrap, type Bounds, type FlightLane, type LoopPath } from './motion';
+import { driftAt, flightAt, loopAt, MOVING_KINDS, objectPoseAt, wrap, type Bounds, type FlightLane, type LoopPath } from './motion';
 
 const area: Bounds = { halfWidth: 20, halfDepth: 15 };
 const ring: LoopPath = { cx: 1, cz: -2, rx: 8, rz: 5, y: 0.1 };
@@ -76,5 +76,38 @@ describe('object motion (I8 task 4)', () => {
     const a = driftAt(1, 'cloud-1', 10, area, [30, 40]);
     const b = driftAt(1, 'cloud-2', 10, area, [30, 40]);
     expect(a).not.toEqual(b);
+  });
+});
+
+describe('objectPoseAt (I8)', () => {
+  const size = 14;
+
+  it('only moving kinds have a pose', () => {
+    for (const kind of ['building', 'tree', 'crystal', 'recipe:tower']) expect(objectPoseAt(kind, 7, 0, 5, size)).toBeNull();
+    for (const kind of MOVING_KINDS) expect(objectPoseAt(kind, 7, 0, 5, size)).not.toBeNull();
+  });
+
+  it('is the same wherever the clock was before (seek equals play) and differs between instances', () => {
+    for (const kind of MOVING_KINDS) {
+      const direct = objectPoseAt(kind, 7, 3, 42.5, size);
+      objectPoseAt(kind, 7, 3, 1, size);
+      objectPoseAt(kind, 7, 3, 300, size);
+      expect(objectPoseAt(kind, 7, 3, 42.5, size)).toEqual(direct);
+      expect(objectPoseAt(kind, 7, 4, 42.5, size)).not.toEqual(direct);
+    }
+  });
+
+  it('keeps clouds and planes in the sky and cars and bicycles on the ground inside the plate', () => {
+    for (let i = 0; i < 20; i++) {
+      for (const t of [0, 10, 123.4]) {
+        for (const kind of ['cloud', 'airplane']) expect(objectPoseAt(kind, 1, i, t, size)!.y).toBeGreaterThan(1.5);
+        for (const kind of ['car', 'bicycle']) {
+          const p = objectPoseAt(kind, 1, i, t, size)!;
+          expect(p.y).toBe(0);
+          expect(Math.abs(p.x)).toBeLessThanOrEqual(size / 2);
+          expect(Math.abs(p.z)).toBeLessThanOrEqual(size / 2);
+        }
+      }
+    }
   });
 });

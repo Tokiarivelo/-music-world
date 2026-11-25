@@ -91,3 +91,27 @@ export function flightAt(seed: number, objectId: string, t: number, lane: Flight
   const along = wrap(offset + speed * t, lane.halfLength * 2) - lane.halfLength;
   return { x: along * direction, y, z, yaw: direction === 1 ? 0 : Math.PI };
 }
+
+/** Kinds that move (I8): clouds drift, cars and bicycles circle a ring road, planes cross the sky. */
+export const MOVING_KINDS: ReadonlySet<string> = new Set(['cloud', 'car', 'bicycle', 'airplane']);
+
+/**
+ * Pose of a moving object at time `t` on a plate of `size` metres, or `null` for a kind that stands still. The object id
+ * is the structure's record index, so every instance has its own stream; a pure function of `(seed, kind, id, t, size)`.
+ */
+export function objectPoseAt(kind: string, seed: number, index: number, t: number, size: number): Pose | null {
+  const id = `${kind}:${index}`;
+  const half = size / 2;
+  switch (kind) {
+    case 'cloud':
+      return driftAt(seed, id, t, { halfWidth: half, halfDepth: half }, [2, 3.2]);
+    case 'airplane':
+      return flightAt(seed, id, t, { halfLength: half * 1.2, halfWidth: half * 0.8, altitude: [3.2, 4.6] });
+    case 'car':
+      return loopAt(seed, id, t, { cx: 0, cz: 0, rx: half * 0.7, rz: half * 0.5, y: 0 });
+    case 'bicycle':
+      return loopAt(seed, id, t, { cx: 0, cz: 0, rx: half * 0.45, rz: half * 0.3, y: 0 });
+    default:
+      return null;
+  }
+}

@@ -5,12 +5,13 @@
  */
 import { Color, Group, InstancedMesh, Matrix4, MeshBasicMaterial, Quaternion, Vector3 } from 'three';
 import { isRecordShown } from '@/engine/layers';
+import { objectPoseAt } from '@/engine/motion';
 import type { SpawnPlan } from '@/engine/spawn-plan';
 import { recipeScale } from '@/engine/recipe-scale';
 import type { ShapeKind, WorldTemplate } from '@/engine/types';
 import type { WorldState } from '@/engine/world-state';
 import { layerStore } from '../layer-store';
-import { KIND_ALTITUDE, KIND_FOOTPRINT, RECIPE_FOOTPRINT } from '../constants';
+import { KIND_FOOTPRINT, RECIPE_FOOTPRINT } from '../constants';
 import { lightness, structureColor } from '../palette';
 import { buildShapeGeometry } from '../shapes/builtin-shapes';
 import { buildingMaterial, spikeMaterial } from '../shapes/city-materials';
@@ -22,6 +23,7 @@ const RIDGE_PRIMARY_MIX = 0;
 const RIDGE_LIGHT = 1.2;
 /** Equalizer needles are additive and thin: boost their instance color so they read as light (requirement 5.2). */
 const SPIKE_GLOW = 2.2;
+const UP = new Vector3(0, 1, 0);
 const ZERO = new Matrix4().makeScale(0, 0, 0);
 
 export function footprintOf(kind: ShapeKind, template?: WorldTemplate): number {
@@ -97,7 +99,14 @@ export class StructureView implements WorldView {
       if (!mesh || s.slot >= mesh.count) continue;
       const footprint = footprintOf(s.kind, this.plan.template) * (0.6 + 0.4 * s.growth);
       this.scale.set(footprint, Math.max(MIN_SCALE, s.height), footprint);
-      this.m.compose(this.pos.set(s.position.x, s.position.y + (KIND_ALTITUDE[s.kind] ?? 0), s.position.z), this.q, this.scale);
+      const pose = objectPoseAt(s.kind, this.plan.seed, s.index, state.t, this.plan.template.terrain.size);
+      if (pose) this.q.setFromAxisAngle(UP, -pose.yaw);
+      else this.q.identity();
+      this.m.compose(
+        pose ? this.pos.set(pose.x, pose.y, pose.z) : this.pos.set(s.position.x, s.position.y, s.position.z),
+        this.q,
+        this.scale,
+      );
       mesh.setMatrixAt(s.slot, this.m);
       if (s.kind === RIDGE_KIND) mesh.setColorAt(s.slot, this.color.copy(this.ridgeColor));
       else {

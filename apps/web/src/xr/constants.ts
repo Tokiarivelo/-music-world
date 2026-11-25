@@ -111,8 +111,6 @@ export const KIND_FOOTPRINT: Readonly<Record<string, number>> = {
   bicycle: 0.2,
   airplane: 0.5,
 };
-/** Height above the ground of the kinds that float (m): clouds and planes sit in the sky. */
-export const KIND_ALTITUDE: Readonly<Record<string, number>> = { cloud: 2.4, airplane: 3.2 };
 export const RECIPE_FOOTPRINT = 0.25;
 
 /** Building windows (04-default-template requirement 5.1): window cell in metres, lit share, colors. */
