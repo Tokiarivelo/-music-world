@@ -86,3 +86,8 @@ export const EMISSIVE_VELOCITY_SCALE = 0.9;
 export const PULSE_DECAY_SEC = 0.18;
 /** Light arc fade-in and fade-out after its chord ends. */
 export const ARC_FADE_SEC = 0.5;
+
+/** Ocean currents (I37): width of the shared flow meanders, as a share of the plate side. */
+export const CURRENT_MEANDER_RATIO = 0.07;
+/** Ocean currents: how much each note strays from the shared flow (0 = every note rides the same stream). */
+export const CURRENT_JITTER = 0.25;

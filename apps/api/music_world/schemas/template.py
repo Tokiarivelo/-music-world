@@ -61,7 +61,10 @@ class Terrain(ContractModel):
 
 
 class Staff(ContractModel):
-    style: Literal["glowing_lines", "aurora"] = "glowing_lines"
+    style: Literal["glowing_lines", "aurora", "current"] = Field(
+        default="glowing_lines",
+        description="aurora: notes rain from the sky; current: notes are carried to the plate by ocean currents.",
+    )
     path: Literal["diagonal_curve", "straight"] = "diagonal_curve"
     clef: Literal["treble", "none"] = "treble"
     glow: float = Field(default=1.2, ge=0, le=3)

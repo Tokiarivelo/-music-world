@@ -167,5 +167,6 @@
   "error.recipeBudget": "Les pièces demandent plus de triangles que le budget permet.",
   "staff.style": "Style",
   "opt.glowing_lines": "Lignes lumineuses",
-  "opt.aurora": "Aurore dans le ciel"
+  "opt.aurora": "Aurore dans le ciel",
+  "opt.current": "Courants marins"
 }

@@ -167,5 +167,6 @@
   "error.recipeBudget": "The parts need more triangles than the budget allows.",
   "staff.style": "Style",
   "opt.glowing_lines": "Glowing lines",
-  "opt.aurora": "Aurora in the sky"
+  "opt.aurora": "Aurora in the sky",
+  "opt.current": "Ocean currents"
 }

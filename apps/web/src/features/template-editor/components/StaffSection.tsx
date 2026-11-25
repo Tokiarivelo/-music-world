@@ -20,6 +20,7 @@ export function StaffSection({ draft, errors, update }: SectionProps) {
           options={[
             { value: 'glowing_lines', label: t('opt.glowing_lines') },
             { value: 'aurora', label: t('opt.aurora') },
+            { value: 'current', label: t('opt.current') },
           ]}
           error={firstError(errors, 'staff.style')}
           onChange={(v) => update((d) => setOption(d, 'staff', 'style', v as typeof style))}

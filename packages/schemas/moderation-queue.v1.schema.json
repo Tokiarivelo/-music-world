@@ -580,9 +580,11 @@
       "properties": {
         "style": {
           "default": "glowing_lines",
+          "description": "aurora: notes rain from the sky; current: notes are carried to the plate by ocean currents.",
           "enum": [
             "glowing_lines",
-            "aurora"
+            "aurora",
+            "current"
           ],
           "title": "Style",
           "type": "string"
