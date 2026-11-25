@@ -24,7 +24,7 @@ import bpy  # first: it registers the bmesh and mathutils modules
 import bmesh  # noqa: E402
 from mathutils import Matrix, Vector, noise  # noqa: E402
 
-BUDGET = {"tree": 1500, "conifer": 1200, "bush": 800, "cloud": 700, "car": 1800, "airplane": 1400, "bicycle": 1500}
+BUDGET = {"tree": 1500, "conifer": 1200, "bush": 800, "cloud": 700, "car": 4200, "airplane": 1400, "bicycle": 1500}
 
 
 def lin(hex_color: str, gain: float = 1.0) -> tuple[float, float, float, float]:
@@ -103,14 +103,14 @@ class Builder:
                 v01 = verts[i * ring + (j + 1) % ring]
                 f = self.bm.faces.new((v00, v10, v11, v01))
                 self._paint([f], color)
-        bmesh.ops.transform(self.bm, matrix=Matrix.Translation(center) @ (Matrix.Rotation(math.pi / 2, 4, "X") if axis == "X" else Matrix.Identity(4)), verts=verts)
+        bmesh.ops.transform(self.bm, matrix=Matrix.Translation(center) @ (Matrix.Rotation(math.pi / 2, 4, "Z") if axis == "X" else Matrix.Identity(4)), verts=verts)
         return verts
 
     def finish(self, name: str, budget: int, ao_strength: float = 0.45, flat_bottom: float | None = None):
         bm = self.bm
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)  # weld first: normals are then oriented as one surface
         bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
         bmesh.ops.triangulate(bm, faces=bm.faces[:])
-        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
         zs = [v.co.z for v in bm.verts]
         zmin, zmax = min(zs), max(zs)
         span = max(1e-6, zmax - zmin)
@@ -206,45 +206,234 @@ def cloud() -> bpy.types.Object:
     return b.finish("cloud", BUDGET["cloud"], 0.35, flat_bottom=0.05)
 
 
-def car() -> bpy.types.Object:
-    """Length along Y, nose toward -Y, ground at z = 0. Body from a real side profile, extruded and bevelled."""
+# ---------------------------------------------------------------------------------------------------------------
+# Cars. Modelled in metres (nose toward -Y, ground at z = 0) from reference photographs of real cars, then scaled to
+# the plate units. The body is two lofted shells (lower body, glasshouse) smoothed with a subdivision step, the wheel
+# arches are cut with a boolean, the parts (wheels, lamps, grille, mirrors) are added on top.
+# ---------------------------------------------------------------------------------------------------------------
+CAR_SCALE = 0.45
+
+
+def body_ring(st):
+    """One cross-section of the single-shell body: hull, beltline shoulder, tapered glasshouse (tumblehome), roof."""
+    hw, z0, zb, zt, gw, rw = st["hw"], st["z0"], st["zb"], max(st["zt"], st["zb"] + 0.02), st["gw"], st["rw"]
+    gh = zt - zb
+    right = [
+        (0.0, z0), (hw * 0.7, z0), (hw * 0.95, z0 + 0.04), (hw, z0 + 0.13), (hw, zb - 0.1), (hw * 0.975, zb),
+        (gw + 0.05, zb + 0.015), (gw, zb + 0.03 + 0.02 * gh), (rw + 0.45 * (gw - rw), zb + 0.55 * gh), (rw, zt - 0.05 * gh - 0.01),
+        (rw * 0.7, zt - 0.005), (0.0, zt),
+    ]
+    left = [(-x, z) for x, z in reversed(right[1:-1])]
+    return [(x, st["y"], z) for x, z in right + left]
+
+
+def body_object(name, stations):
+    """Closed single shell through the sections (nose first)."""
+    bm = bmesh.new()
+    rings = [[bm.verts.new(p) for p in body_ring(st)] for st in stations]
+    n = len(rings[0])
+    for r0, r1 in zip(rings, rings[1:]):
+        for i in range(n):
+            j = (i + 1) % n
+            bm.faces.new((r0[i], r0[j], r1[j], r1[i]))
+    for ring, flip in ((rings[0], True), (rings[-1], False)):
+        cap = bm.verts.new((0, ring[0].co.y, sum(v.co.z for v in ring) / n))
+        for i in range(n):
+            j = (i + 1) % n
+            bm.faces.new((ring[j], ring[i], cap) if flip else (ring[i], ring[j], cap))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    mesh = bpy.data.meshes.new(name)
+    bm.to_mesh(mesh)
+    bm.free()
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.scene.collection.objects.link(obj)
+    for poly in mesh.polygons:
+        poly.use_smooth = True
+    return obj
+
+
+def densify(stations, per=3):
+    """Catmull-Rom interpolation of the numeric keys between stations: a smooth loft without a subdivision step."""
+    keys = ("y", "hw", "z0", "zb", "zt", "gw", "rw")
+    out = []
+    for i in range(len(stations) - 1):
+        p0 = stations[max(0, i - 1)]
+        p1, p2 = stations[i], stations[i + 1]
+        p3 = stations[min(len(stations) - 1, i + 2)]
+        for k in range(per):
+            t = k / per
+            st = {}
+            for key in keys:
+                a0, a1, a2, a3 = p0[key], p1[key], p2[key], p3[key]
+                st[key] = 0.5 * ((2 * a1) + (-a0 + a2) * t + (2 * a0 - 5 * a1 + 4 * a2 - a3) * t * t + (-a0 + 3 * a1 - 3 * a2 + a3) * t ** 3)
+            out.append(st)
+    out.append(dict(stations[-1]))
+    return out
+
+
+def car_shell(name, stations, classify, paint, glass_col, dark):
+    """The body as faces (coords, color); the glasshouse faces are chosen by `classify`."""
+    body = body_object(name, densify(stations))
+    mesh = body.data
+    out = []
+    for poly in mesh.polygons:
+        coords = [tuple(mesh.vertices[v].co) for v in poly.vertices]
+        out.append((coords, classify(Vector(poly.center), Vector(poly.normal), paint, glass_col, dark)))
+    bpy.data.objects.remove(body)
+    return out
+
+
+def wheel_well(b, x, y, z, radius, hw, dark):
+    side = 1 if x > 0 else -1
+    b.cylinder((side * (hw - 0.1), y, z), (side * (hw + 0.004), y, z), radius, radius, dark, seg=20)
+
+
+def add_faces(b, faces):
+    for coords, color in faces:
+        try:
+            f = b.bm.faces.new([b.bm.verts.new(c) for c in coords])
+            b._paint([f], color)
+        except ValueError:
+            pass
+
+
+def wheel(b, x, y, radius, width, tire, rim, dark, spokes=5, hub=0.05, fuchs=False):
+    side = 1 if x > 0 else -1
+    z = radius
+    b.torus((x, y, z), radius - width * 0.5, width * 0.5, tire, axis="X", seg=16, ring=5)
+    b.cylinder((x - side * 0.01, y, z), (x + side * 0.02, y, z), radius * 0.74, radius * 0.74, dark, seg=14)  # dish
+    for k in range(spokes):
+        a = k * 2 * math.pi / spokes
+        r1 = radius * (0.2 if fuchs else 0.12)
+        b.cylinder((x + side * 0.03, y + r1 * math.cos(a), z + r1 * math.sin(a)), (x + side * 0.03, y + radius * 0.68 * math.cos(a), z + radius * 0.68 * math.sin(a)), radius * 0.075, radius * (0.06 if fuchs else 0.1), rim, seg=5)
+    b.cylinder((x + side * 0.03, y, z), (x + side * 0.05, y, z), hub, hub, rim, seg=10)
+
+
+def scale_car(b, k=CAR_SCALE):
+    bmesh.ops.scale(b.bm, vec=(k, k, k), verts=b.bm.verts)
+
+
+def hatchback() -> bpy.types.Object:
+    """Compact five-door hatchback (Toyota Matrix / Hyundai Matrix type): short raked bonnet, tall glasshouse, high tail."""
     b = Builder()
-    paint, glass, dark, tire, rim = lin("#d8dde6"), lin("#18202c"), lin("#15171c"), lin("#101114"), lin("#b9c0cc")
-    profile = [(-0.96, 0.17), (-0.97, 0.34), (-0.9, 0.42), (-0.45, 0.47), (-0.16, 0.72), (0.34, 0.74), (0.74, 0.52), (0.95, 0.47), (0.97, 0.3), (0.94, 0.17)]
-    half = 0.38
-    bm = b.bm
-    left = [bm.verts.new((-half, y, z)) for y, z in profile]
-    right = [bm.verts.new((half, y, z)) for y, z in profile]
-    faces = [bm.faces.new(left[::-1]), bm.faces.new(right)]
-    for i in range(len(profile)):
-        j = (i + 1) % len(profile)
-        faces.append(bm.faces.new((left[i], left[j], right[j], right[i])))
-    for f in faces:
-        b._paint([f], paint)
-    edges = {e for f in faces for e in f.edges}
-    res = bmesh.ops.bevel(bm, geom=list(edges), offset=0.045, segments=2, affect="EDGES", profile=0.6)
-    b._paint(res["faces"], paint)
-    # Windows: faces of the cabin (above the beltline, between the pillars) get the glass color.
-    for f in bm.faces:
-        c = f.calc_center_median()
-        if c.z > 0.5 and -0.3 < c.y < 0.62 and (abs(f.normal.x) > 0.6 or abs(f.normal.y) > 0.3 and c.z < 0.72):
-            b._paint([f], glass)
-    b.box((0, -0.97, 0.26), (0.7, 0.07, 0.09), dark, bevel=0.03)  # front bumper
-    b.box((0, 0.97, 0.26), (0.7, 0.07, 0.09), dark, bevel=0.03)  # rear bumper
-    b.box((0, -0.975, 0.35), (0.3, 0.03, 0.07), dark, bevel=0.01)  # grille
-    for sx in (-0.27, 0.27):
-        b.box((sx, -0.965, 0.37), (0.15, 0.05, 0.06), lin("#fff3b0", 1.3), bevel=0.015)  # headlights
-        b.box((sx, 0.965, 0.37), (0.15, 0.05, 0.06), lin("#c8261e", 1.1), bevel=0.015)  # tail lights
-    for sx in (-0.41, 0.41):
-        b.box((sx, -0.22, 0.52), (0.06, 0.09, 0.05), paint, bevel=0.015)  # mirrors
-    for sy in (-0.58, 0.6):
-        for sx in (-0.4, 0.4):
-            b.torus((sx, sy, 0.17), 0.12, 0.055, tire, axis="X", seg=16, ring=6)
-            b.cylinder((sx - 0.03, sy, 0.17), (sx + 0.03, sy, 0.17), 0.1, 0.1, rim, seg=10)
-            for k in range(5):  # spokes
-                a = k * 2 * math.pi / 5
-                b.cylinder((sx, sy, 0.17), (sx + 0.04 * (1 if sx > 0 else -1), sy + 0.085 * math.cos(a), 0.17 + 0.085 * math.sin(a)), 0.008, 0.008, dark, seg=4)
-    return rotate_axis(b.finish("car", BUDGET["car"], 0.4), "car")
+    paint, glass, dark, tire, rim = lin("#d8dde6"), lin("#18202c"), lin("#15171c"), lin("#101114"), lin("#c4cad6")
+    S = lambda y, hw, z0, zb, zt, gw, rw: dict(y=y, hw=hw, z0=z0, zb=zb, zt=zt, gw=gw, rw=rw)
+    stations = [
+        S(-2.15, 0.6, 0.44, 0.72, 0.73, 0.3, 0.25), S(-2.0, 0.8, 0.34, 0.8, 0.81, 0.5, 0.4), S(-1.45, 0.88, 0.3, 0.92, 0.93, 0.7, 0.6),
+        S(-0.62, 0.9, 0.3, 0.98, 1.0, 0.72, 0.66), S(-0.28, 0.9, 0.3, 1.0, 1.3, 0.76, 0.68), S(0.3, 0.9, 0.3, 1.02, 1.52, 0.76, 0.66),
+        S(1.25, 0.9, 0.3, 1.03, 1.56, 0.76, 0.66), S(1.85, 0.88, 0.32, 1.06, 1.48, 0.72, 0.6), S(2.1, 0.8, 0.36, 1.03, 1.22, 0.66, 0.52),
+        S(2.22, 0.6, 0.44, 0.95, 1.0, 0.45, 0.35),
+    ]
+    wheels = [(0.8, -1.3, 0.33), (-0.8, -1.3, 0.33), (0.8, 1.3, 0.33), (-0.8, 1.3, 0.33)]
+
+    def classify(c, n, paint_, glass_, dark_):
+        if c.z < 0.42 and abs(c.x) > 0.5:
+            return dark_  # black sill cladding
+        if c.z > 1.045 and n.z < 0.74 and -0.66 < c.y < 2.16:
+            return paint_ if abs(c.y - 0.72) < 0.05 else glass_  # B pillar
+        return paint_
+
+    add_faces(b, car_shell("hatch", stations, classify, paint, glass, dark))
+    for x, y, z in wheels:
+        wheel_well(b, x, y, z, 0.42, 0.9, dark)
+    for sx in (-1, 1):
+        wheel(b, sx * 0.82, -1.3, 0.33, 0.21, tire, rim, dark, spokes=5)
+        wheel(b, sx * 0.82, 1.3, 0.33, 0.21, tire, rim, dark, spokes=5)
+        b.sphere((sx * 0.62, -1.97, 0.82), (0.2, 0.06, 0.085), lin("#f3f1e4", 1.2), seg=10, rings=6)  # swept headlamps
+        b.sphere((sx * 0.62, -2.08, 0.5), (0.1, 0.03, 0.05), dark, seg=8, rings=5)  # fog lamps
+        b.box((sx * 0.76, 2.12, 0.98), (0.14, 0.06, 0.17), lin("#c8261e", 1.1), bevel=0.02)  # tail lamps
+        b.box((sx * 0.98, -0.3, 1.03), (0.16, 0.12, 0.1), paint, bevel=0.03)  # mirrors
+    for sx in (-1, 1):
+        for y in (-0.32, 0.72, 1.62):  # door and tailgate shut lines
+            b.box((sx * 0.905, y, 0.7), (0.012, 0.014, 0.5), dark)
+        b.box((sx * 0.905, -0.32, 0.5), (0.012, 0.014, 0.014), dark)
+        for y in (0.05, 0.9):
+            b.box((sx * 0.915, y, 0.88), (0.02, 0.15, 0.028), lin("#c4cad6"), bevel=0.008)  # door handles
+    b.box((0, -2.16, 0.78), (0.6, 0.04, 0.07), dark, bevel=0.015)  # upper grille
+    b.box((0, -2.14, 0.5), (0.95, 0.05, 0.15), dark, bevel=0.03)  # lower grille
+    b.sphere((0, -2.2, 0.78), (0.07, 0.015, 0.045), rim, seg=8, rings=4)  # badge
+    b.box((0, 1.98, 1.53), (0.9, 0.2, 0.04), paint, bevel=0.015)  # roof spoiler
+    b.box((0, 2.2, 0.4), (1.3, 0.1, 0.14), dark, bevel=0.03)  # rear valance
+    scale_car(b)
+    return b.finish("car", BUDGET["car"], 0.35)
+
+
+def coupe() -> bpy.types.Object:
+    """Classic rear-engined sports coupe (Porsche 911 type): low nose, round lamps on raised wings, fastback, ducktail."""
+    b = Builder()
+    paint, glass, dark, tire, rim, chrome = lin("#cfd4de"), lin("#18202c"), lin("#15171c"), lin("#101114"), lin("#c4cad6"), lin("#e6eaf2")
+    S = lambda y, hw, z0, zb, zt, gw, rw: dict(y=y, hw=hw, z0=z0, zb=zb, zt=zt, gw=gw, rw=rw)
+    stations = [
+        S(-2.07, 0.52, 0.3, 0.6, 0.61, 0.25, 0.2), S(-1.85, 0.7, 0.22, 0.72, 0.73, 0.4, 0.3), S(-1.45, 0.78, 0.2, 0.9, 0.91, 0.5, 0.4),
+        S(-0.9, 0.74, 0.2, 0.8, 0.81, 0.55, 0.45), S(-0.55, 0.74, 0.2, 0.82, 0.86, 0.62, 0.52), S(-0.2, 0.76, 0.2, 0.84, 1.17, 0.66, 0.56),
+        S(0.5, 0.82, 0.2, 0.9, 1.3, 0.66, 0.56), S(1.0, 0.86, 0.2, 0.96, 1.27, 0.66, 0.54), S(1.55, 0.9, 0.2, 1.0, 1.08, 0.62, 0.5),
+        S(1.95, 0.82, 0.22, 0.94, 0.98, 0.5, 0.4), S(2.1, 0.66, 0.3, 0.88, 0.9, 0.4, 0.3),
+    ]
+    wheels = [(0.78, -1.2, 0.32), (-0.78, -1.2, 0.32), (0.82, 1.08, 0.33), (-0.82, 1.08, 0.33)]
+
+    def classify(c, n, paint_, glass_, dark_):
+        if c.z < 0.3 and abs(c.x) > 0.55:
+            return dark_
+        if c.z > 0.9 and n.z < 0.72 and -0.58 < c.y < 1.6:
+            return paint_ if abs(c.y - 0.12) < 0.04 else glass_
+        return paint_
+
+    add_faces(b, car_shell("coupe", stations, classify, paint, glass, dark))
+    for x, y, z in wheels:
+        wheel_well(b, x, y, z, 0.4, 0.8 if y < 0 else 0.88, dark)
+    for sx in (-1, 1):
+        wheel(b, sx * 0.8, -1.2, 0.32, 0.19, tire, chrome, dark, spokes=5, fuchs=True)
+        wheel(b, sx * 0.84, 1.08, 0.33, 0.24, tire, chrome, dark, spokes=5, fuchs=True)
+        b.sphere((sx * 0.6, -1.78, 0.8), (0.11, 0.1, 0.11), chrome, seg=12, rings=7)  # round lamps on the wings
+        b.sphere((sx * 0.6, -1.84, 0.8), (0.085, 0.07, 0.085), lin("#f3f1e4", 1.3), seg=10, rings=6)
+        b.sphere((sx * 0.62, -2.0, 0.42), (0.07, 0.04, 0.04), lin("#ff9d1a", 1.2), seg=8, rings=5)  # indicators
+        b.sphere((sx * 0.8, -0.12, 0.98), (0.07, 0.07, 0.05), chrome, seg=8, rings=5)  # mirrors
+        b.box((sx * 0.66, 2.02, 0.76), (0.12, 0.05, 0.08), lin("#c8261e", 1.1), bevel=0.015)  # tail lamps
+    for sx in (-1, 1):
+        b.box((sx * 0.86, 0.35, 0.62), (0.012, 0.014, 0.4), dark)  # door shut line
+        b.box((sx * 0.865, 0.1, 0.78), (0.02, 0.14, 0.025), chrome, bevel=0.008)  # door handle
+    b.box((0, -2.1, 0.34), (1.35, 0.1, 0.1), chrome, bevel=0.03)  # chrome bumpers with a rubber strip
+    b.box((0, -2.13, 0.34), (1.0, 0.04, 0.05), dark, bevel=0.01)
+    b.box((0, 2.12, 0.36), (1.4, 0.1, 0.1), chrome, bevel=0.03)
+    b.box((0, 2.08, 1.0), (1.2, 0.3, 0.05), paint, bevel=0.02)  # ducktail
+    scale_car(b)
+    return b.finish("car_coupe", BUDGET["car"], 0.35)
+
+
+def retro() -> bpy.types.Object:
+    """Small retro city car (2CV type): tall rounded cabin, long wings in a second color, round lamps, narrow wheels."""
+    b = Builder()
+    paint, wing, glass, dark, tire, rim = lin("#d8dde6"), lin("#f0a8c0"), lin("#18202c"), lin("#15171c"), lin("#101114"), lin("#f2f2ee")
+    S = lambda y, hw, z0, zb, zt, gw, rw: dict(y=y, hw=hw, z0=z0, zb=zb, zt=zt, gw=gw, rw=rw)
+    stations = [
+        S(-1.9, 0.56, 0.34, 0.7, 0.71, 0.3, 0.25), S(-1.7, 0.7, 0.3, 0.84, 0.85, 0.5, 0.4), S(-0.95, 0.74, 0.3, 0.95, 1.05, 0.6, 0.5),
+        S(-0.72, 0.74, 0.3, 0.95, 1.45, 0.68, 0.56), S(0.0, 0.76, 0.3, 0.98, 1.62, 0.7, 0.58), S(1.3, 0.76, 0.3, 1.0, 1.6, 0.7, 0.58),
+        S(1.8, 0.7, 0.3, 0.96, 1.36, 0.62, 0.5), S(1.92, 0.55, 0.36, 0.9, 1.1, 0.5, 0.4),
+    ]
+    wheels = [(0.74, -1.12, 0.3), (-0.74, -1.12, 0.3), (0.74, 1.12, 0.3), (-0.74, 1.12, 0.3)]
+
+    def classify(c, n, paint_, glass_, dark_):
+        if c.z > 1.03 and n.z < 0.75 and -0.96 < c.y < 1.9:
+            pillar = abs(c.y - 0.1) < 0.045 or abs(c.y - 0.78) < 0.045 or c.y > 1.78
+            return paint_ if pillar else glass_
+        return paint_
+
+    add_faces(b, car_shell("retro", stations, classify, paint, glass, dark))
+    for sx in (-1, 1):
+        for y in (-1.12, 1.12):
+            wheel(b, sx * 0.76, y, 0.3, 0.16, tire, rim, rim, spokes=0, hub=0.12)
+            b.sphere((sx * 0.76, y, 0.52), (0.13, 0.5, 0.28), wing, seg=12, rings=7)  # wing over each wheel
+        b.sphere((sx * 0.62, -1.78, 0.88), (0.11, 0.08, 0.11), lin("#fff3b0", 1.3), seg=10, rings=6)
+        b.sphere((sx * 0.6, 1.9, 0.9), (0.06, 0.04, 0.06), lin("#c8261e", 1.1), seg=8, rings=5)
+        b.sphere((sx * 0.84, -0.7, 1.2), (0.06, 0.05, 0.04), rim, seg=8, rings=5)
+    b.box((0, -1.96, 0.4), (0.9, 0.06, 0.09), rim, bevel=0.02)
+    b.box((0, 1.96, 0.42), (0.9, 0.06, 0.09), rim, bevel=0.02)
+    scale_car(b)
+    return b.finish("car_retro", BUDGET["car"], 0.35)
+
+
+def car() -> bpy.types.Object:
+    return hatchback()
 
 
 def rotate_axis(obj, _name):
@@ -286,7 +475,7 @@ def bicycle() -> bpy.types.Object:
     return b.finish("bicycle", BUDGET["bicycle"], 0.35)
 
 
-MODELS = {"tree": tree, "conifer": conifer, "bush": bush, "cloud": cloud, "car": car, "airplane": airplane, "bicycle": bicycle}
+MODELS = {"tree": tree, "conifer": conifer, "bush": bush, "cloud": cloud, "car": car, "car_coupe": coupe, "car_retro": retro, "airplane": airplane, "bicycle": bicycle}
 
 
 def export(obj, out_dir: str) -> tuple[int, int]:
@@ -325,7 +514,7 @@ def main() -> int:
     for name in wanted:
         obj = MODELS[name]()
         tris, size = export(obj, args.out)
-        flag = "ok" if tris <= BUDGET[name] * 1.05 else "OVER BUDGET"
+        flag = "ok" if tris <= BUDGET.get(name, BUDGET.get("car")) * 1.05 else "OVER BUDGET"
         ok &= flag == "ok"
         print(f"{name:9s} {tris:5d} triangles  {size / 1024:6.1f} KB  {flag}")
         bpy.data.objects.remove(obj)

@@ -71,3 +71,20 @@ overcast sky and rain, Living City with the new models, looked at by eye. Not me
 - Keywords of the reference images still wanted: `docs/reference-images.md`.
 - Not done: models are still modelled from primitives (no photo textures on the meshes, only the runtime detail maps), no bird
   model (the birds are flat V shapes), Quest 3 cost of the photographic sky and of 1800 triangle cars unmeasured.
+
+## I26 — Cars modelled from reference photographs
+
+Reference photos supplied by the author (a red and a silver Toyota Matrix hatchback, a black Porsche 911 coupe, a pink 2CV
+style die-cut set, a silver Hyundai Matrix) were used only as visual references for proportions, silhouette and details; the
+meshes are modelled from scratch in `scripts/blender/build_models.py` (no photo is traced, copied or shipped).
+
+- Body: one continuous lofted shell per car (hull, beltline shoulder, tapered glasshouse, roof) from 10 to 11 measured sections,
+  Catmull-Rom densified, so no overlapping shells or decimation damage. Glass, pillars and sill cladding are painted by face.
+- `car` = hatchback (swept lamps, upper and lower grille, fog lamps, roof spoiler, tailgate and door shut lines, handles, mirrors,
+  five-spoke alloys); `car_coupe` = 911 type (round lamps on raised wings, fastback, ducktail, chrome bumpers, Fuchs-style wheels);
+  `car_retro` = 2CV type (tall cabin, contrasting wings, round lamps, narrow white wheels).
+- Variants (`xr/shapes/model-catalog.ts` `MODEL_VARIANTS`, `structure-view.ts`): instance slot `s` wears model `s % 3`, each
+  variant is one more InstancedMesh with the same material (two more draw calls for cars). Triangles: about 4 k per car, more
+  than the other models: check the frame time on a Quest 3 and lower `BUDGET["car"]` if needed.
+- Not matched exactly: paint is a neutral light grey (the template tints it), body details are geometry only (no decals,
+  no plate or badge text), wheel arches are dark discs, not cut openings.

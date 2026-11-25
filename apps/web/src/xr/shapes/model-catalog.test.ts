@@ -3,7 +3,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { BoxGeometry } from 'three';
 import { describe, expect, it } from 'vitest';
-import { fitModel, hasModel, MODELS } from './model-catalog';
+import { fitModel, hasModel, MODELS, MODEL_VARIANTS, variantOf } from './model-catalog';
 
 const MODELS_DIR = join(process.cwd(), 'public/models');
 
@@ -64,7 +64,17 @@ describe('model files (Blender build)', () => {
       const g = meshes[0]!.geometry;
       expect('color' in g.attributes, `${kind} has vertex colors`).toBe(true);
       const tris = (g.index ? g.index.count : g.getAttribute('position').count) / 3;
-      expect(tris, kind).toBeLessThanOrEqual(1850);
+      expect(tris, kind).toBeLessThanOrEqual(4300);
     }
+  });
+});
+
+describe('body variants', () => {
+  it('spreads the slots of a kind over its models and keeps other kinds on one', () => {
+    expect(MODEL_VARIANTS.car).toEqual(['car_coupe', 'car_retro']);
+    for (const f of MODEL_VARIANTS.car!) expect(MODELS[f]).toBeDefined();
+    expect([0, 1, 2, 3, 4, 5].map((s) => variantOf('car', s))).toEqual([0, 1, 2, 0, 1, 2]);
+    expect(variantOf('tree', 7)).toBe(0);
+    expect(variantOf('car', -1)).toBe(2);
   });
 });

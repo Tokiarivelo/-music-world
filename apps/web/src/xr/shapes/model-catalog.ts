@@ -26,9 +26,24 @@ export const MODELS: Readonly<Record<string, ModelSpec>> = {
   bush: { file: 'bush', forward: 'x' },
   cloud: { file: 'cloud', forward: 'x' },
   car: { file: 'car', forward: 'z' },
+  car_coupe: { file: 'car_coupe', forward: 'z' },
+  car_retro: { file: 'car_retro', forward: 'z' },
   bicycle: { file: 'bicycle', forward: 'x' },
   airplane: { file: 'airplane', forward: 'x' },
 };
+
+/**
+ * Body variants of a kind: instance slot `s` wears the model `[kind, ...variants][s % (1 + variants.length)]`, each variant
+ * being its own InstancedMesh (one more draw call per variant, same material). Cars: hatchback, coupe, retro city car.
+ */
+export const MODEL_VARIANTS: Readonly<Record<string, readonly string[]>> = {
+  car: ['car_coupe', 'car_retro'],
+};
+
+export function variantOf(kind: string, slot: number): number {
+  const n = 1 + (MODEL_VARIANTS[kind]?.length ?? 0);
+  return n === 1 ? 0 : ((slot % n) + n) % n;
+}
 
 export function hasModel(kind: string): boolean {
   return kind in MODELS;

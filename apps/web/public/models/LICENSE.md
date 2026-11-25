@@ -15,7 +15,9 @@ python -I scripts/blender/build_models.py --out apps/web/public/models
 | `conifer.glb` | `conifer` | 1200 |
 | `bush.glb` | `bush` | 800 |
 | `cloud.glb` | `cloud` | 700 |
-| `car.glb` | `car` | 1800 |
+| `car.glb` | `car` (hatchback, Toyota Matrix / Hyundai Matrix type) | 4200 |
+| `car_coupe.glb` | `car`, every third instance (rear-engined coupe, 911 type) | 4200 |
+| `car_retro.glb` | `car`, every third instance (small retro city car, 2CV type) | 4200 |
 | `airplane.glb` | `airplane` | 1400 |
 | `bicycle.glb` | `bicycle` | 1500 |
 
