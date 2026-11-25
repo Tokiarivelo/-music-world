@@ -40,13 +40,13 @@ Candidates for models and textures (decimate before use, they are photogrammetry
 
 All reference images have been downloaded into the local non-committed folder `docs/reference/`:
 - **Location:** `docs/reference/` (git-ignored via `.gitignore`)
-- **Total assets:** 86 images (26.4 MB)
+- **Total assets:** 96 images (28.8 MB)
   - `01_tree/` (7 images: oak whole tree, silhouette, roots flare, crown clusters, Jacaranda CC0 render, Bark012/014 CC0 textures)
   - `02_conifer/` (6 images: Norway spruce whole tree, drooping branches, silhouette, needles, fir & pine sapling CC0 renders)
   - `03_bush/` (5 images: boxwood clump, hedge foliage, leaf texture, shrub_02/03 CC0 renders, Leaf001 CC0 texture)
   - `04_cloud/` (5 images: cumulus flat base, cumulus humilis, stratocumulus, cumulonimbus anvil, wasteland clouds pure sky)
   - `05_car/` (7 images: technical blueprint, sedan profile, hatchback front, alloy rim, headlight, Metal049A & PaintedMetal002 textures)
-  - `06_airplane/` (4 images: Cessna 172 3-view blueprint, light aircraft top view, propeller plane side, airliner profile)
+  - `06_airplane/` (14 images: Cessna 172 3-view, Piper Cherokee 3-view, A320 3-view, Concorde 3-view, Boeing 737 front orthographic, Cessna 172 front photo, Cirrus SR22 flight, light aircraft top, propeller plane side, airliner profile, A380 widebody, DHC-2 Beaver seaplane, Beech staggerwing biplane, propeller blade detail)
   - `07_bicycle/` (4 images: city bicycle side view, frame geometry diagram, wheel spokes and hub)
   - `08_bird/` (4 images: seagull wings-up, gull gliding wings-down, swallow flight, flock silhouette)
   - `09_sun_moon/` (5 images: sun rays crepuscular, full moon disc, crescent moon earthshine, Qwantani dusk & Syferfontein clear skies)
