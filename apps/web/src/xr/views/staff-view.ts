@@ -44,7 +44,7 @@ import {
 } from '../constants';
 import { skyStore } from '../sky-store';
 import { AURORA_TOPS, auroraColor } from './aurora-colors';
-import { createAuroraCurtain, type AuroraCurtain } from './aurora-curtain';
+import { createAuroraCurtain, NOTE_LIGHTS, type AuroraCurtain } from './aurora-curtain';
 import { bravuraGeometry, noteGlyphGeometry } from '../glyphs/glyph-geometry';
 import { radialAlphaTexture } from '../glyphs/halo-texture';
 import type { WorldView } from './world-view';
@@ -292,9 +292,12 @@ export class StaffView implements WorldView {
     for (const part of this.staffParts) part.visible = staffOn && !sky;
     for (const part of this.classicParts) part.visible = staffOn && !sky;
     if (this.curtain) this.curtain.mesh.visible = staffOn && !sky;
-    for (const ribbon of this.lineCurtains) {
+    for (let line = 0; line < this.lineCurtains.length; line += 1) {
+      const ribbon = this.lineCurtains[line]!;
       ribbon.mesh.visible = staffOn && sky;
-      if (sky) ribbon.update(state.t);
+      if (!sky) continue;
+      ribbon.update(state.t);
+      ribbon.setNotes(this.noteLights(state, line));
     }
     this.haloMaterial.color.copy(sky ? AURORA_HALO : this.haloColor);
     const noteHalo = this.halos.material as MeshBasicMaterial;
@@ -320,14 +323,16 @@ export class StaffView implements WorldView {
   private placeEditMarks(state: WorldState): void {
     const edit = editStore.state;
     if (!edit.enabled) return;
-    const mark = (noteId: string, midi: number | null, scale: number): void => {
+    const mark = (noteId: string, midi: number | null, scale: number, dt = 0): void => {
       const index = this.indexOf.get(noteId);
       const r = index === undefined ? undefined : this.plan.records[index];
       if (!r) return;
       const n = state.notesOnStaff.find((x) => x.index === r.index);
       const f = state.fallingNotes.find((x) => x.index === r.index);
       if (!n && !f) return;
-      const u = n ? n.u : this.plan.staff.playheadU;
+      const { playheadU } = this.plan.staff;
+      const shifted = (n ? n.u : playheadU) + (dt / this.plan.lookahead) * (1 - playheadU); // dragged along the staff
+      const u = Math.min(1, Math.max(playheadU, shifted));
       const staffU = midi === null ? r.staffU : staffUOfMidi(midi);
       const position = staffNotePosition(this.plan.staff, u, staffU, r.lineY);
       this.q.setFromAxisAngle(this.up, staffHeading(this.plan.staff, u));
@@ -345,7 +350,7 @@ export class StaffView implements WorldView {
     };
     const marked = edit.selection.length > 0 ? edit.selection : edit.hover ? [edit.hover] : [];
     for (const id of marked) mark(id, null, 1.35);
-    if (edit.ghost) mark(edit.ghost.noteId, edit.ghost.midi, 1);
+    if (edit.ghost) mark(edit.ghost.noteId, edit.ghost.midi, 1.2, edit.ghost.dt);
   }
 
   private place(glyph: GlyphKind, position: { x: number; y: number; z: number }, u: number, hex: string | null = null): void {
@@ -358,6 +363,23 @@ export class StaffView implements WorldView {
     if (this.tinted) mesh.setColorAt(n, this.colorOf(hex));
     this.counts.set(glyph, n + 1);
     if (this.haloCount < this.halos.instanceMatrix.count) this.halos.setMatrixAt(this.haloCount++, this.m);
+  }
+
+  /**
+   * The notes that feed the light of one ribbon (the main staff only): those that sit on this line or in the space
+   * next to it, nearest to the playhead first, so the aurora swells exactly where a note is.
+   */
+  private noteLights(state: WorldState, line: number): { x: number; strength: number }[] {
+    const { playheadU } = this.plan.staff;
+    const out: { x: number; strength: number }[] = [];
+    for (const n of state.notesOnStaff) {
+      const r = this.plan.records[n.index]!;
+      if (r.lineY !== 0 || !isRecordShown(this.plan, n.index, layerStore.hidden)) continue;
+      const weight = 1 - Math.abs(line - r.staffU * 4);
+      if (weight <= 0) continue;
+      out.push({ x: n.u, strength: weight * (0.25 + 0.75 * Math.exp(-(n.u - playheadU) / 0.12)) });
+    }
+    return out.sort((a, b) => a.x - b.x).slice(0, NOTE_LIGHTS);
   }
 
   /** Hex of a note's glyph: its own color, or in the northern-lights mode a color of the aurora following its pitch. */

@@ -116,14 +116,56 @@ interface Body {
   x: number;
   y: number;
   z: number;
+  /** Heading of the base motion: ground objects dodge sideways to it, they never back up. */
+  yaw: number;
 }
 
-function separate(bodies: Body[], seed: number): void {
+/** A fixed thing on the ground (a building, a tree, a ridge) that cars and bicycles drive around. */
+export interface Obstacle {
+  readonly x: number;
+  readonly z: number;
+  readonly radius: number;
+}
+
+/** Side of the heading (+1 left, -1 right) a ground body dodges to: the side it is already on, a stable guess at 0. */
+function side(lateral: number, seed: number, key: string): number {
+  const bias = (mulberry32(hashSeed(seed, key))() - 0.5) * 0.02;
+  return lateral + bias >= 0 ? 1 : -1;
+}
+
+/**
+ * Lateral shift that clears a body whose centre is `along` ahead and `lateral` to the left of a car: zero when the
+ * two are not in contact, growing continuously as they close in (so the dodge is a smooth curve, never a jump).
+ */
+function clearance(min: number, along: number, lateral: number): number {
+  if (Math.abs(along) >= min) return 0;
+  return Math.max(0, Math.sqrt(min * min - along * along) - Math.abs(lateral));
+}
+
+function separate(bodies: Body[], obstacles: readonly Obstacle[], seed: number): void {
   for (let pass = 0; pass < RELAX_PASSES; pass += 1) {
     let moved = false;
     for (let i = 0; i < bodies.length; i += 1) {
       const a = bodies[i]!;
       const ground = GROUND.has(a.item.kind);
+      if (ground) {
+        const hx = Math.cos(a.yaw);
+        const hz = Math.sin(a.yaw);
+        for (let k = 0; k < obstacles.length; k += 1) {
+          const o = obstacles[k]!;
+          const min = (a.item.radius + o.radius) * MARGIN;
+          const dx = o.x - a.x;
+          const dz = o.z - a.z;
+          if (dx * dx + dz * dz >= min * min) continue;
+          const lateral = -dx * hz + dz * hx; // obstacle to the left (+) or right (-) of the car
+          const need = clearance(min, dx * hx + dz * hz, lateral);
+          if (need <= 1e-9) continue;
+          const s = side(lateral, seed, `obstacle:${a.item.index}:${k}`);
+          a.x += s * hz * need; // away from the obstacle: to the opposite side of the lateral axis (-hz, hx)
+          a.z -= s * hx * need;
+          moved = true;
+        }
+      }
       for (let j = i + 1; j < bodies.length; j += 1) {
         const b = bodies[j]!;
         if (GROUND.has(b.item.kind) !== ground) continue; // ground and air never meet
@@ -133,6 +175,21 @@ function separate(bodies: Body[], seed: number): void {
         let dz = b.z - a.z;
         const d2 = dx * dx + dy * dy + dz * dz;
         if (d2 >= min * min) continue;
+        if (ground) {
+          // Both swerve to the side, in opposite directions: the faster car overtakes, head-on cars pass.
+          const hx = Math.cos(a.yaw);
+          const hz = Math.sin(a.yaw);
+          const lateral = -dx * hz + dz * hx;
+          const need = clearance(min, dx * hx + dz * hz, lateral);
+          if (need <= 1e-9) continue;
+          const s = side(lateral, seed, `crowd:${a.item.index}:${b.item.index}`);
+          a.x += (s * hz * need) / 2;
+          a.z -= (s * hx * need) / 2;
+          b.x -= (s * hz * need) / 2;
+          b.z += (s * hx * need) / 2;
+          moved = true;
+          continue;
+        }
         let d = Math.sqrt(d2);
         if (d < 1e-6) {
           const angle = mulberry32(hashSeed(seed, `crowd:${a.item.index}:${b.item.index}`))() * Math.PI * 2;
@@ -146,10 +203,8 @@ function separate(bodies: Body[], seed: number): void {
         a.z -= dz * push;
         b.x += dx * push;
         b.z += dz * push;
-        if (!ground) {
-          a.y -= dy * push;
-          b.y += dy * push;
-        }
+        a.y -= dy * push;
+        b.y += dy * push;
         moved = true;
       }
     }
@@ -157,16 +212,14 @@ function separate(bodies: Body[], seed: number): void {
   }
 }
 
-function relaxed(items: readonly CrowdItem[], seed: number, tau: number, size: number): Map<number, Body> {
+function relaxed(items: readonly CrowdItem[], obstacles: readonly Obstacle[], seed: number, tau: number, size: number): Map<number, Body> {
   const bodies: Body[] = [];
-  const base = new Map<number, Pose>();
   for (const item of items) {
     const pose = objectPoseAt(item.kind, seed, item.index, tau, size);
     if (!pose) continue;
-    base.set(item.index, pose);
-    bodies.push({ item, x: pose.x, y: pose.y, z: pose.z });
+    bodies.push({ item, x: pose.x, y: pose.y, z: pose.z, yaw: pose.yaw });
   }
-  separate(bodies, seed);
+  separate(bodies, obstacles, seed);
   return new Map(bodies.map((b) => [b.item.index, b]));
 }
 
@@ -184,17 +237,27 @@ export function crowdItemsOf(plan: Pick<SpawnPlan, 'records'>, radiusOf: (kind: 
   return items;
 }
 
+/** Fixed records of a plan as obstacles (collision radius from `radiusOf(kind)`), for the ground traffic to drive around. */
+export function crowdObstaclesOf(plan: Pick<SpawnPlan, 'records'>, radiusOf: (kind: string) => number): Obstacle[] {
+  const out: Obstacle[] = [];
+  for (const r of plan.records) {
+    if (MOVING_KINDS.has(r.kind)) continue;
+    out.push({ x: r.target.x, z: r.target.z, radius: radiusOf(r.kind) });
+  }
+  return out;
+}
+
 /**
  * Poses of every moving object at `t`, keyed by record index. `items` is the whole set of moving records (not only the
  * landed ones), so an object appearing never makes the others jump.
  */
-export function crowdPosesAt(plan: SpawnPlan, items: readonly CrowdItem[], t: number): Map<number, Pose> {
+export function crowdPosesAt(plan: SpawnPlan, items: readonly CrowdItem[], t: number, obstacles: readonly Obstacle[] = []): Map<number, Pose> {
   const size = plan.template.terrain.size;
   const clock = musicClockOf(plan);
   const tau = clock.at(t);
   const tauNext = clock.at(t + HEADING_PROBE_SEC);
-  const now = relaxed(items, plan.seed, tau, size);
-  const next = relaxed(items, plan.seed, tauNext, size);
+  const now = relaxed(items, obstacles, plan.seed, tau, size);
+  const next = relaxed(items, obstacles, plan.seed, tauNext, size);
   const out = new Map<number, Pose>();
   for (const [index, body] of now) {
     const kind = body.item.kind;

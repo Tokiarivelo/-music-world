@@ -4,13 +4,16 @@
  * cheap (two sines per vertex, a few per pixel, no noise loops); time is the song time handed in by the view, so a
  * pause freezes it and a seek gives the same picture.
  */
-import { AdditiveBlending, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Mesh, ShaderMaterial } from 'three';
+import { AdditiveBlending, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Mesh, ShaderMaterial, Vector3 } from 'three';
 import { staffPoint, type StaffPath } from '@/engine/staff';
 
 export const CURTAIN_COLUMNS = 96;
 export const CURTAIN_ROWS = 6;
 /** Number of triangles of the curtain (checked by the budget test). */
 export const CURTAIN_TRIANGLES = CURTAIN_COLUMNS * CURTAIN_ROWS * 2;
+
+/** Notes that light a ribbon at once (the nearest to the playhead). */
+export const NOTE_LIGHTS = 12;
 
 const VERTEX = /* glsl */ `
 attribute vec2 aGrid; // x: along the staff (0..1), y: up the curtain (0..1)
@@ -34,6 +37,7 @@ uniform float uTime;
 uniform float uGlow;
 uniform float uSky;
 uniform float uBands;
+uniform vec3 uNotes[${NOTE_LIGHTS}]; // x: position along the staff (0..1), y: strength of the light, z: unused
 varying vec2 vGrid;
 void main() {
   float shift = 0.5 + 0.5 * sin(vGrid.x * 3.0 + uTime * 0.12);
@@ -47,6 +51,16 @@ void main() {
   float lightPatch = smoothstep(0.1, 0.8, 0.5 + 0.28 * sin(vGrid.x * 6.2831 * uBands + uTime * 0.05) + 0.22 * sin(vGrid.x * 6.2831 * uBands * 2.3 - uTime * 0.03 + 1.7));
   float coverage = uBands > 0.5 ? lightPatch : edge;
   float alpha = fade * mix(1.0, rays, vGrid.y) * coverage * 0.42 * uGlow;
+  // A note is a knot of the aurora: the light of the ribbon swells in a soft column over it (never a disc), rays
+  // brightest at the foot and thinning upward, in the ribbon's own color.
+  float lit = 0.0;
+  for (int i = 0; i < ${NOTE_LIGHTS}; i++) {
+    float d = (vGrid.x - uNotes[i].x) / 0.03;
+    lit += uNotes[i].y * exp(-d * d);
+  }
+  lit = min(lit, 1.0) * pow(1.0 - vGrid.y, 0.9) * mix(1.0, rays, 0.5);
+  alpha = min(1.0, alpha * (1.0 + 2.4 * lit) + 0.28 * lit * uGlow);
+  col = mix(col, vec3(1.0), 0.35 * lit);
   gl_FragColor = vec4(col, alpha);
   #include <colorspace_fragment>
 }`;
@@ -122,6 +136,8 @@ export interface AuroraCurtain {
   readonly mesh: Mesh<BufferGeometry, ShaderMaterial>;
   /** Song time in seconds; with `reducedMotion` the curtain stays still. */
   update(t: number): void;
+  /** Lights the ribbon under the given notes: `x` along the staff (0..1), `strength` 0..1. At most `NOTE_LIGHTS`. */
+  setNotes(notes: readonly { x: number; strength: number }[]): void;
   dispose(): void;
 }
 
@@ -143,6 +159,7 @@ export function createAuroraCurtain(
       uAmplitude: { value: reducedMotion ? 0 : plateSize * (sky ? 0.09 : 0.035) },
       uSky: { value: sky ? 1 : 0 },
       uBands: { value: ring?.bands ?? 0 },
+      uNotes: { value: Array.from({ length: NOTE_LIGHTS }, () => new Vector3()) },
       uGlow: { value: glow },
       uColorA: { value: new Color(palette.primary) },
       uColorB: { value: new Color(palette.accent) },
@@ -162,6 +179,14 @@ export function createAuroraCurtain(
     mesh,
     update(t) {
       material.uniforms.uTime!.value = reducedMotion ? 0 : t;
+    },
+    setNotes(notes) {
+      const lights = material.uniforms.uNotes!.value as Vector3[];
+      for (let i = 0; i < NOTE_LIGHTS; i += 1) {
+        const n = notes[i];
+        if (n) lights[i]!.set(n.x, n.strength, 0);
+        else lights[i]!.set(0, 0, 0);
+      }
     },
     dispose() {
       geometry.dispose();

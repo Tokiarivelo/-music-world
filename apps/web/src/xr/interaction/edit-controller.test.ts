@@ -88,6 +88,22 @@ describe('edit controller (I9)', () => {
     expect(editStore.state.ghost).toBeNull();
   });
 
+  it('dragging along the staff moves the note in time and commits the new onset on release', () => {
+    const { c, events } = setup();
+    const s = screenOf(first);
+    const r = plan.records[first]!;
+    c.pointerDown(s);
+    c.pointerMove({ x: s.x + DRAG_THRESHOLD_PX + 1, y: s.y });
+    c.pointerMove({ x: s.x + 200, y: s.y });
+    const dt = editStore.state.ghost?.dt ?? 0;
+    expect(dt).not.toBe(0);
+    c.pointerUp();
+    const committed = events.at(-1) as Extract<NoteEditEvent, { type: 'committed' }>;
+    expect(committed.type).toBe('committed');
+    expect(committed.moves[0]!.midi).toBe(r.midi);
+    expect(committed.moves[0]!.time).toBeCloseTo(Math.max(0, r.onset + dt), 6);
+  });
+
   it('Esc cancels the drag and commits nothing', () => {
     const { c, events } = setup();
     const s = screenOf(first);

@@ -32,7 +32,7 @@ describe('StaffView editor marks (I9)', () => {
     expect(view.visibleGlyphs()).toBe(glyphs);
     expect(view.visibleHalos()).toBe(halos + 1);
 
-    editStore.set({ ghost: { noteId, midi: 72 } });
+    editStore.set({ ghost: { noteId, midi: 72, dt: 0 } });
     view.update(state);
     expect(view.visibleGlyphs()).toBe(glyphs + 1);
     expect(view.visibleHalos()).toBe(halos + 2);

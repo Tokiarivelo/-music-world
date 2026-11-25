@@ -197,7 +197,7 @@ export function useNoteEdits(
       } else if (event.type === "moved") {
         announce(t("edit.live.moved", { name: noteName(event.midi) }));
       } else if (event.type === "committed") {
-        setHistory((h) => commit(h, event.moves.reduce((acc, m) => editNote(acc, m.noteId, { midi: m.midi }), h.present)));
+        setHistory((h) => commit(h, event.moves.reduce((acc, m) => editNote(acc, m.noteId, m.time === undefined ? { midi: m.midi } : { midi: m.midi, time: m.time }), h.present)));
         const last = event.moves.at(-1);
         if (last) announce(t("edit.live.moved", { name: noteName(last.midi) }));
       } else if (event.type === "cancelled") {

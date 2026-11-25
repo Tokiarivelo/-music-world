@@ -33,3 +33,15 @@
 - Northern lights: the ribbon of each staff line wears the aurora color of the notes on it (`auroraColor`, treble staff:
   E4 to F5 from green through cyan to violet) and the note halo is reduced to 30 %, so the notes are points of the aurora
   and not blobs.
+
+## Follow-up: traffic that steers, notes that move in time, aurora that follows the notes
+
+- Cars and bicycles (`engine/crowd.ts`): they now steer around every fixed record (buildings, trees, ridges) and around
+  each other, always sideways to their heading, so they never back up or shuttle to and fro. The dodge grows
+  continuously with the overlap, so it is a smooth curve. Each direction of travel keeps its own lane on the ring road
+  (`loopAt`), so head-on cars pass each other. Planes and clouds keep the old push-apart rule.
+- Note editor: a drag now also moves the note along the staff in time (50 ms grid); releasing it plants the note at its
+  new pitch and onset (`NoteMove.time`, `editStore.ghost.dt`, undoable like any edit). VR rays still change pitch only.
+- Northern-lights mode: each staff-line ribbon swells in a soft column of its own colour over every note that sits on
+  or next to the line (`uNotes` in `aurora-curtain.ts`), strongest at the playhead, so the notes read as knots of the
+  aurora and not as separate objects.

@@ -65,12 +65,17 @@ export function loopAt(seed: number, objectId: string, t: number, path: LoopPath
   const speed = uniform(rng, 1, 4);
   const direction = rng() < 0.5 ? 1 : -1;
   // Angular speed from the mean radius, so a longer ring takes longer.
-  const omega = (direction * speed) / ((path.rx + path.rz) / 2);
+  // Lanes: each direction keeps to its own side of the road (the two ways never share a line) and every car has a small
+  // lane offset of its own, so two cars that meet pass each other instead of colliding.
+  const lane = 1 + direction * 0.07 + uniform(rng, -0.025, 0.025);
+  const rx = path.rx * lane;
+  const rz = path.rz * lane;
+  const omega = (direction * speed) / ((rx + rz) / 2);
   const a = phase0 + omega * t;
-  const x = path.cx + Math.cos(a) * path.rx;
-  const z = path.cz + Math.sin(a) * path.rz;
-  const dx = -Math.sin(a) * path.rx * direction;
-  const dz = Math.cos(a) * path.rz * direction;
+  const x = path.cx + Math.cos(a) * rx;
+  const z = path.cz + Math.sin(a) * rz;
+  const dx = -Math.sin(a) * rx * direction;
+  const dz = Math.cos(a) * rz * direction;
   return { x, y: path.y, z, yaw: Math.atan2(dz, dx) };
 }
 

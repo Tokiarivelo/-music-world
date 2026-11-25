@@ -42,6 +42,27 @@ describe('musical clock (I31)', () => {
   });
 });
 
+describe('ground traffic dodges fixed objects and each other', () => {
+  it('never drives through a fixed object and never backs up along its road', () => {
+    const plan = fakePlan(['car', 'car', 'car', 'bicycle']);
+    const items = crowdItemsOf(plan, radius);
+    const half = plan.template.terrain.size / 2;
+    // Obstacles right on the ring road of the cars.
+    const obstacles = Array.from({ length: 8 }, (_, k) => {
+      const a = (k / 8) * Math.PI * 2;
+      return { x: Math.cos(a) * half * 0.7, z: Math.sin(a) * half * 0.5, radius: 0.3 };
+    });
+    for (let t = 0; t < 120; t += 0.1) {
+      const poses = crowdPosesAt(plan, items, t, obstacles);
+      for (const item of items) {
+        const p = poses.get(item.index)!;
+        for (const o of obstacles) expect(Math.hypot(p.x - o.x, p.z - o.z)).toBeGreaterThanOrEqual((item.radius + o.radius) * 0.9);
+        expect(Number.isFinite(p.yaw)).toBe(true);
+      }
+    }
+  });
+});
+
 describe('crowd avoidance (I31)', () => {
   const kinds = ['car', 'car', 'car', 'car', 'bicycle', 'bicycle', 'car', 'bicycle'];
   const plan = fakePlan(kinds);

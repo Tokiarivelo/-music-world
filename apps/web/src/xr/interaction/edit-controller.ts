@@ -15,13 +15,18 @@ import { pickAtRay, pickAtScreen, pickables, type Pickable, type Projector, type
 export interface NoteMove {
   readonly noteId: string;
   readonly midi: number;
+  /** New onset in seconds when the note was also moved in time (a drag along the staff); absent = unchanged. */
+  readonly time?: number;
 }
+
+/** Time grid of a drag along the staff (seconds). */
+export const TIME_SNAP_SEC = 0.05;
 
 export type NoteEditEvent =
   | { type: 'hover'; noteId: string | null }
   /** The selection changed; `primary` is the last selected note (null when the selection is empty). */
   | { type: 'selection'; ids: readonly string[]; primary: NoteMove | null }
-  | { type: 'moved'; noteId: string; midi: number }
+  | { type: 'moved'; noteId: string; midi: number; dt?: number }
   /** One or several notes moved together (a drag or a keyboard step applies to the whole selection). */
   | { type: 'committed'; moves: readonly NoteMove[] }
   | { type: 'cancelled' };
@@ -52,6 +57,7 @@ export class EditController {
   private active: string | null = null;
   private down: ScreenPoint = { x: 0, y: 0 };
   private ghostMidi: number | null = null;
+  private ghostDt = 0;
   private frame: { plan: SpawnPlan; t: number; state: WorldState; items: Pickable[] } | null = null;
 
   constructor(private readonly deps: EditDeps) {}
@@ -109,11 +115,12 @@ export class EditController {
     this.deps.emit({ type: 'hover', noteId });
   }
 
-  private showGhost(midi: number): void {
-    if (midi === this.ghostMidi || this.active === null) return;
+  private showGhost(midi: number, dt = 0): void {
+    if ((midi === this.ghostMidi && dt === this.ghostDt) || this.active === null) return;
     this.ghostMidi = midi;
-    editStore.set({ ghost: { noteId: this.active, midi } });
-    this.deps.emit({ type: 'moved', noteId: this.active, midi });
+    this.ghostDt = dt;
+    editStore.set({ ghost: { noteId: this.active, midi, dt } });
+    this.deps.emit({ type: 'moved', noteId: this.active, midi, dt });
   }
 
   /** VR: the trigger went down on the ray (additive = the other hand's modifier; unused for now). Returns true when a note was hit. */
@@ -167,15 +174,17 @@ export class EditController {
     if (this.mode === 'pressed' && Math.hypot(p.x - this.down.x, p.y - this.down.y) < DRAG_THRESHOLD_PX) return;
     this.mode = 'dragging';
     const midi = this.midiAt(p);
-    if (midi !== null) this.showGhost(midi);
+    const r = this.active === null ? undefined : this.record(this.active);
+    if (midi !== null) this.showGhost(midi, this.timeShiftAt(p));
+    else if (r) this.showGhost(foldMidi(r.midi), this.timeShiftAt(p));
   }
 
   pointerUp(): void {
     if (this.mode === 'dragging' && this.active !== null && this.ghostMidi !== null) {
       const r = this.record(this.active);
-      if (r && this.ghostMidi !== foldMidi(r.midi)) {
+      if (r && (this.ghostMidi !== foldMidi(r.midi) || this.ghostDt !== 0)) {
         this.deps.synth.playNote(this.ghostMidi, r.velocity);
-        this.commitSteps(stepsBetween(foldMidi(r.midi), this.ghostMidi), this.active);
+        this.commitSteps(stepsBetween(foldMidi(r.midi), this.ghostMidi), this.active, this.ghostDt);
       }
     }
     this.abort();
@@ -229,19 +238,22 @@ export class EditController {
   }
 
   /** The same diatonic steps for every selected note (the primary included). */
-  private commitSteps(steps: number, primary: string): void {
+  private commitSteps(steps: number, primary: string, dt = 0): void {
     const ids = editStore.state.selection.includes(primary) ? editStore.state.selection : [primary];
     const moves = ids.flatMap((id): NoteMove[] => {
       const r = this.record(id);
-      return r ? [{ noteId: id, midi: stepPitch(r.midi, steps) }] : [];
+      if (!r) return [];
+      const move: NoteMove = { noteId: id, midi: steps === 0 ? r.midi : stepPitch(r.midi, steps) };
+      return [dt === 0 ? move : { ...move, time: Math.max(0, r.onset + dt) }];
     });
-    if (moves.length > 0 && steps !== 0) this.deps.emit({ type: 'committed', moves });
+    if (moves.length > 0 && (steps !== 0 || dt !== 0)) this.deps.emit({ type: 'committed', moves });
   }
 
   private abort(): void {
     this.mode = 'idle';
     this.active = null;
     this.ghostMidi = null;
+    this.ghostDt = 0;
     editStore.set({ ghost: null });
   }
 
@@ -274,6 +286,31 @@ export class EditController {
     if (t <= 0) return null;
     const y = ray.origin.y + ray.dir.y * t;
     return snapToStaff((y - base.y) / (4 * f.plan.staff.lineGap));
+  }
+
+  /**
+   * Shift in time (seconds, on a grid) of a note dragged along its staff: the pointer's travel since the press, read
+   * along the screen projection of the staff's own axis (u = 1 is `lookahead` seconds ahead of the playhead).
+   */
+  private timeShiftAt(p: ScreenPoint): number {
+    const f = this.frameItems();
+    if (!f || this.active === null) return 0;
+    const r = f.plan.records.find((x) => x.noteId === this.active);
+    if (!r) return 0;
+    const onStaff = f.state.notesOnStaff.find((n) => n.index === r.index);
+    const u = onStaff ? onStaff.u : f.plan.staff.playheadU;
+    const du = 0.1;
+    const a = this.deps.project(staffNotePosition(f.plan.staff, u, r.staffU, r.lineY));
+    const b = this.deps.project(staffNotePosition(f.plan.staff, Math.min(1, u + du), r.staffU, r.lineY));
+    if (!a || !b) return 0;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len2 = dx * dx + dy * dy;
+    if (len2 < 1) return 0;
+    const along = ((p.x - this.down.x) * dx + (p.y - this.down.y) * dy) / len2; // in units of `du`
+    const seconds = (along * du * f.plan.lookahead) / (1 - f.plan.staff.playheadU);
+    const snapped = Math.round(seconds / TIME_SNAP_SEC) * TIME_SNAP_SEC;
+    return Math.max(-r.onset, Math.round(snapped * 1000) / 1000);
   }
 
   /** Pitch under the pointer: its vertical position along the screen projection of the note's own staff. */

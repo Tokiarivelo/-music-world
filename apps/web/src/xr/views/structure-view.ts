@@ -17,7 +17,7 @@ import {
   type MeshStandardMaterial,
 } from 'three';
 import { isRecordShown } from '@/engine/layers';
-import { crowdItemsOf, crowdPosesAt, type CrowdItem } from '@/engine/crowd';
+import { crowdItemsOf, crowdObstaclesOf, crowdPosesAt, type CrowdItem, type Obstacle } from '@/engine/crowd';
 import type { SpawnPlan } from '@/engine/spawn-plan';
 import { recipeScale } from '@/engine/recipe-scale';
 import type { ShapeKind, WorldTemplate } from '@/engine/types';
@@ -92,10 +92,13 @@ export class StructureView implements WorldView {
   private lastT = Number.NaN;
   /** Moving records and their radius (half the footprint): the crowd keeps them apart (I31). */
   private readonly crowd: readonly CrowdItem[];
+  /** Fixed records the cars and bicycles drive around. */
+  private readonly obstacles: readonly Obstacle[];
   private readonly unsubscribe: () => void;
 
   constructor(private readonly plan: SpawnPlan) {
     this.crowd = crowdItemsOf(plan, (kind) => footprintOf(kind as ShapeKind, plan.template) / 2);
+    this.obstacles = crowdObstaclesOf(plan, (kind) => (footprintOf(kind as ShapeKind, plan.template) / 2) * 0.9);
     this.object.name = 'structures';
     this.unsubscribe = layerStore.subscribe(() => {
       this.lastT = Number.NaN; // redraw at once, even while paused
@@ -247,7 +250,7 @@ export class StructureView implements WorldView {
       const time = material.userData.mwTime as { value: number } | undefined;
       if (time) time.value = state.t;
     }
-    const poses = this.crowd.length > 0 ? crowdPosesAt(this.plan, this.crowd, state.t) : null;
+    const poses = this.crowd.length > 0 ? crowdPosesAt(this.plan, this.crowd, state.t, this.obstacles) : null;
     let shadowCount = 0;
     for (const s of state.structures) {
       if (!isRecordShown(this.plan, s.index, hidden)) continue;

@@ -44,13 +44,28 @@ describe('object motion (I8 task 4)', () => {
       fc.property(fc.integer(), ids, times, (seed, id, t) => {
         const p = loopAt(seed, id, t, ring);
         const onRing = ((p.x - ring.cx) / ring.rx) ** 2 + ((p.z - ring.cz) / ring.rz) ** 2;
-        expect(onRing).toBeCloseTo(1, 6);
+        // Each direction keeps to its own lane: the radius is within 10 % of the ring's.
+        expect(Math.sqrt(onRing)).toBeGreaterThan(0.89);
+        expect(Math.sqrt(onRing)).toBeLessThan(1.11);
         expect(p.y).toBe(ring.y);
         const later = loopAt(seed, id, t + 0.01, ring);
         const heading = Math.atan2(later.z - p.z, later.x - p.x);
         expect(Math.cos(heading - p.yaw)).toBeGreaterThan(0.99);
       }),
     );
+  });
+
+  it('opposite directions drive in different lanes, so head-on cars never share a line', () => {
+    const radiusOf = (id: string): { r: number; dir: number } => {
+      const p = loopAt(5, id, 0, ring);
+      const q = loopAt(5, id, 0.01, ring);
+      const cross = (p.x - ring.cx) * (q.z - p.z) - (p.z - ring.cz) * (q.x - p.x);
+      return { r: Math.sqrt(((p.x - ring.cx) / ring.rx) ** 2 + ((p.z - ring.cz) / ring.rz) ** 2), dir: Math.sign(cross) };
+    };
+    const cars = Array.from({ length: 40 }, (_, i) => radiusOf(`car:${i}`));
+    const outer = cars.filter((c) => c.dir > 0).map((c) => c.r);
+    const inner = cars.filter((c) => c.dir < 0).map((c) => c.r);
+    expect(Math.min(...outer)).toBeGreaterThan(Math.max(...inner));
   });
 
   it('planes cross at constant speed inside the lane and restart at the edge', () => {
