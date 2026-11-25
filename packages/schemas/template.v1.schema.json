@@ -51,6 +51,16 @@
           ],
           "title": "Chordlinks",
           "type": "string"
+        },
+        "material": {
+          "default": "polished",
+          "description": "polished: lit PBR with sky reflections on trees, cars, planes, clouds, crystals and recipes; flat: unlit colors (the look of the reference image).",
+          "enum": [
+            "flat",
+            "polished"
+          ],
+          "title": "Material",
+          "type": "string"
         }
       },
       "title": "Fx",
@@ -774,7 +784,8 @@
         "particles": "arcs",
         "bloom": 0.8,
         "beatPulse": true,
-        "chordLinks": "light_arc"
+        "chordLinks": "light_arc",
+        "material": "polished"
       }
     },
     "recipes": {

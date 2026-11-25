@@ -13,6 +13,8 @@ import {
   Quaternion,
   Vector3,
   type DataTexture,
+  type Material,
+  type MeshStandardMaterial,
 } from 'three';
 import { isRecordShown } from '@/engine/layers';
 import { objectPoseAt } from '@/engine/motion';
@@ -24,6 +26,7 @@ import { layerStore } from '../layer-store';
 import { KIND_FOOTPRINT, RECIPE_FOOTPRINT } from '../constants';
 import { lightness, structureColor } from '../palette';
 import { buildShapeGeometry } from '../shapes/builtin-shapes';
+import { applySky, isPolishedKind, loadSkyEnvironment, polishedMaterial } from '../shapes/polished-materials';
 import { blobShadowMaterial, blobShadowTexture, buildingMaterial, foliageMaterial, spikeMaterial } from '../shapes/city-materials';
 import type { WorldView } from './world-view';
 
@@ -37,6 +40,9 @@ const UP = new Vector3(0, 1, 0);
 /** Objects (I8) that cast a blob shadow, and the foliage that sways in the wind. */
 const SHADOW_KINDS: ReadonlySet<string> = new Set(['tree', 'conifer', 'bush', 'car', 'bicycle', 'airplane', 'cloud']);
 const FOLIAGE_KINDS: ReadonlySet<string> = new Set(['tree', 'conifer', 'bush']);
+/** Lit materials are shaded darker than unlit colors: lift the tint, and the sky reflection, to the same brightness. */
+const POLISH_GAIN = 1.9;
+const POLISH_REFLECTION = 2.2;
 const SHADOW_OPACITY = 0.45;
 const SHADOW_SIZE = 1.5; // shadow diameter / footprint
 const SHADOW_LIFT = 0.004; // above the plate, against z-fighting
@@ -52,7 +58,9 @@ export function footprintOf(kind: ShapeKind, template?: WorldTemplate): number {
 export class StructureView implements WorldView {
   readonly object = new Group();
   private readonly meshes = new Map<ShapeKind, InstancedMesh>();
-  private readonly materials = new Map<ShapeKind, MeshBasicMaterial>();
+  private readonly materials = new Map<ShapeKind, Material>();
+  private disposed = false;
+  private readonly litKinds = new Set<ShapeKind>();
   private readonly ridgeColor: Color;
   private readonly m = new Matrix4();
   private readonly q = new Quaternion();
@@ -74,18 +82,24 @@ export class StructureView implements WorldView {
     this.ridgeColor = new Color(palette.terrain)
       .lerp(new Color(palette.primary), RIDGE_PRIMARY_MIX)
       .multiplyScalar(lightness(RIDGE_LIGHT));
+    const polished = plan.template.fx.material === 'polished';
     for (const track of plan.tracks) {
       const capacity = Math.min(plan.budget, track.recordIndices.length);
       const geometry = buildShapeGeometry(track.kind, plan.template.recipes);
-      const material =
+      const lit = polished && isPolishedKind(track.kind);
+      if (lit && !geometry.hasAttribute('normal')) geometry.computeVertexNormals();
+      const material: Material =
         track.kind === 'building'
           ? buildingMaterial()
           : track.kind === 'spike'
             ? spikeMaterial()
-            : FOLIAGE_KINDS.has(track.kind)
-              ? foliageMaterial()
-              : new MeshBasicMaterial({ color: 0xffffff, vertexColors: geometry.hasAttribute('color') });
+            : lit
+              ? polishedMaterial(track.kind, geometry.hasAttribute('color'), null, POLISH_REFLECTION)
+              : FOLIAGE_KINDS.has(track.kind)
+                ? foliageMaterial()
+                : new MeshBasicMaterial({ color: 0xffffff, vertexColors: geometry.hasAttribute('color') });
       this.materials.set(track.kind, material);
+      if (lit) this.litKinds.add(track.kind);
       const mesh = new InstancedMesh(geometry, material, capacity);
       mesh.name = `structures:${track.kind}`;
       mesh.frustumCulled = false; // instances grow from zero scale; the initial bounding sphere is empty
@@ -97,6 +111,12 @@ export class StructureView implements WorldView {
       this.object.add(mesh);
     }
     this.addShadows();
+    if (polished) {
+      void loadSkyEnvironment().then((sky) => {
+        if (!sky || this.disposed) return;
+        for (const material of this.materials.values()) if ((material as MeshStandardMaterial).isMeshStandardMaterial) applySky(material as MeshStandardMaterial, sky);
+      });
+    }
   }
 
   /** One extra InstancedMesh (one draw call) of blob shadows under every object of the kinds above. */
@@ -163,6 +183,7 @@ export class StructureView implements WorldView {
       else {
         if (s.structureHex) this.color.set(s.structureHex).multiplyScalar(s.emissive);
         else structureColor(palette, s.colorRole, s.colorT, s.emissive, this.color);
+        if (this.litKinds.has(s.kind)) this.color.multiplyScalar(POLISH_GAIN);
         mesh.setColorAt(s.slot, s.kind === 'spike' ? this.color.multiplyScalar(SPIKE_GLOW) : this.color);
       }
     }
@@ -177,6 +198,7 @@ export class StructureView implements WorldView {
   }
 
   dispose(): void {
+    this.disposed = true;
     this.unsubscribe();
     for (const mesh of this.meshes.values()) mesh.geometry.dispose();
     for (const material of this.materials.values()) material.dispose();

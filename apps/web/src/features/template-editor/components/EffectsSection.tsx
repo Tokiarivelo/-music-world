@@ -11,7 +11,7 @@ import { ToggleInput } from './fields/ToggleInput';
 
 export function EffectsSection({ draft, errors, update }: SectionProps) {
   const t = useT('editor');
-  const { particles, bloom, beatPulse, chordLinks } = draft.fx;
+  const { particles, bloom, beatPulse, chordLinks, material } = draft.fx;
   return (
     <Section title={t('section.effects')}>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -35,6 +35,16 @@ export function EffectsSection({ draft, errors, update }: SectionProps) {
           ]}
           error={firstError(errors, 'fx.chordLinks')}
           onChange={(v) => update((d) => setOption(d, 'fx', 'chordLinks', v as typeof chordLinks))}
+        />
+        <SelectInput
+          label={t('fx.material')}
+          value={material}
+          options={[
+            { value: 'polished', label: t('opt.polished') },
+            { value: 'flat', label: t('opt.flat') },
+          ]}
+          error={firstError(errors, 'fx.material')}
+          onChange={(v) => update((d) => setOption(d, 'fx', 'material', v as typeof material))}
         />
         <NumberInput
           label={t('fx.bloom')}

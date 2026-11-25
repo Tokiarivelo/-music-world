@@ -350,3 +350,8 @@ repository:
 
 - Skills used: `shape-kind`, `xr-verify` (IWER, no Quest). Property-style tests on `objectPoseAt` (seek equals play); the
   IWER multiview check compiled the new foliage shader. No hooks fired (outside the Kiro IDE).
+
+### 2026-11-25 — I19 polished objects (Claude Code)
+
+- Skills used: `shape-kind`, `xr-verify`, `world-template`. New contract field `fx.material` through the schema pipeline;
+  CC0 sky HDRI (Poly Haven) with its licence file; IWER multiview check compiled the lit materials. No hooks fired.

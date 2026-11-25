@@ -52,7 +52,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
    Update README § Known limitations once done.
 4. **Human** — roadmap 9.3 video, 9.4 Devpost form, 9.5 posts from the drafts in `docs/submission.md` (checklist at
    its top). Run `uvx pip-audit` / `pnpm audit --prod` once before submitting.
-5. **Human** — answer `docs/open-questions.md` (12 rows; I8 assets, R2 bucket, Whisper size, lyrics notice, note filters).
+5. **Human** — answer `docs/open-questions.md` (14 rows; I8 assets, R2 bucket, Whisper size, lyrics notice, note filters).
 6. Agent-only tasks (no human, no credentials): `docs/backlog-agent.md` — B4 done (Caddy cache headers); see the file for the next free one.
    Optional: `02-music-analysis` 6.1 (Muse Voice); `01-foundation` 6.2/6.3/7.
 
@@ -89,7 +89,8 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | I10 catalog, I11 long songs, I12, I13, I14, I15, I16, I17 | Claude Code | done | merged PRs #31–#39; I14 = I8 task 4 only |
 | I8 seven procedural object kinds + Living City | Claude Code | done | PR phase-I8-realistic-objects; motion wired in I8b (PR phase-I8b-object-motion) |
 | I8 lighting (blob shadows, wind), IWER check | Claude Code | done | PR phase-I8c-object-lighting; 58 draw calls in IWER |
-| I8 GLB/PBR/LOD, Quest 3 check | — | blocked | human: GLB needs the sourcing decision (`docs/open-questions.md` 1–2, 12) |
+| I19 polished objects (lit PBR, sky reflections, `fx.material`) | Claude Code | done | PR phase-I19-polished-objects; report `docs/improvements/i19-polished-objects.md` |
+| I8 GLB/LOD, Quest 3 check | — | blocked | human: GLB needs the sourcing decision (`docs/open-questions.md` 1–2, 12) |
 | I10 R2 bucket + seed | — | blocked | human: bucket, API token, `--only` seed |
 | I9 task 9, I16, I5–I7 Quest checks | — | blocked | human: Quest 3 |
 | 10-template-moderation 7 | — | blocked | human: review a real hidden template on the public URL |

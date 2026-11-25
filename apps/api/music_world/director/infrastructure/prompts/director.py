@@ -5,7 +5,7 @@ from typing import Any
 
 from music_world.director.application.summary import AnalysisSummary
 
-PROMPT_VERSION = "director-v5"
+PROMPT_VERSION = "director-v6"
 
 # Closed enums repeated in plain words (requirement 2.2); the JSON Schema below is the authority.
 _ENUMS = """Allowed values (closed lists, use nothing else):
