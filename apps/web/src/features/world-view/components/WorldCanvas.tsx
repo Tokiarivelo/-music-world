@@ -17,6 +17,8 @@ import {
 } from "../hooks/use-navigation-shortcuts";
 import { usePaletteOverride, usePaletteStore } from "../hooks/use-palette-override";
 import { useHiddenLayers } from "../hooks/use-hidden-layers";
+import { useViewPrefs } from "../hooks/use-view-prefs";
+import { ViewPopover } from "./ViewPopover";
 import { useEditShortcuts } from "../hooks/use-edit-shortcuts";
 import { useNoteEdits } from "../hooks/use-note-edits";
 import { EditToolbar } from "./EditToolbar";
@@ -86,6 +88,7 @@ export default function WorldCanvas({ scene, controls, editsKey, editsRemote, on
   usePaletteOverride(handle, scene);
   const paletteStore = usePaletteStore(scene);
   const [hiddenLayers, setHiddenLayers] = useHiddenLayers(handle);
+  const [viewPrefs, setViewPrefs] = useViewPrefs(handle);
   const persistence = useMemo(
     () => ({ key: editsKey, remote: editsRemote, onScoreMode }),
     [editsKey, editsRemote, onScoreMode],
@@ -143,6 +146,7 @@ export default function WorldCanvas({ scene, controls, editsKey, editsRemote, on
       {scene && !immersive && controls && <EditToolbar api={noteEdits} />}
       {scene && !immersive && (
         <>
+          <ViewPopover onChange={setViewPrefs} prefs={viewPrefs} />
           <LayersPopover
             activity={() => handle?.activity() ?? null}
             hasLyrics={hasLyrics}

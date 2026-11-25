@@ -12,6 +12,8 @@ vi.mock("@/xr/world-host", () => ({
       setPaletteOverride: vi.fn(),
       setLightLevel: vi.fn(),
       setHiddenLayers: vi.fn(),
+      setLayout: vi.fn(),
+      setAuroraSky: vi.fn(),
       setEditMode: vi.fn(),
       setEdits: vi.fn(),
       setScore: vi.fn(),

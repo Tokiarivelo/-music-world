@@ -109,5 +109,14 @@
   "layers.searching": "Mikaroka tononkira…",
   "layers.lyricsNotFound": "Tsy nahita tononkira ho an'ity hira ity.",
   "layers.lyricsFailed": "Tsy nahomby ny fikarohana. Andramo indray any aoriana.",
-  "layers.noVoice": "Tsy nisy feo hita tamin'ity hira ity: ampio rakitra .lrc rehefa mandefa azy."
+  "layers.noVoice": "Tsy nisy feo hita tamin'ity hira ity: ampio rakitra .lrc rehefa mandefa azy.",
+  "view.title": "Fijery",
+  "view.layout": "Fandaharana",
+  "view.aurora": "Môdy aorôra",
+  "view.auroraHint": "Mihantona eny amin'ny lanitra ny note. Ajanony, avy eo diovy ny note.",
+  "view.layout.grid": "Tamba-pitaratra",
+  "view.layout.rows": "Rihana",
+  "view.layout.ring": "Peratra",
+  "view.layout.spiral": "Spirale",
+  "view.layout.scatter": "Miparitaka"
 }

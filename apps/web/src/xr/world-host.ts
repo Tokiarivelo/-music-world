@@ -23,6 +23,8 @@ import { applyPaletteOverride, type PaletteOverride } from './palette-override';
 import { cinematicDistance } from './navigation/orbit-camera';
 import { obstaclesAt, type Circle } from './navigation/walk-camera';
 import { activityAt, type Activity, type HiddenLayers } from '@/engine/layers';
+import { DEFAULT_LAYOUT, type LayoutMode } from '@/engine/layout';
+import { skyStore } from './sky-store';
 import { layerStore } from './layer-store';
 import { EditController, type NoteEditEvent } from './interaction/edit-controller';
 import { NoteSynth } from './audio/note-synth';
@@ -76,6 +78,10 @@ export interface WorldHandle {
   setLightLevel(level: number): void;
   /** Layers the viewer switched off (I5): view-only, no rebuild, redrawn at once even while paused. */
   setHiddenLayers(hidden: HiddenLayers): void;
+  /** Arrangement of the structures (viewer choice): rebuilds the plan with the same seed. */
+  setLayout(layout: LayoutMode): void;
+  /** Northern-lights mode: notes hang in the sky and can be picked; view-only, no rebuild. */
+  setAuroraSky(enabled: boolean): void;
   /**
    * Note edits on top of the analysis (I9): rebuilds the plan with the same seed, so the scenery does not move. The
    * document and its history live in the page; the world only displays it.
@@ -388,6 +394,7 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     onFrame: () => scorePlayer.frame(),
   });
   let override: PaletteOverride | null = null;
+  let layout: LayoutMode = DEFAULT_LAYOUT;
   const show = (): void => {
     if (basePlan && baseClock) scene.setScene(applyPaletteOverride(basePlan, override), withFrameHook(baseClock));
   };
@@ -398,7 +405,7 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
       // A color choice belongs to one template: a different template starts from its own colors.
       if (basePlan && basePlan.template.id !== template.id) override = null;
       loaded = { analysis, template, seed };
-      basePlan = buildSpawnPlan(analysis, template, seed, edits);
+      basePlan = buildSpawnPlan(analysis, template, seed, edits, layout);
       baseClock = clock;
       show();
     },
@@ -406,7 +413,7 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
       if (disposed) return;
       edits = next;
       if (!loaded) return;
-      basePlan = buildSpawnPlan(loaded.analysis, loaded.template, loaded.seed, edits);
+      basePlan = buildSpawnPlan(loaded.analysis, loaded.template, loaded.seed, edits, layout);
       show();
     },
     setScore(notes) {
@@ -439,6 +446,16 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     },
     activity() {
       return basePlan && baseClock ? activityAt(basePlan, baseClock.now()) : null;
+    },
+    setLayout(next) {
+      if (disposed || next === layout) return;
+      layout = next;
+      if (!loaded) return;
+      basePlan = buildSpawnPlan(loaded.analysis, loaded.template, loaded.seed, edits, layout);
+      show();
+    },
+    setAuroraSky(enabled) {
+      if (!disposed) skyStore.set(enabled);
     },
     setHiddenLayers(hidden) {
       if (!disposed) layerStore.set(hidden);

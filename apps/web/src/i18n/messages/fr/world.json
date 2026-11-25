@@ -109,5 +109,14 @@
   "layers.searching": "Recherche des paroles…",
   "layers.lyricsNotFound": "Aucune parole trouvée pour ce morceau.",
   "layers.lyricsFailed": "La recherche des paroles a échoué. Réessayez plus tard.",
-  "layers.noVoice": "Aucune voix détectée dans ce morceau : ajoutez un fichier .lrc à l’envoi."
+  "layers.noVoice": "Aucune voix détectée dans ce morceau : ajoutez un fichier .lrc à l’envoi.",
+  "view.title": "Vue",
+  "view.layout": "Disposition",
+  "view.aurora": "Mode aurore boréale",
+  "view.auroraHint": "Les notes flottent dans le ciel comme une aurore. Mettez en pause, puis prenez une note.",
+  "view.layout.grid": "Grille",
+  "view.layout.rows": "Gradins",
+  "view.layout.ring": "Anneau",
+  "view.layout.spiral": "Spirale",
+  "view.layout.scatter": "Dispersion"
 }

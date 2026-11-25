@@ -60,17 +60,67 @@ export function pitchFraction(midi: number, range: NumericRange | null): number 
   return clamp01((midi - lo) / (hi - lo));
 }
 
-/** Landing point of one note; pure: depends only on (seed, noteId, midi, pitch range, zones). */
+/**
+ * Arrangement of the structures inside their zones (viewer choice, never part of a template):
+ * - `grid`: the default, pitch picks the column, rows are random (the original look);
+ * - `rows`: pitch picks the row, so low notes stand in front and high notes far away, like tiers;
+ * - `ring`: pitch walks around an ellipse, like a stage around the centre;
+ * - `spiral`: pitch winds from the centre outwards, like a galaxy;
+ * - `scatter`: no pitch order, a seeded random spread, like a forest.
+ */
+export const LAYOUT_MODES = ['grid', 'rows', 'ring', 'spiral', 'scatter'] as const;
+export type LayoutMode = (typeof LAYOUT_MODES)[number];
+export const DEFAULT_LAYOUT: LayoutMode = 'grid';
+
+export function isLayoutMode(value: unknown): value is LayoutMode {
+  return typeof value === 'string' && (LAYOUT_MODES as readonly string[]).includes(value);
+}
+
+/** Position in the unit square [0, 1]² for the non-grid layouts; `rng` draws the jitter, `f` is the pitch fraction. */
+function unitPoint(mode: Exclude<LayoutMode, 'grid'>, f: number, rng: () => number): { u: number; v: number } {
+  const m = LAYOUT_CELL_MARGIN;
+  const inner = 1 - 2 * m;
+  switch (mode) {
+    case 'rows': {
+      const bands = 6;
+      const band = Math.min(bands - 1, Math.floor(f * bands));
+      // low pitch = near the viewer (v = 1), high pitch = far (v = 0)
+      return { u: m + inner * rng(), v: 1 - (band + m + inner * rng()) / bands };
+    }
+    case 'ring': {
+      const angle = f * Math.PI * 2 + (rng() - 0.5) * 0.35;
+      const radius = 0.62 + 0.3 * rng();
+      return { u: 0.5 + 0.5 * radius * Math.cos(angle), v: 0.5 + 0.5 * radius * Math.sin(angle) };
+    }
+    case 'spiral': {
+      const turns = 2.5;
+      const angle = f * Math.PI * 2 * turns + (rng() - 0.5) * 0.3;
+      const radius = 0.12 + 0.8 * f + (rng() - 0.5) * 0.08;
+      return { u: 0.5 + 0.5 * radius * Math.cos(angle), v: 0.5 + 0.5 * radius * Math.sin(angle) };
+    }
+    case 'scatter':
+      return { u: m + inner * rng(), v: m + inner * rng() };
+  }
+}
+
+/** Landing point of one note; pure: depends only on (seed, noteId, midi, pitch range, zones, mode). */
 export function placeNote(
   seed: number,
   noteId: string,
   midi: number,
   range: NumericRange | null,
   zones: readonly ZoneRect[],
+  mode: LayoutMode = DEFAULT_LAYOUT,
 ): Vec3 {
   const rng = noteStream(seed, noteId);
   const zone = zones[Math.min(zones.length - 1, Math.floor(rng() * zones.length))] ?? zones[0];
   if (zone === undefined) throw new RangeError('placeNote: at least one zone is required');
+  if (mode !== 'grid') {
+    const { u, v } = unitPoint(mode, pitchFraction(midi, range), rng);
+    const cu = clamp01(u);
+    const cv = clamp01(v);
+    return { x: zone.xMin + cu * (zone.xMax - zone.xMin), y: 0, z: zone.zMin + cv * (zone.zMax - zone.zMin) };
+  }
   const width = zone.xMax - zone.xMin;
   const depth = zone.zMax - zone.zMin;
   const cols = Math.max(1, Math.floor(width / LAYOUT_CELL_SIZE));

@@ -15,9 +15,16 @@ export interface Pickable {
   readonly position: Vec3;
 }
 
-/** Notes that can be picked now: on the staff and in their fall; hidden layers excluded. */
-export function pickables(state: WorldState, plan: SpawnPlan, hidden: HiddenLayers): Pickable[] {
+/**
+ * Notes that can be picked now: on the staff and in their fall, or, in the aurora sky mode, the notes hanging in the
+ * sky (past, sounding and coming); hidden layers excluded.
+ */
+export function pickables(state: WorldState, plan: SpawnPlan, hidden: HiddenLayers, sky = false): Pickable[] {
   const out: Pickable[] = [];
+  if (sky) {
+    for (const n of state.skyNotes) if (isRecordShown(plan, n.index, hidden)) out.push(n);
+    return out;
+  }
   for (const n of state.notesOnStaff) if (isRecordShown(plan, n.index, hidden)) out.push(n);
   for (const n of state.fallingNotes) if (isRecordShown(plan, n.index, hidden)) out.push(n);
   return out;
