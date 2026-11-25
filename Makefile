@@ -1,6 +1,6 @@
 # Music World — root commands. See .kiro/steering/infrastructure.md and testing.md. `make help` lists the targets.
 .PHONY: help install garage-init garage-up \
-	dev dev-web-stack kill-web kill-all dev-local dev-redis dev-infra dev-api dev-worker dev-web up down restart ps logs shell \
+	dev dev-all dev-web-stack kill-web kill-all dev-local dev-redis dev-infra dev-api dev-worker dev-web up down restart ps logs shell \
 	build build-api build-web rebuild \
 	test test-api test-web check check-api check-web bundle-check arch lint format schemas schemas-check \
 	deploy check-env db-password \
@@ -61,6 +61,11 @@ kill-web: ## Stop the web dev servers still running on this machine, whatever th
 
 kill-all: kill-web ## Stop every host dev process of the project (web, api, worker); Docker containers keep running (make down)
 	$(call stop_in,$(API),uvicorn|arq)
+
+dev-all: ## Everything in one terminal: Postgres, Redis and Garage in Docker, then API, worker and web on the host (Ctrl+C stops the three)
+	@$(MAKE) --no-print-directory kill-all
+	@$(MAKE) --no-print-directory dev-infra garage-up
+	$(MAKE) -j3 --output-sync=line dev-api dev-worker dev-web
 
 dev-local: ## Everything on the host, no Docker: API (SQLite) + web, plus Redis and the worker when redis-server is installed
 	@mkdir -p $(API)/.data
