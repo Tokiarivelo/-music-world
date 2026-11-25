@@ -3,7 +3,17 @@
  * slot per `SpawnRecord.slot`. Each frame, live structures write their slot (scale.y = growth × height, color =
  * palette role or gradient × emissive); slots without a live structure collapse to zero scale (seek backwards).
  */
-import { Color, Group, InstancedMesh, Matrix4, MeshBasicMaterial, Quaternion, Vector3 } from 'three';
+import {
+  Color,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  MeshBasicMaterial,
+  PlaneGeometry,
+  Quaternion,
+  Vector3,
+  type DataTexture,
+} from 'three';
 import { isRecordShown } from '@/engine/layers';
 import { objectPoseAt } from '@/engine/motion';
 import type { SpawnPlan } from '@/engine/spawn-plan';
@@ -14,7 +24,7 @@ import { layerStore } from '../layer-store';
 import { KIND_FOOTPRINT, RECIPE_FOOTPRINT } from '../constants';
 import { lightness, structureColor } from '../palette';
 import { buildShapeGeometry } from '../shapes/builtin-shapes';
-import { buildingMaterial, spikeMaterial } from '../shapes/city-materials';
+import { blobShadowMaterial, blobShadowTexture, buildingMaterial, foliageMaterial, spikeMaterial } from '../shapes/city-materials';
 import type { WorldView } from './world-view';
 
 const MIN_SCALE = 1e-4;
@@ -24,6 +34,14 @@ const RIDGE_LIGHT = 1.2;
 /** Equalizer needles are additive and thin: boost their instance color so they read as light (requirement 5.2). */
 const SPIKE_GLOW = 2.2;
 const UP = new Vector3(0, 1, 0);
+/** Objects (I8) that cast a blob shadow, and the foliage that sways in the wind. */
+const SHADOW_KINDS: ReadonlySet<string> = new Set(['tree', 'conifer', 'bush', 'car', 'bicycle', 'airplane', 'cloud']);
+const FOLIAGE_KINDS: ReadonlySet<string> = new Set(['tree', 'conifer', 'bush']);
+const SHADOW_OPACITY = 0.45;
+const SHADOW_SIZE = 1.5; // shadow diameter / footprint
+const SHADOW_LIFT = 0.004; // above the plate, against z-fighting
+const SHADOW_SKY_SPREAD = 1.8; // sky objects: bigger and fainter
+const FLAT = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
 const ZERO = new Matrix4().makeScale(0, 0, 0);
 
 export function footprintOf(kind: ShapeKind, template?: WorldTemplate): number {
@@ -41,6 +59,8 @@ export class StructureView implements WorldView {
   private readonly pos = new Vector3();
   private readonly scale = new Vector3();
   private readonly color = new Color();
+  private shadows: InstancedMesh | null = null;
+  private shadowMap: DataTexture | null = null;
   private lastT = Number.NaN;
   private readonly unsubscribe: () => void;
 
@@ -62,7 +82,9 @@ export class StructureView implements WorldView {
           ? buildingMaterial()
           : track.kind === 'spike'
             ? spikeMaterial()
-            : new MeshBasicMaterial({ color: 0xffffff, vertexColors: geometry.hasAttribute('color') });
+            : FOLIAGE_KINDS.has(track.kind)
+              ? foliageMaterial()
+              : new MeshBasicMaterial({ color: 0xffffff, vertexColors: geometry.hasAttribute('color') });
       this.materials.set(track.kind, material);
       const mesh = new InstancedMesh(geometry, material, capacity);
       mesh.name = `structures:${track.kind}`;
@@ -74,11 +96,28 @@ export class StructureView implements WorldView {
       this.meshes.set(track.kind, mesh);
       this.object.add(mesh);
     }
+    this.addShadows();
+  }
+
+  /** One extra InstancedMesh (one draw call) of blob shadows under every object of the kinds above. */
+  private addShadows(): void {
+    const capacity = this.plan.tracks
+      .filter((t) => SHADOW_KINDS.has(t.kind))
+      .reduce((n, t) => n + Math.min(this.plan.budget, t.recordIndices.length), 0);
+    if (capacity === 0) return;
+    this.shadowMap = blobShadowTexture();
+    const geometry = new PlaneGeometry(1, 1);
+    const mesh = new InstancedMesh(geometry, blobShadowMaterial(this.shadowMap, SHADOW_OPACITY), capacity);
+    mesh.name = 'structures:shadows';
+    mesh.frustumCulled = false;
+    mesh.count = 0;
+    this.shadows = mesh;
+    this.object.add(mesh);
   }
 
   /** Number of InstancedMeshes (one draw call each). */
   drawCalls(): number {
-    return this.meshes.size;
+    return this.meshes.size + (this.shadows ? 1 : 0);
   }
 
   mesh(kind: ShapeKind): InstancedMesh | undefined {
@@ -93,6 +132,11 @@ export class StructureView implements WorldView {
     }
     const palette = this.plan.template.palette;
     const hidden = layerStore.hidden;
+    for (const material of this.materials.values()) {
+      const time = material.userData.mwTime as { value: number } | undefined;
+      if (time) time.value = state.t;
+    }
+    let shadowCount = 0;
     for (const s of state.structures) {
       if (!isRecordShown(this.plan, s.index, hidden)) continue;
       const mesh = this.meshes.get(s.kind);
@@ -108,12 +152,23 @@ export class StructureView implements WorldView {
         this.scale,
       );
       mesh.setMatrixAt(s.slot, this.m);
+      if (this.shadows && SHADOW_KINDS.has(s.kind) && shadowCount < this.shadows.instanceMatrix.count) {
+        const sky = pose ? pose.y > 1 : false;
+        const d = footprint * SHADOW_SIZE * (sky ? SHADOW_SKY_SPREAD : 1);
+        this.scale.set(d, d, 1);
+        this.m.compose(this.pos.set(this.m.elements[12]!, SHADOW_LIFT, this.m.elements[14]!), FLAT, this.scale);
+        this.shadows.setMatrixAt(shadowCount++, this.m);
+      }
       if (s.kind === RIDGE_KIND) mesh.setColorAt(s.slot, this.color.copy(this.ridgeColor));
       else {
         if (s.structureHex) this.color.set(s.structureHex).multiplyScalar(s.emissive);
         else structureColor(palette, s.colorRole, s.colorT, s.emissive, this.color);
         mesh.setColorAt(s.slot, s.kind === 'spike' ? this.color.multiplyScalar(SPIKE_GLOW) : this.color);
       }
+    }
+    if (this.shadows) {
+      this.shadows.count = shadowCount;
+      this.shadows.instanceMatrix.needsUpdate = true;
     }
     for (const mesh of this.meshes.values()) {
       mesh.instanceMatrix.needsUpdate = true;
@@ -125,5 +180,10 @@ export class StructureView implements WorldView {
     this.unsubscribe();
     for (const mesh of this.meshes.values()) mesh.geometry.dispose();
     for (const material of this.materials.values()) material.dispose();
+    if (this.shadows) {
+      this.shadows.geometry.dispose();
+      (this.shadows.material as MeshBasicMaterial).dispose();
+    }
+    this.shadowMap?.dispose();
   }
 }

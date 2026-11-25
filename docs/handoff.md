@@ -88,7 +88,8 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | 11-editable-notes 9 | — | blocked | Quest 3 check (human): ray accuracy, drag comfort, tone latency |
 | I10 catalog, I11 long songs, I12, I13, I14, I15, I16, I17 | Claude Code | done | merged PRs #31–#39; I14 = I8 task 4 only |
 | I8 seven procedural object kinds + Living City | Claude Code | done | PR phase-I8-realistic-objects; motion wired in I8b (PR phase-I8b-object-motion) |
-| I8 GLB/PBR, lighting (IBL, blob shadows, wind) | — | todo | GLB needs the sourcing decision (`docs/open-questions.md` 1–2, 12) |
+| I8 lighting (blob shadows, wind), IWER check | Claude Code | done | PR phase-I8c-object-lighting; 58 draw calls in IWER |
+| I8 GLB/PBR/LOD, Quest 3 check | — | blocked | human: GLB needs the sourcing decision (`docs/open-questions.md` 1–2, 12) |
 | I10 R2 bucket + seed | — | blocked | human: bucket, API token, `--only` seed |
 | I9 task 9, I16, I5–I7 Quest checks | — | blocked | human: Quest 3 |
 | 10-template-moderation 7 | — | blocked | human: review a real hidden template on the public URL |

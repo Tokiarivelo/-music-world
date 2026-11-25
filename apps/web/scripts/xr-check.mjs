@@ -9,6 +9,7 @@
  * Uses Playwright's Chromium with SwiftShader. Reads the development hooks `window.__mwWorld` (IWSDK world) and
  * `window.__mwXRDevice` (IWER device). Exits non-zero on the first failed check.
  */
+import { readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { chromium } from 'playwright-core';
@@ -98,8 +99,19 @@ async function flick(hand, x) {
   await frames(4);
 }
 
+// `MW_STORE_JSON=<file> MW_STORE_ID=<id>`: serve that store template (no API needed) and play the demo with it, e.g. the
+// Living City object kinds (I8): the whole check, multiview compile and budget included, then runs on that template.
+const storeJson = process.env.MW_STORE_JSON;
+const storeId = process.env.MW_STORE_ID;
+if (storeJson && storeId) {
+  const body = await readFile(storeJson, 'utf8');
+  await page.route(`**/api/templates/${storeId}`, (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body }),
+  );
+}
+
 try {
-  await page.goto(`${base}/play/demo?perf=1`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${base}/play/demo?perf=1${storeId ? `&template=${storeId}` : ''}`, { waitUntil: 'domcontentloaded' });
   const enter = page.getByRole('button', { name: 'Enter VR' });
   await enter.waitFor({ timeout: 120000 });
   await page.waitForFunction(() => globalThis.__mwWorld && globalThis.__mwXRDevice, null, { timeout: 60000 });

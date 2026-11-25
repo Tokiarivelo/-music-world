@@ -345,3 +345,8 @@ repository:
 - Skills used: `start`, `handoff`. Song catalog and S3 (I10), long songs (I11), layer colors (I12), automatic lyrics (I13, I17),
   motion functions (I14), VR layers page (I16), open questions file (I15). Steering: rules now merge finished phases and
   keep going. No hooks fired (outside the Kiro IDE).
+
+### 2026-11-25 — I8 object kinds, motion, shadows and wind (Claude Code)
+
+- Skills used: `shape-kind`, `xr-verify` (IWER, no Quest). Property-style tests on `objectPoseAt` (seek equals play); the
+  IWER multiview check compiled the new foliage shader. No hooks fired (outside the Kiro IDE).
