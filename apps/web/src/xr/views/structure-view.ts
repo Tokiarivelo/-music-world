@@ -17,7 +17,7 @@ import {
   type MeshStandardMaterial,
 } from 'three';
 import { isRecordShown } from '@/engine/layers';
-import { objectPoseAt } from '@/engine/motion';
+import { crowdItemsOf, crowdPosesAt, type CrowdItem } from '@/engine/crowd';
 import type { SpawnPlan } from '@/engine/spawn-plan';
 import { recipeScale } from '@/engine/recipe-scale';
 import type { ShapeKind, WorldTemplate } from '@/engine/types';
@@ -90,9 +90,12 @@ export class StructureView implements WorldView {
   private shadows: InstancedMesh | null = null;
   private shadowMap: DataTexture | null = null;
   private lastT = Number.NaN;
+  /** Moving records and their radius (half the footprint): the crowd keeps them apart (I31). */
+  private readonly crowd: readonly CrowdItem[];
   private readonly unsubscribe: () => void;
 
   constructor(private readonly plan: SpawnPlan) {
+    this.crowd = crowdItemsOf(plan, (kind) => footprintOf(kind as ShapeKind, plan.template) / 2);
     this.object.name = 'structures';
     this.unsubscribe = layerStore.subscribe(() => {
       this.lastT = Number.NaN; // redraw at once, even while paused
@@ -244,6 +247,7 @@ export class StructureView implements WorldView {
       const time = material.userData.mwTime as { value: number } | undefined;
       if (time) time.value = state.t;
     }
+    const poses = this.crowd.length > 0 ? crowdPosesAt(this.plan, this.crowd, state.t) : null;
     let shadowCount = 0;
     for (const s of state.structures) {
       if (!isRecordShown(this.plan, s.index, hidden)) continue;
@@ -251,7 +255,7 @@ export class StructureView implements WorldView {
       if (!mesh || s.slot >= mesh.count) continue;
       const footprint = footprintOf(s.kind, this.plan.template) * (0.6 + 0.4 * s.growth);
       this.scale.set(footprint, Math.max(MIN_SCALE, s.height), footprint);
-      const pose = objectPoseAt(s.kind, this.plan.seed, s.index, state.t, this.plan.template.terrain.size);
+      const pose = poses?.get(s.index) ?? null;
       if (pose) this.q.setFromAxisAngle(UP, -pose.yaw);
       else this.q.identity();
       this.m.compose(
