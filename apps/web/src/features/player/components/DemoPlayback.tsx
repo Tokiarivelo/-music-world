@@ -11,6 +11,7 @@ import { WorldView } from "@/features/world-view";
 import { loadAudioUrl } from "../api/project.api";
 import { useT } from "@/i18n";
 import { SiteNav } from "@/features/navigation";
+import { GuidedTour } from "@/features/onboarding";
 import { DEMO_SEED } from "../consts/player.consts";
 import { DEMO_SONG } from "../demo/demo-song";
 import { usePlaySeed } from "../hooks/use-play-seed";
@@ -67,6 +68,7 @@ export function DemoPlayback({
           />
         </div>
       </div>
+      <GuidedTour />
       {/* IWSDK sizes its canvas to the window, so the controls float above it. */}
       <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[var(--mw-bg)] to-transparent pt-6">
         <PlayerBar player={player} />

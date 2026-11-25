@@ -9,5 +9,19 @@
   "navHome": "Accueil",
   "navNewSong": "Nouvelle chanson",
   "navTemplates": "Modèles",
-  "navMenu": "Menu"
+  "navMenu": "Menu",
+  "tour.progress": "Étape {current} sur {total}",
+  "tour.next": "Suivant",
+  "tour.done": "Compris",
+  "tour.skip": "Passer",
+  "tour.again": "Revoir la visite",
+  "tour.play.title": "Lance la lecture",
+  "tour.play.body": "Le morceau devient un monde 3D : les notes que tu entends apparaissent sur la portée et façonnent la scène autour de toi.",
+  "tour.layers.title": "Choisis ce que tu vois",
+  "tour.layers.body": "Ouvre Calques pour activer ou couper batterie, basse, voix, accords, paroles et effets, ou choisis un préréglage.",
+  "tour.notes.title": "Mets en pause et joue avec les notes",
+  "tour.notes.body": "Quand le morceau est en pause, clique une note pour l'entendre, glisse-la sur une autre ligne, ou ajoute une ligne.",
+  "tour.vr.title": "Entre dans le monde en VR",
+  "tour.vr.body": "Sur un Quest, ouvre cette page dans le navigateur et choisis Entrer en VR pour te tenir dans le monde et t'y déplacer.",
+  "demoHint": "Sans compte ni envoi : le morceau de démo se joue dans ton navigateur, avec une courte visite."
 }

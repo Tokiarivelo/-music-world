@@ -9,5 +9,19 @@
   "navHome": "Home",
   "navNewSong": "New song",
   "navTemplates": "Templates",
-  "navMenu": "Menu"
+  "navMenu": "Menu",
+  "tour.progress": "Step {current} of {total}",
+  "tour.next": "Next",
+  "tour.done": "Got it",
+  "tour.skip": "Skip",
+  "tour.again": "Take the tour",
+  "tour.play.title": "Press play",
+  "tour.play.body": "The song turns into a 3D world: the notes you hear appear on the staff and shape the scene around you.",
+  "tour.layers.title": "Choose what you see",
+  "tour.layers.body": "Open Layers to switch drums, bass, voice, chords, lyrics and effects on or off, or pick a preset.",
+  "tour.notes.title": "Pause and play with the notes",
+  "tour.notes.body": "When the song is paused, click a note to hear it, drag it to another line, or add a new line.",
+  "tour.vr.title": "Step inside in VR",
+  "tour.vr.body": "On a Quest, open this page in the browser and choose Enter VR to stand inside the world and walk around.",
+  "demoHint": "No account, no upload: the demo song plays in your browser, with a short tour."
 }
