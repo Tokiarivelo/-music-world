@@ -10,6 +10,7 @@ import { staffNotePosition } from '@/engine/staff';
 import type { Vec3 } from '@/engine/types';
 import { worldStateAt, type WorldState } from '@/engine/world-state';
 import { editStore } from '../edit-store';
+import { skyStore } from '../sky-store';
 import { pickAtRay, pickAtScreen, pickables, type Pickable, type Projector, type ScreenPoint } from '../picking';
 
 export interface NoteMove {
@@ -251,7 +252,7 @@ export class EditController {
     const t = this.deps.now();
     if (this.frame?.plan !== plan || this.frame.t !== t) {
       const state = worldStateAt(plan, t);
-      this.frame = { plan, t, state, items: pickables(state, plan, this.deps.hidden()) };
+      this.frame = { plan, t, state, items: pickables(state, plan, this.deps.hidden(), skyStore.enabled) };
     }
     return this.frame;
   }

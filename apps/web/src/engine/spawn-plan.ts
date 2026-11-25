@@ -19,7 +19,7 @@ import {
   STAFF_U_MAX,
   STAFF_U_MIN,
 } from './constants';
-import { pitchFraction, placeNote, zonesFor, type ZoneRect } from './layout';
+import { DEFAULT_LAYOUT, pitchFraction, placeNote, zonesFor, type LayoutMode, type ZoneRect } from './layout';
 import { mapNote, type MappedNote } from './mapping';
 import { noteStream, uniform } from './prng';
 import { recipeScale } from './recipe-scale';
@@ -99,6 +99,8 @@ export interface SpawnPlan {
   readonly lookahead: number;
   readonly fallDuration: number;
   readonly template: WorldTemplate;
+  /** Arrangement of the structures (viewer choice). */
+  readonly layout: LayoutMode;
 }
 
 function clamp(v: number, lo: number, hi: number): number {
@@ -155,6 +157,7 @@ function sceneryRecords(
   seed: number,
   fallDuration: number,
   zonesOf: (kind: ShapeKind) => ZoneRect[],
+  layout: LayoutMode,
 ): Omit<SpawnRecord, 'index' | 'slot'>[] {
   const records: Omit<SpawnRecord, 'index' | 'slot'>[] = [];
   let n = 0;
@@ -180,7 +183,7 @@ function sceneryRecords(
         glyph: 'quarter',
         landAt: SCENERY_LANDED_AT,
         growSec: MIN_GROW_SEC,
-        target: placeNote(seed, id, midi, null, zonesOf(item.kind)),
+        target: placeNote(seed, id, midi, null, zonesOf(item.kind), layout),
         height: size.base + size.extra * rng(),
         emissive: EMISSIVE_BASE + EMISSIVE_VELOCITY_SCALE * velocity,
         colorRole: null,
@@ -198,6 +201,7 @@ export function buildSpawnPlan(
   template: WorldTemplate,
   seed: number,
   edits?: LayoutEdits,
+  layout: LayoutMode = DEFAULT_LAYOUT,
 ): SpawnPlan {
   const edited = edits ? applyEdits(analysisIn, edits) : null;
   const analysis = edited ? edited.analysis : analysisIn;
@@ -227,7 +231,7 @@ export function buildSpawnPlan(
     return slot;
   };
 
-  const scenery = sceneryRecords(template, seed, fallDuration, zonesOf).map(
+  const scenery = sceneryRecords(template, seed, fallDuration, zonesOf, layout).map(
     (r, index): SpawnRecord => ({ ...r, index, slot: claimSlot(r.kind, index) }),
   );
   const first = scenery.length;
@@ -257,7 +261,7 @@ export function buildSpawnPlan(
       glyph: glyphOf(note.duration, analysis.tempoBpm),
       landAt: note.time + fallDuration,
       growSec: Math.max(MIN_GROW_SEC, note.duration),
-      target: placeNote(seed, note.id, note.midi, mapped.pitchRange, zones),
+      target: placeNote(seed, note.id, note.midi, mapped.pitchRange, zones, layout),
       height: size.base + size.extra * heightFactor(note, mapped, analysis.tempoBpm),
       emissive: EMISSIVE_BASE + EMISSIVE_VELOCITY_SCALE * velocity,
       colorRole: mapped.colorRole === 'line' ? null : mapped.colorRole,
@@ -318,5 +322,6 @@ export function buildSpawnPlan(
     lookahead,
     fallDuration,
     template,
+    layout,
   };
 }

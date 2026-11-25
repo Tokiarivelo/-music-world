@@ -2,7 +2,7 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import { makeTemplate } from './__fixtures__/templates';
 import { LAYOUT_CELL_MARGIN, LAYOUT_CELL_SIZE, PLATE_INSET } from './constants';
-import { pitchFraction, placeNote, zonesFor, type ZoneRect } from './layout';
+import { LAYOUT_MODES, isLayoutMode, pitchFraction, placeNote, zonesFor, type ZoneRect } from './layout';
 import { parseRange } from './mapping';
 
 const KINDS = ['terrain_ridge', 'building', 'spike', 'crystal', 'cluster', 'recipe:tower'] as const;
@@ -149,5 +149,31 @@ describe('placeNote (requirement 1.4)', () => {
         expect(f >= 0 && f <= 1).toBe(true);
       }),
     );
+  });
+});
+
+describe('layout modes', () => {
+  const zone: ZoneRect = { xMin: -3, xMax: 5, zMin: -2, zMax: 6 };
+
+  it('keeps every mode inside its zone and deterministic', () => {
+    fc.assert(
+      fc.property(fc.constantFrom(...LAYOUT_MODES), fc.integer(), fc.string(), fc.integer({ min: 21, max: 108 }), (mode, seed, id, midi) => {
+        const a = placeNote(seed, id, midi, null, [zone], mode);
+        expect(a).toEqual(placeNote(seed, id, midi, null, [zone], mode));
+        expect(inside(a, zone)).toBe(true);
+      }),
+    );
+  });
+
+  it('defaults to the grid and rows put high notes farther than low notes', () => {
+    expect(placeNote(1, 'a', 60, null, [zone])).toEqual(placeNote(1, 'a', 60, null, [zone], 'grid'));
+    const low = placeNote(1, 'a', 25, null, [zone], 'rows');
+    const high = placeNote(1, 'a', 105, null, [zone], 'rows');
+    expect(high.z).toBeLessThan(low.z);
+  });
+
+  it('knows its mode names', () => {
+    expect(isLayoutMode('ring')).toBe(true);
+    expect(isLayoutMode('hexagon')).toBe(false);
   });
 });

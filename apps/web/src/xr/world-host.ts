@@ -14,6 +14,7 @@ import {
   DESKTOP_CAMERA_AZIMUTH_DEG,
   DESKTOP_CAMERA_ELEVATION_DEG,
   DESKTOP_CAMERA_FOV_DEG,
+  HORIZON_FOV_DEG,
   DESKTOP_CAMERA_TARGET_OFFSET,
   DESKTOP_REFERENCE_ASPECT,
   DIORAMA_POSITION,
@@ -23,6 +24,12 @@ import { applyPaletteOverride, type PaletteOverride } from './palette-override';
 import { cinematicDistance } from './navigation/orbit-camera';
 import { obstaclesAt, type Circle } from './navigation/walk-camera';
 import { activityAt, type Activity, type HiddenLayers } from '@/engine/layers';
+import { DEFAULT_LAYOUT, type LayoutMode } from '@/engine/layout';
+import { skyStore } from './sky-store';
+import { domeStore } from './dome-store';
+import type { LandscapeId } from '@/engine/landscapes';
+import { weatherStore } from './weather-store';
+import type { TimeMode, WeatherMode } from '@/engine/weather';
 import { layerStore } from './layer-store';
 import { EditController, type NoteEditEvent } from './interaction/edit-controller';
 import { NoteSynth } from './audio/note-synth';
@@ -76,6 +83,19 @@ export interface WorldHandle {
   setLightLevel(level: number): void;
   /** Layers the viewer switched off (I5): view-only, no rebuild, redrawn at once even while paused. */
   setHiddenLayers(hidden: HiddenLayers): void;
+  /** Arrangement of the structures (viewer choice): rebuilds the plan with the same seed. */
+  setLayout(layout: LayoutMode): void;
+  /** Northern-lights mode: notes hang in the sky and can be picked; view-only, no rebuild. */
+  setAuroraSky(enabled: boolean): void;
+  /**
+   * Dome world: no plate, the camera stands inside an infinite-looking dome on a predefined landscape (walk mode,
+   * confined to the dome). View-only, no rebuild. Turning it off returns to the overview.
+   */
+  setDome(dome: { enabled: boolean; landscape: LandscapeId }): void;
+  /** Weather of the infinite world: `auto` follows the music, the others force a sky. View-only, no rebuild. */
+  setWeather(mode: WeatherMode): void;
+  /** Time of day and photographic sky of the dome (view-only, no rebuild). */
+  setSky(sky: { time: TimeMode; realSky: boolean }): void;
   /**
    * Note edits on top of the analysis (I9): rebuilds the plan with the same seed, so the scenery does not move. The
    * document and its history live in the page; the world only displays it.
@@ -292,8 +312,17 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   resizeObserver?.observe(container);
   // Scale (I7): the world around the viewer in VR and in the walk mode, the diorama otherwise.
   let inSession = false;
+  // The horizon preset opens the lens (the 20 degree tele lens only frames the plate); any other preset restores it.
+  let wide = false;
   const applyScale = (): void => {
-    scene.setScaleMode(inSession || nav.mode === 'walk' ? 'immersive' : 'diorama');
+    scene.setScaleMode(inSession || nav.mode === 'walk' || domeStore.enabled ? 'immersive' : 'diorama');
+    if (nav.state.preset === 'horizon') wide = true;
+    else if (nav.state.preset !== null || nav.mode === 'cinematic') wide = false;
+    const fov = wide && !inSession ? HORIZON_FOV_DEG : DESKTOP_CAMERA_FOV_DEG;
+    if (!world.session && world.camera.fov !== fov) {
+      world.camera.fov = fov;
+      world.camera.updateProjectionMatrix();
+    }
   };
   const offSession = world.visibilityState.subscribe((state) => {
     inSession = state !== NON_IMMERSIVE;
@@ -388,6 +417,7 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     onFrame: () => scorePlayer.frame(),
   });
   let override: PaletteOverride | null = null;
+  let layout: LayoutMode = DEFAULT_LAYOUT;
   const show = (): void => {
     if (basePlan && baseClock) scene.setScene(applyPaletteOverride(basePlan, override), withFrameHook(baseClock));
   };
@@ -396,17 +426,20 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     load({ analysis, template, seed, clock }) {
       if (disposed) return;
       // A color choice belongs to one template: a different template starts from its own colors.
+      const newWorld = !basePlan || basePlan.template.id !== template.id;
       if (basePlan && basePlan.template.id !== template.id) override = null;
       loaded = { analysis, template, seed };
-      basePlan = buildSpawnPlan(analysis, template, seed, edits);
+      basePlan = buildSpawnPlan(analysis, template, seed, edits, layout);
       baseClock = clock;
       show();
+      // A polished world with the photographic sky starts low and far, so the horizon and the dome are in the frame.
+      if (newWorld && template.fx.material === 'polished' && weatherStore.settings.realSky && nav.mode === 'cinematic') nav.setPreset('horizon');
     },
     setEdits(next) {
       if (disposed) return;
       edits = next;
       if (!loaded) return;
-      basePlan = buildSpawnPlan(loaded.analysis, loaded.template, loaded.seed, edits);
+      basePlan = buildSpawnPlan(loaded.analysis, loaded.template, loaded.seed, edits, layout);
       show();
     },
     setScore(notes) {
@@ -439,6 +472,28 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     },
     activity() {
       return basePlan && baseClock ? activityAt(basePlan, baseClock.now()) : null;
+    },
+    setLayout(next) {
+      if (disposed || next === layout) return;
+      layout = next;
+      if (!loaded) return;
+      basePlan = buildSpawnPlan(loaded.analysis, loaded.template, loaded.seed, edits, layout);
+      show();
+    },
+    setWeather(mode) {
+      if (!disposed) weatherStore.set(mode);
+    },
+    setSky(sky) {
+      if (!disposed) weatherStore.patch({ time: sky.time, realSky: sky.realSky });
+    },
+    setDome(dome) {
+      if (disposed) return;
+      const was = domeStore.enabled;
+      domeStore.set({ enabled: dome.enabled, landscape: dome.landscape });
+      if (dome.enabled !== was) nav.setDome(dome.enabled);
+    },
+    setAuroraSky(enabled) {
+      if (!disposed) skyStore.set(enabled);
     },
     setHiddenLayers(hidden) {
       if (!disposed) layerStore.set(hidden);

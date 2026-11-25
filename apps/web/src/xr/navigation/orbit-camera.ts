@@ -44,8 +44,8 @@ export interface OrbitPose {
   readonly distance: number;
 }
 
-export type ViewPresetId = 'overview' | 'staff' | 'city' | 'top';
-export const VIEW_PRESET_IDS: readonly ViewPresetId[] = ['overview', 'staff', 'city', 'top'];
+export type ViewPresetId = 'overview' | 'horizon' | 'staff' | 'city' | 'top';
+export const VIEW_PRESET_IDS: readonly ViewPresetId[] = ['overview', 'horizon', 'staff', 'city', 'top'];
 
 /** Keyboard axes held this frame: each in {−1, 0, 1}. */
 export interface FlyKeys {
@@ -133,6 +133,8 @@ export function cinematicPose(aspect: number = DESKTOP_REFERENCE_ASPECT): OrbitP
 /** View presets (requirement 4.1, `design.md` § Camera pose). The city of `neon-nocturne` lies on the −x side. */
 export const VIEW_PRESETS: Readonly<Record<ViewPresetId, OrbitPose>> = {
   overview: cinematicPose(),
+  // Low and far: the plate sits in the lower third, the horizon and the sky fill the rest (the infinite dome).
+  horizon: presetPose({ x: 0, y: 0.8, z: 0 }, 32, 5, 1.7),
   staff: presetPose({ x: 0, y: 0.1, z: 0 }, 27, 20, 1.1),
   city: presetPose({ x: -0.38, y: 0.12, z: -0.2 }, -40, 24, 1.2),
   top: presetPose({ x: 0, y: 0, z: 0 }, 0, 85, 3.2),

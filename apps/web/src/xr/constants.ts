@@ -11,6 +11,8 @@ export const DESKTOP_CAMERA_AZIMUTH_DEG = 27;
 export const DESKTOP_CAMERA_ELEVATION_DEG = 31;
 export const DESKTOP_CAMERA_DISTANCE_M = 2.5;
 export const DESKTOP_CAMERA_FOV_DEG = 20;
+/** Lens of the `horizon` view preset: wide enough to show the plate, the horizon and the sky together. */
+export const HORIZON_FOV_DEG = 58;
 /** Aspect ratio the framing above is tuned for (16:9): wider keeps it, narrower moves the camera back (I2). */
 export const DESKTOP_REFERENCE_ASPECT = 16 / 9;
 /** Point the desktop camera looks at, relative to the diorama centre (metres): slightly toward the city. */

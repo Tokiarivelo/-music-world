@@ -42,6 +42,7 @@ import {
   STAFF_TUBE_RADIUS,
   STAFF_TUBE_SEGMENTS,
 } from '../constants';
+import { skyStore } from '../sky-store';
 import { createAuroraCurtain, type AuroraCurtain } from './aurora-curtain';
 import { bravuraGeometry, noteGlyphGeometry } from '../glyphs/glyph-geometry';
 import { radialAlphaTexture } from '../glyphs/halo-texture';
@@ -234,7 +235,9 @@ export class StaffView implements WorldView {
     };
     const offLayers = layerStore.subscribe(redraw);
     const offEdit = editStore.subscribe(redraw);
+    const offSky = skyStore.subscribe(redraw);
     this.unsubscribe = () => {
+      offSky();
       offLayers();
       offEdit();
     };
@@ -245,14 +248,15 @@ export class StaffView implements WorldView {
     this.lastT = state.t;
     this.curtain?.update(state.t);
     const hidden = layerStore.hidden;
-    for (const part of this.staffParts) part.visible = !hidden.has('staff');
+    const sky = skyStore.enabled; // the aurora sky shows the notes itself: no staff, no sliding or falling glyphs
+    for (const part of this.staffParts) part.visible = !hidden.has('staff') && !sky;
     this.counts.clear();
     this.haloCount = 0;
-    for (const n of state.notesOnStaff) if (isRecordShown(this.plan, n.index, hidden)) this.place(n.glyph, n.position, n.u, hexOf(this.plan.records[n.index]!));
-    for (const f of state.fallingNotes) {
+    if (!sky) for (const n of state.notesOnStaff) if (isRecordShown(this.plan, n.index, hidden)) this.place(n.glyph, n.position, n.u, hexOf(this.plan.records[n.index]!));
+    for (const f of sky ? [] : state.fallingNotes) {
       if (isRecordShown(this.plan, f.index, hidden)) this.place(f.glyph, f.position, this.plan.staff.playheadU, hexOf(this.plan.records[f.index]!));
     }
-    this.placeEditMarks(state);
+    if (!sky) this.placeEditMarks(state);
     for (const [kind, mesh] of this.glyphMeshes) {
       mesh.count = this.counts.get(kind) ?? 0;
       mesh.instanceMatrix.needsUpdate = true;

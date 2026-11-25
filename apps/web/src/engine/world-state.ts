@@ -11,6 +11,7 @@
 import { ARC_FADE_SEC, FALL_ARC_HEIGHT, PULSE_DECAY_SEC } from './constants';
 import { hashSeed } from './prng';
 import { rainPosition } from './rain';
+import { skyNotesAt, type SkyNote } from './sky';
 import type { SpawnPlan, SpawnRecord } from './spawn-plan';
 import { staffNotePosition } from './staff';
 import type { GlyphKind, PaletteRole, ShapeKind, Vec3 } from './types';
@@ -66,6 +67,8 @@ export interface WorldState {
   readonly t: number;
   readonly notesOnStaff: readonly NoteOnStaff[];
   readonly fallingNotes: readonly FallingNote[];
+  /** Notes of the aurora sky window (`engine/sky.ts`), by onset. */
+  readonly skyNotes: readonly SkyNote[];
   /** Live structures, grouped by kind; at most `plan.budget` per kind, distinct slots. */
   readonly structures: readonly StructureState[];
   /** Number of notes that have landed so far (non-decreasing in t, requirement 2.3). */
@@ -205,6 +208,7 @@ export function worldStateAt(plan: SpawnPlan, t: number): WorldState {
     t,
     notesOnStaff,
     fallingNotes,
+    skyNotes: skyNotesAt(plan, t, lowerBound),
     structures,
     spawnedCount: Math.max(0, spawnedCount - plan.sceneryCount),
     arcs,

@@ -27,7 +27,7 @@ import { KIND_HEIGHT, RECIPE_HEIGHT } from '@/engine/constants';
 import { KIND_FOOTPRINT, RECIPE_FOOTPRINT } from '../constants';
 import { lightness, structureColor } from '../palette';
 import { buildShapeGeometry } from '../shapes/builtin-shapes';
-import { fitModel, hasModel, loadModelGeometry, MODELS } from '../shapes/model-catalog';
+import { fitModel, hasModel, loadModelGeometry, MODEL_VARIANTS, MODELS, variantOf } from '../shapes/model-catalog';
 import { withLitAttributes } from '../shapes/lit-geometry';
 import {
   applyDetailMaps,
@@ -76,6 +76,8 @@ function nominalHeightOf(kind: ShapeKind, template: WorldTemplate): number {
 export class StructureView implements WorldView {
   readonly object = new Group();
   private readonly meshes = new Map<ShapeKind, InstancedMesh>();
+  /** Extra InstancedMeshes of the body variants of a kind (models loaded for polished worlds only), same slots. */
+  private readonly variantMeshes = new Map<ShapeKind, InstancedMesh[]>();
   private readonly materials = new Map<ShapeKind, Material>();
   private disposed = false;
   private readonly litKinds = new Set<ShapeKind>();
@@ -164,6 +166,43 @@ export class StructureView implements WorldView {
       material.needsUpdate = true;
       this.lastT = Number.NaN; // redraw at once, even while paused
     });
+    this.addVariants(kind);
+  }
+
+  /** Body variants (cars: coupe and retro): one more InstancedMesh each, sharing the kind's material and slots. */
+  private addVariants(kind: ShapeKind): void {
+    const files = MODEL_VARIANTS[kind];
+    const base = this.meshes.get(kind);
+    if (!files || !base) return;
+    const list: InstancedMesh[] = [];
+    for (const file of files) {
+      const mesh = new InstancedMesh(base.geometry, base.material, base.instanceMatrix.count);
+      mesh.name = `structures:${kind}:${file}`;
+      mesh.frustumCulled = false;
+      for (let i = 0; i < mesh.instanceMatrix.count; i++) {
+        mesh.setMatrixAt(i, ZERO);
+        mesh.setColorAt(i, this.color.set(0, 0, 0));
+      }
+      mesh.count = base.count;
+      list.push(mesh);
+      this.object.add(mesh);
+      void loadModelGeometry(file).then((raw) => {
+        if (!raw || this.disposed) return;
+        const fitted = fitModel(raw, MODELS[file]!, footprintOf(kind, this.plan.template), nominalHeightOf(kind, this.plan.template));
+        const geometry = withLitAttributes(fitted);
+        if (geometry !== fitted) fitted.dispose();
+        mesh.geometry = geometry;
+        this.lastT = Number.NaN;
+      });
+    }
+    this.variantMeshes.set(kind, list);
+  }
+
+  /** The InstancedMesh that draws instance `slot` of `kind` (the kind's own mesh, or one of its body variants). */
+  private meshFor(kind: ShapeKind, slot: number): InstancedMesh | undefined {
+    const base = this.meshes.get(kind);
+    const v = variantOf(kind, slot);
+    return v === 0 || !base ? base : (this.variantMeshes.get(kind)?.[v - 1] ?? base);
   }
 
   /** One extra InstancedMesh (one draw call) of blob shadows under every object of the kinds above. */
@@ -184,7 +223,9 @@ export class StructureView implements WorldView {
 
   /** Number of InstancedMeshes (one draw call each). */
   drawCalls(): number {
-    return this.meshes.size + (this.shadows ? 1 : 0);
+    let variants = 0;
+    for (const list of this.variantMeshes.values()) variants += list.length;
+    return this.meshes.size + variants + (this.shadows ? 1 : 0);
   }
 
   mesh(kind: ShapeKind): InstancedMesh | undefined {
@@ -194,7 +235,7 @@ export class StructureView implements WorldView {
   update(state: WorldState): void {
     if (state.t === this.lastT) return; // paused: nothing changed, skip the GPU upload
     this.lastT = state.t;
-    for (const mesh of this.meshes.values()) {
+    for (const mesh of [...this.meshes.values(), ...[...this.variantMeshes.values()].flat()]) {
       for (let i = 0; i < mesh.count; i++) mesh.setMatrixAt(i, ZERO);
     }
     const palette = this.plan.template.palette;
@@ -206,7 +247,7 @@ export class StructureView implements WorldView {
     let shadowCount = 0;
     for (const s of state.structures) {
       if (!isRecordShown(this.plan, s.index, hidden)) continue;
-      const mesh = this.meshes.get(s.kind);
+      const mesh = this.meshFor(s.kind, s.slot);
       if (!mesh || s.slot >= mesh.count) continue;
       const footprint = footprintOf(s.kind, this.plan.template) * (0.6 + 0.4 * s.growth);
       this.scale.set(footprint, Math.max(MIN_SCALE, s.height), footprint);
@@ -238,7 +279,7 @@ export class StructureView implements WorldView {
       this.shadows.count = shadowCount;
       this.shadows.instanceMatrix.needsUpdate = true;
     }
-    for (const mesh of this.meshes.values()) {
+    for (const mesh of [...this.meshes.values(), ...[...this.variantMeshes.values()].flat()]) {
       mesh.instanceMatrix.needsUpdate = true;
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     }
@@ -247,7 +288,7 @@ export class StructureView implements WorldView {
   dispose(): void {
     this.disposed = true;
     this.unsubscribe();
-    for (const mesh of this.meshes.values()) mesh.geometry.dispose();
+    for (const mesh of [...this.meshes.values(), ...[...this.variantMeshes.values()].flat()]) mesh.geometry.dispose();
     for (const material of this.materials.values()) material.dispose();
     if (this.shadows) {
       this.shadows.geometry.dispose();

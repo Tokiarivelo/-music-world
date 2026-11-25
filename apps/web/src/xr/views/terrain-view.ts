@@ -36,6 +36,7 @@ import {
 } from '../constants';
 import { lightness } from '../palette';
 import { buildTerrainField, crackNetwork, fieldHeight, type TerrainField } from '../terrain-field';
+import { domeStore } from '../dome-store';
 import type { WorldView } from './world-view';
 
 const NORMAL_STEP = 0.05;
@@ -151,6 +152,7 @@ export class TerrainView implements WorldView {
   }
 
   update(state: WorldState): void {
+    this.object.visible = !domeStore.enabled; // the dome world has no plate: the landscape ground carries everything
     const kick = state.pulses.kick;
     this.intensity = CRACK_BASE_INTENSITY + CRACK_PULSE_INTENSITY * kick;
     this.pulse.copy(this.crackPulse).multiplyScalar(CRACK_PULSE_INTENSITY * kick);
