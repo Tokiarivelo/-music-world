@@ -38,6 +38,7 @@ Read docs/handoff.md and continue with the next actions.
   the `.gitignore` fix that makes `apps/web/public/models` tracked. Report: `docs/improvements/i22-aurora-weather-blender.md`.
 - I25: photographic sky (Poly Haven HDRIs), horizon view, dome world with landscapes (walk camera confined to the dome), richer models.
 - I26: three car bodies (hatchback, coupe, retro) from the author's reference photos, variants by slot (`docs/improvements/i22-aurora-weather-blender.md`).
+- I27: Reference images downloaded to local `docs/reference/` (git-ignored, 86 assets across 12 object categories and candidates, metadata in `docs/reference/metadata.json`, index in `docs/reference-images.md`).
 - To check on a Quest 3: weather cost, picking sky notes with a ray, photographic sky and dome world. Open: PR to `main` (not opened by this session).
 
 ## 3. Next actions
