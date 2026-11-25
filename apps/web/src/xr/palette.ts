@@ -67,3 +67,32 @@ export function environmentColors(palette: Palette): EnvironmentColors {
     star: new Color(palette.staff),
   };
 }
+
+/** Colors of the water column of an `underwater` template: bright surface light above, deep blue at the horizon, sand below. */
+export interface UnderwaterColors {
+  readonly surface: Color;
+  readonly mid: Color;
+  readonly deep: Color;
+  readonly ray: Color;
+  readonly seabed: Color;
+  readonly duneNear: Color;
+  readonly duneFar: Color;
+}
+
+export function underwaterColors(palette: Palette): UnderwaterColors {
+  const background = new Color(palette.background);
+  const primary = new Color(palette.primary);
+  const secondary = new Color(palette.secondary);
+  const terrain = new Color(palette.terrain);
+  const deep = background.clone().lerp(primary, 0.28);
+  const sand = new Color('#b9a77c');
+  return {
+    surface: background.clone().lerp(primary, 0.7).lerp(secondary, 0.15),
+    mid: background.clone().lerp(primary, 0.45),
+    deep,
+    ray: primary.clone().lerp(new Color(palette.staff), 0.55),
+    seabed: terrain.clone().lerp(sand, 0.45).lerp(background, 0.25),
+    duneNear: terrain.clone().lerp(sand, 0.3).lerp(background, 0.3),
+    duneFar: deep.clone().lerp(terrain, 0.3),
+  };
+}

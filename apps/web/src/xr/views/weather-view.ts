@@ -346,6 +346,7 @@ export class WeatherView implements WorldView {
       this.birdBase.push({ radius: 16 + 34 * rng(), height: 10 + 18 * rng(), phase: rng() * Math.PI * 2, speed: (0.12 + 0.1 * rng()) * (rng() < 0.5 ? 1 : -1) });
     }
 
+    this.object.visible = plan.template.fx.environment !== 'underwater'; // no sky, sun, clouds or rain under the sea
     this.object.add(this.photo, this.overcast, this.sun, this.clouds, this.rain, this.bolt, this.boltGlow, this.birds);
     this.applyScale(scaleStore.mode);
     const offScale = scaleStore.subscribe((mode) => this.applyScale(mode));
@@ -357,6 +358,7 @@ export class WeatherView implements WorldView {
   }
 
   update(state: WorldState): void {
+    if (!this.object.visible) return;
     const settings = weatherStore.settings;
     const w = weatherAt(this.plan, state.t, settings.mode);
     const t = state.t;

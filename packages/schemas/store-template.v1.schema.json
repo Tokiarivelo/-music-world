@@ -61,6 +61,16 @@
           ],
           "title": "Material",
           "type": "string"
+        },
+        "environment": {
+          "default": "land",
+          "description": "land: sky, hills, weather; underwater: water column with light rays, seabed, dunes, fog and rising bubbles (no sky, clouds, sun or rain).",
+          "enum": [
+            "land",
+            "underwater"
+          ],
+          "title": "Environment",
+          "type": "string"
         }
       },
       "title": "Fx",
@@ -735,7 +745,8 @@
             "bloom": 0.8,
             "beatPulse": true,
             "chordLinks": "light_arc",
-            "material": "polished"
+            "material": "polished",
+            "environment": "land"
           }
         },
         "recipes": {
@@ -744,7 +755,7 @@
           "items": {
             "$ref": "#/$defs/ShapeRecipe"
           },
-          "maxItems": 16,
+          "maxItems": 28,
           "title": "Recipes",
           "type": "array"
         },
@@ -754,7 +765,7 @@
           "items": {
             "$ref": "#/$defs/SceneryItem"
           },
-          "maxItems": 24,
+          "maxItems": 40,
           "title": "Scenery",
           "type": "array"
         },

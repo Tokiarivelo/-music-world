@@ -67,3 +67,16 @@ describe('environmentColors', () => {
     expect(other.horizon.getHex()).not.toBe(c.horizon.getHex());
   });
 });
+
+describe('EnvironmentView underwater (Nemo Reef)', () => {
+  const water = new EnvironmentView(
+    buildSpawnPlan(demo, { ...DEFAULT_TEMPLATE, fx: { ...DEFAULT_TEMPLATE.fx, environment: 'underwater' } }, 1),
+  );
+
+  it('adds rising bubbles within the draw-call budget, hides the mist and keeps the air look unchanged', () => {
+    expect(water.object.children.length).toBe(ENVIRONMENT_DRAW_CALLS + 1);
+    expect(water.object.children.length).toBeLessThanOrEqual(DRAW_CALL_BUDGET);
+    expect(() => water.update(worldStateAt(plan, 5))).not.toThrow();
+    expect(new EnvironmentView(plan).object.children.length).toBe(ENVIRONMENT_DRAW_CALLS);
+  });
+});

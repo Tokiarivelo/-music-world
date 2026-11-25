@@ -16,11 +16,13 @@ import {
   DoubleSide,
   Float32BufferAttribute,
   Fog,
+  Points,
   Group,
   Mesh,
   MeshBasicMaterial,
   ShaderMaterial,
   SphereGeometry,
+  AdditiveBlending,
 } from 'three';
 import { hashSeed, mulberry32 } from '@/engine/prng';
 import type { SpawnPlan } from '@/engine/spawn-plan';
@@ -34,7 +36,8 @@ import {
   ENV_STAR_DENSITY,
 } from '../constants';
 import { environmentScale, fogRange, scaleStore, type ScaleMode } from '../scale';
-import { environmentColors, type EnvironmentColors } from '../palette';
+import { environmentColors, underwaterColors, type EnvironmentColors } from '../palette';
+import type { WorldState } from '@/engine/world-state';
 import { LANDSCAPES, type LandscapeId } from '@/engine/landscapes';
 import { domeStore } from '../dome-store';
 import type { WorldView } from './world-view';
@@ -52,6 +55,9 @@ uniform vec3 uMid;
 uniform vec3 uHorizon;
 uniform vec3 uStar;
 uniform float uStarDensity;
+uniform float uUnder;
+uniform vec3 uRay;
+uniform float uTime;
 varying vec3 vDir;
 
 float hash(vec3 p) {
@@ -72,8 +78,39 @@ void main() {
   vec2 f = fract(vDir.xz * 90.0) - 0.5;
   star *= smoothstep(0.35, 0.0, length(f));
   col += uStar * star * (0.35 + 0.65 * hash(cell + 7.0));
+  if (uUnder > 0.5) {
+    // Water column: surface light above fading to deep blue, slanted light shafts that sway slowly.
+    float up = clamp(vDir.y * 0.5 + 0.5, 0.0, 1.0);
+    col = mix(uHorizon, uMid, smoothstep(0.35, 0.62, up));
+    col = mix(col, uZenith, smoothstep(0.6, 1.0, up));
+    float az = atan(vDir.z, vDir.x);
+    float shafts = sin(az * 9.0 + vDir.y * 5.0 + uTime * 0.15) * sin(az * 23.0 - vDir.y * 3.0 - uTime * 0.1);
+    col += uRay * smoothstep(0.25, 0.9, shafts) * smoothstep(0.4, 0.95, up) * 0.22;
+  }
   gl_FragColor = vec4(col, 1.0);
   #include <colorspace_fragment>
+}`;
+
+const BUBBLE_VERTEX = /* glsl */ `
+uniform float uTime;
+uniform float uSize;
+attribute vec4 aSeed;
+void main() {
+  float rise = fract(aSeed.w + uTime * (0.03 + 0.04 * aSeed.z));
+  vec3 p = vec3(aSeed.x * 22.0, rise * 16.0, aSeed.y * 22.0);
+  p.x += sin(uTime * 0.6 + aSeed.z * 20.0) * 0.25;
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  gl_Position = projectionMatrix * mv;
+  gl_PointSize = uSize * (0.5 + aSeed.z) / max(0.5, -mv.z);
+}`;
+
+const BUBBLE_FRAGMENT = /* glsl */ `
+uniform vec3 uColor;
+void main() {
+  float d = length(gl_PointCoord - 0.5);
+  float ring = smoothstep(0.5, 0.42, d) * (0.35 + 0.65 * smoothstep(0.25, 0.45, d));
+  if (ring < 0.02) discard;
+  gl_FragColor = vec4(uColor, ring * 0.7);
 }`;
 
 const groundTextures = new Map<string, Texture>();
@@ -92,7 +129,7 @@ function groundTexture(name: string, base = '/ground'): Texture {
 }
 
 /** Number of draw calls of the environment (requirement 5: ≤ 6). */
-export const ENVIRONMENT_DRAW_CALLS = 4;
+export const ENVIRONMENT_DRAW_CALLS = 4; // underwater templates add one more (the bubbles)
 
 /** One ring of hills: a closed strip, base at y = 0, crest height from seeded harmonics. */
 function hillsGeometry(radii: readonly number[], columns: number, seed: number, near: Color, far: Color, amp = 1, jag = 0.3): BufferGeometry {
@@ -149,9 +186,18 @@ export class EnvironmentView implements WorldView {
   private readonly seed: number;
   private readonly radii: number[];
   private readonly offLandscape: () => void;
+  private readonly underwater: boolean;
+  private readonly bubbles: Points<BufferGeometry, ShaderMaterial> | null = null;
+  private readonly reduced: boolean;
 
   constructor(plan: SpawnPlan) {
-    const colors = environmentColors(plan.template.palette);
+    this.underwater = plan.template.fx.environment === 'underwater';
+    this.reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const water = underwaterColors(plan.template.palette);
+    const base = environmentColors(plan.template.palette);
+    const colors: EnvironmentColors = this.underwater
+      ? { zenith: water.surface, mid: water.mid, horizon: water.deep, ground: water.seabed, hillsNear: water.duneNear, hillsFar: water.duneFar, star: water.ray }
+      : base;
     this.colors = colors;
     this.object.name = 'environment';
     this.fog = new Fog(colors.horizon, ENV_FOG_NEAR_M, ENV_FOG_FAR_M);
@@ -166,7 +212,10 @@ export class EnvironmentView implements WorldView {
           uMid: { value: colors.mid },
           uHorizon: { value: colors.horizon },
           uStar: { value: colors.star },
-          uStarDensity: { value: ENV_STAR_DENSITY },
+          uStarDensity: { value: this.underwater ? 0 : ENV_STAR_DENSITY },
+          uUnder: { value: this.underwater ? 1 : 0 },
+          uRay: { value: water.ray },
+          uTime: { value: 0 },
         },
         side: BackSide,
         depthWrite: false,
@@ -220,6 +269,35 @@ export class EnvironmentView implements WorldView {
     this.mist.renderOrder = 1;
     this.mist.frustumCulled = false;
 
+    if (this.underwater) {
+      this.mist.visible = false;
+      const count = 260;
+      const rng = mulberry32(hashSeed(plan.seed, 'bubbles'));
+      const seeds: number[] = [];
+      const origin: number[] = [];
+      for (let i = 0; i < count; i++) {
+        seeds.push(rng() * 2 - 1, rng() * 2 - 1, rng(), rng());
+        origin.push(0, 0, 0);
+      }
+      const geometry = new BufferGeometry();
+      geometry.setAttribute('position', new Float32BufferAttribute(origin, 3));
+      geometry.setAttribute('aSeed', new Float32BufferAttribute(seeds, 4));
+      this.bubbles = new Points(
+        geometry,
+        new ShaderMaterial({
+          vertexShader: BUBBLE_VERTEX,
+          fragmentShader: BUBBLE_FRAGMENT,
+          uniforms: { uTime: { value: 0 }, uSize: { value: 90 }, uColor: { value: water.ray.clone().lerp(new Color('#ffffff'), 0.5) } },
+          transparent: true,
+          depthWrite: false,
+          blending: AdditiveBlending,
+          fog: false,
+        }),
+      );
+      this.bubbles.frustumCulled = false;
+      this.bubbles.renderOrder = 2;
+      this.object.add(this.bubbles);
+    }
     this.object.add(this.sky, this.ground, this.hills, this.mist);
     this.applyScale(scaleStore.mode);
     const offScale = scaleStore.subscribe((mode) => this.applyScale(mode));
@@ -236,9 +314,11 @@ export class EnvironmentView implements WorldView {
     this.ground.scale.setScalar(k);
     this.hills.scale.setScalar(k);
     this.mist.scale.setScalar(k);
+    this.bubbles?.scale.setScalar(k);
     const { near, far } = fogRange(mode);
-    this.fog.near = near;
-    this.fog.far = far;
+    const water = this.underwater ? 0.55 : 1; // water swallows the distance sooner than air
+    this.fog.near = near * water;
+    this.fog.far = far * water;
     this.sky.scale.setScalar(k);
   }
 
@@ -248,7 +328,7 @@ export class EnvironmentView implements WorldView {
    */
   private applyLandscape(): void {
     const { enabled, landscape } = domeStore.settings;
-    const id: LandscapeId = enabled ? landscape : 'template';
+    const id: LandscapeId = enabled && !this.underwater ? landscape : 'template';
     if (id === this.landscape) return;
     this.landscape = id;
     const l = LANDSCAPES[id];
@@ -271,20 +351,25 @@ export class EnvironmentView implements WorldView {
     ground.needsUpdate = true;
     const near = id === 'template' ? this.colors.hillsNear : new Color(l.hillsNear);
     const far = id === 'template' ? this.colors.hillsFar : new Color(l.hillsFar);
-    const fresh = hillsGeometry(this.radii, ENV_HILL_COLUMNS, this.seed, near, far, l.hillAmp, l.hillJag);
+    const fresh = hillsGeometry(this.radii, ENV_HILL_COLUMNS, this.seed, near, far, this.underwater ? 0.35 : l.hillAmp, this.underwater ? 0.05 : l.hillJag);
     this.hills.geometry.dispose();
     this.hills.geometry = fresh;
     this.mist.material.color.copy(haze);
     this.fog.color.copy(haze); // the ground and the hills melt into the haze of the landscape
   }
 
-  /** Static: nothing changes with the world state. */
-  update(): void {}
+  /** Static except the bubbles and the light shafts, which follow the audio clock (view only, frozen when motion is reduced). */
+  update(state?: WorldState): void {
+    if (!this.underwater || this.reduced) return;
+    const t = state?.t ?? 0;
+    this.sky.material.uniforms.uTime!.value = t;
+    if (this.bubbles) this.bubbles.material.uniforms.uTime!.value = t;
+  }
 
   dispose(): void {
     this.unsubscribe();
     this.offLandscape();
-    for (const mesh of [this.sky, this.ground, this.hills, this.mist]) {
+    for (const mesh of [this.sky, this.ground, this.hills, this.mist, ...(this.bubbles ? [this.bubbles] : [])]) {
       mesh.geometry.dispose();
       mesh.material.dispose();
     }

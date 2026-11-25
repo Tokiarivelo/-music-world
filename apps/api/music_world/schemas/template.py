@@ -12,8 +12,8 @@ from music_world.schemas.base import ContractModel
 from music_world.schemas.shape import ShapeRecipe
 
 SCHEMA_ID = "music-world.template.v1"
-MAX_RECIPES = 16  # the AI World Director is held to 4 (director/domain/renderable.py)
-MAX_SCENERY_ITEMS = 24
+MAX_RECIPES = 28  # the AI World Director is held to 4 (director/domain/renderable.py)
+MAX_SCENERY_ITEMS = 40
 MAX_SCENERY_TOTAL = 400
 
 HexColor = Annotated[str, StringConstraints(pattern=r"^#[0-9a-fA-F]{6}$")]
@@ -127,6 +127,11 @@ class Fx(ContractModel):
         default="polished",
         description="polished: lit PBR with sky reflections on trees, cars, planes, clouds, crystals and recipes; "
         "flat: unlit colors (the look of the reference image).",
+    )
+    environment: Literal["land", "underwater"] = Field(
+        default="land",
+        description="land: sky, hills, weather; underwater: water column with light rays, seabed, dunes, fog and "
+        "rising bubbles (no sky, clouds, sun or rain).",
     )
 
 
