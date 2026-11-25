@@ -1,6 +1,6 @@
 # Music World — root commands. See .kiro/steering/infrastructure.md and testing.md. `make help` lists the targets.
 .PHONY: help install garage-init garage-up \
-	dev dev-local dev-redis dev-infra dev-api dev-worker dev-web up down restart ps logs shell \
+	dev dev-web-stack dev-local dev-redis dev-infra dev-api dev-worker dev-web up down restart ps logs shell \
 	build build-api build-web rebuild \
 	test test-api test-web check check-api check-web bundle-check arch lint format schemas schemas-check \
 	deploy check-env db-password \
@@ -16,7 +16,8 @@ API_ENV_FILE := $(if $(wildcard $(API)/.env),--env-file .env,)
 SERVICE ?=
 # pytest-xdist workers for the API tests (measured: serial 34 s, 4 workers 25 s; use 0 to run serially in one process).
 PYTEST_WORKERS ?= 4
-# Port of the host web dev server: WEB_PORT in apps/web/.env.local (make reads it), or `make dev-web WEB_PORT=3001`.
+# Port of the host web dev server: WEB_PORT in apps/web/.env or .env.local (make reads them), or `make dev-web WEB_PORT=3001`.
+-include $(WEB)/.env
 -include $(WEB)/.env.local
 WEB_PORT ?= 3000
 API_PORT ?= 8000
@@ -41,6 +42,10 @@ dev: ## Full stack in Docker (production-like) plus the local Garage S3 store. B
 	@bash infra/scripts/build-changed.sh web
 	@$(MAKE) --no-print-directory garage-up
 	$(DC) -f $(COMPOSE_DEV) up --no-build
+
+dev-web-stack: ## Start the Docker services except api and web (Postgres, Redis, Garage + bucket), then the web dev server on WEB_PORT
+	@$(MAKE) --no-print-directory dev-infra garage-up
+	@$(MAKE) --no-print-directory dev-web
 
 dev-local: ## Everything on the host, no Docker: API (SQLite) + web, plus Redis and the worker when redis-server is installed
 	@mkdir -p $(API)/.data
