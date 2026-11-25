@@ -120,3 +120,21 @@ with kinds × LODs (merge LODs with distance culling, measure). Realism needs li
 - Not started, and blocked on the decisions above: tasks 1 (spike on Quest 3 and asset sourcing), 2 (catalog contract),
   3 (loader), 5-6 (content), 7 (lighting), 8 (director), 9 (Quest pass). The code tasks 2 and 3 are only worth writing once
   the sourcing and the realism target are confirmed.
+
+## Moving objects keep apart and follow the music (phase I31)
+
+`engine/crowd.ts` (pure, `worldStateAt` stays a function of `(plan, t)`):
+
+- **Musical clock.** Cars, bicycles, planes and clouds no longer advance on the wall-clock `t` but on a clock whose rate
+  is `0.45 + 1.1 × energy + 0.7 × beat surge` (the surge decays in 0.22 s after every beat). A calm verse crawls, a loud
+  chorus rushes, each beat gives a small push. The clock is a table built once per plan (`musicClockOf`), so any `t` is
+  O(log n) and a seek lands where playing would have.
+- **No overlap.** Objects of the ground (cars, bicycles) and of the air (planes, clouds; in 3D) are pushed apart when
+  closer than `1.15 × (r1 + r2)` (radius = half the footprint), by a deterministic relaxation of 6 passes. A car that
+  catches up with another is pushed back (it backs up, heading unchanged); one that meets it sideways is deflected, and
+  its heading follows the final velocity (blended back to the road heading while it reverses). All moving records of the
+  plan are in the computation, landed or not, so an object appearing never makes the others jump.
+- `structure-view.ts` asks `crowdPosesAt` once per frame instead of `objectPoseAt` per instance.
+- Tests: `engine/crowd.test.ts` (pairs never closer than 95 % of the minimum at any time, ground and air, purity under
+  seeks, smoothness, loud vs calm, beat surge). Not covered: the objects still ignore the static structures (trees,
+  buildings); a heavy crowd (dozens of cars) may not fully separate within 6 passes.
