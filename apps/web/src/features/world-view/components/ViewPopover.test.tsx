@@ -20,9 +20,18 @@ describe("ViewPopover", () => {
   });
 
   it("picks an arrangement and shows the current one as pressed", () => {
-    const onChange = setup({ layout: "ring", aurora: false });
+    const onChange = setup({ ...DEFAULT_VIEW, layout: "ring" });
     expect(screen.getByRole("button", { name: "Ring", pressed: true })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Spiral" }));
     expect(onChange).toHaveBeenCalledWith({ layout: "spiral" });
+  });
+});
+
+describe("ViewPopover weather", () => {
+  it("picks a weather", () => {
+    const onChange = setup();
+    expect(screen.getByRole("button", { name: "Follow the music", pressed: true })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Storm" }));
+    expect(onChange).toHaveBeenCalledWith({ weather: "storm" });
   });
 });

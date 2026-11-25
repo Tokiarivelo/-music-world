@@ -118,5 +118,11 @@
   "view.layout.rows": "Tiers",
   "view.layout.ring": "Ring",
   "view.layout.spiral": "Spiral",
-  "view.layout.scatter": "Scatter"
+  "view.layout.scatter": "Scatter",
+  "view.weather": "Weather",
+  "view.weather.auto": "Follow the music",
+  "view.weather.clear": "Clear",
+  "view.weather.cloudy": "Cloudy",
+  "view.weather.rain": "Rain",
+  "view.weather.storm": "Storm"
 }

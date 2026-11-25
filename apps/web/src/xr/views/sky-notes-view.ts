@@ -31,7 +31,7 @@ import type { WorldView } from './world-view';
 
 /** The colors of a real aurora: oxygen green low, cyan, then nitrogen violet and magenta high up. */
 export const AURORA_COLORS = ['#35ffa0', '#3fd8ff', '#b36bff'] as const;
-const ORB_RADIUS_GAPS = 0.32;
+const ORB_RADIUS_GAPS = 0.17;
 const RAY_HEIGHT_GAPS = 5;
 const SELECTED_SCALE = 1.5;
 const CAPACITY_MAX = 600;

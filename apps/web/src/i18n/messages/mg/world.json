@@ -118,5 +118,11 @@
   "view.layout.rows": "Rihana",
   "view.layout.ring": "Peratra",
   "view.layout.spiral": "Spirale",
-  "view.layout.scatter": "Miparitaka"
+  "view.layout.scatter": "Miparitaka",
+  "view.weather": "Toetr'andro",
+  "view.weather.auto": "Araka ny mozika",
+  "view.weather.clear": "Mazava",
+  "view.weather.cloudy": "Rahona",
+  "view.weather.rain": "Orana",
+  "view.weather.storm": "Tafio-drivotra"
 }

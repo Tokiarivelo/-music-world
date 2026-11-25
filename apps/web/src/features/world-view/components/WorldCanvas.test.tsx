@@ -14,6 +14,7 @@ vi.mock("@/xr/world-host", () => ({
       setHiddenLayers: vi.fn(),
       setLayout: vi.fn(),
       setAuroraSky: vi.fn(),
+      setWeather: vi.fn(),
       setEditMode: vi.fn(),
       setEdits: vi.fn(),
       setScore: vi.fn(),

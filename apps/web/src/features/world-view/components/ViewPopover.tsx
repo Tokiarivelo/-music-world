@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { LAYOUT_MODES } from "@/engine/layout";
+import { WEATHER_MODES } from "@/engine/weather";
 import { useT } from "@/i18n";
 import type { ViewPrefs } from "../lib/view-storage";
 
@@ -48,6 +49,19 @@ export function ViewPopover({ prefs, onChange }: ViewPopoverProps) {
                 type="button"
               >
                 {t(`view.layout.${id}`)}
+              </button>
+            ))}
+          </div>
+          <div aria-label={t("view.weather")} className="flex flex-wrap gap-2" role="group">
+            {WEATHER_MODES.map((id) => (
+              <button
+                aria-pressed={prefs.weather === id}
+                className={`${BUTTON} ${prefs.weather === id ? ACTIVE : ""}`}
+                key={id}
+                onClick={() => onChange({ weather: id })}
+                type="button"
+              >
+                {t(`view.weather.${id}`)}
               </button>
             ))}
           </div>

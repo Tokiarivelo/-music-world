@@ -10,6 +10,7 @@ export function useViewPrefs(handle: WorldHandle | null): [ViewPrefs, (patch: Pa
   useEffect(() => {
     handle?.setLayout(prefs.layout);
     handle?.setAuroraSky(prefs.aurora);
+    handle?.setWeather(prefs.weather);
   }, [handle, prefs]);
   const update = useCallback((patch: Partial<ViewPrefs>) => {
     setPrefs((p) => {

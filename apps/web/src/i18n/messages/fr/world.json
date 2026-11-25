@@ -118,5 +118,11 @@
   "view.layout.rows": "Gradins",
   "view.layout.ring": "Anneau",
   "view.layout.spiral": "Spirale",
-  "view.layout.scatter": "Dispersion"
+  "view.layout.scatter": "Dispersion",
+  "view.weather": "Météo",
+  "view.weather.auto": "Suivre la musique",
+  "view.weather.clear": "Dégagé",
+  "view.weather.cloudy": "Nuageux",
+  "view.weather.rain": "Pluie",
+  "view.weather.storm": "Orage"
 }

@@ -25,6 +25,8 @@ import { obstaclesAt, type Circle } from './navigation/walk-camera';
 import { activityAt, type Activity, type HiddenLayers } from '@/engine/layers';
 import { DEFAULT_LAYOUT, type LayoutMode } from '@/engine/layout';
 import { skyStore } from './sky-store';
+import { weatherStore } from './weather-store';
+import type { WeatherMode } from '@/engine/weather';
 import { layerStore } from './layer-store';
 import { EditController, type NoteEditEvent } from './interaction/edit-controller';
 import { NoteSynth } from './audio/note-synth';
@@ -82,6 +84,8 @@ export interface WorldHandle {
   setLayout(layout: LayoutMode): void;
   /** Northern-lights mode: notes hang in the sky and can be picked; view-only, no rebuild. */
   setAuroraSky(enabled: boolean): void;
+  /** Weather of the infinite world: `auto` follows the music, the others force a sky. View-only, no rebuild. */
+  setWeather(mode: WeatherMode): void;
   /**
    * Note edits on top of the analysis (I9): rebuilds the plan with the same seed, so the scenery does not move. The
    * document and its history live in the page; the world only displays it.
@@ -453,6 +457,9 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
       if (!loaded) return;
       basePlan = buildSpawnPlan(loaded.analysis, loaded.template, loaded.seed, edits, layout);
       show();
+    },
+    setWeather(mode) {
+      if (!disposed) weatherStore.set(mode);
     },
     setAuroraSky(enabled) {
       if (!disposed) skyStore.set(enabled);
