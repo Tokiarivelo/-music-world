@@ -132,14 +132,22 @@ export function cinematicPose(aspect: number = DESKTOP_REFERENCE_ASPECT): OrbitP
   );
 }
 
+/**
+ * Global view of the explore mode: the cinematic framing seen from higher and further, so the whole plate (staff,
+ * scenery, notes) is in the frame and the ground below does not dominate.
+ */
+export function overviewPose(aspect: number = DESKTOP_REFERENCE_ASPECT): OrbitPose {
+  return presetPose({ x: 0, y: 0.05, z: 0 }, DESKTOP_CAMERA_AZIMUTH_DEG, 46, cinematicDistance(aspect) * 1.35);
+}
+
 /** View presets (requirement 4.1, `design.md` § Camera pose). The city of `neon-nocturne` lies on the −x side. */
 export const VIEW_PRESETS: Readonly<Record<ViewPresetId, OrbitPose>> = {
-  overview: cinematicPose(),
-  // Low and far: the plate sits in the lower third, the horizon and the sky fill the rest (the infinite dome).
-  horizon: presetPose({ x: 0, y: 0.8, z: 0 }, 32, 5, 1.7),
-  staff: presetPose({ x: 0, y: 0.1, z: 0 }, 27, 20, 1.1),
-  city: presetPose({ x: -0.38, y: 0.12, z: -0.2 }, -40, 24, 1.2),
-  top: presetPose({ x: 0, y: 0, z: 0 }, 0, 85, 3.2),
+  overview: overviewPose(),
+  staff: presetPose({ x: 0, y: 0.05, z: 0 }, 27, 40, 2.2),
+  city: presetPose({ x: -0.3, y: 0.05, z: -0.15 }, -40, 42, 2.4),
+  top: presetPose({ x: 0, y: 0, z: 0 }, 0, 82, 6),
+  // Wide lens (see HORIZON_FOV_DEG): the plate in the lower half, the horizon and the sky above it.
+  horizon: presetPose({ x: 0, y: 0.2, z: 0 }, 32, 16, 1.6),
 };
 
 /** Drag orbit: right drag turns the view around the target, down drag raises the camera. */

@@ -10,6 +10,7 @@ import {
   VIEW_PRESETS,
   approachPose,
   cinematicPose,
+  overviewPose,
   fly,
   orbit,
   pan,
@@ -120,8 +121,11 @@ export class NavigationController {
       this.presetValue = null;
       this.moveTo(cinematicPose(this.aspect));
     } else {
-      // Explore starts from where the camera is (requirement 1.2): no jump.
-      this.presetValue = this.goal === VIEW_PRESETS.overview || this.isCinematicGoal() ? 'overview' : null;
+      // Explore starts from where the camera is (requirement 1.2), eased: from the cinematic framing it rises to the
+      // global view, so the whole scene is in the frame.
+      const onOverview = this.goal === VIEW_PRESETS.overview || this.isCinematicGoal();
+      this.presetValue = onOverview ? 'overview' : null;
+      if (onOverview) this.moveTo(overviewPose(this.aspect));
     }
     this.emit();
   }
@@ -133,7 +137,7 @@ export class NavigationController {
       this.input.clear();
     }
     this.presetValue = id;
-    this.moveTo(id === 'overview' ? cinematicPose(this.aspect) : VIEW_PRESETS[id]);
+    this.moveTo(id === 'overview' ? overviewPose(this.aspect) : VIEW_PRESETS[id]);
     this.emit();
   }
 
