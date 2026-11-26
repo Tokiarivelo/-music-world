@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useT } from "@/i18n";
 import type { WorldHandle } from "@/xr/world-host";
 import { ExploreIcon, PegmanIcon, ResetIcon } from "./NavIcons";
@@ -30,7 +30,33 @@ export function NavigationControls({
   const t = useT("world");
   const exploring = state.mode === "explore";
   const walking = state.mode === "walk";
+  const pressed = useRef<{ x: number; y: number } | null>(null);
+  const suppressClick = useRef(false);
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
+
+  // The Walk button is also the pegman: a click toggles the mode, a press and move (> 6 px) starts a drag, and the
+  // walk mode only starts then, so a simple click is unchanged.
+  useEffect(() => {
+    const move = (e: PointerEvent): void => {
+      const p = pressed.current;
+      if (!p || Math.hypot(e.clientX - p.x, e.clientY - p.y) < 6) return;
+      pressed.current = null;
+      suppressClick.current = true;
+      if (!walking) commands.toggleWalk();
+      setDrag({ x: e.clientX, y: e.clientY });
+    };
+    const end = (): void => {
+      pressed.current = null;
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", end);
+    window.addEventListener("pointercancel", end);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", end);
+      window.removeEventListener("pointercancel", end);
+    };
+  }, [walking, commands]);
 
   // Pegman: drag the little person onto the map to stand there (the map opens as soon as the drag starts).
   useEffect(() => {
@@ -96,24 +122,20 @@ export function NavigationControls({
           <button
             aria-pressed={walking}
             className={`${BUTTON} ${walking ? ACTIVE : IDLE}`}
-            onClick={commands.toggleWalk}
-            type="button"
-          >
-            <PegmanIcon className="mr-1.5 inline h-4 w-4 align-[-2px]" />
-            {t("nav.walk")}
-          </button>
-          <button
-            aria-label={t("nav.pegman")}
-            className={`${BUTTON} ${IDLE} cursor-grab touch-none px-3 active:cursor-grabbing`}
+            onClick={() => {
+              if (suppressClick.current) suppressClick.current = false;
+              else commands.toggleWalk();
+            }}
             onPointerDown={(e) => {
-              e.preventDefault();
-              if (!walking) commands.toggleWalk();
-              setDrag({ x: e.clientX, y: e.clientY });
+              if (e.button !== 0) return;
+              suppressClick.current = false;
+              pressed.current = { x: e.clientX, y: e.clientY };
             }}
             title={t("nav.pegmanHint")}
             type="button"
           >
-            <PegmanIcon className="h-4 w-4 text-[var(--mw-accent)]" />
+            <PegmanIcon className="mr-1.5 inline h-4 w-4 align-[-2px]" />
+            {t("nav.walk")}
           </button>
           {walking && (
             <button
