@@ -4,8 +4,9 @@ import { useMemo } from 'react';
 import { useT } from '@/i18n';
 import type { Template } from '@/templates/generated';
 import { FOCUS } from '../consts/ui.consts';
-import { templateObjects } from '../lib/inventory-model';
+import { engineObjects, templateObjects } from '../lib/inventory-model';
 import { Section } from './fields/Section';
+import { EngineThumb } from './EngineThumb';
 import { ObjectThumb } from './ObjectThumb';
 
 export interface InventoryPanelProps {
@@ -18,7 +19,9 @@ export interface InventoryPanelProps {
 export function InventoryPanel({ draft, selected, onSelect }: InventoryPanelProps) {
   const t = useT('editor');
   const objects = useMemo(() => templateObjects(draft), [draft]);
+  const engine = useMemo(() => engineObjects(draft), [draft]);
   return (
+    <>
     <Section title={t('inventory.title')}>
       <p className="text-xs opacity-70">{t('inventory.count', { count: objects.length })}</p>
       <ul className="flex flex-col gap-2">
@@ -46,5 +49,25 @@ export function InventoryPanel({ draft, selected, onSelect }: InventoryPanelProp
         ))}
       </ul>
     </Section>
+    {engine.length > 0 && (
+      <Section title={t('inventory.engine.title')}>
+        <p className="text-xs opacity-70">{t(`inventory.engine.intro.${engine[0]!.group}`)}</p>
+        <ul className="flex flex-col gap-2" aria-label={t('inventory.engine.title')}>
+          {engine.map((o) => {
+            const name = t(`inventory.engine.item.${o.id}`);
+            return (
+              <li key={o.id} className="flex items-center gap-3 rounded border border-white/10 p-2">
+                <EngineThumb object={o} color={draft.palette.primary} name={name} />
+                <span className="flex min-w-0 flex-col text-sm">
+                  <span className="truncate font-medium">{name}</span>
+                  <span className="text-xs opacity-70">{t('inventory.engine.badge')}</span>
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </Section>
+    )}
+    </>
   );
 }

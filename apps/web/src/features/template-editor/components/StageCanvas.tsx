@@ -6,14 +6,14 @@ import type { PartPalette } from '@/xr/shapes/node-builder';
 import type { PartNode } from '../lib/node-model';
 import { ObjectStage, type StageCallbacks, type StageSettings, type StageView } from '../lib/object-stage';
 
-export type StageRequest = { n: number } & ({ type: 'view'; view: Exclude<StageView, 'free'> } | { type: 'frame'; id: string | null });
+export type StageRequest = { n: number } & ({ type: 'view'; view: Exclude<StageView, 'free'> } | { type: 'frame'; ids: readonly string[] | null });
 
 export interface StageCanvasProps extends StageCallbacks {
   nodes: readonly PartNode[];
   palette: PartPalette;
   base: string;
   accent: string;
-  selected: string | null;
+  selection: readonly string[];
   settings: StageSettings;
   request: StageRequest | null;
 }
@@ -28,14 +28,15 @@ function webglAvailable(): boolean {
 }
 
 /** Mounts the WebGL stage on a canvas and keeps it in step with the editor state. WebGL is checked: a note replaces the canvas when it is missing. */
-export function StageCanvas({ nodes, palette, base, accent, selected, settings, request, onPick, onTransform, onStats }: StageCanvasProps) {
+export function StageCanvas({ nodes, palette, base, accent, selection, settings, request, onPick, onBox, onTransform, onStats }: StageCanvasProps) {
   const t = useT('editor');
   const canvas = useRef<HTMLCanvasElement>(null);
   const stage = useRef<ObjectStage | null>(null);
-  const callbacks = useRef<StageCallbacks>({ onPick, onTransform, onStats });
+  const [marquee, setMarquee] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const callbacks = useRef<StageCallbacks>({ onPick, onBox, onMarquee: () => undefined, onTransform, onStats });
   useEffect(() => {
-    callbacks.current = { onPick, onTransform, onStats };
-  });
+    callbacks.current = { onPick, onBox, onMarquee: setMarquee, onTransform, onStats };
+  }, [onPick, onBox, onTransform, onStats]);
   const [supported] = useState(webglAvailable);
 
   useEffect(() => {
@@ -44,7 +45,9 @@ export function StageCanvas({ nodes, palette, base, accent, selected, settings, 
     if (!supported) return;
     stage.current = new ObjectStage(el, {
       onPick: (id, add) => callbacks.current.onPick(id, add),
-      onTransform: (next, id) => callbacks.current.onTransform(next, id),
+      onBox: (ids, add) => callbacks.current.onBox(ids, add),
+      onMarquee: (r) => callbacks.current.onMarquee(r),
+      onTransform: (next, ids) => callbacks.current.onTransform(next, ids),
       onStats: (s) => callbacks.current.onStats(s),
     });
     return () => {
@@ -55,14 +58,14 @@ export function StageCanvas({ nodes, palette, base, accent, selected, settings, 
 
   useEffect(() => {
     stage.current?.setNodes(nodes, palette, { base, accent });
-    stage.current?.setSelection(selected);
-  }, [nodes, palette, base, accent, selected]);
-  useEffect(() => stage.current?.setSelection(selected), [selected]);
+    stage.current?.setSelection(selection);
+  }, [nodes, palette, base, accent, selection]);
+  useEffect(() => stage.current?.setSelection(selection), [selection]);
   useEffect(() => stage.current?.update(settings), [settings]);
   useEffect(() => {
     if (!request) return;
     if (request.type === 'view') stage.current?.setView(request.view);
-    else stage.current?.frame(request.id);
+    else stage.current?.frame(request.ids);
   }, [request]);
 
   if (!supported) {
@@ -72,5 +75,10 @@ export function StageCanvas({ nodes, palette, base, accent, selected, settings, 
       </p>
     );
   }
-  return <canvas ref={canvas} role="img" aria-label={t('workspace.viewport')} className="block h-full w-full touch-none outline-none" tabIndex={0} />;
+  return (
+    <div className="relative h-full w-full">
+      <canvas ref={canvas} role="img" aria-label={t('workspace.viewport')} className="block h-full w-full touch-none outline-none" tabIndex={0} />
+      {marquee && <div aria-hidden className="pointer-events-none absolute border border-[var(--mw-accent)] bg-[var(--mw-accent)]/15" style={{ left: marquee.x, top: marquee.y, width: marquee.w, height: marquee.h }} />}
+    </div>
+  );
 }

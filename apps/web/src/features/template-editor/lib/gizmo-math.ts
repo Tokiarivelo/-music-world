@@ -1,6 +1,6 @@
 import { Box3, Euler, Matrix4, Quaternion, Vector3 } from 'three';
 import { buildNodePieces, nodeWorldMatrices } from '@/xr/shapes/node-builder';
-import { clampNode, type PartNode } from './node-model';
+import { canReparent, clampNode, effectiveRoots, scaleGroupBy, subtreeIds, type PartNode } from './node-model';
 
 /** Pure maths behind the viewport gizmo: an object-space transform of a part becomes its local fields (spec 12, phase 6). */
 
@@ -88,4 +88,84 @@ export function dropToFloor(nodes: readonly PartNode[], id: string): PartNode[] 
 export function centerOnAxis(nodes: readonly PartNode[], id: string): PartNode[] {
   const pose = worldPoseOf(nodes, id);
   return pose ? moveNodeTo(nodes, id, [0, pose.position[1], 0]) : [...nodes];
+}
+
+export interface GizmoPose {
+  readonly position: readonly [number, number, number];
+  readonly quaternion: readonly [number, number, number, number];
+  readonly scale: readonly [number, number, number];
+}
+
+export type GizmoMode = 'translate' | 'rotate' | 'scale';
+
+/**
+ * Applies a finished gizmo drag (pivot pose `start` to `now`) to a selection. Parts hanging from another selected part
+ * follow it. Translation moves every part by the same vector, rotation turns the group about the pivot, scale grows each
+ * part (with what hangs from it) and, for several parts, their distances from the pivot.
+ */
+export function applyGizmoDelta(nodes: readonly PartNode[], ids: readonly string[], mode: GizmoMode, start: GizmoPose, now: GizmoPose): PartNode[] {
+  const roots = effectiveRoots(nodes, ids);
+  const pivotStart = new Vector3(...start.position);
+  const qDelta = new Quaternion(...now.quaternion).multiply(new Quaternion(...start.quaternion).invert());
+  const delta = new Vector3(...now.position).sub(pivotStart);
+  const many = roots.length > 1;
+  const mean = (now.scale[0] + now.scale[1] + now.scale[2]) / 3;
+  let next: PartNode[] = [...nodes];
+  for (const id of roots) {
+    const pose = worldPoseOf(next, id);
+    if (!pose) continue;
+    const at = new Vector3(...pose.position);
+    if (mode === 'translate') {
+      next = moveNodeTo(next, id, [at.x + delta.x, at.y + delta.y, at.z + delta.z]);
+    } else if (mode === 'rotate') {
+      const q = qDelta.clone().multiply(new Quaternion(...pose.quaternion));
+      if (many) {
+        const moved = at.clone().sub(pivotStart).applyQuaternion(qDelta).add(pivotStart);
+        next = moveNodeTo(next, id, [moved.x, moved.y, moved.z]);
+      }
+      next = rotateNodeTo(next, id, [q.x, q.y, q.z, q.w]);
+    } else {
+      next = scaleGroupBy(next, id, now.scale);
+      if (many) {
+        const moved = at.clone().sub(pivotStart).multiplyScalar(mean).add(pivotStart);
+        next = moveNodeTo(next, id, [moved.x, moved.y, moved.z]);
+      }
+    }
+  }
+  return next;
+}
+
+/**
+ * Makes `id` a child of `parent` (null: a root) without moving it: its local position and rotation are recomputed in
+ * the new parent's frame. The part and its children are placed right after the new parent's subtree (parents first).
+ * Unchanged when the move is not allowed (cycle, too deep).
+ */
+export function reparentNode(nodes: readonly PartNode[], id: string, parent: string | null): PartNode[] {
+  if (!canReparent(nodes, id, parent)) return [...nodes];
+  const world = nodeWorldMatrices(nodes).get(id)!;
+  const parentWorld = parent ? nodeWorldMatrices(nodes).get(parent)! : new Matrix4();
+  const local = parentWorld.clone().invert().multiply(world);
+  const p = new Vector3();
+  const q = new Quaternion();
+  local.decompose(p, q, new Vector3());
+  const e = new Euler().setFromQuaternion(q, 'YXZ');
+  const ids = subtreeIds(nodes, id);
+  const moved = nodes
+    .filter((n) => ids.has(n.id))
+    .map((n): PartNode =>
+      n.id !== id
+        ? n
+        : {
+            ...n,
+            parent,
+            operation: parent === null ? 'add' : n.operation,
+            position: { x: round(clampNode('px', p.x)), y: round(clampNode('py', p.y)), z: round(clampNode('pz', p.z)) },
+            rotation: { x: round(clampNode('rx', e.x / DEG)), y: round(clampNode('ry', e.y / DEG)), z: round(clampNode('rz', e.z / DEG)) },
+          },
+    );
+  const rest = nodes.filter((n) => !ids.has(n.id));
+  if (parent === null) return [...rest, ...moved];
+  const parentIds = subtreeIds(rest, parent);
+  const end = rest.reduce((at, n, i) => (parentIds.has(n.id) ? i : at), -1);
+  return [...rest.slice(0, end + 1), ...moved, ...rest.slice(end + 1)];
 }

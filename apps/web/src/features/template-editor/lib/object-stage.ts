@@ -29,8 +29,8 @@ import {
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 import { buildNodePieces, type PartPalette } from '@/xr/shapes/node-builder';
-import { moveNodeTo, rotateNodeTo, scaleNodeBy, worldPoseOf } from './gizmo-math';
-import { subtreeIds, type PartNode } from './node-model';
+import { applyGizmoDelta, worldPoseOf, type GizmoPose } from './gizmo-math';
+import { effectiveRoots, subtreeIds, type PartNode } from './node-model';
 
 /**
  * The 3D stage of the object workspace (spec 12, phase 6): a Blender-like viewport on the part tree. Framework free (no
@@ -44,10 +44,14 @@ export type StageView = 'front' | 'back' | 'left' | 'right' | 'top' | 'bottom' |
 export type StageSpace = 'local' | 'world';
 
 export interface StageCallbacks {
-  /** A click picked a part (`null`: the click hit nothing). */
+  /** A click picked a part (`null`: the click hit nothing). `additive`: shift or ctrl held (toggle in the selection). */
   onPick(id: string | null, additive: boolean): void;
-  /** A gizmo drag ended: the node list with the new transform of the part. */
-  onTransform(nodes: PartNode[], id: string): void;
+  /** A rectangle selected these parts (the parts whose centre is inside it). */
+  onBox(ids: string[], additive: boolean): void;
+  /** The rectangle being dragged, in canvas pixels (`null` when it ends), for the overlay. */
+  onMarquee(rect: { x: number; y: number; w: number; h: number } | null): void;
+  /** A gizmo drag ended: the node list with the new transform of the selection. */
+  onTransform(nodes: PartNode[], ids: string[]): void;
   /** The scene changed: triangle count and the size of the object in metres. */
   onStats(stats: StageStats): void;
 }
@@ -118,9 +122,11 @@ export class ObjectStage {
   private nodes: readonly PartNode[] = [];
   private palette: PartPalette | undefined;
   private colors = { base: '#cccccc', accent: '#ffaa33' };
-  private selected: string | null = null;
+  private selection: string[] = [];
   private settings: StageSettings = { ...DEFAULT_SETTINGS, snap: { ...DEFAULT_SETTINGS.snap } };
   private startMatrix = new Matrix4();
+  private startPose: GizmoPose = { position: [0, 0, 0], quaternion: [0, 0, 0, 1], scale: [1, 1, 1] };
+  private marquee: { x: number; y: number; additive: boolean } | null = null;
   private frameHandle = 0;
   private dirty = true;
   private disposed = false;
@@ -154,7 +160,8 @@ export class ObjectStage {
     this.scene.add(this.gizmo.getHelper());
     this.gizmo.addEventListener('change', this.onGizmoChange);
     this.gizmo.addEventListener('dragging-changed', this.onDragging);
-    canvas.addEventListener('pointerdown', this.onPointerDown);
+    canvas.addEventListener('pointerdown', this.onPointerDown, true); // before the orbit controls, to be able to turn them off
+    canvas.addEventListener('pointermove', this.onPointerMove);
     canvas.addEventListener('pointerup', this.onPointerUp);
     this.resizeObserver = new ResizeObserver(this.resize);
     this.resizeObserver.observe(canvas);
@@ -177,12 +184,17 @@ export class ObjectStage {
     }
   }
 
-  setSelection(id: string | null): void {
-    this.selected = id !== null && this.nodes.some((n) => n.id === id) ? id : null;
+  /** The selected parts; the last one is the primary (the gizmo sits on it). */
+  setSelection(ids: readonly string[]): void {
+    this.selection = ids.filter((id) => this.nodes.some((n) => n.id === id));
     this.refreshLook();
     this.attachGizmo();
     if (this.settings.isolate) this.refreshVisibility();
     this.invalidate();
+  }
+
+  private get primary(): string | null {
+    return this.selection[this.selection.length - 1] ?? null;
   }
 
   update(settings: Partial<StageSettings>): void {
@@ -209,9 +221,9 @@ export class ObjectStage {
   }
 
   /** Centres the orbit on a part (or on the whole object) and backs the camera off to fit it. */
-  frame(id: string | null): void {
+  frame(selection: readonly string[] | null): void {
     const box = new Box3();
-    const ids = id === null ? null : subtreeIds(this.nodes, id);
+    const ids = selection === null || selection.length === 0 ? null : new Set(selection.flatMap((id) => [...subtreeIds(this.nodes, id)]));
     for (const [partId, { mesh }] of this.parts) {
       if (ids && !ids.has(partId)) continue;
       mesh.geometry.computeBoundingBox();
@@ -241,7 +253,8 @@ export class ObjectStage {
     this.disposed = true;
     cancelAnimationFrame(this.frameHandle);
     this.resizeObserver.disconnect();
-    this.canvas.removeEventListener('pointerdown', this.onPointerDown);
+    this.canvas.removeEventListener('pointerdown', this.onPointerDown, true);
+    this.canvas.removeEventListener('pointermove', this.onPointerMove);
     this.canvas.removeEventListener('pointerup', this.onPointerUp);
     this.gizmo.removeEventListener('change', this.onGizmoChange);
     this.gizmo.removeEventListener('dragging-changed', this.onDragging);
@@ -312,10 +325,10 @@ export class ObjectStage {
 
   private refreshLook(): void {
     const { shading, edges } = this.settings;
-    const subtree = this.selected ? subtreeIds(this.nodes, this.selected) : new Set<string>();
+    const subtree = new Set(this.selection.flatMap((id) => [...subtreeIds(this.nodes, id)]));
     for (const [id, part] of this.parts) {
       const m = part.mesh.material as MeshStandardMaterial;
-      const picked = id === this.selected;
+      const picked = this.selection.includes(id);
       m.wireframe = shading === 'wire';
       m.transparent = shading === 'xray';
       m.opacity = shading === 'xray' ? 0.38 : 1;
@@ -331,7 +344,7 @@ export class ObjectStage {
   }
 
   private refreshVisibility(): void {
-    const only = this.settings.isolate && this.selected ? subtreeIds(this.nodes, this.selected) : null;
+    const only = this.settings.isolate && this.selection.length > 0 ? new Set(this.selection.flatMap((id) => [...subtreeIds(this.nodes, id)])) : null;
     for (const [id, { mesh }] of this.parts) mesh.visible = only === null || only.has(id);
   }
 
@@ -359,7 +372,7 @@ export class ObjectStage {
 
   /** The gizmo sits on the selected part, at its object-space pose. Nothing in `select` mode. */
   private attachGizmo(): void {
-    const pose = this.selected ? worldPoseOf(this.nodes, this.selected) : null;
+    const pose = this.primary ? worldPoseOf(this.nodes, this.primary) : null;
     if (!pose || this.settings.tool === 'select') {
       this.gizmo.detach();
       return;
@@ -369,43 +382,98 @@ export class ObjectStage {
     this.pivot.scale.set(1, 1, 1);
     this.pivot.updateMatrixWorld(true);
     this.startMatrix.copy(this.pivot.matrixWorld);
+    this.startPose = { position: pose.position, quaternion: pose.quaternion, scale: [1, 1, 1] };
     if (this.gizmo.object !== this.pivot) this.gizmo.attach(this.pivot);
   }
 
   // ---------------------------------------------------------------------------------------------- gizmo and picking
 
-  /** While dragging, the selected part and its children follow the pivot (a preview; the edit lands on release). */
+  /** While dragging, the selected parts and their children follow the pivot (a preview; the edit lands on release). */
   private readonly onGizmoChange = (): void => {
-    if (this.gizmo.dragging && this.selected) {
+    if (this.gizmo.dragging && this.selection.length > 0) {
       this.pivot.updateMatrixWorld(true);
       const delta = this.pivot.matrixWorld.clone().multiply(this.startMatrix.clone().invert());
-      for (const id of subtreeIds(this.nodes, this.selected)) this.parts.get(id)?.mesh.matrix.copy(delta);
+      for (const root of effectiveRoots(this.nodes, this.selection)) for (const id of subtreeIds(this.nodes, root)) this.parts.get(id)?.mesh.matrix.copy(delta);
     }
     this.invalidate();
   };
 
   private readonly onDragging = (event: { value?: unknown }): void => {
     this.orbit.enabled = !event.value;
-    if (event.value || !this.selected) return;
-    const id = this.selected;
+    if (event.value || this.selection.length === 0) return;
     const mode = this.settings.tool;
-    let next: PartNode[] = [...this.nodes];
-    if (mode === 'translate') next = moveNodeTo(this.nodes, id, [this.pivot.position.x, this.pivot.position.y, this.pivot.position.z]);
-    else if (mode === 'rotate') next = rotateNodeTo(this.nodes, id, [this.pivot.quaternion.x, this.pivot.quaternion.y, this.pivot.quaternion.z, this.pivot.quaternion.w]);
-    else if (mode === 'scale') next = scaleNodeBy(this.nodes, id, [this.pivot.scale.x, this.pivot.scale.y, this.pivot.scale.z]);
+    if (mode === 'select') return;
+    const now: GizmoPose = {
+      position: [this.pivot.position.x, this.pivot.position.y, this.pivot.position.z],
+      quaternion: [this.pivot.quaternion.x, this.pivot.quaternion.y, this.pivot.quaternion.z, this.pivot.quaternion.w],
+      scale: [this.pivot.scale.x, this.pivot.scale.y, this.pivot.scale.z],
+    };
+    const next = applyGizmoDelta(this.nodes, this.selection, mode, this.startPose, now);
     for (const { mesh } of this.parts.values()) mesh.matrix.identity();
-    this.callbacks.onTransform(next, id);
+    this.callbacks.onTransform(next, [...this.selection]);
   };
 
+  /** Rectangle selection: shift + drag anywhere, or a plain drag with the select tool (Alt + drag orbits then). */
   private readonly onPointerDown = (e: PointerEvent): void => {
     this.down = { x: e.clientX, y: e.clientY };
+    this.marquee = null;
+    if (e.button !== 0 || this.gizmo.axis !== null) return;
+    const box = e.shiftKey || (this.settings.tool === 'select' && !e.altKey);
+    if (box) {
+      this.orbit.enabled = false;
+      this.marquee = { x: e.clientX, y: e.clientY, additive: e.shiftKey || e.ctrlKey };
+    }
   };
+
+  private readonly onPointerMove = (e: PointerEvent): void => {
+    if (!this.marquee) return;
+    const r = this.marqueeRect(e);
+    this.callbacks.onMarquee(Math.hypot(r.w, r.h) > CLICK_PIXELS ? r : null);
+  };
+
+  private marqueeRect(e: PointerEvent): { x: number; y: number; w: number; h: number } {
+    const rect = this.canvas.getBoundingClientRect();
+    const m = this.marquee!;
+    return { x: Math.min(m.x, e.clientX) - rect.left, y: Math.min(m.y, e.clientY) - rect.top, w: Math.abs(e.clientX - m.x), h: Math.abs(e.clientY - m.y) };
+  }
+
+  /** Parts whose centre falls inside a canvas-pixel rectangle. */
+  idsInRect(r: { x: number; y: number; w: number; h: number }): string[] {
+    const width = this.canvas.clientWidth || 1;
+    const height = this.canvas.clientHeight || 1;
+    const ids: string[] = [];
+    const c = new Vector3();
+    for (const [id, { mesh }] of this.parts) {
+      if (!mesh.visible) continue;
+      mesh.geometry.computeBoundingBox();
+      mesh.geometry.boundingBox?.getCenter(c);
+      c.project(this.camera);
+      const px = ((c.x + 1) / 2) * width;
+      const py = ((1 - c.y) / 2) * height;
+      if (px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h) ids.push(id);
+    }
+    return ids;
+  }
 
   private readonly onPointerUp = (e: PointerEvent): void => {
     const down = this.down;
+    const marquee = this.marquee;
     this.down = null;
+    this.marquee = null;
+    if (marquee) {
+      this.orbit.enabled = !this.gizmo.dragging;
+      this.callbacks.onMarquee(null);
+    }
     if (!down || e.button !== 0 || this.gizmo.dragging || this.gizmo.axis !== null) return;
-    if (Math.hypot(e.clientX - down.x, e.clientY - down.y) > CLICK_PIXELS) return; // an orbit or a pan, not a click
+    const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y) > CLICK_PIXELS;
+    if (marquee && moved) {
+      const m = this.marquee ?? marquee;
+      const rect = this.canvas.getBoundingClientRect();
+      const r = { x: Math.min(m.x, e.clientX) - rect.left, y: Math.min(m.y, e.clientY) - rect.top, w: Math.abs(e.clientX - m.x), h: Math.abs(e.clientY - m.y) };
+      this.callbacks.onBox(this.idsInRect(r), marquee.additive);
+      return;
+    }
+    if (moved) return; // an orbit or a pan, not a click
     const rect = this.canvas.getBoundingClientRect();
     const ndc = new Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
     this.raycaster.setFromCamera(ndc, this.camera);

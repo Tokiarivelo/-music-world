@@ -60,3 +60,10 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
 - [x] 6.3 Full-screen workspace: tool shelf, outliner, properties, view options, status bar, shortcuts, i18n en/fr/mg
 - [x] 6.4 Extra tools: radial array, reset transform, drop to floor, centre on axis, isolate; docs, handoff, PR merged
 
+## Phase 7 — Workspace limits (`phase-I51-workspace-limits`)
+
+- [x] 7.1 Multi-selection: shift / ctrl click, box select (shift + drag, or the select tool), select all; gizmo, delete, duplicate, hide and nudge act on the selection
+- [x] 7.2 Re-parenting without moving the part: drag in the outliner and a "Parent" list (`reparentNode`, `canReparent`)
+- [x] 7.3 The scale gizmo scales a part with what hangs from it (`scaleGroupBy`); group rotate and scale about the pivot (`applyGizmoDelta`)
+- [x] 7.4 Inventory lists what the engine adds to a template (city: 9 building variants, construction, streets, lakes, bridges, signals; reef and realm: patches) with real thumbnails; docs, handoff, PR merged
+

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { NEON_NOCTURNE } from '@/templates/default';
 import type { Template } from '@/templates/generated';
-import { templateObjects, totalUses } from './inventory-model';
+import { engineObjects, templateObjects, totalUses } from './inventory-model';
 
 const base = NEON_NOCTURNE as Template;
 
@@ -42,5 +42,24 @@ describe('templateObjects', () => {
 
   it('flags city kinds', () => {
     expect(templateObjects(base).find((o) => o.kind === 'building')?.cityKind).toBe('building');
+  });
+});
+
+describe('engineObjects', () => {
+  it('lists what a city builds around the objects: nine building variants, construction, streets, lakes, bridges, signals', () => {
+    const city = { ...base, mappings: [{ ...base.mappings[0]!, spawn: 'building' as const }] };
+    const ids = engineObjects(city).map((o) => o.id);
+    expect(ids.filter((id) => id.startsWith('building.'))).toHaveLength(9);
+    for (const id of ['construction', 'streets', 'lakes', 'bridges', 'signals']) expect(ids).toContain(id);
+  });
+
+  it('lists the patches of a reef, and nothing for an open world', () => {
+    const open = { ...base, mappings: [{ ...base.mappings[0]!, spawn: 'cloud' as const }], scenery: [], recipes: [] };
+    expect(engineObjects(open)).toEqual([]);
+  });
+
+  it('has a shape to draw for each building variant', () => {
+    const city = { ...base, mappings: [{ ...base.mappings[0]!, spawn: 'building' as const }] };
+    expect(engineObjects(city).filter((o) => o.id.startsWith('building.')).every((o) => typeof o.shape === 'number')).toBe(true);
   });
 });

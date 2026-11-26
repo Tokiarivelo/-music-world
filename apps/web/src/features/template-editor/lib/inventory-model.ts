@@ -1,5 +1,5 @@
-import { isCityKind } from '@/engine/city';
-import { roleOf, type ObjectRole } from '@/engine/world-plan';
+import { BUILDING_VARIANTS, isCityKind, templateHasCity, type BuildingVariant } from '@/engine/city';
+import { roleOf, worldPlanKind, type ObjectRole } from '@/engine/world-plan';
 import { hasModel } from '@/xr/shapes/model-catalog';
 import type { Template } from '@/templates/generated';
 
@@ -77,4 +77,36 @@ export function templateObjects(template: Template): InventoryObject[] {
 
 export function totalUses(object: InventoryObject): number {
   return object.usage.mappings + object.usage.scenery + object.usage.zones;
+}
+
+/** Something the world adds to the template at run time: shown in the inventory, not edited as a recipe. */
+const REEF_THEMES = ['keep', 'village', 'forest', 'crystal', 'kelp', 'coral', 'sand', 'wreck'] as const;
+export type EngineObjectId = `building.${BuildingVariant}` | 'construction' | 'streets' | 'lakes' | 'bridges' | 'signals' | `patch.${(typeof REEF_THEMES)[number]}`;
+
+export interface EngineObject {
+  /** Stable id, also the i18n key suffix (`inventory.engine.item.<id>`). */
+  readonly id: EngineObjectId;
+  readonly group: 'city' | 'reef';
+  /** Index into `buildingVariantGeometries()` when the object has a shape to draw; `'scaffold'` for the construction site. */
+  readonly shape: number | 'scaffold' | null;
+}
+
+/**
+ * What the engine builds around the objects of the template: the nine building variants, the streets, lakes, bridges,
+ * traffic signals and construction sites of a city; the patches (themes) of a reef or a realm.
+ */
+export function engineObjects(template: Template): EngineObject[] {
+  if (templateHasCity(template)) {
+    return [
+      ...BUILDING_VARIANTS.map((v, i): EngineObject => ({ id: `building.${v}`, group: 'city', shape: i })),
+      { id: 'construction', group: 'city', shape: 'scaffold' },
+      { id: 'streets', group: 'city', shape: null },
+      { id: 'lakes', group: 'city', shape: null },
+      { id: 'bridges', group: 'city', shape: null },
+      { id: 'signals', group: 'city', shape: null },
+    ];
+  }
+  const plan = worldPlanKind(template);
+  if (plan === 'reef' || plan === 'realm') return REEF_THEMES.map((theme): EngineObject => ({ id: `patch.${theme}`, group: 'reef', shape: null }));
+  return [];
 }

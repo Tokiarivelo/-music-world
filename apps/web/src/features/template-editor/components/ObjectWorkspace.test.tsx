@@ -86,4 +86,30 @@ describe('ObjectWorkspace', () => {
     expect(update).toHaveBeenCalled();
     expect(onSelectKind).toHaveBeenCalledWith(expect.stringMatching(/^recipe:/));
   });
+
+  it('selects several parts with shift-click and says so in the status bar', () => {
+    setup();
+    const tree = screen.getByRole('tree');
+    fireEvent.click(within(tree).getByText(house.nodes[0]!.name));
+    fireEvent.click(within(tree).getByText(house.nodes[1]!.name), { shiftKey: true });
+    expect(screen.getByText('2 parts selected')).toBeTruthy();
+    fireEvent.click(within(tree).getByText(house.nodes[1]!.name), { shiftKey: true });
+    expect(screen.queryByText('2 parts selected')).toBeNull();
+  });
+
+  it('selects every part with A and deletes the selection with X', () => {
+    const t = setup();
+    fireEvent.keyDown(window, { key: 'a' });
+    expect(screen.getByText(`${house.nodes.length} parts selected`)).toBeTruthy();
+    fireEvent.keyDown(window, { key: 'x' });
+    expect(t.current.recipes[0]!.nodes).toHaveLength(0);
+  });
+
+  it('makes a part a root with the Parent list, keeping its place', () => {
+    const t = setup();
+    const kid = house.nodes.find((n) => n.parent)!;
+    fireEvent.click(within(screen.getByRole('tree')).getByText(kid.name));
+    fireEvent.change(screen.getByLabelText('Parent'), { target: { value: '' } });
+    expect(t.current.recipes[0]!.nodes.find((n) => n.id === kid.id)!.parent).toBeNull();
+  });
 });
