@@ -12,7 +12,7 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
 - [x] 1.3 Web: pure `buildNodeGeometry` (primitives box, cylinder, cone, sphere, prism, gable; transform; hidden),
   parity test with the Python triangle count
   - _Requirements: 2, 3, 6_
-- [ ] 1.4 Migration of legacy `parts` ops to nodes (`recipeToNodes`), builder uses nodes when present; tests
+- [x] 1.4 Migration of legacy `parts` ops to nodes (`recipeToNodes`), builder uses nodes when present; tests
   - _Requirements: 2, 6_
 - [ ] 1.5 Builtin shapes (houses, trees, cars) expressed as recipes (`stockRecipes`), one build path; budget tests
   - _Requirements: 2, 6_

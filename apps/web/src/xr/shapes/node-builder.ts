@@ -6,12 +6,23 @@
  * A hidden node is skipped but its children keep their place. Triangle counts mirror `node_primitive_triangles` in
  * `apps/api/music_world/schemas/shape.py`; the shared fixtures in `apps/api/tests/fixtures/shape-recipes.json` check it.
  */
-import { BoxGeometry, BufferGeometry, ConeGeometry, CylinderGeometry, Euler, Float32BufferAttribute, Matrix4, Quaternion, SphereGeometry, Vector3 } from 'three';
-import type { Template } from '@/templates/generated';
+import {
+  BoxGeometry,
+  BufferGeometry,
+  ConeGeometry,
+  CylinderGeometry,
+  Euler,
+  Float32BufferAttribute,
+  Matrix4,
+  Quaternion,
+  SphereGeometry,
+  Vector3,
+} from "three";
+import type { Template } from "@/templates/generated";
 
-type Recipe = NonNullable<Template['recipes']>[number];
-export type PartNode = Recipe['nodes'][number];
-export type NodePrimitive = PartNode['primitive'];
+type Recipe = NonNullable<Template["recipes"]>[number];
+export type PartNode = Recipe["nodes"][number];
+export type NodePrimitive = PartNode["primitive"];
 
 /** Mirrored by `SPHERE_SEGMENTS` / `SPHERE_RINGS` in the pydantic contract. */
 export const SPHERE_SEGMENTS = 8;
@@ -20,17 +31,40 @@ const DEG = Math.PI / 180;
 
 /** A triangular prism with its ridge along z: width x, ridge height y, depth z. 8 triangles. */
 function gable(): BufferGeometry {
-  const b0 = [-0.5, 0, -0.5], b1 = [0.5, 0, -0.5], b2 = [0.5, 0, 0.5], b3 = [-0.5, 0, 0.5];
-  const r0 = [0, 1, -0.5], r1 = [0, 1, 0.5];
+  const b0 = [-0.5, 0, -0.5],
+    b1 = [0.5, 0, -0.5],
+    b2 = [0.5, 0, 0.5],
+    b3 = [-0.5, 0, 0.5];
+  const r0 = [0, 1, -0.5],
+    r1 = [0, 1, 0.5];
   const tris = [
-    b1, b0, r0, // front end
-    b3, b2, r1, // back end
-    b1, r0, r1, b1, r1, b2, // right slope
-    b3, r1, r0, b3, r0, b0, // left slope
-    b0, b1, b2, b0, b2, b3, // bottom
+    b1,
+    b0,
+    r0, // front end
+    b3,
+    b2,
+    r1, // back end
+    b1,
+    r0,
+    r1,
+    b1,
+    r1,
+    b2, // right slope
+    b3,
+    r1,
+    r0,
+    b3,
+    r0,
+    b0, // left slope
+    b0,
+    b1,
+    b2,
+    b0,
+    b2,
+    b3, // bottom
   ];
   const g = new BufferGeometry();
-  g.setAttribute('position', new Float32BufferAttribute(tris.flat(), 3));
+  g.setAttribute("position", new Float32BufferAttribute(tris.flat(), 3));
   return g;
 }
 
@@ -40,44 +74,54 @@ function unitPrimitive(node: PartNode): BufferGeometry {
   const taper = node.taper ?? 1;
   let g: BufferGeometry;
   switch (node.primitive) {
-    case 'cylinder':
+    case "cylinder":
       g = new CylinderGeometry(0.5, 0.5, 1, sides);
       break;
-    case 'cone':
+    case "cone":
       g = new ConeGeometry(0.5, 1, sides);
       break;
-    case 'sphere':
+    case "sphere":
       g = new SphereGeometry(0.5, SPHERE_SEGMENTS, SPHERE_RINGS);
       break;
-    case 'prism':
+    case "prism":
       g = new CylinderGeometry(0.5 * taper, 0.5, 1, sides);
       break;
-    case 'gable':
+    case "gable":
       return gable();
     default:
       g = new BoxGeometry(1, 1, 1);
   }
   g.translate(0, 0.5, 0);
   const flat = g.index ? g.toNonIndexed() : g;
-  flat.deleteAttribute('normal');
-  flat.deleteAttribute('uv');
+  flat.deleteAttribute("normal");
+  flat.deleteAttribute("uv");
   return flat;
 }
 
 function localMatrix(node: PartNode): Matrix4 {
   const r = node.rotation;
-  const q = new Quaternion().setFromEuler(new Euler((r?.x ?? 0) * DEG, (r?.y ?? 0) * DEG, (r?.z ?? 0) * DEG, 'YXZ'));
+  const q = new Quaternion().setFromEuler(
+    new Euler((r?.x ?? 0) * DEG, (r?.y ?? 0) * DEG, (r?.z ?? 0) * DEG, "YXZ"),
+  );
   const p = node.position;
-  return new Matrix4().compose(new Vector3(p?.x ?? 0, p?.y ?? 0, p?.z ?? 0), q, new Vector3(1, 1, 1));
+  return new Matrix4().compose(
+    new Vector3(p?.x ?? 0, p?.y ?? 0, p?.z ?? 0),
+    q,
+    new Vector3(1, 1, 1),
+  );
 }
 
 /** One geometry per visible node, in world (object) space, in list order. */
-export function buildNodeGeometries(nodes: readonly PartNode[]): BufferGeometry[] {
+export function buildNodeGeometries(
+  nodes: readonly PartNode[],
+): BufferGeometry[] {
   const world = new Map<string, Matrix4>();
   const out: BufferGeometry[] = [];
   for (const node of nodes) {
     const parent = node.parent ? world.get(node.parent) : undefined;
-    const matrix = (parent ? parent.clone() : new Matrix4()).multiply(localMatrix(node));
+    const matrix = (parent ? parent.clone() : new Matrix4()).multiply(
+      localMatrix(node),
+    );
     world.set(node.id, matrix);
     if (node.hidden) continue;
     const s = node.size;
