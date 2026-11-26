@@ -343,13 +343,49 @@ function sceneryRecords(
   return records;
 }
 
+/** Objects a creator placed by hand (map creator): fixed scenery with their own position, yaw, scale and variant. */
+function placedRecords(template: WorldTemplate, fallDuration: number): Omit<SpawnRecord, 'index' | 'slot'>[] {
+  return (template.layout?.placed ?? []).map((o) => {
+    const size = kindSize(o.kind, template);
+    return {
+      noteId: `scenery:placed:${o.id}`,
+      stem: null,
+      line: MAIN_LINE_ID,
+      lineY: 0,
+      colorHex: o.color,
+      kind: o.kind,
+      onset: SCENERY_LANDED_AT - fallDuration,
+      duration: 0,
+      velocity: 0.5,
+      midi: Math.floor((PIANO_LOW_MIDI + PIANO_HIGH_MIDI) / 2),
+      staffU: STAFF_U_MIN,
+      glyph: 'quarter',
+      landAt: SCENERY_LANDED_AT,
+      growSec: MIN_GROW_SEC,
+      target: { x: o.x, y: o.y, z: o.z },
+      yaw: (o.yaw * Math.PI) / 180,
+      variant: o.variant,
+      siteFrom: 0,
+      siteTo: 0,
+      rainbow: false,
+      height: (size.base + size.extra * 0.5) * o.scale,
+      emissive: EMISSIVE_BASE + EMISSIVE_VELOCITY_SCALE * 0.5,
+      colorRole: null,
+      structureHex: null,
+      colorT: 0.5,
+      groupId: null,
+    } satisfies Omit<SpawnRecord, 'index' | 'slot'>;
+  });
+}
+
 export function buildSpawnPlan(
   analysisIn: EngineAnalysis,
   template: WorldTemplate,
-  seed: number,
+  seedIn: number,
   edits?: LayoutEdits,
   layout: LayoutMode = DEFAULT_LAYOUT,
 ): SpawnPlan {
+  const seed = template.layout?.seed ?? seedIn; // a map made by hand keeps its own seed
   const edited = edits ? applyEdits(analysisIn, edits) : null;
   const analysis = edited ? edited.analysis : analysisIn;
   const staff = buildStaffPath(template);
@@ -404,7 +440,7 @@ export function buildSpawnPlan(
   const place = placerFor(template, seed, totals, themeTotals);
   /** A city object takes the slot of its first spot (spots are unique, so are slots); the others the next free slot. */
   const slotOf = (r: { siteFrom: number; siteTo: number }, claimed: number): number => (r.siteTo > r.siteFrom ? r.siteFrom : claimed);
-  const scenery = sceneryRecords(template, seed, fallDuration, zonesOf, layout, place).map(
+  const scenery = [...sceneryRecords(template, seed, fallDuration, zonesOf, layout, place), ...placedRecords(template, fallDuration)].map(
     (r, index): SpawnRecord => ({ ...r, index, slot: slotOf(r, claimSlot(r.kind, index)) }),
   );
   const first = scenery.length;
