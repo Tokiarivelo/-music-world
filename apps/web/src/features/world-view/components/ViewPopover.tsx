@@ -5,6 +5,7 @@ import { LANDSCAPE_IDS } from "@/engine/landscapes";
 import { LAYOUT_MODES } from "@/engine/layout";
 import { TIME_MODES, WEATHER_MODES } from "@/engine/weather";
 import { useT } from "@/i18n";
+import { GLASS_PANEL, GLASS_PILL } from "@/lib/glass";
 import type { ViewPrefs } from "../lib/view-storage";
 
 interface ViewPopoverProps {
@@ -13,7 +14,7 @@ interface ViewPopoverProps {
 }
 
 const BUTTON =
-  "rounded-full border border-white/20 bg-black/50 px-4 py-2 text-sm text-white backdrop-blur " +
+  `${GLASS_PILL} px-4 py-2 text-sm text-white ` +
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mw-accent)]";
 const ACTIVE = "bg-[var(--mw-accent)] text-black";
 
@@ -26,7 +27,7 @@ export function ViewPopover({ prefs, onChange }: ViewPopoverProps) {
       {open && (
         <section
           aria-label={t("view.title")}
-          className="max-h-[calc(100vh-13rem)] w-72 max-w-full space-y-3 overflow-y-auto rounded-2xl border border-white/20 bg-black/70 p-4 text-sm text-white backdrop-blur"
+          className={`max-h-[calc(100vh-13rem)] w-72 max-w-full space-y-3 overflow-y-auto ${GLASS_PANEL} p-4 text-sm`}
           onKeyDown={(e) => {
             if (e.key === "Escape") setOpen(false);
           }}

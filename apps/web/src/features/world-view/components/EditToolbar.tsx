@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { MAIN_LINE_ID, noteName, type Clef } from "@/engine/edits";
 import { useT } from "@/i18n";
+import { GLASS_PANEL, GLASS_PILL } from "@/lib/glass";
 import type { NoteEditsApi } from "../hooks/use-note-edits";
 
 const BUTTON =
-  "rounded-full border border-white/20 bg-black/50 px-3 py-1.5 text-sm text-white backdrop-blur " +
+  `${GLASS_PILL} px-3 py-1.5 text-sm text-white ` +
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mw-accent)] " +
   "disabled:opacity-40";
 const ACTIVE = "bg-[var(--mw-accent)] text-black";
@@ -117,7 +118,7 @@ export function EditToolbar({ api }: { api: NoteEditsApi }) {
       </p>
 
       {api.enabled && open && (
-        <section aria-label={t("edit.lines")} className="max-h-[50vh] w-80 max-w-full space-y-3 overflow-y-auto rounded-2xl border border-white/20 bg-black/70 p-3 text-sm text-white backdrop-blur">
+        <section aria-label={t("edit.lines")} className={`max-h-[50vh] w-80 max-w-full space-y-3 overflow-y-auto ${GLASS_PANEL} p-3 text-sm`}>
           <ul className="space-y-3">
             {api.lines.map((line, i) => (
               <li className="space-y-2 rounded-xl border border-white/10 p-2" key={line.id}>
@@ -184,7 +185,7 @@ export function EditToolbar({ api }: { api: NoteEditsApi }) {
       )}
 
       {api.enabled && (
-        <section aria-label={t("edit.note.title")} className="w-80 max-w-full space-y-2 rounded-2xl border border-white/20 bg-black/70 p-3 text-sm text-white backdrop-blur">
+        <section aria-label={t("edit.note.title")} className={`w-80 max-w-full space-y-2 ${GLASS_PANEL} p-3 text-sm`}>
           <h2 className="font-medium">
             {selected ? `${t("edit.note.title")}: ${noteName(selected.midi)}` : t("edit.note.title")}
             {api.selectedCount > 1 ? ` (${api.selectedCount})` : ""}

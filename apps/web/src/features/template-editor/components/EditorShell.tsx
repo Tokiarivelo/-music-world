@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useSession } from '@/features/auth';
 import { useT } from '@/i18n';
+import { GLASS_PANEL, GLASS_PILL } from '@/lib/glass';
 import { readStashedTemplate, UNSAVED_KEY } from '@/lib/template-stash';
 import type { Template } from '@/templates/generated';
 import { useEditorSource } from '../hooks/use-editor-source';
@@ -17,11 +18,7 @@ import { ObjectEditor } from './ObjectEditor';
 import { WorldPreview } from './WorldPreview';
 
 const PANEL_ID = 'editor-panel';
-/** iOS-like glass: translucent, the world behind it blurred and slightly saturated. */
-const GLASS_PANEL =
-  'rounded-3xl border border-white/20 bg-[color-mix(in_srgb,var(--mw-bg)_38%,transparent)] shadow-2xl backdrop-blur-2xl backdrop-saturate-150';
-const GLASS_BUTTON =
-  'rounded-full border border-white/25 bg-[color-mix(in_srgb,var(--mw-bg)_38%,transparent)] px-3 py-1 text-sm backdrop-blur-xl hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mw-accent)]';
+const GLASS_BUTTON = `${GLASS_PILL} px-3 py-1 text-sm hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mw-accent)]`;
 
 function createStore(source: Template): DraftStore {
   const store = createDraftStore(source);

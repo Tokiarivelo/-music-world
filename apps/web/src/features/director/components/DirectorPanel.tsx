@@ -2,6 +2,7 @@
 
 import { Sparkles } from 'lucide-react';
 import { useT } from '@/i18n';
+import { GLASS_PANEL } from '@/lib/glass';
 import type { Template } from '@/templates/generated';
 import type { DirectorState } from '../hooks/use-director';
 import type { ProviderId } from '../interfaces/director.interfaces';
@@ -22,7 +23,7 @@ export function DirectorPanel({ director, template }: DirectorPanelProps) {
   return (
     <section
       aria-label={t('title')}
-      className="flex w-full flex-col gap-2 rounded-lg bg-[var(--mw-bg)]/80 p-3 text-sm sm:w-80"
+      className={`flex w-full flex-col gap-2 ${GLASS_PANEL} p-3 text-sm sm:w-80`}
     >
       <div className="flex flex-wrap items-center gap-2">
         <label htmlFor="director-provider" className="sr-only">

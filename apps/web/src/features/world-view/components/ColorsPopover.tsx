@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useT } from "@/i18n";
+import { GLASS_PANEL, GLASS_PILL } from "@/lib/glass";
 import { PALETTE_ROLES } from "@/xr/palette-generator";
 import type { Palette } from "@/xr/palette-generator";
 import { paletteLink, type PaletteStore } from "../lib/palette-store";
@@ -13,7 +14,7 @@ interface ColorsPopoverProps {
 }
 
 const BUTTON =
-  "rounded-full border border-white/20 bg-black/50 px-4 py-2 text-sm text-white backdrop-blur " +
+  `${GLASS_PILL} px-4 py-2 text-sm text-white ` +
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mw-accent)] " +
   "disabled:opacity-40";
 
@@ -40,7 +41,7 @@ export function ColorsPopover({ store, templatePalette }: ColorsPopoverProps) {
       {open && (
         <section
           aria-label={t("colors.title")}
-          className="max-h-[calc(100vh-17rem)] w-72 max-w-full space-y-3 overflow-y-auto rounded-2xl border border-white/20 bg-black/70 p-4 text-sm text-white backdrop-blur"
+          className={`max-h-[calc(100vh-17rem)] w-72 max-w-full space-y-3 overflow-y-auto ${GLASS_PANEL} p-4 text-sm`}
           onKeyDown={(e) => {
             if (e.key === "Escape") setOpen(false);
           }}

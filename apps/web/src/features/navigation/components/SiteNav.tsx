@@ -1,5 +1,6 @@
 "use client";
 
+import { GLASS_PILL } from '@/lib/glass';
 import Link from "next/link";
 import { useState } from "react";
 import { ModerationLink } from "@/features/moderation";
@@ -23,7 +24,7 @@ export function SiteNav({ template }: SiteNavProps = {}) {
   return (
     <nav
       aria-label={t("navLabel")}
-      className="flex w-fit flex-wrap items-center gap-1 rounded-full bg-[var(--mw-bg)]/80 px-1 py-1"
+      className={`flex w-fit flex-wrap items-center gap-1 ${GLASS_PILL} px-1 py-1`}
     >
       <button
         aria-controls="site-nav-links"
