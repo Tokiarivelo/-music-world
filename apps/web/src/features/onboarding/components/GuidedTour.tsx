@@ -1,6 +1,7 @@
 'use client';
 
 import { useT } from '@/i18n';
+import { GLASS_PANEL, GLASS_PILL } from '@/lib/glass';
 import { useTour } from '../hooks/use-tour';
 
 const BUTTON = 'rounded-full px-4 py-1.5 text-sm font-medium focus-visible:outline focus-visible:outline-2';
@@ -12,7 +13,7 @@ export function GuidedTour() {
   if (tour.step === null) {
     return (
       <button
-        className={`${BUTTON} absolute bottom-24 right-3 z-10 border border-white/40 bg-[var(--mw-bg)]/80`}
+        className={`${BUTTON} absolute bottom-24 right-3 z-10 ${GLASS_PILL}`}
         onClick={tour.restart}
         type="button"
       >
@@ -24,7 +25,7 @@ export function GuidedTour() {
   return (
     <section
       aria-labelledby="mw-tour-title"
-      className="absolute inset-x-3 bottom-28 z-20 mx-auto max-w-sm rounded-xl border border-white/30 bg-[var(--mw-bg)]/95 p-4 shadow-xl"
+      className={`absolute inset-x-3 bottom-28 z-20 mx-auto max-w-sm ${GLASS_PANEL} p-4`}
       role="dialog"
     >
       <p className="text-xs opacity-70">{t('tour.progress', { current: tour.index + 1, total: tour.total })}</p>

@@ -1,5 +1,6 @@
 'use client';
 
+import { GLASS_PILL } from '@/lib/glass';
 import { useRouter } from 'next/navigation';
 import { isLocale, LOCALES, LOCALE_NAMES } from './config';
 import { useLocale, useT } from './provider';
@@ -12,7 +13,7 @@ export function LanguageSwitch() {
   return (
     <select
       aria-label={t('language')}
-      className="rounded-full border border-white/30 bg-[var(--mw-bg)]/80 px-3 py-1 text-sm"
+      className={`${GLASS_PILL} px-3 py-1 text-sm`}
       onChange={(e) => {
         const next = e.target.value;
         if (!isLocale(next)) return;

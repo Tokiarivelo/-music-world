@@ -30,5 +30,6 @@
   "playlist.empty": "Rien n’a encore été joué. Ouvrez la démo ou envoyez un morceau.",
   "playlist.plays": "{count} lectures",
   "playlist.play": "Lire",
-  "playlist.remove": "Retirer {title} de mes morceaux"
+  "playlist.remove": "Retirer {title} de mes morceaux",
+  "navMaps": "Créateur de carte"
 }

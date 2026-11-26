@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { LanguageSwitch, I18nProvider } from '@/i18n';
 import { LOCALE_DIR } from '@/i18n/config';
 import { getLocale, getT } from '@/i18n/server';
+import { ScrollbarAutoHide } from './ScrollbarAutoHide';
 import './globals.css';
 
 /** `viewport-fit=cover`: the world draws under the notch and home bar; overlays use the safe-area insets. */
@@ -18,6 +19,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html dir={LOCALE_DIR[locale]} lang={locale}>
       <body className="min-h-dvh antialiased">
+        <ScrollbarAutoHide />
         <I18nProvider locale={locale}>
           {children}
           <div className="fixed left-1/2 top-2 z-30 -translate-x-1/2">

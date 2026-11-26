@@ -3,6 +3,7 @@ import enAuth from './messages/en/auth.json';
 import enCommon from './messages/en/common.json';
 import enDirector from './messages/en/director.json';
 import enEditor from './messages/en/editor.json';
+import enMaps from './messages/en/maps.json';
 import enModeration from './messages/en/moderation.json';
 import enPlayer from './messages/en/player.json';
 import enStore from './messages/en/store.json';
@@ -13,6 +14,7 @@ import frAuth from './messages/fr/auth.json';
 import frCommon from './messages/fr/common.json';
 import frDirector from './messages/fr/director.json';
 import frEditor from './messages/fr/editor.json';
+import frMaps from './messages/fr/maps.json';
 import frModeration from './messages/fr/moderation.json';
 import frPlayer from './messages/fr/player.json';
 import frStore from './messages/fr/store.json';
@@ -23,6 +25,7 @@ import mgAuth from './messages/mg/auth.json';
 import mgCommon from './messages/mg/common.json';
 import mgDirector from './messages/mg/director.json';
 import mgEditor from './messages/mg/editor.json';
+import mgMaps from './messages/mg/maps.json';
 import mgModeration from './messages/mg/moderation.json';
 import mgPlayer from './messages/mg/player.json';
 import mgStore from './messages/mg/store.json';
@@ -39,6 +42,7 @@ const en = {
   store: enStore,
   director: enDirector,
   editor: enEditor,
+  maps: enMaps,
   moderation: enModeration,
   xr: enXr,
 };
@@ -60,6 +64,7 @@ export const CATALOGS: Record<Locale, Catalog> = {
     store: frStore,
     director: frDirector,
     editor: frEditor,
+    maps: frMaps,
   moderation: frModeration,
     xr: frXr,
   },
@@ -72,6 +77,7 @@ export const CATALOGS: Record<Locale, Catalog> = {
     store: mgStore,
     director: mgDirector,
     editor: mgEditor,
+    maps: mgMaps,
   moderation: mgModeration,
     xr: mgXr,
   },

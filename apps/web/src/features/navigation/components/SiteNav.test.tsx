@@ -6,7 +6,7 @@ import { SiteNav } from "./SiteNav";
 afterEach(cleanup);
 
 describe("SiteNav", () => {
-  it("is a labelled nav with four real links", () => {
+  it("is a labelled nav with five real links", () => {
     render(<SiteNav />);
     const nav = screen.getByRole("navigation", { name: "Site navigation" });
     const links = [...nav.querySelectorAll("a")];
@@ -15,6 +15,7 @@ describe("SiteNav", () => {
       ["New song", "/upload"],
       ["My songs", "/playlist"],
       ["Templates", "/templates"],
+      ["Map creator", "/maps"],
     ]);
   });
 

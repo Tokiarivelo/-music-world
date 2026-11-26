@@ -30,5 +30,6 @@
   "playlist.empty": "Tsy mbola nisy nilalaovina. Sokafy ny demo na alefaso ny hira iray.",
   "playlist.plays": "{count} fotoana nilalaovana",
   "playlist.play": "Alefaso",
-  "playlist.remove": "Esory ny {title} amin’ireo hira nalaiko"
+  "playlist.remove": "Esory ny {title} amin’ireo hira nalaiko",
+  "navMaps": "Mpamorona sarintany"
 }

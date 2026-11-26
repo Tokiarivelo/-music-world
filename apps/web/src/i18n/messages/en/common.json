@@ -30,5 +30,6 @@
   "playlist.empty": "Nothing played yet. Open the demo or upload a song.",
   "playlist.plays": "{count} plays",
   "playlist.play": "Play",
-  "playlist.remove": "Remove {title} from my songs"
+  "playlist.remove": "Remove {title} from my songs",
+  "navMaps": "Map creator"
 }

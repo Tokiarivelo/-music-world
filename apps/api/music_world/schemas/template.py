@@ -154,6 +154,27 @@ class LayoutStep(ContractModel):
     weight: float = Field(default=1.0, ge=0, le=10, description="0 keeps the object out of the note rotation.")
 
 
+MAX_PLACED_OBJECTS = 400
+MAX_MAP_SEED = 2_147_483_647
+
+
+class PlacedObject(ContractModel):
+    """An object a creator put on the map by hand (map creator): it stands from the first frame, fully grown.
+
+    `x`, `z` are metres from the centre of the plate (the world of a city or a reef is wider than the plate), `yaw`
+    degrees about the vertical axis, `scale` multiplies the height of the kind. Notes still spawn their own objects."""
+
+    id: str = Field(pattern=r"^[a-z0-9_]{1,24}$")
+    kind: ShapeKind
+    x: float = Field(default=0, ge=-64, le=64)
+    y: float = Field(default=0, ge=-2, le=20)
+    z: float = Field(default=0, ge=-64, le=64)
+    yaw: float = Field(default=0, ge=-180, le=180)
+    scale: float = Field(default=1, ge=0.2, le=5)
+    variant: int = Field(default=0, ge=0, le=15, description="Look variant (building type, tree shape).")
+    color: HexColor | None = Field(default=None, description="Override of the colour of this object.")
+
+
 class WorldLayout(ContractModel):
     """How the objects of a template are laid out: written by the director from the template's inventory.
 
@@ -163,9 +184,18 @@ class WorldLayout(ContractModel):
     inventory: list[InventoryEntry] = Field(default=[], max_length=MAX_RECIPES + 12)
     patches: list[LayoutPatch] = Field(default=[], max_length=MAX_LAYOUT_PATCHES)
     sequence: list[LayoutStep] = Field(default=[], max_length=MAX_LAYOUT_STEPS)
+    placed: list[PlacedObject] = Field(
+        default=[], max_length=MAX_PLACED_OBJECTS, description="Objects placed by hand on a user map."
+    )
+    seed: int | None = Field(
+        default=None, ge=0, le=MAX_MAP_SEED, description="World seed chosen by the creator of a map; none: random."
+    )
 
     @model_validator(mode="after")
     def _steps_use_known_patches(self) -> "WorldLayout":
+        placed_ids = [o.id for o in self.placed]
+        if len(set(placed_ids)) != len(placed_ids):
+            raise ValueError("layout: placed object ids must be unique")
         ids = [p.id for p in self.patches]
         if len(set(ids)) != len(ids):
             raise ValueError("layout: patch ids must be unique")
@@ -245,6 +275,16 @@ class WorldTemplate(ContractModel):
         names = [r.name for r in self.recipes]
         if len(set(names)) != len(names):
             raise ValueError("recipes: names must be unique")
+        return self
+
+    @model_validator(mode="after")
+    def _placed_recipes_exist(self) -> "WorldTemplate":
+        if self.layout is None:
+            return self
+        names = {f"recipe:{r.name}" for r in self.recipes}
+        for obj in self.layout.placed:
+            if obj.kind.startswith("recipe:") and obj.kind not in names:
+                raise ValueError(f"layout: placed object {obj.id} uses the unknown shape {obj.kind}")
         return self
 
     @model_validator(mode="after")

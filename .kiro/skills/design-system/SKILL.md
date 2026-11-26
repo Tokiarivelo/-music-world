@@ -108,3 +108,9 @@ concatenation.
 If you add a token, a reusable class recipe, or change an existing one, edit this file (tokens table or Components)
 in the same commit, and keep `globals.css` as the value source. If a screen you are copying disagrees with this file,
 the shipped component wins: fix the doc, not the screen, unless the task is to restyle it.
+
+## Floating surfaces (glass)
+
+Every panel, popover, dialog and floating pill uses `GLASS_PANEL` / `GLASS_PILL` from `apps/web/src/lib/glass.ts`
+(translucent `--mw-bg`, `backdrop-blur-2xl`, saturated, iOS-like). Never restyle one with a local opaque background.
+Scrollbars are global (thin, shown only while scrolling: `lib/scrollbar-autohide.ts` + `app/globals.css`).

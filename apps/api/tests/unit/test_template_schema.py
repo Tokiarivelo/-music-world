@@ -78,3 +78,31 @@ def test_default_template_validates_in_python() -> None:
     path = Path(__file__).resolve().parents[3] / "web/src/templates/default/neon-nocturne.json"
     tpl = WorldTemplate.model_validate(json.loads(path.read_text()))
     assert tpl.id == "neon-nocturne"
+
+
+def _placed(**o: Any) -> dict[str, Any]:
+    return {"id": "p1", "kind": "tree", "x": 1.5, "z": -2, **o}
+
+
+def test_a_map_layout_with_placed_objects_validates() -> None:
+    placed = [_placed(), _placed(id="p2", kind="building", yaw=90, scale=2)]
+    t = WorldTemplate.model_validate(minimal(layout={"placed": placed, "seed": 7}))
+    assert t.layout is not None and len(t.layout.placed) == 2 and t.layout.seed == 7
+
+
+@pytest.mark.parametrize(
+    "layout",
+    [
+        {"placed": [_placed(), _placed()]},  # duplicate ids
+        {"placed": [_placed(x=65)]},
+        {"placed": [_placed(scale=0.01)]},
+        {"placed": [_placed(yaw=181)]},
+        {"placed": [_placed(color="red")]},
+        {"placed": [_placed(kind="recipe:missing")]},
+        {"placed": [_placed(id=f"p{i}") for i in range(401)]},
+        {"seed": -1},
+    ],
+)
+def test_invalid_map_layouts_are_rejected(layout: dict[str, Any]) -> None:
+    with pytest.raises(ValidationError):
+        WorldTemplate.model_validate(minimal(layout=layout))

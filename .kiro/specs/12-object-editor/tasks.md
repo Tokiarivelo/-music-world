@@ -29,14 +29,14 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
 
 ## Phase 3 — Map creator MVP (`phase-I47-map-creator`)
 
-- [ ] 3.1 Schema: `PlacedObject` list and `WorldLayout` map fields (`placed`), `make schemas`, API validation
-- [ ] 3.2 Pure `map-model` (create map from empty plate or stock template, place, move, remove, copy, array, snap) + tests
-- [ ] 3.3 Engine: placed objects stand as fixed scenery before the first note (`worldStateAt` unchanged), tests
-- [ ] 3.4 Map editor page: create dialog (environment, plate size, seed, name), ground click placement, selection, delete
-- [ ] 3.5 Gizmo move / rotate / scale, box select, replace kind or variant
-- [ ] 3.6 Preview button: same world view as `/play/<id>` on the draft, back keeps the state
-- [ ] 3.7 Draft autosave in the browser, save and reopen through the API, tests
-- [ ] 3.8 Docs, handoff, PR merged
+- [x] 3.1 Schema: `PlacedObject` list and `WorldLayout` map fields (`placed`), `make schemas`, API validation
+- [x] 3.2 Pure `map-model` (create map from empty plate or stock template, place, move, remove, copy, array, snap) + tests
+- [x] 3.3 Engine: placed objects stand as fixed scenery before the first note (`worldStateAt` unchanged), tests
+- [x] 3.4 Map editor page: create dialog (environment, plate size, seed, name), ground click placement, selection, delete
+- [x] 3.5 Gizmo move / rotate / scale, box select, replace kind or variant
+- [x] 3.6 Preview button: same world view as `/play/<id>` on the draft, back keeps the state
+- [x] 3.7 Draft autosave in the browser, save and reopen through the API, tests
+- [x] 3.8 Docs, handoff, PR merged
 
 ## Phase 4 — Part tools and look (`phase-I48-part-tools`)
 
