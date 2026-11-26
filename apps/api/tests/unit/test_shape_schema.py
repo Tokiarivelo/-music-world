@@ -128,3 +128,37 @@ def test_recipe_scale_has_defaults_and_bounds() -> None:
     for bad in ({"footprint": 0.05}, {"footprint": 2}, {"heightScale": 0}, {"heightScale": 3}):
         with pytest.raises(ValidationError):
             ShapeRecipe.model_validate(recipe | bad)
+
+
+def _node(id_: str, parent: str | None = None, **extra: object) -> dict:
+    return {"id": id_, "name": id_.title(), "parent": parent, **extra}
+
+
+def test_node_triangles_by_primitive_and_hidden() -> None:
+    from music_world.schemas.shape import node_primitive_triangles
+
+    sizes = {p: node_primitive_triangles(p, 8, 1) for p in ("box", "cylinder", "cone", "sphere", "prism", "gable")}
+    assert sizes == {"box": 12, "cylinder": 32, "cone": 16, "sphere": 80, "prism": 32, "gable": 8}
+    assert node_primitive_triangles("prism", 8, 0) == 16
+    recipe = ShapeRecipe.model_validate(
+        {"name": "hut", "nodes": [_node("walls"), _node("roof", "walls", primitive="gable", hidden=True)]}
+    )
+    assert recipe.triangle_count() == 12
+
+
+@pytest.mark.parametrize(
+    ("nodes", "message"),
+    [
+        ([_node("a"), _node("a")], "duplicate"),
+        ([_node("b", "a"), _node("a")], "earlier"),
+        ([_node("a"), _node("b", "a"), _node("c", "b"), _node("d", "c"), _node("e", "d")], "deeper"),
+    ],
+)
+def test_node_tree_rules(nodes: list[dict], message: str) -> None:
+    with pytest.raises(ValidationError, match=message):
+        ShapeRecipe.model_validate({"name": "x", "nodes": nodes})
+
+
+def test_a_recipe_needs_parts_or_nodes() -> None:
+    with pytest.raises(ValidationError, match="at least one"):
+        ShapeRecipe.model_validate({"name": "x"})

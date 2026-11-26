@@ -5,9 +5,9 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
 
 ## Phase 1 — Part tree (branch `phase-I45-part-tree`)
 
-- [ ] 1.1 Spec: requirements for the map creator (req 8–12), phased task list
+- [x] 1.1 Spec: requirements for the map creator (req 8–12), phased task list
   - _Requirements: 1–12_
-- [ ] 1.2 Schema: `PartNode` tree in `ShapeRecipe` (pydantic, tri-count mirror, limits), `make schemas`, tests
+- [x] 1.2 Schema: `PartNode` tree in `ShapeRecipe` (pydantic, tri-count mirror, limits), `make schemas`, tests
   - _Requirements: 2, 6_
 - [ ] 1.3 Web: pure `buildNodeGeometry` (primitives box, cylinder, cone, sphere, prism, gable; transform; hidden),
   parity test with the Python triangle count

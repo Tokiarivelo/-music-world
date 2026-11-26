@@ -588,6 +588,129 @@
       "title": "Part",
       "type": "object"
     },
+    "PartNode": {
+      "additionalProperties": false,
+      "description": "A named part of an object, edited like a Blender outliner entry.\n\nNodes are a flat list; `parent` names an earlier node. A child's position and rotation are in its parent's local\nspace (the parent's size is not inherited). `position` is the centre of the node's base: y = 0 stands it on the\nobject's base (or on its parent's origin).",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_]{1,24}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 40,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "primitive": {
+          "default": "box",
+          "enum": [
+            "box",
+            "cylinder",
+            "cone",
+            "sphere",
+            "prism",
+            "gable"
+          ],
+          "title": "Primitive",
+          "type": "string"
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9_]{1,24}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent"
+        },
+        "hidden": {
+          "default": false,
+          "title": "Hidden",
+          "type": "boolean"
+        },
+        "position": {
+          "$ref": "#/$defs/Vec3",
+          "default": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          }
+        },
+        "rotation": {
+          "$ref": "#/$defs/Rotation",
+          "default": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          }
+        },
+        "size": {
+          "$ref": "#/$defs/Size",
+          "default": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": 0.5
+          }
+        },
+        "sides": {
+          "default": 8,
+          "description": "cylinder, cone, prism: number of sides.",
+          "maximum": 12,
+          "minimum": 3,
+          "title": "Sides",
+          "type": "integer"
+        },
+        "taper": {
+          "default": 1,
+          "description": "prism: top radius / bottom radius; 0 ends in a point.",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Taper",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "PartNode",
+      "type": "object"
+    },
+    "Rotation": {
+      "additionalProperties": false,
+      "description": "Euler angles in degrees, applied in the order y, x, z.",
+      "properties": {
+        "x": {
+          "default": 0,
+          "maximum": 180,
+          "minimum": -180,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "default": 0,
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Y",
+          "type": "number"
+        },
+        "z": {
+          "default": 0,
+          "maximum": 180,
+          "minimum": -180,
+          "title": "Z",
+          "type": "number"
+        }
+      },
+      "title": "Rotation",
+      "type": "object"
+    },
     "SceneryItem": {
       "additionalProperties": false,
       "description": "`count` objects of `kind` that stand on the plate from the first frame (no note needed).\n\nTheir positions come from the world seed inside the zones of their kind (the whole plate when it has none), so a\nnew seed rearranges them. They share the instance budget of their kind with the notes.",
@@ -664,12 +787,23 @@
           "type": "string"
         },
         "parts": {
+          "default": [],
+          "description": "Legacy operations; `nodes` is the editable form.",
           "items": {
             "$ref": "#/$defs/Part"
           },
           "maxItems": 8,
-          "minItems": 1,
           "title": "Parts",
+          "type": "array"
+        },
+        "nodes": {
+          "default": [],
+          "description": "Part tree (flat, parents first). Built after `parts`.",
+          "items": {
+            "$ref": "#/$defs/PartNode"
+          },
+          "maxItems": 48,
+          "title": "Nodes",
           "type": "array"
         },
         "budget": {
@@ -696,10 +830,40 @@
         }
       },
       "required": [
-        "name",
-        "parts"
+        "name"
       ],
       "title": "ShapeRecipe",
+      "type": "object"
+    },
+    "Size": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "default": 0.5,
+          "description": "Width.",
+          "maximum": 2,
+          "minimum": 0.02,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "default": 0.5,
+          "description": "Height.",
+          "maximum": 2,
+          "minimum": 0.02,
+          "title": "Y",
+          "type": "number"
+        },
+        "z": {
+          "default": 0.5,
+          "description": "Depth.",
+          "maximum": 2,
+          "minimum": 0.02,
+          "title": "Z",
+          "type": "number"
+        }
+      },
+      "title": "Size",
       "type": "object"
     },
     "Staff": {
@@ -826,6 +990,34 @@
         }
       },
       "title": "Terrain",
+      "type": "object"
+    },
+    "Vec3": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "default": 0,
+          "maximum": 2,
+          "minimum": -2,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "default": 0,
+          "maximum": 2,
+          "minimum": -2,
+          "title": "Y",
+          "type": "number"
+        },
+        "z": {
+          "default": 0,
+          "maximum": 2,
+          "minimum": -2,
+          "title": "Z",
+          "type": "number"
+        }
+      },
+      "title": "Vec3",
       "type": "object"
     },
     "WorldLayout": {

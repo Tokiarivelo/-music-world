@@ -21,6 +21,14 @@ SCHEMA_ID = "music-world.shape.v1"
 RecipeName = Annotated[str, StringConstraints(pattern=r"^[a-z0-9_]{1,40}$")]
 Op = Literal["box", "prism", "spike", "stack", "cluster"]
 Primitive = Literal["box", "prism", "spike"]
+NodePrimitive = Literal["box", "cylinder", "cone", "sphere", "prism", "gable"]
+NodeId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9_]{1,24}$")]
+NodeName = Annotated[str, StringConstraints(min_length=1, max_length=40)]
+MAX_NODES = 48
+MAX_NODE_DEPTH = 4
+SPHERE_SEGMENTS = 8  # mirrored by SPHERE_SEGMENTS / SPHERE_RINGS in xr/shapes/node-builder.ts
+SPHERE_RINGS = 6
+GABLE_TRIANGLES = 8  # two end triangles, two sloped rectangles, one bottom rectangle
 
 DEFAULT_FOOTPRINT_M = 0.25  # mirrored by RECIPE_FOOTPRINT (apps/web/src/xr/constants.ts)
 MAX_TRIANGLES_CAP = 2000  # PROJECT.md §6 example; builtin kinds stay under SHAPE_TRIANGLE_BUDGET (xr/constants.ts)
@@ -61,6 +69,65 @@ class Part(ContractModel):
         return (self.levels if self.op == "stack" else self.count) * per
 
 
+class Vec3(ContractModel):
+    x: float = Field(default=0, ge=-2, le=2)
+    y: float = Field(default=0, ge=-2, le=2)
+    z: float = Field(default=0, ge=-2, le=2)
+
+
+class Rotation(ContractModel):
+    """Euler angles in degrees, applied in the order y, x, z."""
+
+    x: float = Field(default=0, ge=-180, le=180)
+    y: float = Field(default=0, ge=-180, le=180)
+    z: float = Field(default=0, ge=-180, le=180)
+
+
+class Size(ContractModel):
+    x: float = Field(default=0.5, ge=0.02, le=2, description="Width.")
+    y: float = Field(default=0.5, ge=0.02, le=2, description="Height.")
+    z: float = Field(default=0.5, ge=0.02, le=2, description="Depth.")
+
+
+def node_primitive_triangles(primitive: NodePrimitive, sides: int, taper: float) -> int:
+    """Triangles of one node. box 12; cylinder 4n; cone 2n; sphere 80; prism 4n (2n when it ends in a point, taper = 0);
+    gable 8."""
+    if primitive == "box":
+        return 12
+    if primitive == "cylinder":
+        return 4 * sides
+    if primitive == "cone":
+        return 2 * sides
+    if primitive == "sphere":
+        return SPHERE_SEGMENTS * (2 * SPHERE_RINGS - 2)
+    if primitive == "gable":
+        return GABLE_TRIANGLES
+    return 4 * sides if taper > 0 else 2 * sides
+
+
+class PartNode(ContractModel):
+    """A named part of an object, edited like a Blender outliner entry.
+
+    Nodes are a flat list; `parent` names an earlier node. A child's position and rotation are in its parent's local
+    space (the parent's size is not inherited). `position` is the centre of the node's base: y = 0 stands it on the
+    object's base (or on its parent's origin).
+    """
+
+    id: NodeId
+    name: NodeName
+    primitive: NodePrimitive = "box"
+    parent: NodeId | None = None
+    hidden: bool = False
+    position: Vec3 = Vec3()
+    rotation: Rotation = Rotation()
+    size: Size = Size()
+    sides: int = Field(default=8, ge=3, le=12, description="cylinder, cone, prism: number of sides.")
+    taper: float = Field(default=1, ge=0, le=1, description="prism: top radius / bottom radius; 0 ends in a point.")
+
+    def triangle_count(self) -> int:
+        return 0 if self.hidden else node_primitive_triangles(self.primitive, self.sides, self.taper)
+
+
 class ShapeBudget(ContractModel):
     max_triangles: int = Field(
         default=DEFAULT_MAX_TRIANGLES,
@@ -75,7 +142,10 @@ class ShapeRecipe(ContractModel):
 
     schema_: Literal["music-world.shape.v1"] = Field(default="music-world.shape.v1", alias="schema")
     name: RecipeName = Field(description="Referenced by templates as the kind `recipe:<name>`.")
-    parts: list[Part] = Field(min_length=1, max_length=8)
+    parts: list[Part] = Field(default=[], max_length=8, description="Legacy operations; `nodes` is the editable form.")
+    nodes: list[PartNode] = Field(
+        default=[], max_length=MAX_NODES, description="Part tree (flat, parents first). Built after `parts`."
+    )
     budget: ShapeBudget = ShapeBudget()
     footprint: float = Field(
         default=DEFAULT_FOOTPRINT_M,
@@ -91,7 +161,25 @@ class ShapeRecipe(ContractModel):
     )
 
     def triangle_count(self) -> int:
-        return sum(p.triangle_count() for p in self.parts)
+        return sum(p.triangle_count() for p in self.parts) + sum(n.triangle_count() for n in self.nodes)
+
+    @model_validator(mode="after")
+    def _node_tree(self) -> "ShapeRecipe":
+        if not self.parts and not self.nodes:
+            raise ValueError("recipe needs at least one part or node")
+        depth: dict[str, int] = {}
+        for node in self.nodes:
+            if node.id in depth:
+                raise ValueError(f"nodes: duplicate id {node.id}")
+            if node.parent is None:
+                depth[node.id] = 1
+                continue
+            if node.parent not in depth:
+                raise ValueError(f"nodes: parent {node.parent} of {node.id} must be an earlier node")
+            depth[node.id] = depth[node.parent] + 1
+            if depth[node.id] > MAX_NODE_DEPTH:
+                raise ValueError(f"nodes: {node.id} is deeper than {MAX_NODE_DEPTH} levels")
+        return self
 
     @model_validator(mode="after")
     def _within_budget(self) -> "ShapeRecipe":
