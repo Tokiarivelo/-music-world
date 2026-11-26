@@ -36,7 +36,7 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
 - [x] 3.5 Gizmo move / rotate / scale, box select, replace kind or variant
 - [x] 3.6 Preview button: same world view as `/play/<id>` on the draft, back keeps the state
 - [x] 3.7 Draft autosave in the browser, save and reopen through the API, tests
-- [ ] 3.8 Docs, handoff, PR merged
+- [x] 3.8 Docs, handoff, PR merged
 
 ## Phase 4 — Part tools and look (`phase-I48-part-tools`)
 

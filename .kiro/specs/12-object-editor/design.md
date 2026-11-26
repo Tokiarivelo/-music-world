@@ -35,3 +35,22 @@
   `EditorShell` above the form. Strings in `editor.json` (en, fr, mg): `inventory.*`, `parts.*`, `inspector.*`, `viewport.*`.
 - Editor layout: the world preview fills the page; the form is a toggleable **glass panel** over it (translucent
   `--mw-bg`, `backdrop-blur-2xl`, rounded, slide-in; `inert` + `aria-hidden` when hidden, "Show panel" button when closed).
+
+## As built (phase 3, map creator)
+
+- Schema: `layout.placed` (≤ 400 `PlacedObject` `{id, kind, x, y, z, yaw°, scale, variant, color}`, x/z metres from the
+  plate centre, ±64) and `layout.seed`; a `recipe:` kind must exist in `recipes` (validator). The director's layout call
+  replaces `layout`, so a map made by hand must not be re-laid out by it.
+- Engine: `placedRecords` in `spawn-plan.ts` appends the placed objects after the template scenery (`noteId`
+  `scenery:placed:<id>`, standing and fully grown at t = 0, counted in `sceneryCount`); `layout.seed` replaces the
+  project seed. `worldStateAt` is unchanged; no editor code runs in the playback loop.
+- Feature `features/map-creator/`: pure `map-model` (create, place with grid snap, move, update, remove, copy, array,
+  replace kind, box and click pick), `plan-view` (ground ↔ pixels, rotate and scale handles, hit test), `history`
+  (undo / redo, 100 steps), `map-draft-storage` (localStorage, guarded). The editor is a **plan (top-down) view on a 2D
+  canvas** with in-canvas handles (drag to move, rotation handle, scale handle, drag the ground for a box select); the
+  real 3D world is the **Preview** button (`PreviewPlayback` on the unsaved map, the editor stays mounted so back keeps
+  the state). Page `/maps`, glass side panel like the template editor.
+- Save uses the template store (`POST` then `PUT` a private draft), so moderation and storage are the template ones.
+  The browser draft is restored on the next visit (read with `useSyncExternalStore`, no hydration mismatch).
+- Not done: a 3D gizmo in the world view (plan-view handles instead), picking a store template inside the create dialog
+  (use `?from=<id>`), the placed object's own part overrides (`overrides` of the spec: only `color` and `variant`).
