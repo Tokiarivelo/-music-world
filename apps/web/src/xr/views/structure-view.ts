@@ -356,7 +356,7 @@ export class StructureView implements WorldView {
       const mesh = this.meshes.get(kind);
       if (mesh) mesh.visible = true; // loaded, or the file could not load and the procedural shape stays
       if (!raw || !mesh || this.disposed) return;
-      const fitted = fitModel(raw, MODELS[kind]!, footprintOf(kind, this.plan.template), nominalHeightOf(kind, this.plan.template));
+      const fitted = fitModel(raw, MODELS[kind]!, this.footprintIn(kind), nominalHeightOf(kind, this.plan.template));
       const geometry = withLitAttributes(fitted);
       if (geometry !== fitted) fitted.dispose();
       const old = mesh.geometry;
@@ -394,7 +394,7 @@ export class StructureView implements WorldView {
       void loadModelGeometry(file).then((raw) => {
         mesh.visible = true;
         if (!raw || this.disposed) return;
-        const fitted = fitModel(raw, MODELS[file]!, footprintOf(kind, this.plan.template), nominalHeightOf(kind, this.plan.template));
+        const fitted = fitModel(raw, MODELS[file]!, this.footprintIn(kind), nominalHeightOf(kind, this.plan.template));
         const geometry = withLitAttributes(fitted);
         if (geometry !== fitted) fitted.dispose();
         mesh.geometry = geometry;
