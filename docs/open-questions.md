@@ -20,3 +20,5 @@ the agent applied, so nothing is blocked. Newest at the bottom; strike a line on
 | 13 | I19 | `neon-nocturne` is `flat` to keep the reference image; should the default template also be `polished`? | flat (one word to change) |
 | 14 | I19 | Quest 3 frame rate of lit PBR materials is unmeasured (IWER only): acceptable? | polished by default, `flat` as the fallback |
 | 15 | I21 | Models come from CC0 packs and look different from the procedural shapes; keep this style, or look for others? Anchor, coral, jellyfish, octopus, crab, clouds still have no model. | kept; remaining kinds procedural |
+| 16 | I44 | Request for downloaded house/texture/architecture packs: only CC0 assets are allowed (MIT repo) and none are downloaded without a source list. Procedural variants were added instead (9 building types, 18 facade colours). | procedural now; CC0 packs only with a named source |
+| 17 | I44 | The Blender-like object editor is a large feature: spec `12-object-editor` written, not started. Priority against the deploy and submission work (deadline 2026-12-04)? | after the human tasks of the roadmap |

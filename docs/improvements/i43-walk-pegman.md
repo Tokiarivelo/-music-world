@@ -25,3 +25,11 @@ Problem: in walk mode the viewer could end up inside a building with no idea whe
   trees after the first were walkable), with the building variant footprint, and takes cars, bicycles and ground
   animals at their position at `t` (`crowdPosesAt`, refreshed 5 times a second) instead of where they landed.
   Fliers and objects that left are ignored. Lakes are not obstacles.
+
+## I44 — Water, building variety
+
+- City lakes animate (`shapes/water-material.ts`, `water-store.ts`): a swell and glints, and rings spreading from the walker's feet.
+  The sea of the reef worlds is not animated yet.
+- Nine building types (villa, warehouse, twin tower and pagoda added; `house-shapes.ts`, `engine/city.ts`), 18 facade colours with a
+  per-building light/warm jitter. Four more building meshes: city draw calls 11 → 15 (check on Quest).
+- Object editor: spec `12-object-editor`, not started (open question 17).

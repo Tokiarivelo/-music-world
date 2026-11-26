@@ -50,6 +50,7 @@ import {
   viewToWorld,
   worldWidthM,
 } from "./scale";
+import { setWaterTime, setWaterWalker } from "./water-store";
 import { mapFeaturesOf, type WalkMapFeatures } from "./navigation/walk-map";
 import { bindNavigationInput } from "./navigation/navigation-input";
 import type {
@@ -579,7 +580,16 @@ async function buildWorld(
     now: () => c.now(),
     isPlaying: c.isPlaying ? () => c.isPlaying!() : undefined,
     rate: c.rate ? () => c.rate!() : undefined,
-    onFrame: () => scorePlayer.frame(),
+    onFrame: () => {
+      scorePlayer.frame();
+      // Ripples of the lakes: the shared water clock, and the walker's feet in plate units.
+      setWaterTime(performance.now() / 1000);
+      const w = nav.mode === "walk" ? nav.walkPose : null;
+      if (w && basePlan) {
+        const k = rootScale("immersive", basePlan.template.terrain.size);
+        setWaterWalker((w.x - centre.x) / k, (w.z - centre.z) / k, true);
+      } else setWaterWalker(0, 0, false);
+    },
   });
   let override: PaletteOverride | null = null;
   let layout: LayoutMode = DEFAULT_LAYOUT;

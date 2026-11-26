@@ -97,7 +97,9 @@ const CAR_PAINTS = [
   [0.36, 0.37, 0.4], [0.68, 0.07, 0.07], [0.1, 0.2, 0.55], [0.06, 0.28, 0.17], [0.92, 0.68, 0.08], [0.72, 0.63, 0.48],
 ] as const;
 const FACADES = [
-  [0.58, 0.58, 0.62], [0.58, 0.58, 0.62], [0.62, 0.32, 0.24], [0.76, 0.66, 0.46], [0.32, 0.52, 0.72], [0.86, 0.86, 0.84], [0.22, 0.28, 0.4],
+  [0.58, 0.58, 0.62], [0.62, 0.32, 0.24], [0.76, 0.66, 0.46], [0.32, 0.52, 0.72], [0.86, 0.86, 0.84], [0.22, 0.28, 0.4],
+  [0.72, 0.45, 0.3], [0.83, 0.74, 0.58], [0.55, 0.68, 0.5], [0.8, 0.55, 0.55], [0.45, 0.4, 0.5], [0.9, 0.8, 0.4],
+  [0.35, 0.55, 0.55], [0.68, 0.3, 0.32], [0.3, 0.32, 0.3], [0.78, 0.78, 0.7], [0.85, 0.6, 0.4], [0.5, 0.6, 0.8],
 ] as const;
 const NATURAL_CITY_KINDS: ReadonlySet<string> = new Set(['car', 'bicycle', 'tree', 'conifer', 'bush', 'building']);
 const unitHash = (n: number): number => {
@@ -462,7 +464,7 @@ export class StructureView implements WorldView {
       this.site.scaffold.setMatrixAt(counts.scaffold++, this.siteM);
     }
     const full = s.full ?? this.plan.records[s.index]!.height;
-    if (counts.crane < SITE_CAPACITY && full > 0.55 && s.variant !== 1 && s.variant !== 3) {
+    if (counts.crane < SITE_CAPACITY && full > 0.55 && s.variant !== 1 && s.variant !== 3 && s.variant !== 5 && s.variant !== 6) {
       const reach = footprint * 0.62;
       const c = Math.cos(s.yaw);
       const sn = Math.sin(s.yaw);
@@ -482,7 +484,13 @@ export class StructureView implements WorldView {
       this.color.setRGB(p[0], p[1], p[2]).multiplyScalar(0.95);
     } else if (kind === 'building') {
       const f = FACADES[Math.floor(u * FACADES.length)]!;
-      this.color.setRGB(f[0], f[1], f[2]).multiplyScalar(0.8 + 0.5 * Math.min(1, emissive));
+      const j = unitHash(seed * 3.7 + 1);
+      // Every building gets its own tone: the palette colour, a little lighter or darker and warmer or cooler.
+      const light = 0.78 + 0.4 * j;
+      const warm = (unitHash(seed * 5.1 + 2) - 0.5) * 0.14;
+      this.color
+        .setRGB(f[0] * (1 + warm), f[1], f[2] * (1 - warm))
+        .multiplyScalar(light * (0.8 + 0.5 * Math.min(1, emissive)));
     } else {
       let n = 0;
       foliageTint(kind, () => unitHash(seed + ++n * 7.7), this.color).multiplyScalar(0.62);
