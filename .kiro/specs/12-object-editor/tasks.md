@@ -52,3 +52,11 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
 - [x] 5.2 Undo / redo command stack, reset to stock, diff against stock
 - [x] 5.3 Live triangle and draw-call budgets, enforced
 - [x] 5.4 Save with the template, validation, end-to-end acceptance test, docs, handoff, PR merged
+
+## Phase 6 — Object workspace (`phase-I50-object-workspace`)
+
+- [x] 6.1 Inventory thumbnails draw the authored 3D model the world uses (not the generic procedural shape)
+- [x] 6.2 Framework-free WebGL stage (`object-stage`): orbit, grid, gizmo, picking, shading, views, snap; pure `gizmo-math` + tests
+- [x] 6.3 Full-screen workspace: tool shelf, outliner, properties, view options, status bar, shortcuts, i18n en/fr/mg
+- [x] 6.4 Extra tools: radial array, reset transform, drop to floor, centre on axis, isolate; docs, handoff, PR merged
+

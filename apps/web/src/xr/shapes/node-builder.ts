@@ -195,6 +195,16 @@ function localMatrix(node: PartNode): Matrix4 {
   );
 }
 
+/** Object-space matrix of every node (position and rotation down the parent chain; a parent's size is not inherited). */
+export function nodeWorldMatrices(nodes: readonly PartNode[]): Map<string, Matrix4> {
+  const world = new Map<string, Matrix4>();
+  for (const node of nodes) {
+    const parent = node.parent ? world.get(node.parent) : undefined;
+    world.set(node.id, (parent ? parent.clone() : new Matrix4()).multiply(localMatrix(node)));
+  }
+  return world;
+}
+
 /** A part with no tint, no glow and the kind's own roughness. */
 export const plainMaterial = (): PartNode["material"] => ({ color: null, colorRole: null, emissive: 0, roughness: null, texture: "none" });
 

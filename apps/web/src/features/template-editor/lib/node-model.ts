@@ -156,6 +156,42 @@ export function arrayNode(nodes: readonly PartNode[], id: string, axis: Axis, co
   return insertAfterSubtree(nodes, id, all);
 }
 
+/** `count` copies of a part spread around the vertical axis of its parent (columns around a tower, petals of a flower). */
+export function radialArrayNode(nodes: readonly PartNode[], id: string, count: number): PartNode[] {
+  const n = Math.min(ARRAY_MAX, Math.max(ARRAY_MIN, Math.round(Number.isFinite(count) ? count : ARRAY_MIN)));
+  const size = subtreeIds(nodes, id).size;
+  if (!nodes.some((x) => x.id === id) || nodes.length + size * (n - 1) > MAX_NODES) return [...nodes];
+  const used = [...nodes];
+  const all: PartNode[] = [];
+  for (let i = 1; i < n; i += 1) {
+    const angle = (2 * Math.PI * i) / n;
+    all.push(...cloneSubtree(nodes, id, used, (c, root) => {
+      if (!root) return c;
+      const x = c.position?.x ?? 0;
+      const z = c.position?.z ?? 0;
+      const turned = { x: x * Math.cos(angle) + z * Math.sin(angle), z: -x * Math.sin(angle) + z * Math.cos(angle) };
+      return {
+        ...c,
+        name: `${c.name} ${i + 1}`.slice(0, NODE_NAME_MAX),
+        position: { x: clampNode('px', Math.round(turned.x * 1000) / 1000), y: c.position?.y ?? 0, z: clampNode('pz', Math.round(turned.z * 1000) / 1000) },
+        rotation: { x: c.rotation?.x ?? 0, y: clampNode('ry', ((c.rotation?.y ?? 0) + (angle * 180) / Math.PI + 180) % 360 - 180), z: c.rotation?.z ?? 0 },
+      };
+    }));
+  }
+  return insertAfterSubtree(nodes, id, all);
+}
+
+export type TransformPart = 'position' | 'rotation' | 'size';
+
+/** Puts position, rotation or size of a part back to the neutral value (origin, no turn, the default size). */
+export function resetNodeTransform(nodes: readonly PartNode[], id: string, part: TransformPart): PartNode[] {
+  return nodes.map((n) => {
+    if (n.id !== id) return n;
+    if (part === 'size') return { ...n, size: { x: 0.3, y: 0.3, z: 0.3 } };
+    return { ...n, [part]: { x: 0, y: 0, z: 0 } };
+  });
+}
+
 /** Moves a part by `delta` metres along `axis` (clamped); the gizmo and the nudge buttons use it. */
 export function nudgeNode(nodes: readonly PartNode[], id: string, axis: Axis, delta: number): PartNode[] {
   const node = nodes.find((n) => n.id === id);
