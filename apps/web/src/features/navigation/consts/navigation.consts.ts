@@ -3,4 +3,5 @@ export const NAV_LINKS = [
   { href: "/upload", key: "navNewSong" },
   { href: "/playlist", key: "navPlaylist" },
   { href: "/templates", key: "navTemplates" },
+  { href: "/maps", key: "navMaps" },
 ] as const;
