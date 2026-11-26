@@ -36,7 +36,7 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 3. Next actions
 
-0. **Agent** — object editor and map creator, phase 2 (inventory, part tree panel, inspector): `.kiro/specs/12-object-editor/tasks.md` § Phase 2, briefing `docs/next-task-object-editor.md`; phase 1 (part tree schema, `buildNodeGeometries`, `recipeToNodes`, `stock-recipes.ts`) is done. Then look at cars close up in a real
+0. **Agent** — object editor and map creator, phase 3 (map creator MVP): `.kiro/specs/12-object-editor/tasks.md` § Phase 3, briefing `docs/next-task-object-editor.md`; phases 1–2 (part tree, inventory, outliner, inspector, viewport) are done. Then look at cars close up in a real
    browser (`/play/demo`, Walk) and the small black blobs near trees in the city view; Quest 3 check of the traffic cost.
 
 Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Submission deadline **2026-12-04 14:00 PT**.
@@ -96,7 +96,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | I8 lighting (blob shadows, wind), IWER check | Claude Code | done | PR phase-I8c-object-lighting; 58 draw calls in IWER |
 | I19-I21 polished, textured and modelled objects (12 CC0 GLB in `public/models`) (lit PBR, sky reflections, CC0 detail textures, `fx.material`) | Claude Code | done | PR phase-I19-polished-objects; report `docs/improvements/i19-polished-objects.md` |
 | I39–I41 city, playlist, layouts, traffic | Claude Code | done | branch `phase-I39-living-city`, PR to open |
-| 12-object-editor phase 1 (1.1–1.6) | Claude Code | done | branch `phase-I45-part-tree`; phases 2–5 todo, one commit per task |
+| 12-object-editor phases 1–2 (1.1–2.6) | Claude Code | done | branches `phase-I45-part-tree`, `phase-I46-object-inventory`; phases 3–5 todo, one commit per task |
 | I8 GLB/LOD, Quest 3 check | — | blocked | human: GLB needs the sourcing decision (`docs/open-questions.md` 1–2, 12) |
 | I10 R2 bucket + seed | — | blocked | human: bucket, API token, `--only` seed |
 | I9 task 9, I16, I5–I7 Quest checks | — | blocked | human: Quest 3 |
@@ -133,5 +133,5 @@ The daily ones. The rest (API, web/XR, tooling): `docs/pitfalls.md`, read the gr
 | 08-navigation-mode | 1–6 done | — (human: try it on a phone) | design.md § As built |
 | 09-template-editor | 1–11 done | — (recipe editing done, phase A5) | design.md § As built |
 | 10-template-moderation | 6/7 done | 7 (human: review a real hidden template) | design.md § As built |
-| 12-object-editor | phase 1 done (1.1–1.6) | 2.1 inventory | tasks.md § Phase 2; design.md § As built (phase 1) |
+| 12-object-editor | phases 1–2 done (1.1–2.6) | 3.1 placed objects schema | tasks.md § Phase 3; design.md § As built (phases 1–2) |
 | 11-editable-notes | 1–8, 10 done | 9 (Quest, human); VR panel line list | design.md § As built |
