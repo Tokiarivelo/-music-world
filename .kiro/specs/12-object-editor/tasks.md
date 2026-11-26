@@ -30,7 +30,7 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
 ## Phase 3 — Map creator MVP (`phase-I47-map-creator`)
 
 - [x] 3.1 Schema: `PlacedObject` list and `WorldLayout` map fields (`placed`), `make schemas`, API validation
-- [ ] 3.2 Pure `map-model` (create map from empty plate or stock template, place, move, remove, copy, array, snap) + tests
+- [x] 3.2 Pure `map-model` (create map from empty plate or stock template, place, move, remove, copy, array, snap) + tests
 - [ ] 3.3 Engine: placed objects stand as fixed scenery before the first note (`worldStateAt` unchanged), tests
 - [ ] 3.4 Map editor page: create dialog (environment, plate size, seed, name), ground click placement, selection, delete
 - [ ] 3.5 Gizmo move / rotate / scale, box select, replace kind or variant
