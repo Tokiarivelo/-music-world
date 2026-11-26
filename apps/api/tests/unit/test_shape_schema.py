@@ -209,3 +209,17 @@ def test_boolean_nodes_need_an_uncombined_parent() -> None:
         _recipe({"id": "door", "name": "Door", "operation": "subtract"})
     with pytest.raises(ValidationError):
         _recipe(base, cut, {"id": "knob", "name": "Knob", "parent": "door", "operation": "union"})
+
+
+def _box_recipe(**extra: object) -> dict[str, object]:
+    return {"name": "villa", "parts": [{"op": "box", "of": "box"}], **extra}
+
+
+def test_variants_round_trip_and_are_bounded() -> None:
+    recipe = ShapeRecipe.model_validate(_box_recipe(variants=[{"name": "Tall", "height": 1.4, "jitter": 0.2}]))
+    assert ShapeRecipe.model_validate(recipe.model_dump(by_alias=True)).variants[0].height == 1.4
+    for bad in ({"name": "x", "height": 2}, {"name": "x", "jitter": 0.9}):
+        with pytest.raises(ValidationError):
+            ShapeRecipe.model_validate(_box_recipe(variants=[bad]))
+    with pytest.raises(ValidationError):
+        ShapeRecipe.model_validate(_box_recipe(variants=[{"name": str(i)} for i in range(10)]))
