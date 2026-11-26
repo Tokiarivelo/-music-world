@@ -106,3 +106,22 @@
   extrusions included; the old `recipeTriangles` ignored part trees) and `drawCallEstimate` (12 fixed meshes + one per
   kind in use, limit 100). `BudgetMeter` in the object editor shows both live. Enforced: `recipeBudget` (live triangles
   above the recipe budget) and `drawCalls` (estimate above 100) are validation errors, so saving is refused.
+
+## As built (phase 6, object workspace)
+
+- Clicking an object in the inventory opens `ObjectWorkspace` (full screen, `components/ObjectWorkspace.tsx`), replacing the
+  old sidebar part editor and its 2D canvas (`ObjectEditor`, `PartTreePanel`, `ObjectViewport` are removed). The world preview
+  is unmounted while it is open (no second WebGL loop). Built-in objects still start with "Edit a copy".
+- `lib/object-stage.ts` is the framework-free 3D stage (three `OrbitControls` + `TransformControls`, no new package): one mesh
+  per part piece from `buildNodePieces`, flat shading, edge overlay, solid / wire / x-ray, orthographic or perspective,
+  front / back / side / top views, grid and axes, isolate, snap (move, turn, scale). It only draws and reports: a click
+  picks a part, a finished drag returns a new node list. While dragging, the part and its children follow the pivot as a
+  preview; the edit lands on release and goes through the same `useObjectHistory` (one undo step per drag).
+- `lib/gizmo-math.ts` converts an object-space pose back to local fields (`moveNodeTo`, `rotateNodeTo`, `scaleNodeBy`,
+  parent frame, Euler order y, x, z, clamped to the field bounds); also `dropToFloor`, `centerOnAxis`.
+  `node-model.ts` gained `radialArrayNode` and `resetNodeTransform`. `lib/shortcuts.ts` holds the Blender-like keys
+  (Q G R S, Shift+D, X, H, F, /, 1 3 7, 5, Shift+S, T, Ctrl+Z, Esc, ?).
+- Inventory thumbnails load the authored GLB (`lib/model-mesh.ts`, `loadModelGeometry` + `fitModel`) for kinds that have one.
+- Limits: single selection (no box select), no re-parenting by drag in the outliner, the scale gizmo changes a part's size
+  only (children keep theirs), the stage is not unit-tested (no WebGL in jsdom): checked in headless Chromium.
+

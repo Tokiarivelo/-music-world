@@ -14,7 +14,7 @@ import { createDraftStore, type DraftStore } from '../store/template-draft.store
 import { EditorActions } from './EditorActions';
 import { EditorForm } from './EditorForm';
 import { InventoryPanel } from './InventoryPanel';
-import { ObjectEditor } from './ObjectEditor';
+import { ObjectWorkspace } from './ObjectWorkspace';
 import { WorldPreview } from './WorldPreview';
 
 const PANEL_ID = 'editor-panel';
@@ -38,7 +38,7 @@ function Editor({ source, projectId }: { source: Template; projectId: string | n
   return (
     <div className="relative h-dvh overflow-hidden">
       <section className="absolute inset-0 [contain:layout_paint]" aria-label={t('previewLabel')}>
-        <WorldPreview state={state} projectId={projectId} />
+        {selected === null && <WorldPreview state={state} projectId={projectId} />}
         {state.errors.length > 0 && (
           <p className="absolute right-3 top-3 z-10 rounded bg-[var(--mw-bg)]/80 px-3 py-1 text-xs">{t('previewNote')}</p>
         )}
@@ -67,9 +67,10 @@ function Editor({ source, projectId }: { source: Template; projectId: string | n
         <p className="text-sm opacity-80">{t('source', { name: state.source.name })}</p>
         <EditorActions state={state} signedIn={session.user !== null} saver={saver} onReset={store.reset} />
         <InventoryPanel draft={state.draft} selected={selected} onSelect={setSelected} />
-        {selected && <ObjectEditor key={selected} draft={state.draft} update={store.update} kind={selected} onSelectKind={setSelected} />}
+        
         <EditorForm draft={state.draft} errors={state.errors} update={store.update} />
       </aside>
+      {selected && <ObjectWorkspace key={selected.split(':')[0] === 'recipe' ? 'recipe' : selected} draft={state.draft} update={store.update} kind={selected} onSelectKind={setSelected} onClose={() => setSelected(null)} />}
     </div>
   );
 }

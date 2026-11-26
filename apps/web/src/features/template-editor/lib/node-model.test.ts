@@ -182,4 +182,28 @@ describe('variants', () => {
     t = removeVariant(t, 0, 0);
     expect(list(t)).toHaveLength(MAX_VARIANTS - 1);
   });
+
+  it('spreads a part around the vertical axis (radial array)', () => {
+    const root = house.find((n) => !n.parent)!;
+    const out = m.radialArrayNode(house, root.id, 4);
+    expect(out.length).toBeGreaterThan(house.length);
+    expect(valid(out)).toBe(true);
+    const copies = out.filter((n) => /^.* [234]$/.test(n.name) && !house.some((h) => h.id === n.id));
+    expect(copies).toHaveLength(3);
+    const r = Math.hypot(root.position?.x ?? 0, root.position?.z ?? 0);
+    for (const c of copies) expect(Math.hypot(c.position?.x ?? 0, c.position?.z ?? 0)).toBeCloseTo(r, 2);
+  });
+
+  it('leaves the tree alone when a radial array would overflow it', () => {
+    const full = Array.from({ length: m.MAX_NODES }, (_, i) => ({ ...house[0]!, id: `p_${i}`, parent: null })) as PartNode[];
+    expect(m.radialArrayNode(full, 'p_0', 3)).toEqual(full);
+  });
+
+  it('resets position, rotation or size of one part', () => {
+    const moved = m.setNodeNumber(m.setNodeNumber(house, 'walls', 'px', 0.4), 'walls', 'ry', 30);
+    expect(m.resetNodeTransform(moved, 'walls', 'position').find((n) => n.id === 'walls')!.position).toEqual({ x: 0, y: 0, z: 0 });
+    expect(m.resetNodeTransform(moved, 'walls', 'rotation').find((n) => n.id === 'walls')!.rotation).toEqual({ x: 0, y: 0, z: 0 });
+    expect(m.resetNodeTransform(moved, 'walls', 'size').find((n) => n.id === 'walls')!.size).toEqual({ x: 0.3, y: 0.3, z: 0.3 });
+    expect(m.resetNodeTransform(moved, 'walls', 'position').find((n) => n.id === 'roof')).toEqual(moved.find((n) => n.id === 'roof'));
+  });
 });
