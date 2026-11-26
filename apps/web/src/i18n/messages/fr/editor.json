@@ -302,5 +302,13 @@
   "part.hint.shrink": "De combien chaque étage est plus étroit que celui du dessous.",
   "part.hint.count": "Nombre de copies du groupe.",
   "part.hint.spread": "Distance des copies au centre.",
-  "part.hint.seedOffset": "Change les hauteurs et les angles des copies."
+  "part.hint.seedOffset": "Change les hauteurs et les angles des copies.",
+  "material.texture": "Texture",
+  "material.textureHint": "Un motif dessiné sur la pièce, en mètres, sans fichier image. Il se multiplie à la couleur. Visible dans le monde, pas dans cet aperçu.",
+  "material.texture.none": "Aucune",
+  "material.texture.brick": "Brique",
+  "material.texture.wood": "Bois",
+  "material.texture.stone": "Pierre",
+  "material.texture.tile": "Carrelage",
+  "material.texture.glass": "Verre"
 }

@@ -26,6 +26,7 @@ NodeId = Annotated[str, StringConstraints(pattern=r"^[a-z0-9_]{1,24}$")]
 NodeName = Annotated[str, StringConstraints(min_length=1, max_length=40)]
 PartColorRole = Literal["primary", "accent", "secondary", "staff", "line"]
 PartHex = Annotated[str, StringConstraints(pattern=r"^#[0-9a-fA-F]{6}$")]
+PartTexture = Literal["none", "brick", "wood", "stone", "tile", "glass"]
 MAX_NODES = 48
 MAX_NODE_DEPTH = 4
 SPHERE_SEGMENTS = 8  # mirrored by SPHERE_SEGMENTS / SPHERE_RINGS in xr/shapes/node-builder.ts
@@ -114,6 +115,7 @@ class PartMaterial(ContractModel):
     color_role: PartColorRole | None = Field(default=None, description="Tint taken from the template palette.")
     emissive: float = Field(default=0, ge=0, le=1, description="Glow: 0 none, 1 about 60 % brighter.")
     roughness: float | None = Field(default=None, ge=0, le=1, description="0 mirror-like, 1 matte (lit material only).")
+    texture: PartTexture = Field(default="none", description="Procedural pattern drawn by the shader (no image file).")
 
 
 class PartNode(ContractModel):

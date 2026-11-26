@@ -13,6 +13,7 @@ import { BoxGeometry, BufferGeometry, ConeGeometry, CylinderGeometry, Float32Buf
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '@/engine/prng';
 import { buildNodeGeometries, type PartPalette } from './node-builder';
+import { TEXTURE_ATTRIBUTE } from './part-textures';
 import type { Template } from '@/templates/generated';
 
 export type ShapeRecipe = NonNullable<Template['recipes']>[number];
@@ -126,6 +127,11 @@ export function buildRecipeGeometry(recipe: ShapeRecipe, palette?: PartPalette):
     for (const g of pieces) {
       if (g.hasAttribute('color')) continue;
       g.setAttribute('color', new Float32BufferAttribute(new Float32Array(g.getAttribute('position').count * 3).fill(1), 3));
+    }
+  }
+  if (pieces.some((g) => g.hasAttribute(TEXTURE_ATTRIBUTE))) {
+    for (const g of pieces) {
+      if (!g.hasAttribute(TEXTURE_ATTRIBUTE)) g.setAttribute(TEXTURE_ATTRIBUTE, new Float32BufferAttribute(new Float32Array(g.getAttribute('position').count), 1));
     }
   }
   const merged = pieces.length > 0 ? mergeGeometries(pieces) : null;

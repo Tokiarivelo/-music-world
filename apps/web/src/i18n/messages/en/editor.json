@@ -302,5 +302,13 @@
   "part.hint.shrink": "How much narrower each floor is than the one below.",
   "part.hint.count": "Number of copies in the group.",
   "part.hint.spread": "How far the copies are from the centre.",
-  "part.hint.seedOffset": "Changes the heights and angles of the copies."
+  "part.hint.seedOffset": "Changes the heights and angles of the copies.",
+  "material.texture": "Texture",
+  "material.textureHint": "A pattern drawn on the part, in metres, without any image file. It multiplies the colour. It shows in the world view, not in this small preview.",
+  "material.texture.none": "None",
+  "material.texture.brick": "Brick",
+  "material.texture.wood": "Wood",
+  "material.texture.stone": "Stone",
+  "material.texture.tile": "Tile",
+  "material.texture.glass": "Glass"
 }

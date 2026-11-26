@@ -42,7 +42,7 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
 
 - [x] 4.1 Transform tools (numeric + nudge), mirror, array
 - [x] 4.2 Material per part: palette role or colour, emissive, roughness (+ field hints and sliders in the template editor)
-- [ ] 4.3 Procedural textures (brick, wood, stone, tile, glass)
+- [x] 4.3 Procedural textures (brick, wood, stone, tile, glass)
 - [ ] 4.4 Extrude, bevel, boolean union and subtract
 - [ ] 4.5 Docs, handoff, PR merged
 

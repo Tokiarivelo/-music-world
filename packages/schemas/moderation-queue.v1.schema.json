@@ -688,6 +688,20 @@
           "default": null,
           "description": "0 mirror-like, 1 matte (lit material only).",
           "title": "Roughness"
+        },
+        "texture": {
+          "default": "none",
+          "description": "Procedural pattern drawn by the shader (no image file).",
+          "enum": [
+            "none",
+            "brick",
+            "wood",
+            "stone",
+            "tile",
+            "glass"
+          ],
+          "title": "Texture",
+          "type": "string"
         }
       },
       "title": "PartMaterial",
@@ -785,7 +799,8 @@
             "color": null,
             "colorRole": null,
             "emissive": 0.0,
-            "roughness": null
+            "roughness": null,
+            "texture": "none"
           }
         }
       },

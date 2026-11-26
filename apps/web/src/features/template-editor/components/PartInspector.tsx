@@ -4,7 +4,7 @@ import { useId } from 'react';
 import { useT } from '@/i18n';
 import { BUTTON, CONTROL } from '../consts/ui.consts';
 import {
-  NODE_BOUNDS, PART_ROLES, PRIMITIVES, readNodeField, setNodeMaterial, setNodeNumber, setNodePrimitive,
+  NODE_BOUNDS, PART_ROLES, PART_TEXTURES, PRIMITIVES, readNodeField, setNodeMaterial, setNodeNumber, setNodePrimitive,
   type NodeField, type NodePrimitive, type PartNode,
 } from '../lib/node-model';
 
@@ -104,6 +104,20 @@ export function PartInspector({ nodes, node, onChange }: { nodes: readonly PartN
             ))}
           </select>
           <span className="text-xs opacity-60">{t('material.roleHint')}</span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor={`${primitiveId}-texture`} className="text-xs opacity-80">{t('material.texture')}</label>
+          <select
+            id={`${primitiveId}-texture`}
+            className={CONTROL}
+            value={node.material.texture}
+            onChange={(e) => onChange(setNodeMaterial(nodes, node.id, { texture: e.target.value as (typeof PART_TEXTURES)[number] }))}
+          >
+            {PART_TEXTURES.map((x) => (
+              <option key={x} value={x}>{t(`material.texture.${x}`)}</option>
+            ))}
+          </select>
+          <span className="text-xs opacity-60">{t('material.textureHint')}</span>
         </div>
         <div className="flex gap-2">
           <NumberField label={t('material.emissive')} field="taper" value={node.material.emissive} onChange={(v) => onChange(setNodeMaterial(nodes, node.id, { emissive: v }))} />

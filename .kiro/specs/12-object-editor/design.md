@@ -75,3 +75,9 @@
   `sceneFaces`). Zones are explained: intro text, a top-view `ZoneMap` (far edge up, numbered like the list), quick
   placements (`zone-model.ts`: whole, halves, centre), coverage %, and bound hints (-1 edge, 0 centre, 1 edge). Rules,
   recipes and recipe parts have hints too.
+- 4.3: `PartMaterial.texture` (`none, brick, wood, stone, tile, glass`). No image: `xr/shapes/part-textures.ts` adds a
+  per-vertex `aTex` id (only when a part is textured) and `addPartTextures(material)` patches the fragment shader of
+  the recipe kind's material (lit or flat; keeps an earlier `onBeforeCompile`, so swim and sway still work). The
+  pattern is drawn in object-space metres on the plane a face looks along (normal from screen derivatives) and
+  multiplies the colour. Limits: not shown in the 2D editor preview; the old `horizon-view` material is not patched;
+  instances that grow from zero scale stretch the pattern while they grow (`vMwObj` follows the instance scale).

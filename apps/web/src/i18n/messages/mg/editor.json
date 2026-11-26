@@ -302,5 +302,13 @@
   "part.hint.shrink": "Hakeliky ny rihana tsirairay.",
   "part.hint.count": "Isan’ny dika.",
   "part.hint.spread": "Halavirana avy amin’ny afovoany.",
-  "part.hint.seedOffset": "Manova ny haavo sy ny zoro."
+  "part.hint.seedOffset": "Manova ny haavo sy ny zoro.",
+  "material.texture": "Texture",
+  "material.textureHint": "Motif aseho eo amin’ny ampahany, amin’ny metatra, tsy misy sary. Ampitomboina amin’ny loko. Hita ao amin’ny tontolo, tsy ato amin’ity topi-maso kely ity.",
+  "material.texture.none": "Tsy misy",
+  "material.texture.brick": "Biriky",
+  "material.texture.wood": "Hazo",
+  "material.texture.stone": "Vato",
+  "material.texture.tile": "Tuile",
+  "material.texture.glass": "Fitaratra"
 }

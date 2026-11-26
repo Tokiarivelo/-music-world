@@ -20,6 +20,7 @@ import {
   Vector3,
 } from "three";
 import type { Template } from "@/templates/generated";
+import { TEXTURE_ATTRIBUTE, textureId } from "./part-textures";
 
 type Recipe = NonNullable<Template["recipes"]>[number];
 export type PartNode = Recipe["nodes"][number];
@@ -113,7 +114,7 @@ function localMatrix(node: PartNode): Matrix4 {
 }
 
 /** A part with no tint, no glow and the kind's own roughness. */
-export const plainMaterial = (): PartNode["material"] => ({ color: null, colorRole: null, emissive: 0, roughness: null });
+export const plainMaterial = (): PartNode["material"] => ({ color: null, colorRole: null, emissive: 0, roughness: null, texture: "none" });
 
 /** Palette roles a part can take its tint from (`PartMaterial.colorRole`). */
 export type PartPalette = Partial<Record<string, string>>;
@@ -140,6 +141,7 @@ export function buildNodeGeometries(
   palette?: PartPalette,
 ): BufferGeometry[] {
   const painted = hasPartLook(nodes);
+  const textured = nodes.some((n) => !n.hidden && textureId(n.material?.texture) > 0);
   const world = new Map<string, Matrix4>();
   const out: BufferGeometry[] = [];
   for (const node of nodes) {
@@ -159,6 +161,10 @@ export function buildNodeGeometries(
       const colors = new Float32Array(count * 3);
       for (let v = 0; v < count; v++) colors.set([r, gr, b], v * 3);
       g.setAttribute("color", new Float32BufferAttribute(colors, 3));
+    }
+    if (textured) {
+      const count = g.getAttribute("position").count;
+      g.setAttribute(TEXTURE_ATTRIBUTE, new Float32BufferAttribute(new Float32Array(count).fill(textureId(node.material?.texture)), 1));
     }
     out.push(g);
   }

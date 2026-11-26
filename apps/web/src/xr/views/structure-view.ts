@@ -38,6 +38,7 @@ import { objectScale, scaleStore } from '../scale';
 import { lightness, structureColor } from '../palette';
 import { buildShapeGeometry } from '../shapes/builtin-shapes';
 import { recipeRoughness } from '../shapes/recipe-builder';
+import { addPartTextures, TEXTURE_ATTRIBUTE } from '../shapes/part-textures';
 import { fitModel, hasModel, isNaturalModel, loadModelGeometry, MODEL_VARIANTS, MODELS, variantOf } from '../shapes/model-catalog';
 import { withLitAttributes } from '../shapes/lit-geometry';
 import {
@@ -216,6 +217,7 @@ export class StructureView implements WorldView {
               : FOLIAGE_KINDS.has(track.kind)
                 ? foliageMaterial()
                 : new MeshBasicMaterial({ color: 0xffffff, vertexColors: geometry.hasAttribute('color') });
+      if (geometry.hasAttribute(TEXTURE_ATTRIBUTE)) addPartTextures(material);
       this.materials.set(track.kind, material);
       if (lit) this.litKinds.add(track.kind);
       const mesh = new InstancedMesh(geometry, material, capacity);

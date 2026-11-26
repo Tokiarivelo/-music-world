@@ -122,4 +122,11 @@ describe('node-model', () => {
     expect(m.setNodeMaterial(b, 'roof', { color: 'nope' }).find((n) => n.id === 'roof')!.material.color).toBeNull();
     expect(b.find((n) => n.id === 'walls')!.material).toEqual(house.find((n) => n.id === 'walls')!.material);
   });
+
+  it('sets a texture and ignores an unknown one', () => {
+    const a = m.setNodeMaterial(house, 'roof', { texture: 'brick' });
+    expect(a.find((n) => n.id === 'roof')!.material.texture).toBe('brick');
+    const b = m.setNodeMaterial(a, 'roof', { texture: 'lava' as never });
+    expect(b.find((n) => n.id === 'roof')!.material.texture).toBe('brick');
+  });
 });

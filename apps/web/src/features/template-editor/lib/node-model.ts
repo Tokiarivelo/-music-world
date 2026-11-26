@@ -1,4 +1,5 @@
 import { plainMaterial } from '@/xr/shapes/node-builder';
+import { PART_TEXTURES } from '@/xr/shapes/part-textures';
 import type { Template } from '@/templates/generated';
 
 /** Pure, immutable edits of a recipe's part tree (`recipe.nodes`, flat, parents first). Mirrors `shape.py` limits. */
@@ -222,7 +223,8 @@ export function updateNodes(template: Template, index: number, change: (nodes: r
 }
 
 export type NodeMaterial = PartNode['material'];
-export type MaterialPatch = Partial<Pick<NodeMaterial, 'color' | 'colorRole' | 'emissive' | 'roughness'>>;
+export type MaterialPatch = Partial<Pick<NodeMaterial, 'color' | 'colorRole' | 'emissive' | 'roughness' | 'texture'>>;
+export { PART_TEXTURES };
 export const PART_ROLES = ['primary', 'accent', 'secondary', 'staff', 'line'] as const;
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
@@ -242,6 +244,7 @@ export function setNodeMaterial(nodes: readonly PartNode[], id: string, patch: M
     }
     if (patch.emissive !== undefined) next.emissive = unit(patch.emissive);
     if ('roughness' in patch) next.roughness = patch.roughness === null || patch.roughness === undefined ? null : unit(patch.roughness);
+    if (patch.texture !== undefined && (PART_TEXTURES as readonly string[]).includes(patch.texture)) next.texture = patch.texture;
     return { ...n, material: next };
   });
 }
