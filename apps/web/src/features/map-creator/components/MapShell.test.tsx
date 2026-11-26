@@ -1,5 +1,14 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Template } from '@/templates/generated';
+
+const previewed: Template[] = [];
+vi.mock('@/features/player', () => ({
+  PreviewPlayback: ({ template }: { template: Template }) => {
+    previewed.push(template);
+    return <div data-testid="world">{template.name}</div>;
+  },
+}));
 import { MapShell } from './MapShell';
 
 afterEach(cleanup);
@@ -50,5 +59,17 @@ describe('MapShell', () => {
     expect(panel.getAttribute('aria-hidden')).toBe('true');
     fireEvent.click(screen.getByRole('button', { name: 'Show panel' }));
     expect(panel.getAttribute('aria-hidden')).toBe('false');
+  });
+
+  it('previews the unsaved map in the world view and comes back with the state kept', async () => {
+    await createMap();
+    click(screen.getByRole('application'), 320, 320);
+    await waitFor(() => expect(screen.getByText('1 of 400 objects')).toBeTruthy());
+    fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
+    expect(screen.getByTestId('world').textContent).toBe('Test map');
+    expect(previewed.at(-1)!.layout!.placed).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Back to the editor' }));
+    expect(screen.queryByTestId('world')).toBeNull();
+    expect(screen.getByText('1 of 400 objects')).toBeTruthy();
   });
 });

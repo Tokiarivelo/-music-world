@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { PreviewPlayback } from '@/features/player';
 import { useEditorSource } from '@/features/template-editor/hooks/use-editor-source';
 import { useT } from '@/i18n';
 import { GLASS_PANEL, GLASS_PILL } from '@/lib/glass';
@@ -24,6 +25,7 @@ function MapEditor({ initial, source }: { initial: Template | null; source: Temp
   const [snap, setSnap] = useState(1);
   const [selection, setSelection] = useState<string[]>([]);
   const [preview, setPreview] = useState<Template | null>(null);
+  const [previewing, setPreviewing] = useState(false);
   const shown = preview ?? draft.template;
   if (!shown || !draft.template) return <CreateMapDialog source={source} onCreate={(m) => { draft.open(m); setSelection([]); }} />;
   const current = draft.template;
@@ -49,6 +51,12 @@ function MapEditor({ initial, source }: { initial: Template | null; source: Temp
           onDelete={remove}
         />
       </section>
+      {previewing && (
+        <div className="absolute inset-0 z-40 bg-[var(--mw-bg)]" role="region" aria-label={t('preview.label')}>
+          <PreviewPlayback template={current} />
+          <button type="button" className={`${GLASS_BUTTON} absolute left-3 top-3 z-50`} onClick={() => setPreviewing(false)}>{t('preview.back')}</button>
+        </div>
+      )}
       {!open && <button type="button" className={`${GLASS_BUTTON} absolute left-3 top-3 z-30`} aria-expanded={false} aria-controls={PANEL_ID} onClick={() => setOpen(true)}>{t('panel.show')}</button>}
       <aside
         id={PANEL_ID}
@@ -62,6 +70,7 @@ function MapEditor({ initial, source }: { initial: Template | null; source: Temp
           <button type="button" className={GLASS_BUTTON} aria-expanded={open} aria-controls={PANEL_ID} onClick={() => setOpen(false)}>{t('panel.hide')}</button>
         </div>
         <h1 className="text-xl font-semibold">{current.name}</h1>
+        <button type="button" className={`${GLASS_BUTTON} self-start`} onClick={() => setPreviewing(true)}>{t('preview')}</button>
         <p className="text-sm opacity-80">{t('intro')}</p>
         <MapPanel
           template={current}

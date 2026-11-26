@@ -34,7 +34,7 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
 - [x] 3.3 Engine: placed objects stand as fixed scenery before the first note (`worldStateAt` unchanged), tests
 - [x] 3.4 Map editor page: create dialog (environment, plate size, seed, name), ground click placement, selection, delete
 - [x] 3.5 Gizmo move / rotate / scale, box select, replace kind or variant
-- [ ] 3.6 Preview button: same world view as `/play/<id>` on the draft, back keeps the state
+- [x] 3.6 Preview button: same world view as `/play/<id>` on the draft, back keeps the state
 - [ ] 3.7 Draft autosave in the browser, save and reopen through the API, tests
 - [ ] 3.8 Docs, handoff, PR merged
 
