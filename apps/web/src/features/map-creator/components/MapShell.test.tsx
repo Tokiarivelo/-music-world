@@ -11,7 +11,12 @@ vi.mock('@/features/player', () => ({
 }));
 import { MapShell } from './MapShell';
 
-afterEach(cleanup);
+import { MAP_DRAFT_KEY } from '../lib/map-draft-storage';
+
+afterEach(() => {
+  cleanup();
+  window.localStorage.clear();
+});
 
 async function createMap() {
   render(<MapShell from={null} />);
@@ -71,5 +76,23 @@ describe('MapShell', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Back to the editor' }));
     expect(screen.queryByTestId('world')).toBeNull();
     expect(screen.getByText('1 of 400 objects')).toBeTruthy();
+  });
+
+  it('autosaves the draft in the browser and restores it on the next visit', async () => {
+    await createMap();
+    click(screen.getByRole('application'), 320, 320);
+    await waitFor(() => expect(window.localStorage.getItem(MAP_DRAFT_KEY)).toContain('"placed":[{'));
+    cleanup();
+    render(<MapShell from={null} />);
+    expect(await screen.findByText('Draft restored from this browser.')).toBeTruthy();
+    expect(screen.getByText('1 of 400 objects')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Start a new map' }));
+    expect(await screen.findByLabelText('Map name')).toBeTruthy();
+    expect(window.localStorage.getItem(MAP_DRAFT_KEY)).toBeNull();
+  });
+
+  it('offers to sign in when signed out, instead of saving', async () => {
+    await createMap();
+    expect(screen.getByRole('link', { name: 'Sign in to save' })).toBeTruthy();
   });
 });

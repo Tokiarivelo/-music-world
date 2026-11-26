@@ -1,13 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { AUTH_ROUTES, useSession } from '@/features/auth';
 import { PreviewPlayback } from '@/features/player';
 import { useEditorSource } from '@/features/template-editor/hooks/use-editor-source';
 import { useT } from '@/i18n';
 import { GLASS_PANEL, GLASS_PILL } from '@/lib/glass';
 import type { Template } from '@/templates/generated';
+import { BUTTON } from '@/features/template-editor/consts/ui.consts';
 import { useMapDraft } from '../hooks/use-map-draft';
+import { useSaveMap } from '../hooks/use-save-map';
+import { clearMapDraft, parseMapDraft, readRawMapDraft, saveMapDraft } from '../lib/map-draft-storage';
 import { arrayPlaced, copyPlaced, placedOf, placeObject, removePlaced, replaceKind, updatePlaced, type PlacedObject } from '../lib/map-model';
 import { CreateMapDialog } from './CreateMapDialog';
 import { MapCanvas, type MapTool } from './MapCanvas';
@@ -16,9 +20,21 @@ import { MapPanel } from './MapPanel';
 const PANEL_ID = 'map-panel';
 const GLASS_BUTTON = `${GLASS_PILL} px-3 py-1 text-sm hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--mw-accent)]`;
 
-function MapEditor({ initial, source }: { initial: Template | null; source: Template | null }) {
+const AUTOSAVE_MS = 400;
+
+function MapEditor({ initial, initialId = null, fromBrowser = false, source, onDiscard }: { initial: Template | null; initialId?: string | null; fromBrowser?: boolean; source: Template | null; onDiscard(): void }) {
   const t = useT('maps');
   const draft = useMapDraft(initial);
+  const session = useSession();
+  const saver = useSaveMap(initialId);
+  const restored = fromBrowser;
+  const { template: current0 } = draft;
+  const { savedId } = saver;
+  useEffect(() => {
+    if (!current0) return;
+    const timer = setTimeout(() => saveMapDraft(current0, savedId), AUTOSAVE_MS);
+    return () => clearTimeout(timer);
+  }, [current0, savedId]);
   const [open, setOpen] = useState(true);
   const [tool, setTool] = useState<MapTool>('place');
   const [kind, setKind] = useState('tree');
@@ -70,7 +86,26 @@ function MapEditor({ initial, source }: { initial: Template | null; source: Temp
           <button type="button" className={GLASS_BUTTON} aria-expanded={open} aria-controls={PANEL_ID} onClick={() => setOpen(false)}>{t('panel.hide')}</button>
         </div>
         <h1 className="text-xl font-semibold">{current.name}</h1>
-        <button type="button" className={`${GLASS_BUTTON} self-start`} onClick={() => setPreviewing(true)}>{t('preview')}</button>
+        {restored && (
+          <p role="status" className="flex flex-wrap items-center gap-2 text-xs opacity-80">
+            {t('draft.restored')}
+            <button type="button" className="underline" onClick={() => { clearMapDraft(); onDiscard(); }}>{t('draft.discard')}</button>
+          </p>
+        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" className={GLASS_BUTTON} onClick={() => setPreviewing(true)}>{t('preview')}</button>
+          {session.user !== null ? (
+            <button type="button" className={BUTTON} disabled={saver.status === 'saving'} onClick={() => saver.save(current)}>
+              {saver.status === 'saving' ? t('save.saving') : t('save')}
+            </button>
+          ) : (
+            <Link className={BUTTON} href={AUTH_ROUTES.signIn}>{t('save.signIn')}</Link>
+          )}
+        </div>
+        <div role="status" className="text-xs">
+          {saver.status === 'saved' && t('save.done', { name: current.name })}
+        </div>
+        {saver.status === 'error' && <p role="alert" className="text-xs text-[var(--mw-accent)]">{t('save.error', { reason: t.error(saver.errorKey) })}</p>}
         <p className="text-sm opacity-80">{t('intro')}</p>
         <MapPanel
           template={current}
@@ -103,11 +138,30 @@ function MapEditor({ initial, source }: { initial: Template | null; source: Temp
   );
 }
 
-/** `/maps?from=<id>`: create a map (empty plate or a copy of a template), then place and edit objects on it. */
-export function MapShell({ from }: { from: string | null }) {
+const noopSubscribe = (): (() => void) => () => undefined;
+
+/** The map kept in this browser: nothing on the server render, read on the client (so hydration never mismatches). */
+function useBrowserDraft() {
+  const raw = useSyncExternalStore(noopSubscribe, () => readRawMapDraft(), () => null);
+  return useMemo(() => parseMapDraft(raw), [raw]);
+}
+
+/** `/maps?from=<id>` (start from a template) or `/maps?open=<id>` (reopen a saved map): place and edit objects on it. */
+export function MapShell({ from, open = null }: { from: string | null; open?: string | null }) {
   const t = useT('maps');
-  const source = useEditorSource(from);
-  if (source.status === 'ready') return <MapEditor key={source.source.id} initial={null} source={source.source} />;
+  const source = useEditorSource(open ?? from);
+  const stored = useBrowserDraft();
+  const [discarded, setDiscarded] = useState(0);
+  if (source.status === 'ready') {
+    const key = `${source.source.id}:${stored ? 'draft' : 'new'}:${discarded}`;
+    const onDiscard = () => setDiscarded((n) => n + 1);
+    // The browser draft wins, unless it is another saved map than the one asked for.
+    if (stored && !discarded && (!open || stored.savedId === open)) {
+      return <MapEditor key={key} initial={stored.template} initialId={stored.savedId} fromBrowser source={open ? null : source.source} onDiscard={onDiscard} />;
+    }
+    if (open) return <MapEditor key={key} initial={source.source} initialId={open} source={null} onDiscard={onDiscard} />;
+    return <MapEditor key={key} initial={null} source={source.source} onDiscard={onDiscard} />;
+  }
   return (
     <div className="flex min-h-dvh items-center justify-center p-6 text-center">
       {source.status === 'loading' ? <p role="status">…</p> : <button type="button" className="rounded-full border border-white/30 px-4 py-2" onClick={source.fallbackToDefault}>{t('back')}</button>}
