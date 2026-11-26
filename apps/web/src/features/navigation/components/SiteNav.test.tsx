@@ -1,17 +1,19 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import { NEON_NOCTURNE } from "@/templates/default";
 import { SiteNav } from "./SiteNav";
 
 afterEach(cleanup);
 
 describe("SiteNav", () => {
-  it("is a labelled nav with three real links", () => {
+  it("is a labelled nav with four real links", () => {
     render(<SiteNav />);
     const nav = screen.getByRole("navigation", { name: "Site navigation" });
     const links = [...nav.querySelectorAll("a")];
     expect(links.map((a) => [a.textContent, a.getAttribute("href")])).toEqual([
       ["Home", "/"],
       ["New song", "/upload"],
+      ["My songs", "/playlist"],
       ["Templates", "/templates"],
     ]);
   });
@@ -34,5 +36,11 @@ describe("SiteNav", () => {
     render(<SiteNav />);
     for (const a of screen.getAllByRole("link", { hidden: true }))
       expect(a.getAttribute("tabindex")).toBeNull();
+  });
+
+  it("renders Edit a copy inline when a template is passed", () => {
+    render(<SiteNav template={NEON_NOCTURNE} />);
+    const link = screen.getByRole("link", { name: "Edit a copy" });
+    expect(link.getAttribute("href")).toBe("/editor?from=neon-nocturne");
   });
 });

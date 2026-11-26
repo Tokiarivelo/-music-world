@@ -1,7 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useCallback, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { listStoreTemplates } from '@/features/template-store';
+import { usePlaylist } from '@/features/playlist';
 import { useT } from '@/i18n';
 import { createProject, getJob } from '../api/projects.api';
 import {
@@ -11,6 +13,7 @@ import {
   MAX_AUDIO_BYTES,
   MAX_LRC_BYTES,
   PLAY_PATH,
+  UPLOAD_TEMPLATE_LIMIT,
 } from '../consts/upload.consts';
 import { useUpload, type UploadDeps } from '../hooks/use-upload';
 import { checkFiles } from '../lib/stage-progress';
@@ -21,8 +24,29 @@ const LIMITS = { maxAudioBytes: MAX_AUDIO_BYTES, maxLrcBytes: MAX_LRC_BYTES, ext
 /** Upload page body: pick a song (+ optional .lrc), follow the analysis per stage, then open `/play/<id>`. */
 export function UploadForm({ deps }: { deps?: Partial<UploadDeps> }) {
   const router = useRouter();
-  const onReady = useCallback((projectId: string) => router.push(PLAY_PATH(projectId)), [router]);
+  const playlist = usePlaylist();
+  // The song and the template chosen at submit time, read when the analysis is ready.
+  const chosen = useRef<{ title: string; templateRef: string | null }>({ title: '', templateRef: null });
+  const onReady = useCallback(
+    (projectId: string) => {
+      const { title, templateRef } = chosen.current;
+      if (title) playlist.add(projectId, title, { templateRef });
+      router.push(PLAY_PATH(projectId, templateRef));
+    },
+    [router, playlist],
+  );
   const t = useT('upload');
+  const [templates, setTemplates] = useState<readonly { id: string; name: string }[]>([]);
+  const [templateRef, setTemplateRef] = useState('');
+  useEffect(() => {
+    let alive = true;
+    listStoreTemplates(null, UPLOAD_TEMPLATE_LIMIT)
+      .then((page) => alive && setTemplates(page.items.map((i) => ({ id: i.id, name: i.template.name }))))
+      .catch(() => undefined); // offline store: the default template stays available
+    return () => {
+      alive = false;
+    };
+  }, []);
   const upload = useUpload(useMemo(() => ({ createProject, getJob, onReady, ...deps }), [onReady, deps]));
   const [audio, setAudio] = useState<File | null>(null);
   const [lrc, setLrc] = useState<File | null>(null);
@@ -32,7 +56,10 @@ export function UploadForm({ deps }: { deps?: Partial<UploadDeps> }) {
     event.preventDefault();
     const problem = checkFiles(audio, lrc, LIMITS);
     if (problem || !audio) upload.fail(problem ?? 'NO_FILE');
-    else void upload.submit(audio, lrc);
+    else {
+      chosen.current = { title: audio.name.replace(/\.[^.]+$/, ''), templateRef: templateRef || null };
+      void upload.submit(audio, lrc);
+    }
   };
 
   return (
@@ -63,6 +90,24 @@ export function UploadForm({ deps }: { deps?: Partial<UploadDeps> }) {
             onChange={(e) => setLrc(e.target.files?.[0] ?? null)}
             className="block w-full text-sm file:mr-3 file:rounded-full file:border-0 file:bg-white/15 file:px-4 file:py-2"
           />
+        </label>
+        <label className="block space-y-1 text-sm">
+          <span>{t('templateLabel')}</span>
+          <select
+            name="template"
+            value={templateRef}
+            disabled={busy}
+            onChange={(e) => setTemplateRef(e.target.value)}
+            className="block w-full rounded-lg border border-white/15 bg-[var(--mw-bg)] px-3 py-2 text-sm"
+          >
+            <option value="">{t('templateDefault')}</option>
+            {templates.map((tpl) => (
+              <option key={tpl.id} value={tpl.id}>
+                {tpl.name}
+              </option>
+            ))}
+          </select>
+          <span className="block text-xs opacity-60">{t('templateHint')}</span>
         </label>
         <button
           type="submit"
