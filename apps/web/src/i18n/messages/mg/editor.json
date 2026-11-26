@@ -203,5 +203,12 @@
   "parts.primitive.gable": "Tampon-trano",
   "parts.customize": "Ovay ny kopia",
   "parts.noShape": "Tsy misy endrika azo ovaina ity zavatra ity (maodely 3D na fiantraikany).",
-  "parts.stockNote": "Zavatra efa misy: ovay ny kopia ho fomba amin'ity maodely ity."
+  "parts.stockNote": "Zavatra efa misy: ovay ny kopia ho fomba amin'ity maodely ity.",
+  "inspector.title": "Ampahany : {name}",
+  "inspector.primitive": "Endrika fototra",
+  "inspector.position": "Toerana",
+  "inspector.rotation": "Fihodinana",
+  "inspector.size": "Habe",
+  "inspector.sides": "Sisiny",
+  "inspector.taper": "Fanify"
 }

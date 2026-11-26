@@ -203,5 +203,12 @@
   "parts.primitive.gable": "Gable",
   "parts.customize": "Edit a copy",
   "parts.noShape": "This object has no editable shape (authored model or effect).",
-  "parts.stockNote": "Built-in object: edit a copy as a recipe of this template."
+  "parts.stockNote": "Built-in object: edit a copy as a recipe of this template.",
+  "inspector.title": "Part: {name}",
+  "inspector.primitive": "Primitive",
+  "inspector.position": "Position",
+  "inspector.rotation": "Rotation",
+  "inspector.size": "Size",
+  "inspector.sides": "Sides",
+  "inspector.taper": "Taper"
 }

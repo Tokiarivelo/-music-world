@@ -1,3 +1,5 @@
+import { MAX_RECIPES } from '../consts/recipe.consts';
+import { addRecipe, freshRecipeName } from './recipe-model';
 import { buildRecipeGeometry, type ShapeRecipe } from '@/xr/shapes/recipe-builder';
 import { STOCK_RECIPES } from '@/xr/shapes/stock-recipes';
 import type { Template } from '@/templates/generated';
@@ -21,4 +23,13 @@ export function objectPositions(template: Template, object: InventoryObject): Ar
   const positions = geometry.getAttribute('position').array;
   geometry.dispose();
   return positions;
+}
+
+/** Adds the stock copy of a builtin object as a recipe of the template; returns its new kind, or null when not possible. */
+export function copyStockAsRecipe(template: Template, object: InventoryObject): { template: Template; kind: string } | null {
+  const stock = object.recipeIndex === null ? recipeOf(template, object) : null;
+  if (!stock || template.recipes.length >= MAX_RECIPES) return null;
+  const name = freshRecipeName(template.recipes.map((r) => r.name), stock.name);
+  const copy = { ...structuredClone(stock), name } as Template['recipes'][number];
+  return { template: addRecipe(template, copy), kind: `recipe:${name}` };
 }

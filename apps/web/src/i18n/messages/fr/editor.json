@@ -203,5 +203,12 @@
   "parts.primitive.gable": "Pignon",
   "parts.customize": "Modifier une copie",
   "parts.noShape": "Cet objet n'a pas de forme modifiable (modèle 3D ou effet).",
-  "parts.stockNote": "Objet intégré : modifiez une copie comme recette de ce modèle."
+  "parts.stockNote": "Objet intégré : modifiez une copie comme recette de ce modèle.",
+  "inspector.title": "Partie : {name}",
+  "inspector.primitive": "Primitive",
+  "inspector.position": "Position",
+  "inspector.rotation": "Rotation",
+  "inspector.size": "Taille",
+  "inspector.sides": "Côtés",
+  "inspector.taper": "Effilement"
 }

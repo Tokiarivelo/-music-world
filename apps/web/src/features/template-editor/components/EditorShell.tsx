@@ -13,6 +13,7 @@ import { createDraftStore, type DraftStore } from '../store/template-draft.store
 import { EditorActions } from './EditorActions';
 import { EditorForm } from './EditorForm';
 import { InventoryPanel } from './InventoryPanel';
+import { ObjectEditor } from './ObjectEditor';
 import { WorldPreview } from './WorldPreview';
 
 function createStore(source: Template): DraftStore {
@@ -39,6 +40,7 @@ function Editor({ source, projectId }: { source: Template; projectId: string | n
         <p className="text-sm opacity-80">{t('source', { name: state.source.name })}</p>
         <EditorActions state={state} signedIn={session.user !== null} saver={saver} onReset={store.reset} />
         <InventoryPanel draft={state.draft} selected={selected} onSelect={setSelected} />
+        {selected && <ObjectEditor key={selected} draft={state.draft} update={store.update} kind={selected} onSelectKind={setSelected} />}
         <EditorForm draft={state.draft} errors={state.errors} update={store.update} />
       </section>
       <section className="relative h-[70dvh] min-h-80 flex-1 [contain:layout_paint] lg:h-auto" aria-label={t('previewLabel')}>
