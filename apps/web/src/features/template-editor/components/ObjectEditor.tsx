@@ -10,6 +10,7 @@ import { copyStockAsRecipe, recipeOf } from '../lib/object-source';
 import { ObjectViewport } from './ObjectViewport';
 import { ObjectHistoryBar } from './ObjectHistoryBar';
 import { useObjectHistory } from '../hooks/use-object-history';
+import { BudgetMeter } from './BudgetMeter';
 import { PartInspector } from './PartInspector';
 import { PartTreePanel } from './PartTreePanel';
 import { VariantsPanel } from './VariantsPanel';
@@ -58,6 +59,7 @@ export function ObjectEditor({ draft, update, kind, onSelectKind }: ObjectEditor
     <>
     <Section title={t('parts.title')}>
       <ObjectHistoryBar recipe={recipe} opening={history.opening} canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} onReset={history.reset} />
+      <BudgetMeter draft={draft} recipe={recipe} />
       <ObjectViewport nodes={nodes} selected={part} color={draft.palette.primary} highlight={draft.palette.accent} palette={draft.palette} />
       <PartTreePanel nodes={nodes} selected={part} onSelect={setPart} onChange={change} />
       {selected && <PartInspector nodes={nodes} node={selected} onChange={change} />}

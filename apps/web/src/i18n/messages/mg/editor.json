@@ -342,5 +342,8 @@
   "history.resetStock": "Avereno ny tany am-boalohany",
   "history.resetOpening": "Avereno araka ny nanokafana azy",
   "history.same": "Mitovy amin'ny fototra.",
-  "history.diff": "Raha oharina amin'ny fototra: {added} nampiana, {removed} nesorina, {changed} novaina; karazany novaina: {variants}."
+  "history.diff": "Raha oharina amin'ny fototra: {added} nampiana, {removed} nesorina, {changed} novaina; karazany novaina: {variants}.",
+  "error.drawCalls": "Be loatra ny endrika samihafa: mihoatra ny 100 ny antso fanaovana sary ilaina.",
+  "budget.triangles": "Telozoro",
+  "budget.drawCalls": "Antso fanaovana sary (tombanana)"
 }

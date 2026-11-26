@@ -342,5 +342,8 @@
   "history.resetStock": "Reset to stock",
   "history.resetOpening": "Reset to opening",
   "history.same": "Same as the reference.",
-  "history.diff": "Against the reference: {added} added, {removed} removed, {changed} changed parts; variants changed: {variants}."
+  "history.diff": "Against the reference: {added} added, {removed} removed, {changed} changed parts; variants changed: {variants}.",
+  "error.drawCalls": "Too many different shapes: the world would need more than 100 draw calls.",
+  "budget.triangles": "Triangles",
+  "budget.drawCalls": "Draw calls (estimate)"
 }

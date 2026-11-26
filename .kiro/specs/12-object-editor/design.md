@@ -102,3 +102,7 @@
   by node id, `resetTo`), hook `useObjectHistory` (history per edited object, opening snapshot kept) and `ObjectHistoryBar`
   (undo, redo, reset to stock or to how it was opened, one-line diff). Part and variant edits go through it; a reset is
   itself undoable. The map creator keeps its own history (`map-creator/lib/history.ts`).
+- 5.3: `lib/budget-model.ts`: `liveTriangles` (triangles of the geometry the web builder really makes, booleans and
+  extrusions included; the old `recipeTriangles` ignored part trees) and `drawCallEstimate` (12 fixed meshes + one per
+  kind in use, limit 100). `BudgetMeter` in the object editor shows both live. Enforced: `recipeBudget` (live triangles
+  above the recipe budget) and `drawCalls` (estimate above 100) are validation errors, so saving is refused.

@@ -6,10 +6,10 @@ import {
   MAX_TEMPLATE_BYTES,
   MIN_STAFF_CONTRAST,
 } from '../consts/template-editor.consts';
-import { recipeTriangles } from './recipe-model';
+import { drawCallEstimate, liveTriangles, MAX_DRAW_CALLS } from './budget-model';
 
 /** `code` is an i18n key suffix (`editor:error.<code>`); `path` is the dotted field path (`palette.staff`). */
-export type EditorErrorCode = 'schema' | 'contrast' | 'name' | 'kind' | 'size' | 'zoneOrder' | 'recipeName' | 'recipeBudget';
+export type EditorErrorCode = 'schema' | 'contrast' | 'name' | 'kind' | 'size' | 'zoneOrder' | 'recipeName' | 'recipeBudget' | 'drawCalls';
 
 export interface EditorError {
   path: string;
@@ -35,8 +35,9 @@ function specErrors(template: Template): EditorError[] {
   template.recipes.forEach((recipe, i) => {
     if (!RECIPE_NAME_PATTERN.test(recipe.name) || seen.has(recipe.name)) errors.push({ path: `recipes.${i}.name`, code: 'recipeName' });
     seen.add(recipe.name);
-    if (recipeTriangles(recipe) > recipe.budget.maxTriangles) errors.push({ path: `recipes.${i}.budget`, code: 'recipeBudget' });
+    if (liveTriangles(recipe, template.palette) > recipe.budget.maxTriangles) errors.push({ path: `recipes.${i}.budget`, code: 'recipeBudget' });
   });
+  if (drawCallEstimate(template) > MAX_DRAW_CALLS) errors.push({ path: 'mappings', code: 'drawCalls' });
   template.mappings.forEach((rule, i) => {
     if (!known.has(rule.spawn)) errors.push({ path: `mappings.${i}.spawn`, code: 'kind' });
   });

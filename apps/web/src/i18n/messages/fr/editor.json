@@ -342,5 +342,8 @@
   "history.resetStock": "Revenir au modèle d'origine",
   "history.resetOpening": "Revenir à l'ouverture",
   "history.same": "Identique à la référence.",
-  "history.diff": "Par rapport à la référence : {added} ajoutées, {removed} supprimées, {changed} modifiées ; variantes modifiées : {variants}."
+  "history.diff": "Par rapport à la référence : {added} ajoutées, {removed} supprimées, {changed} modifiées ; variantes modifiées : {variants}.",
+  "error.drawCalls": "Trop de formes différentes : le monde demanderait plus de 100 appels de rendu.",
+  "budget.triangles": "Triangles",
+  "budget.drawCalls": "Appels de rendu (estimation)"
 }
