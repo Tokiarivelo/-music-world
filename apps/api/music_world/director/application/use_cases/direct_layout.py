@@ -8,13 +8,13 @@ from typing import Any
 import structlog
 
 from music_world.director.application.layout import inventory_of, mock_layout, parse_layout
+from music_world.director.application.layout_prompt import LayoutPromptSet
 from music_world.director.application.ports import LLMProvider, ProjectAnalyses, PromptRequest, SpendTracker
 from music_world.director.application.summary import summarize
 from music_world.director.domain.demo import DEMO_AUDIO_HASH
 from music_world.director.domain.errors import DemoAnalysisMismatchError, ProviderError
 from music_world.director.domain.providers import MOCK, FallbackReason, ProviderId, fallback_chain
 from music_world.director.domain.spend import over_cap
-from music_world.director.infrastructure.prompts.layout import LayoutPromptSet
 from music_world.schemas.analysis import AnalysisResult
 from music_world.schemas.template import WorldLayout
 

@@ -365,3 +365,9 @@ repository:
 
 - Skills used: `shape-kind`, `xr-verify`. Web research of CC0 sources and their licences, Blender batch conversion to GLB,
   `model-catalog.ts` loader with procedural fallback; IWER check on Living City and Nemo Reef (84 draw calls). No hooks fired.
+
+### 2026-11-26 — I39–I41 city, layouts by the director, traffic (Claude Code)
+
+- Skills used: `blender-3d-models`, `world-template`, `handoff`. Template schema gained `layout` (pydantic → `make schemas`),
+  a layout endpoint and prompt; property tests caught city-specific zone and determinism issues; the architecture check
+  caught a director prompt imported from infrastructure (moved to `application/`). No hooks fired (outside the Kiro IDE).
