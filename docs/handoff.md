@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-26 · **Last updated by:** Claude Code (I39–I41: city, playlist, layouts by the director, traffic)
+> **Date:** 2026-11-26 · **Last updated by:** Claude Code (object editor phase 4: part tools and look)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -12,20 +12,26 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 1. Repository state
 
-- Branch `phase-I43-walk-pegman` merged to `main` (I43 walk pegman, map, collisions; I44 water, building types). Push with gh credentials:
+- Branch `phase-I48-part-tools` (phase 4 of the object editor) opened from `main` after `phase-I47-map-creator`. Push with gh credentials:
   `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
-- Checks on 2026-11-26: web vitest 698 passed, tsc and eslint clean; API pytest 398 passed, ruff and mypy clean;
-  `validate-architecture.sh`: 2 pre-existing violations in `engine/sky.ts` (imports `three`, a comment with a flagged word).
+- Checks on 2026-11-26: web vitest 832 passed (150 files), tsc and eslint clean; API pytest shape/template/schema subset 142
+  passed, ruff and mypy clean; `validate-architecture.sh`: 2 pre-existing violations in `engine/sky.ts` (imports `three`, a flagged word in a comment).
 - No server left running. A Compose stack (old images) and another project's containers may run; leave them alone.
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-26, Claude Code, phases I46–I47)
+## 2. Last session (2026-11-26, Claude Code, phase I48 `phase-I48-part-tools`)
 
-- I46 inventory + part tree + inspector + orbit view; I47 map creator (`/maps`, `layout.placed`, plan view, preview, autosave,
-  save). Also: glass look for every floating surface (`lib/glass.ts`), iOS-style auto-hiding scrollbars, toggleable glass
-  template editor panel. Details: `12-object-editor/design.md` § As built (phases 2–3).
+- 4.1 mirror, array, nudge of parts; 4.2 material per part (tint, palette role, glow, roughness) with tints in the 2D
+  viewport and thumbnails; 4.3 procedural textures by shader (brick, wood, stone, tile, glass, no image); 4.4 extrude
+  (convex outline), bevel (box) and boolean union / subtract with `three-bvh-csg` + `three-mesh-bvh` (MIT, README updated).
+- Template editor made explicit: a hint under every field (en, fr, mg), ranges and sliders on numbers, zones explained
+  (intro, top-view `ZoneMap`, quick placements, coverage, bound hints), hints on rules, recipes and recipe parts.
+- Deviations: no 3D gizmo (numeric fields + nudge buttons; the viewport is a 2D canvas); roughness is the mean of the
+  parts and needs the polished material; a boolean part works against its parent only; Python counts a combined part as
+  +48 triangles (estimate, the web build re-checks the budget). Details: `12-object-editor/design.md` § phase 4.
+- Malagasy texts are machine-written: have a native speaker review them. Textures are not shown in the 2D preview.
 
-## 2b. Earlier session (2026-11-26, phases I39–I41)
+## 2b. Earlier session (phases I39–I41)
 
 - I39 living city (streets, lakes, bridges, lights, construction), I40 playlist ("My songs", private, in the browser) and
   template choice at upload, plan-driven notes, authored models in cities. Reports: `docs/improvements/i39-*.md`, `i40-*.md`.
@@ -42,7 +48,7 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 3. Next actions
 
-0. **Agent** — object editor, phase 4 (part tools and look: transforms, mirror, array, materials, procedural textures, extrude/bevel/boolean): `.kiro/specs/12-object-editor/tasks.md` § Phase 4, briefing `docs/next-task-object-editor.md`; phases 1–3 (part tree, inventory, inspector, map creator `/maps`) are done. Then look at cars close up in a real
+0. **Agent** — object editor, phase 5 (variants and colour jitter, undo / redo, budgets, save): `.kiro/specs/12-object-editor/tasks.md` § Phase 5, briefing `docs/next-task-object-editor.md`. Then look at cars close up in a real
    browser (`/play/demo`, Walk) and the small black blobs near trees in the city view; Quest 3 check of the traffic cost.
 
 Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Submission deadline **2026-12-04 14:00 PT**.
@@ -102,7 +108,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | I8 lighting (blob shadows, wind), IWER check | Claude Code | done | PR phase-I8c-object-lighting; 58 draw calls in IWER |
 | I19-I21 polished, textured and modelled objects (12 CC0 GLB in `public/models`) (lit PBR, sky reflections, CC0 detail textures, `fx.material`) | Claude Code | done | PR phase-I19-polished-objects; report `docs/improvements/i19-polished-objects.md` |
 | I39–I41 city, playlist, layouts, traffic | Claude Code | done | branch `phase-I39-living-city`, PR to open |
-| 12-object-editor phases 1–3 (1.1–3.8) | Claude Code | done | branches `phase-I45-part-tree`, `phase-I46-object-inventory`, `phase-I47-map-creator`; phases 4–5 todo, one commit per task |
+| 12-object-editor phases 1–4 (1.1–4.5) | Claude Code | done | branches `phase-I45-part-tree` … `phase-I48-part-tools`; phase 5 todo, one commit per task |
 | I8 GLB/LOD, Quest 3 check | — | blocked | human: GLB needs the sourcing decision (`docs/open-questions.md` 1–2, 12) |
 | I10 R2 bucket + seed | — | blocked | human: bucket, API token, `--only` seed |
 | I9 task 9, I16, I5–I7 Quest checks | — | blocked | human: Quest 3 |
@@ -139,5 +145,5 @@ The daily ones. The rest (API, web/XR, tooling): `docs/pitfalls.md`, read the gr
 | 08-navigation-mode | 1–6 done | — (human: try it on a phone) | design.md § As built |
 | 09-template-editor | 1–11 done | — (recipe editing done, phase A5) | design.md § As built |
 | 10-template-moderation | 6/7 done | 7 (human: review a real hidden template) | design.md § As built |
-| 12-object-editor | phases 1–3 done (1.1–3.8) | 4.1 transform tools | tasks.md § Phase 4; design.md § As built (phases 1–3) |
+| 12-object-editor | phases 1–4 done (1.1–4.5) | 5.1 variants and colour jitter | tasks.md § Phase 5; design.md § As built (phases 1–4) |
 | 11-editable-notes | 1–8, 10 done | 9 (Quest, human); VR panel line list | design.md § As built |

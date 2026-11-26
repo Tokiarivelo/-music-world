@@ -44,7 +44,7 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
 - [x] 4.2 Material per part: palette role or colour, emissive, roughness (+ field hints and sliders in the template editor)
 - [x] 4.3 Procedural textures (brick, wood, stone, tile, glass)
 - [x] 4.4 Extrude, bevel, boolean union and subtract
-- [ ] 4.5 Docs, handoff, PR merged
+- [x] 4.5 Docs, handoff, PR merged
 
 ## Phase 5 — Variants, history, budgets, save (`phase-I49-editor-finish`)
 

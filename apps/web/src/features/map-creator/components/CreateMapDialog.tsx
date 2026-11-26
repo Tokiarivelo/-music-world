@@ -4,7 +4,7 @@ import { useId, useState } from 'react';
 import { useT } from '@/i18n';
 import { GLASS_PANEL } from '@/lib/glass';
 import type { Template } from '@/templates/generated';
-import { BUTTON, CONTROL } from '@/features/template-editor/consts/ui.consts';
+import { BUTTON, CONTROL } from '@/features/template-editor';
 import { createMap, PLATE_RANGE, SEED_MAX, type MapEnvironment } from '../lib/map-model';
 
 const ENVIRONMENTS: readonly MapEnvironment[] = ['city', 'meadow', 'underwater'];
