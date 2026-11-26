@@ -36,6 +36,7 @@ function nodeOf(
   const base = {
     id,
     name,
+    parent: null,
     hidden: false,
     position: vec(x, f.y, z),
     rotation: vec(),

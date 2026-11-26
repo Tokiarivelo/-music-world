@@ -16,7 +16,7 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
   - _Requirements: 2, 6_
 - [x] 1.5 Builtin shapes (houses, trees, cars) expressed as recipes (`stockRecipes`), one build path; budget tests
   - _Requirements: 2, 6_
-- [ ] 1.6 Docs (`PROJECT.md` §6, design.md), handoff, tick, PR merged
+- [x] 1.6 Docs (`PROJECT.md` §6, design.md), handoff, tick, PR merged
 
 ## Phase 2 — Inventory, part tree panel, inspector (`phase-I46-object-inventory`)
 

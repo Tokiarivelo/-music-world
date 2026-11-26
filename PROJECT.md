@@ -225,6 +225,7 @@ Un LLM ne produit pas de bons maillages (des listes de sommets en texte sont imp
 ```
 
 - Opérations disponibles (liste fermée) : `box`, `prism`, `spike` (pic d'égaliseur), `stack` (étages) et `cluster` (05-ai-world-director, tâche 6). Réservées, non implémentées : `lathe`, `extrude`, `lsystem_tree`, `arch`, `emissive_bands`.
+- **Arbre de parties** (spec 12, éditeur d'objets) : `nodes` (liste plate, parents d'abord, ≤ 48 nœuds, 4 niveaux) à côté de `parts`. Chaque `PartNode` a `id`, `name`, `primitive` (`box`, `cylinder`, `cone`, `sphere`, `prism`, `gable`), `position`, `rotation` (degrés, ordre y-x-z), `size`, `hidden`, `sides`, `taper` ; position et rotation sont dans le repère du parent, pas la taille. Triangles : box 12, cylinder 4n, cone 2n, sphere 80, prism 4n (2n si `taper` = 0), gable 8 ; un nœud caché ne compte pas. Constructeur : `xr/shapes/node-builder.ts` ; `recipeToNodes` migre les anciennes opérations ; `stock-recipes.ts` donne des copies éditables (maison, tour, arbre, conifère, voiture).
 - Budget : `budget.maxTriangles` ≤ 2000 (défaut 500), vérifié avant construction par `ShapeRecipe.triangle_count` (Python) et par le builder web ; au plus 16 recettes par template (4 pour un template généré par le directeur IA), référencées par `recipe:<name>`.
 - Chaque recette est construite une seule fois, puis réutilisée en **`InstancedMesh`** pour toutes les notes qui la déclenchent.
 - Les couleurs viennent de **rôles** de la palette (`primary`, `accent`…), pas de valeurs fixes : la forme suit le template.
