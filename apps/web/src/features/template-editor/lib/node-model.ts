@@ -156,6 +156,55 @@ export function arrayNode(nodes: readonly PartNode[], id: string, axis: Axis, co
   return insertAfterSubtree(nodes, id, all);
 }
 
+/** Ids of the selection without the parts that hang from another selected part (moving the parent already moves them). */
+export function effectiveRoots(nodes: readonly PartNode[], ids: readonly string[]): string[] {
+  const chosen = new Set(ids);
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  return nodes
+    .filter((n) => {
+      if (!chosen.has(n.id)) return false;
+      for (let p = n.parent ? byId.get(n.parent) : undefined; p; p = p.parent ? byId.get(p.parent) : undefined) if (chosen.has(p.id)) return false;
+      return true;
+    })
+    .map((n) => n.id);
+}
+
+/** Number of levels of the subtree under `id` (1 = no children). */
+export function subtreeHeight(nodes: readonly PartNode[], id: string): number {
+  let height = 1;
+  for (const n of nodes) if (subtreeIds(nodes, id).has(n.id)) height = Math.max(height, nodeDepth(nodes, n.id) - nodeDepth(nodes, id) + 1);
+  return height;
+}
+
+/** True when `id` may hang from `parent` (null: become a root): no cycle, and the tree stays within its depth limit. */
+export function canReparent(nodes: readonly PartNode[], id: string, parent: string | null): boolean {
+  const node = nodes.find((n) => n.id === id);
+  if (!node || (node.parent ?? null) === parent) return false;
+  if (parent === null) return true;
+  if (!nodes.some((n) => n.id === parent) || subtreeIds(nodes, id).has(parent)) return false;
+  return nodeDepth(nodes, parent) + subtreeHeight(nodes, id) <= MAX_NODE_DEPTH;
+}
+
+/**
+ * Scales a part and what hangs from it as a group: its size by `factor` (per axis), the offsets and sizes of its
+ * descendants by the same amount (the mean factor for deeper levels, since each part has its own axes).
+ */
+export function scaleGroupBy(nodes: readonly PartNode[], id: string, factor: readonly [number, number, number]): PartNode[] {
+  const ids = subtreeIds(nodes, id);
+  const mean = (factor[0] + factor[1] + factor[2]) / 3;
+  const r = (v: number): number => Math.round(v * 1000) / 1000;
+  return nodes.map((n) => {
+    if (!ids.has(n.id)) return n;
+    const direct = n.id === id;
+    const f: readonly [number, number, number] = direct ? factor : [mean, mean, mean];
+    const size = { x: r(clampNode('sx', (n.size?.x ?? 0.5) * f[0])), y: r(clampNode('sy', (n.size?.y ?? 0.5) * f[1])), z: r(clampNode('sz', (n.size?.z ?? 0.5) * f[2])) };
+    if (direct) return { ...n, size };
+    const g: readonly [number, number, number] = n.parent === id ? factor : [mean, mean, mean];
+    const p = n.position;
+    return { ...n, size, position: { x: r(clampNode('px', (p?.x ?? 0) * g[0])), y: r(clampNode('py', (p?.y ?? 0) * g[1])), z: r(clampNode('pz', (p?.z ?? 0) * g[2])) } };
+  });
+}
+
 /** `count` copies of a part spread around the vertical axis of its parent (columns around a tower, petals of a flower). */
 export function radialArrayNode(nodes: readonly PartNode[], id: string, count: number): PartNode[] {
   const n = Math.min(ARRAY_MAX, Math.max(ARRAY_MIN, Math.round(Number.isFinite(count) ? count : ARRAY_MIN)));

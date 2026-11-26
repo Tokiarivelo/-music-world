@@ -10,7 +10,7 @@ import { useWorkspaceShortcuts } from '../hooks/use-workspace-shortcuts';
 import { centerOnAxis, dropToFloor } from '../lib/gizmo-math';
 import { templateObjects } from '../lib/inventory-model';
 import {
-  addNode, arrayNode, deleteNode, duplicateNode, MAX_NODES, mirrorNode, nudgeNode, radialArrayNode, resetNodeTransform, toggleHidden, updateNodes,
+  addNode, arrayNode, deleteNode, duplicateNode, effectiveRoots, MAX_NODES, mirrorNode, nudgeNode, radialArrayNode, resetNodeTransform, toggleHidden, updateNodes,
   type Axis, type NodePrimitive, type PartNode, type TransformPart,
 } from '../lib/node-model';
 import { copyStockAsRecipe, recipeOf } from '../lib/object-source';
@@ -47,7 +47,7 @@ export function ObjectWorkspace({ draft, update, kind, onSelectKind, onClose }: 
   const object = useMemo(() => templateObjects(draft).find((o) => o.kind === kind) ?? null, [draft, kind]);
   const index = object?.recipeIndex ?? -1;
   const history = useObjectHistory(draft, index, update);
-  const [part, setPart] = useState<string | null>(null);
+  const [picked, setPicked] = useState<readonly string[]>([]);
   const [settings, setSettings] = useState<StageSettings>(DEFAULT_SETTINGS);
   const [snapOn, setSnapOn] = useState(true);
   const [stats, setStats] = useState<StageStats>(NO_STATS);
@@ -55,7 +55,16 @@ export function ObjectWorkspace({ draft, update, kind, onSelectKind, onClose }: 
   const [request, setRequest] = useState<StageRequest | null>(null);
   const recipe = index >= 0 ? draft.recipes[index] ?? null : null;
   const nodes = useMemo<readonly PartNode[]>(() => recipe?.nodes ?? NO_NODES, [recipe]);
-  const selected = nodes.find((n) => n.id === part) ?? null;
+  /** Selected ids that still exist; the last one is the primary (inspector, gizmo). */
+  const selection = useMemo(() => picked.filter((id) => nodes.some((n) => n.id === id)), [picked, nodes]);
+  const selected = nodes.find((n) => n.id === selection[selection.length - 1]) ?? null;
+  const roots = useMemo(() => effectiveRoots(nodes, selection), [nodes, selection]);
+  const pick = useCallback(
+    (id: string | null, additive: boolean) =>
+      setPicked((cur) => (id === null ? (additive ? cur : []) : additive ? (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]) : [id])),
+    [],
+  );
+  const box = useCallback((ids: string[], additive: boolean) => setPicked((cur) => (additive ? [...cur.filter((x) => !ids.includes(x)), ...ids] : ids)), []);
 
   const change = useCallback((next: readonly PartNode[]) => history.edit((d) => updateNodes(d, index, () => [...next])), [history, index]);
   /** Applies an edit that may add one part and selects it. */
@@ -63,14 +72,16 @@ export function ObjectWorkspace({ draft, update, kind, onSelectKind, onClose }: 
     (next: PartNode[]) => {
       if (next.length === nodes.length && next.every((n, i) => n === nodes[i])) return;
       change(next);
-      const added = next.find((n) => !nodes.some((o) => o.id === n.id));
-      if (added) setPart(added.id);
+      const added = next.filter((n) => !nodes.some((o) => o.id === n.id)).map((n) => n.id);
+      if (added.length > 0) setPicked(added);
     },
     [change, nodes],
   );
   const patchSettings = useCallback((patch: Partial<StageSettings>) => setSettings((s) => ({ ...s, ...patch, snap: { ...s.snap, ...(patch.snap ?? {}) } })), []);
   const view = useCallback((v: Extract<StageRequest, { type: 'view' }>['view']) => setRequest((r) => ({ n: (r?.n ?? 0) + 1, type: 'view', view: v })), []);
-  const frame = useCallback((id: string | null) => setRequest((r) => ({ n: (r?.n ?? 0) + 1, type: 'frame', id })), []);
+  const frame = useCallback((ids: readonly string[] | null) => setRequest((r) => ({ n: (r?.n ?? 0) + 1, type: 'frame', ids })), []);
+  /** The same edit on every selected root, one after the other. */
+  const eachRoot = useCallback((edit: (list: readonly PartNode[], id: string) => PartNode[]) => change(roots.reduce<PartNode[]>((list, id) => edit(list, id), [...nodes])), [change, nodes, roots]);
   const stageSettings = useMemo<StageSettings>(
     () => (snapOn ? settings : { ...settings, snap: { move: 0, rotate: 0, scale: 0 } }),
     [settings, snapOn],
@@ -86,10 +97,10 @@ export function ObjectWorkspace({ draft, update, kind, onSelectKind, onClose }: 
   );
 
   const remove = useCallback(() => {
-    if (!selected) return;
-    change(deleteNode(nodes, selected.id));
-    setPart(null);
-  }, [change, nodes, selected]);
+    if (roots.length === 0) return;
+    eachRoot(deleteNode);
+    setPicked([]);
+  }, [eachRoot, roots]);
 
   const run = useCallback(
     (cmd: WorkspaceCommand) => {
@@ -97,22 +108,23 @@ export function ObjectWorkspace({ draft, update, kind, onSelectKind, onClose }: 
         case 'tool': return patchSettings({ tool: cmd.tool });
         case 'view': return view(cmd.view);
         case 'delete': return remove();
-        case 'duplicate': return selected ? grow(duplicateNode(nodes, selected.id)) : undefined;
-        case 'hide': return selected ? change(toggleHidden(nodes, selected.id)) : undefined;
+        case 'duplicate': return roots.length > 0 ? grow(roots.reduce<PartNode[]>((list, id) => duplicateNode(list, id), [...nodes])) : undefined;
+        case 'hide': return selection.length > 0 ? change(selection.reduce<PartNode[]>((list, id) => toggleHidden(list, id), [...nodes])) : undefined;
         case 'showAll': return change(nodes.map((n) => (n.hidden ? { ...n, hidden: false } : n)));
-        case 'frame': return frame(selected?.id ?? null);
+        case 'frame': return frame(selection);
         case 'isolate': return patchSettings({ isolate: !settings.isolate });
         case 'ortho': return patchSettings({ ortho: !settings.ortho });
         case 'snap': return setSnapOn((on) => !on);
         case 'space': return patchSettings({ space: settings.space === 'world' ? 'local' : 'world' });
         case 'undo': return history.undo();
         case 'redo': return history.redo();
-        case 'deselect': return part ? setPart(null) : help ? setHelp(false) : onClose();
+        case 'deselect': return selection.length > 0 ? setPicked([]) : help ? setHelp(false) : onClose();
         case 'help': return setHelp((h) => !h);
-        case 'nudge': return selected ? change(nudgeNode(nodes, selected.id, cmd.axis, cmd.dir * (snapOn && settings.snap.move > 0 ? settings.snap.move : NUDGE_METRES))) : undefined;
+        case 'nudge': return roots.length > 0 ? eachRoot((list, id) => nudgeNode(list, id, cmd.axis, cmd.dir * (snapOn && settings.snap.move > 0 ? settings.snap.move : NUDGE_METRES))) : undefined;
+        case 'selectAll': return setPicked(nodes.map((n) => n.id));
       }
     },
-    [change, frame, grow, help, history, nodes, onClose, part, patchSettings, remove, selected, settings, snapOn, view],
+    [change, eachRoot, frame, grow, help, history, nodes, onClose, patchSettings, remove, roots, selection, settings, snapOn, view],
   );
   useWorkspaceShortcuts(run);
 
@@ -173,10 +185,12 @@ export function ObjectWorkspace({ draft, update, kind, onSelectKind, onClose }: 
               palette={draft.palette}
               base={draft.palette.primary}
               accent={draft.palette.accent}
-              selected={selected?.id ?? null}
+              selection={selection}
               settings={stageSettings}
               request={request}
-              onPick={(id) => setPart(id)}
+              onPick={pick}
+              onBox={box}
+              onMarquee={() => undefined}
               onTransform={(next) => change(next)}
               onStats={setStats}
             />
@@ -185,30 +199,30 @@ export function ObjectWorkspace({ draft, update, kind, onSelectKind, onClose }: 
             <div className="pointer-events-auto self-start">
               <WorkspaceToolbar
                 tool={settings.tool}
-                hasSelection={selected !== null}
+                hasSelection={selection.length > 0}
                 full={nodes.length >= MAX_NODES}
                 onTool={(tool) => patchSettings({ tool })}
                 onAdd={add}
-                onDuplicate={() => selected && grow(duplicateNode(nodes, selected.id))}
+                onDuplicate={() => run({ type: 'duplicate' })}
                 onDelete={remove}
                 onMirror={(axis: Axis) => selected && grow(mirrorNode(nodes, selected.id, axis))}
                 onArray={(axis, count, step) => selected && grow(arrayNode(nodes, selected.id, axis, count, step))}
                 onRadial={(count) => selected && grow(radialArrayNode(nodes, selected.id, count))}
-                onFloor={() => selected && change(dropToFloor(nodes, selected.id))}
-                onCenter={() => selected && change(centerOnAxis(nodes, selected.id))}
-                onReset={(p: TransformPart) => selected && change(resetNodeTransform(nodes, selected.id, p))}
-                onFrame={() => frame(selected?.id ?? null)}
+                onFloor={() => eachRoot(dropToFloor)}
+                onCenter={() => eachRoot(centerOnAxis)}
+                onReset={(p: TransformPart) => eachRoot((list, id) => resetNodeTransform(list, id, p))}
+                onFrame={() => frame(selection)}
               />
             </div>
             <div className="pointer-events-auto self-start">
-              <ViewportOptions settings={settings} snapOn={snapOn} onChange={patchSettings} onSnap={setSnapOn} onView={view} onFrame={() => frame(selected?.id ?? null)} />
+              <ViewportOptions settings={settings} snapOn={snapOn} onChange={patchSettings} onSnap={setSnapOn} onView={view} onFrame={() => frame(selection)} />
             </div>
           </div>
           {help && <ShortcutHelp onClose={() => setHelp(false)} />}
         </div>
         <aside aria-label={t('workspace.properties')} className="flex w-[min(22rem,45vw)] shrink-0 flex-col gap-3 overflow-y-auto border-l border-white/15 bg-[var(--mw-bg)]/90 p-3">
           <Section title={t('workspace.outliner')}>
-            <PartOutliner nodes={nodes} selected={selected?.id ?? null} onSelect={setPart} onChange={change} />
+            <PartOutliner nodes={nodes} selection={selection} onSelect={pick} onChange={change} />
           </Section>
           <Section title={t('workspace.budget')}>
             <BudgetMeter draft={draft} recipe={recipe} />
@@ -217,7 +231,7 @@ export function ObjectWorkspace({ draft, update, kind, onSelectKind, onClose }: 
           <VariantsPanel draft={draft} update={history.edit} index={index} />
         </aside>
       </div>
-      <WorkspaceStatusBar stats={stats} parts={nodes.length} selectedName={selected?.name ?? null} tool={settings.tool} snapOn={snapOn} />
+      <WorkspaceStatusBar stats={stats} parts={nodes.length} selectedName={selected?.name ?? null} selectedCount={selection.length} tool={settings.tool} snapOn={snapOn} />
     </div>
   );
 }

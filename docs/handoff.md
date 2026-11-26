@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-26 · **Last updated by:** Claude Code (object workspace, phase I50)
+> **Date:** 2026-11-26 · **Last updated by:** Claude Code (workspace limits, phase I51)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -12,24 +12,24 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 1. Repository state
 
-- Branch `phase-I50-object-workspace` (full-screen object workspace) from `main`; merged at the end of the session. Push with gh credentials:
+- Branch `phase-I51-workspace-limits` from `main`; merged at the end of the session. Push with gh credentials:
   `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
-- Checks on 2026-11-26: web vitest 862 passed (155 files), tsc and eslint clean; API untouched this phase (last run: shape/template/schema 150 passed); `validate-architecture.sh`: 2 pre-existing violations in `engine/sky.ts` (imports `three`, a flagged word in a comment).
+- Checks on 2026-11-26: web vitest 877 passed (155 files), tsc and eslint clean; API untouched this phase (last run: shape/template/schema 150 passed); `validate-architecture.sh`: 2 pre-existing violations in `engine/sky.ts` (imports `three`, a flagged word in a comment).
 - No server left running. A Compose stack (old images) and another project's containers may run; leave them alone.
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-26, Claude Code, phase I50 `phase-I50-object-workspace`)
+## 2. Last session (2026-11-26, Claude Code, phase I51 `phase-I51-workspace-limits`)
 
-- Why: in the template editor the inventory thumbnails showed generic procedural shapes (letters for objects with a 3D model)
-  and editing a part meant a small 2D canvas in the sidebar.
-- 6.1 Thumbnails draw the authored GLB the world uses (`lib/model-mesh.ts`).
-- 6.2 `lib/object-stage.ts`: framework-free WebGL stage (three OrbitControls + TransformControls, no new package); pure
-  `lib/gizmo-math.ts` turns a gizmo pose into local node fields. 6.3 `ObjectWorkspace` (full screen): tool shelf, outliner,
-  properties, view options (views, ortho, solid / wire / x-ray, snap, isolate), status bar, Blender-like shortcuts (`?`).
-- 6.4 New tools: radial array, reset transform, drop to floor, centre on axis. i18n en/fr/mg (`workspace.*`).
-- Removed: `ObjectEditor`, `PartTreePanel`, `ObjectViewport` (+ tests). The world preview is unmounted while the workspace is open.
-- Deviations / limits: single selection, no re-parenting in the outliner, scale gizmo changes the part's size only. The
-  stage has no unit test (no WebGL in jsdom): checked in headless Chromium (screenshot of a house with the move gizmo).
+- Lifted the three limits of the object workspace (phase I50, spec 12 phase 7):
+  multi-selection (shift / ctrl click, box select with shift + drag or the select tool, `A`), re-parenting (outliner drag and
+  drop, "Parent" list, world pose kept), and a scale gizmo that scales a part with its children (`scaleGroupBy`).
+- The inventory now has an "Added by the world" list (`engineObjects`): the nine city building variants (real thumbnails),
+  construction, streets, lakes, bridges, traffic lights; reef and realm patch themes. Read-only.
+- Pure maths in `lib/gizmo-math.ts` (`applyGizmoDelta`, `reparentNode`) and `lib/node-model.ts` (`effectiveRoots`,
+  `canReparent`, `scaleGroupBy`) with tests; `ThumbCanvas` shared by object and engine thumbnails. i18n en/fr/mg.
+- Checked in headless Chromium: shift + drag box select ("6 parts selected"), engine list with thumbnails, Parent list.
+- Limits: engine objects are not editable (code, not recipes); box select uses part centres; mirror / array act on the
+  primary part only. The gizmo drag itself was not scripted in the browser (covered by the pure tests).
 - Checks: see section 1.
 
 ## 2b. Earlier session (phases I39–I41)
@@ -107,7 +107,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | I8 lighting (blob shadows, wind), IWER check | Claude Code | done | PR phase-I8c-object-lighting; 58 draw calls in IWER |
 | I19-I21 polished, textured and modelled objects (12 CC0 GLB in `public/models`) (lit PBR, sky reflections, CC0 detail textures, `fx.material`) | Claude Code | done | PR phase-I19-polished-objects; report `docs/improvements/i19-polished-objects.md` |
 | I39–I41 city, playlist, layouts, traffic | Claude Code | done | branch `phase-I39-living-city`, PR to open |
-| 12-object-editor phases 1–6 (1.1–6.4) | Claude Code | done | branches `phase-I45-part-tree` … `phase-I50-object-workspace` |
+| 12-object-editor phases 1–7 (1.1–7.4) | Claude Code | done | branches `phase-I45-part-tree` … `phase-I51-workspace-limits` |
 | I8 GLB/LOD, Quest 3 check | — | blocked | human: GLB needs the sourcing decision (`docs/open-questions.md` 1–2, 12) |
 | I10 R2 bucket + seed | — | blocked | human: bucket, API token, `--only` seed |
 | I9 task 9, I16, I5–I7 Quest checks | — | blocked | human: Quest 3 |
@@ -144,5 +144,5 @@ The daily ones. The rest (API, web/XR, tooling): `docs/pitfalls.md`, read the gr
 | 08-navigation-mode | 1–6 done | — (human: try it on a phone) | design.md § As built |
 | 09-template-editor | 1–11 done | — (recipe editing done, phase A5) | design.md § As built |
 | 10-template-moderation | 6/7 done | 7 (human: review a real hidden template) | design.md § As built |
-| 12-object-editor | all phases done (1.1–6.4) | — (optional: box select, re-parenting, variants for scenery) | design.md § As built (phases 1–6) |
+| 12-object-editor | all phases done (1.1–7.4) | — (optional: restyle engine objects, variants for scenery) | design.md § As built (phases 1–7) |
 | 11-editable-notes | 1–8, 10 done | 9 (Quest, human); VR panel line list | design.md § As built |

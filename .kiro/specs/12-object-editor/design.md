@@ -122,6 +122,24 @@
   `node-model.ts` gained `radialArrayNode` and `resetNodeTransform`. `lib/shortcuts.ts` holds the Blender-like keys
   (Q G R S, Shift+D, X, H, F, /, 1 3 7, 5, Shift+S, T, Ctrl+Z, Esc, ?).
 - Inventory thumbnails load the authored GLB (`lib/model-mesh.ts`, `loadModelGeometry` + `fitModel`) for kinds that have one.
-- Limits: single selection (no box select), no re-parenting by drag in the outliner, the scale gizmo changes a part's size
-  only (children keep theirs), the stage is not unit-tested (no WebGL in jsdom): checked in headless Chromium.
+- Limits: the stage is not unit-tested (no WebGL in jsdom): checked in headless Chromium. The earlier limits (single selection,
+  no re-parenting, scale without children) are lifted in phase 7.
+
+## As built (phase 7, workspace limits)
+
+- Selection is a list, the last id is the primary (inspector, gizmo pivot). Shift or ctrl click toggles; shift + drag anywhere (or a
+  plain drag with the select tool, Alt + drag orbits then) draws a rectangle and selects the parts whose centre is inside
+  (`ObjectStage.idsInRect`); `A` selects all. Delete, duplicate, hide, nudge, floor, centre and reset act on the selection's
+  effective roots (`effectiveRoots`: a part under another selected part already follows it). Mirror, array and radial array
+  act on the primary part only.
+- `applyGizmoDelta(nodes, ids, mode, start, now)` applies a finished drag to the selection: translate by the same vector,
+  rotate about the pivot, scale each part with its subtree (`scaleGroupBy`: size and children offsets) and, for several parts,
+  their distances from the pivot. One drag is one undo step.
+- `reparentNode` keeps the world pose (local fields recomputed in the new parent's frame), places the subtree after the new
+  parent's (parents first), refuses cycles and the depth limit (`canReparent`). Outliner drag and drop, plus a "Parent" list
+  for the keyboard.
+- `engineObjects(template)` lists what the engine builds at run time: for a city the nine `BUILDING_VARIANTS` (thumbnails from
+  `buildingVariantGeometries`), the construction scaffold, streets, lakes, bridges and traffic lights; for a reef or a realm the
+  eight patch themes. Read-only ("Added by the world" in the inventory): they come from the engine, not from template data.
+- Limits: engine objects cannot be restyled yet (they are code, not recipes); box select picks parts by centre, not by area.
 

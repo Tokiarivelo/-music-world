@@ -206,4 +206,28 @@ describe('variants', () => {
     expect(m.resetNodeTransform(moved, 'walls', 'size').find((n) => n.id === 'walls')!.size).toEqual({ x: 0.3, y: 0.3, z: 0.3 });
     expect(m.resetNodeTransform(moved, 'walls', 'position').find((n) => n.id === 'roof')).toEqual(moved.find((n) => n.id === 'roof'));
   });
+
+  it('drops the parts that hang from another selected part (effective roots)', () => {
+    const child = house.find((n) => n.parent)!;
+    expect(m.effectiveRoots(house, [child.parent!, child.id])).toEqual([child.parent]);
+    expect(m.effectiveRoots(house, [child.id])).toEqual([child.id]);
+  });
+
+  it('knows which re-parenting is allowed', () => {
+    const child = house.find((n) => n.parent)!;
+    const root = house.find((n) => !n.parent)!;
+    expect(m.canReparent(house, child.id, null)).toBe(true);
+    expect(m.canReparent(house, child.id, child.parent!)).toBe(false); // already there
+    expect(m.canReparent(house, root.id, child.id)).toBe(false); // would make a cycle
+    expect(m.canReparent(house, root.id, root.id)).toBe(false);
+  });
+
+  it('scales a part and its children as a group', () => {
+    const parentId = house.find((n) => n.parent)!.parent!;
+    const out = m.scaleGroupBy(house, parentId, [1.2, 1.2, 1.2]);
+    const kid = house.find((n) => n.parent === parentId)!;
+    const grown = out.find((n) => n.id === kid.id)!;
+    expect(grown.size!.x).toBeGreaterThan(kid.size!.x);
+    expect(out.filter((n, i) => n === house[i]).length).toBeLessThan(house.length);
+  });
 });

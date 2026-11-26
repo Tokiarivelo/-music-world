@@ -14,6 +14,7 @@ export type WorkspaceCommand =
   | { type: 'space' }
   | { type: 'undo' }
   | { type: 'redo' }
+  | { type: 'selectAll' }
   | { type: 'deselect' }
   | { type: 'help' }
   | { type: 'nudge'; axis: 'x' | 'y' | 'z'; dir: 1 | -1 };
@@ -30,7 +31,7 @@ export interface KeyLike {
 /** Every shortcut with the key shown in the help and on the tool tips. */
 export type ShortcutName =
   | 'select' | 'translate' | 'rotate' | 'scale' | 'duplicate' | 'delete' | 'hide' | 'showAll' | 'frame' | 'isolate' | 'viewFront'
-  | 'viewSide' | 'viewTop' | 'ortho' | 'snap' | 'space' | 'undo' | 'redo' | 'deselect' | 'help';
+  | 'viewSide' | 'viewTop' | 'ortho' | 'snap' | 'space' | 'undo' | 'redo' | 'selectAll' | 'deselect' | 'help';
 
 export const SHORTCUT_LIST: readonly { keys: string; command: ShortcutName }[] = [
   { keys: 'Q', command: 'select' },
@@ -51,6 +52,7 @@ export const SHORTCUT_LIST: readonly { keys: string; command: ShortcutName }[] =
   { keys: 'T', command: 'space' },
   { keys: 'Ctrl+Z', command: 'undo' },
   { keys: 'Ctrl+Shift+Z', command: 'redo' },
+  { keys: 'A', command: 'selectAll' },
   { keys: 'Esc', command: 'deselect' },
   { keys: '?', command: 'help' },
 ];
@@ -71,6 +73,7 @@ export function commandFor(e: KeyLike): WorkspaceCommand | null {
   if (e.shiftKey && key === 'd') return { type: 'duplicate' };
   if (e.shiftKey && key === 's') return { type: 'snap' };
   switch (key) {
+    case 'a': return { type: 'selectAll' };
     case 'q': return { type: 'tool', tool: 'select' };
     case 'g': return { type: 'tool', tool: 'translate' };
     case 'r': return { type: 'tool', tool: 'rotate' };

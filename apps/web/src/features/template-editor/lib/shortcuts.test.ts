@@ -10,6 +10,7 @@ describe('shortcuts', () => {
     expect(commandFor({ key: 'Delete' })).toEqual({ type: 'delete' });
     expect(commandFor({ key: 'D', shiftKey: true })).toEqual({ type: 'duplicate' });
     expect(commandFor({ key: 'S', shiftKey: true })).toEqual({ type: 'snap' });
+    expect(commandFor({ key: 'a' })).toEqual({ type: 'selectAll' });
   });
 
   it('undoes and redoes with ctrl or cmd', () => {

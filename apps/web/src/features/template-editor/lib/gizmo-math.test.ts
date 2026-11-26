@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { STOCK_RECIPES } from '@/xr/shapes/stock-recipes';
 import { buildNodePieces } from '@/xr/shapes/node-builder';
-import { centerOnAxis, dropToFloor, moveNodeTo, rotateNodeTo, scaleNodeBy, snapTo, worldPoseOf } from './gizmo-math';
+import { applyGizmoDelta, centerOnAxis, dropToFloor, moveNodeTo, reparentNode, rotateNodeTo, scaleNodeBy, snapTo, worldPoseOf, type GizmoPose } from './gizmo-math';
 import type { PartNode } from './node-model';
 import { Box3 } from 'three';
 
@@ -60,5 +60,65 @@ describe('gizmo-math', () => {
   it('snaps to a step, or not at all', () => {
     expect(snapTo(0.37, 0.25)).toBeCloseTo(0.25);
     expect(snapTo(0.37, 0)).toBe(0.37);
+  });
+
+  describe('gizmo delta on a selection', () => {
+    const ids = house.filter((n) => !n.parent).map((n) => n.id);
+    const identity: GizmoPose = { position: [0, 0, 0], quaternion: [0, 0, 0, 1], scale: [1, 1, 1] };
+
+    it('moves every selected part by the same vector', () => {
+      const roots = house.filter((n) => n.parent === null).slice(0, 1).map((n) => n.id);
+      const before = worldPoseOf(house, roots[0]!)!.position;
+      const out = applyGizmoDelta(house, roots, 'translate', identity, { ...identity, position: [0.1, 0, -0.1] });
+      const after = worldPoseOf(out, roots[0]!)!.position;
+      expect(after[0]).toBeCloseTo(before[0] + 0.1, 2);
+      expect(after[2]).toBeCloseTo(before[2] - 0.1, 2);
+    });
+
+    it('moves a selected parent together with its selected child only once', () => {
+      const parentId = child.parent!;
+      const out = applyGizmoDelta(house, [parentId, child.id], 'translate', identity, { ...identity, position: [0.2, 0, 0] });
+      const before = worldPoseOf(house, child.id)!.position;
+      expect(worldPoseOf(out, child.id)!.position[0]).toBeCloseTo(before[0] + 0.2, 2);
+    });
+
+    it('turns several parts about the pivot', () => {
+      const two = house.slice(0, 2).map((n) => n.id).filter((id) => !house.find((n) => n.id === id)!.parent);
+      const q: [number, number, number, number] = [0, Math.SQRT1_2, 0, Math.SQRT1_2];
+      const pivot: GizmoPose = { position: [0, 0, 0], quaternion: [0, 0, 0, 1], scale: [1, 1, 1] };
+      const out = applyGizmoDelta(house, two.length > 1 ? two : ids, 'rotate', pivot, { ...pivot, quaternion: q });
+      expect(out).toHaveLength(house.length);
+    });
+
+    it('scales the part with what hangs from it', () => {
+      const parentId = child.parent!;
+      const out = applyGizmoDelta(house, [parentId], 'scale', identity, { ...identity, scale: [1.5, 1.5, 1.5] });
+      const was = house.find((n) => n.id === child.id)!;
+      const now = out.find((n) => n.id === child.id)!;
+      expect(now.size!.x).toBeCloseTo(Math.min(2, was.size!.x * 1.5), 2);
+    });
+  });
+
+  describe('reparentNode', () => {
+    const other = house.filter((n) => !n.parent)[0]!;
+
+    it('keeps the part where it is while changing its parent', () => {
+      const before = worldPoseOf(house, child.id)!.position;
+      const orphan = reparentNode(house, child.id, null);
+      expect(orphan.find((n) => n.id === child.id)!.parent).toBeNull();
+      const after = worldPoseOf(orphan, child.id)!.position;
+      before.forEach((v, i) => expect(after[i]).toBeCloseTo(v, 2));
+    });
+
+    it('puts parents before children and refuses a cycle', () => {
+      const out = reparentNode(house, other.id, child.id);
+      expect(out).toEqual(house);
+      const moved = reparentNode(house, child.id, null);
+      const seen = new Set<string>();
+      for (const n of moved) {
+        expect(n.parent === null || seen.has(n.parent)).toBe(true);
+        seen.add(n.id);
+      }
+    });
   });
 });
