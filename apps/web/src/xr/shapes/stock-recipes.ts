@@ -4,7 +4,7 @@
  * lit geometries (window shaders and baked colours need normals); these recipes are the editable copies a creator
  * starts from. All sizes are in the unit footprint, height normalised to 1 by `buildRecipeGeometry`.
  */
-import type { PartNode } from "./node-builder";
+import { plainMaterial, type PartNode } from "./node-builder";
 import type { ShapeRecipe } from "./recipe-builder";
 
 type Spec = Pick<PartNode, "id" | "name" | "primitive"> &
@@ -28,6 +28,7 @@ function node(s: Spec): PartNode {
     size: { x: s.size[0], y: s.size[1], z: s.size[2] },
     sides: s.sides ?? 8,
     taper: s.taper ?? 1,
+    material: plainMaterial(), bevel: 0, profile: [], operation: "add" as const,
   };
 }
 

@@ -35,6 +35,7 @@ export function PartEditor({ update, recipe, index, part, canRemove }: PartEdito
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <SelectInput
           label={`${t('part.title', { n })} · ${t('part.op')}`}
+          hint={t(`part.hint.op.${part.op}`)}
           value={part.op}
           options={PART_OPS.map((o) => ({ value: o, label: t(`part.op.${o}`) }))}
           onChange={(op) => update((d) => setPartOp(d, recipe, index, op as Part['op']))}
@@ -51,6 +52,7 @@ export function PartEditor({ update, recipe, index, part, canRemove }: PartEdito
           <BoundedNumber
             key={field}
             label={`${t('part.title', { n })} · ${t(`part.${field}`)}`}
+            hint={t(`part.hint.${field}`)}
             value={part[field]}
             {...PART_BOUNDS[field]}
             onChange={(v) => update((d) => setPartNumber(d, recipe, index, field, v))}

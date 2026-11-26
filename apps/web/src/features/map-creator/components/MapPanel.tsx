@@ -3,8 +3,7 @@
 import { useId, useMemo } from 'react';
 import { useT } from '@/i18n';
 import type { Template } from '@/templates/generated';
-import { BUTTON, CONTROL } from '@/features/template-editor/consts/ui.consts';
-import { templateObjects } from '@/features/template-editor/lib/inventory-model';
+import { BUTTON, CONTROL, templateObjects } from '@/features/template-editor';
 import { MAX_PLACED, placedOf, type PlacedObject } from '../lib/map-model';
 import type { MapTool } from './MapCanvas';
 

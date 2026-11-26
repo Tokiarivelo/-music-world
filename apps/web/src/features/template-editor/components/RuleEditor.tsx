@@ -66,6 +66,7 @@ export function RuleEditor({ draft, errors, update, index, rule }: RuleEditorPro
         />
         <SelectInput
           label={`${t('rule.chord')} (${n})`}
+          hint={t('rule.hint.chord')}
           value={chordValue(rule.when.chord)}
           options={[
             { value: ANY, label: t('rule.chordAny') },
@@ -76,12 +77,14 @@ export function RuleEditor({ draft, errors, update, index, rule }: RuleEditorPro
         />
         <SelectInput
           label={`${t('rule.stem')} (${n})`}
+          hint={t('rule.hint.stem')}
           value={rule.when.stem ?? ANY}
           options={[{ value: ANY, label: t('rule.stemAny') }, ...STEMS.map((s) => ({ value: s, label: t(`stem.${s}`) }))]}
           onChange={(v) => change((r) => ({ ...r, when: { ...r.when, stem: v === ANY ? null : (v as (typeof STEMS)[number]) } }))}
         />
         <KindSelect
           label={`${t('rule.spawn')} (${n})`}
+          hint={t('rule.hint.spawn')}
           value={rule.spawn}
           recipes={draft.recipes}
           error={at('spawn')}
@@ -89,12 +92,14 @@ export function RuleEditor({ draft, errors, update, index, rule }: RuleEditorPro
         />
         <SelectInput
           label={`${t('rule.heightFrom')} (${n})`}
+          hint={t('rule.hint.heightFrom')}
           value={rule.heightFrom}
           options={HEIGHT_SOURCES.map((h) => ({ value: h, label: t(`height.${h}`) }))}
           onChange={(v) => change((r) => ({ ...r, heightFrom: v as Rule['heightFrom'] }))}
         />
         <SelectInput
           label={`${t('rule.colorRole')} (${n})`}
+          hint={t('rule.hint.colorRole')}
           value={rule.colorRole ?? ANY}
           options={[{ value: ANY, label: t('rule.colorGradient') }, ...COLOR_ROLES.map((c) => ({ value: c, label: t(`role.${c}`) }))]}
           onChange={(v) => change((r) => ({ ...r, colorRole: v === ANY ? null : (v as (typeof COLOR_ROLES)[number]) }))}

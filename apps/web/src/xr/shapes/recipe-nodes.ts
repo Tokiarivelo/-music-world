@@ -4,7 +4,7 @@
  * Returns null when the tree would exceed the node limit (a stack of 8 floors in each of 8 parts, for instance).
  */
 import { mulberry32 } from "@/engine/prng";
-import type { PartNode } from "./node-builder";
+import { plainMaterial, type PartNode } from "./node-builder";
 import type { ShapeRecipe } from "./recipe-builder";
 
 type Part = ShapeRecipe["parts"][number];
@@ -41,6 +41,7 @@ function nodeOf(
     position: vec(x, f.y, z),
     rotation: vec(),
     size: vec(f.width, f.height, f.depth),
+    material: plainMaterial(), bevel: 0, profile: [], operation: "add" as const,
   };
   if (of === "box") return { ...base, primitive: "box", sides: 8, taper: 1 };
   if (of === "spike")

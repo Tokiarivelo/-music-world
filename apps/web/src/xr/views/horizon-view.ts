@@ -129,7 +129,7 @@ export class HorizonView implements WorldView {
     const color = new Color();
     const roles = ['primary', 'secondary', 'accent'] as const;
     for (const kind of kinds) {
-      const geometry = buildShapeGeometry(kind, plan.template.recipes);
+      const geometry = buildShapeGeometry(kind, plan.template.recipes, plan.template.palette);
       this.geometries.push(geometry);
       const mesh = new InstancedMesh(geometry, this.material, per);
       mesh.instanceMatrix.setUsage(DynamicDrawUsage);

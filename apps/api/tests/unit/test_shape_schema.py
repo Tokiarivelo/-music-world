@@ -162,3 +162,50 @@ def test_node_tree_rules(nodes: list[dict], message: str) -> None:
 def test_a_recipe_needs_parts_or_nodes() -> None:
     with pytest.raises(ValidationError, match="at least one"):
         ShapeRecipe.model_validate({"name": "x"})
+
+
+def _recipe(*nodes: dict) -> ShapeRecipe:
+    return ShapeRecipe.model_validate({"name": "t", "nodes": list(nodes), "budget": {"max_triangles": 2000}})
+
+
+SQUARE = [{"x": -0.5, "z": -0.5}, {"x": 0.5, "z": -0.5}, {"x": 0.5, "z": 0.5}, {"x": -0.5, "z": 0.5}]
+
+
+def test_extrude_and_bevel_triangle_counts() -> None:
+    assert _recipe({"id": "a", "name": "A", "primitive": "box", "bevel": 0.1}).triangle_count() == 44
+    assert _recipe({"id": "a", "name": "A", "primitive": "box"}).triangle_count() == 12
+    assert _recipe({"id": "a", "name": "A", "primitive": "extrude", "profile": SQUARE}).triangle_count() == 12
+    hexagon = [
+        {"x": 0.5, "z": 0},
+        {"x": 0.25, "z": 0.4},
+        {"x": -0.25, "z": 0.4},
+        {"x": -0.5, "z": 0},
+        {"x": -0.25, "z": -0.4},
+        {"x": 0.25, "z": -0.4},
+    ]
+    assert _recipe({"id": "a", "name": "A", "primitive": "extrude", "profile": hexagon}).triangle_count() == 20
+
+
+@pytest.mark.parametrize(
+    "profile",
+    [
+        [],
+        SQUARE[:2],
+        [{"x": -0.5, "z": -0.5}, {"x": 0, "z": 0}, {"x": 0.5, "z": -0.5}, {"x": 0, "z": 0.5}],  # not convex
+        [{"x": 0, "z": 0}, {"x": 0.2, "z": 0}, {"x": 0.4, "z": 0}],  # flat
+    ],
+)
+def test_extrude_profile_must_be_a_convex_outline(profile: list[dict]) -> None:
+    with pytest.raises(ValidationError):
+        _recipe({"id": "a", "name": "A", "primitive": "extrude", "profile": profile})
+
+
+def test_boolean_nodes_need_an_uncombined_parent() -> None:
+    base = {"id": "wall", "name": "Wall"}
+    cut = {"id": "door", "name": "Door", "parent": "wall", "operation": "subtract"}
+    ok = _recipe(base, cut)
+    assert ok.triangle_count() == 12 + 12 + 48
+    with pytest.raises(ValidationError):
+        _recipe({"id": "door", "name": "Door", "operation": "subtract"})
+    with pytest.raises(ValidationError):
+        _recipe(base, cut, {"id": "knob", "name": "Knob", "parent": "door", "operation": "union"})

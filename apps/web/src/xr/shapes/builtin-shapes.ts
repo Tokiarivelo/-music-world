@@ -15,6 +15,7 @@ import {
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { ShapeKind } from '@/engine/types';
 import { airplane, bicycle, bush, car, cloud, conifer, tree } from './object-shapes';
+import type { PartPalette } from './node-builder';
 import { buildRecipeGeometry, type ShapeRecipe } from './recipe-builder';
 
 function baseAtZero(geometry: BufferGeometry, height: number): BufferGeometry {
@@ -121,7 +122,7 @@ function cluster(): BufferGeometry {
  * Geometry for a kind. `recipe:<name>` kinds are built from the template's `recipes`; a missing, invalid or over-budget
  * recipe falls back to a box, so a bad template still renders.
  */
-export function buildShapeGeometry(kind: ShapeKind, recipes: readonly ShapeRecipe[] = []): BufferGeometry {
+export function buildShapeGeometry(kind: ShapeKind, recipes: readonly ShapeRecipe[] = [], palette?: PartPalette): BufferGeometry {
   switch (kind) {
     case 'building':
       return building();
@@ -149,7 +150,7 @@ export function buildShapeGeometry(kind: ShapeKind, recipes: readonly ShapeRecip
       return airplane();
     default: {
       const recipe = recipes.find((r) => `recipe:${r.name}` === kind);
-      return (recipe && buildRecipeGeometry(recipe)) || baseAtZero(new BoxGeometry(1, 1, 1), 1);
+      return (recipe && buildRecipeGeometry(recipe, palette)) || baseAtZero(new BoxGeometry(1, 1, 1), 1);
     }
   }
 }

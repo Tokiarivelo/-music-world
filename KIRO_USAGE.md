@@ -371,3 +371,10 @@ repository:
 - Skills used: `blender-3d-models`, `world-template`, `handoff`. Template schema gained `layout` (pydantic → `make schemas`),
   a layout endpoint and prompt; property tests caught city-specific zone and determinism issues; the architecture check
   caught a director prompt imported from infrastructure (moved to `application/`). No hooks fired (outside the Kiro IDE).
+
+### 2026-11-26 — Object editor phase 4, part tools and look (Claude Code)
+
+- Skills used: `start`, `handoff`. Spec 12 tasks 4.1–4.4: part tools, material per part, procedural textures, extrude /
+  bevel / boolean (`three-bvh-csg`). Schema gained `PartMaterial`, `extrude`, `bevel`, `operation` (pydantic → `make
+  schemas`); a pydantic validator keeps outlines convex and combined parts under a plain parent. Volume tests of the
+  boolean results caught a wrong cutter-wall group mapping. Template editor fields got explicit hints. No hooks fired.

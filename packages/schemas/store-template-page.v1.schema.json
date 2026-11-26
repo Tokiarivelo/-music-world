@@ -588,6 +588,85 @@
       "title": "Part",
       "type": "object"
     },
+    "PartMaterial": {
+      "additionalProperties": false,
+      "description": "Look of one part. A colour tints the object's own colour (white keeps it); it never replaces it.",
+      "properties": {
+        "color": {
+          "anyOf": [
+            {
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Hex tint of the part. Wins over `color_role`.",
+          "title": "Color"
+        },
+        "colorRole": {
+          "anyOf": [
+            {
+              "enum": [
+                "primary",
+                "accent",
+                "secondary",
+                "staff",
+                "line"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Tint taken from the template palette.",
+          "title": "Colorrole"
+        },
+        "emissive": {
+          "default": 0,
+          "description": "Glow: 0 none, 1 about 60 % brighter.",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Emissive",
+          "type": "number"
+        },
+        "roughness": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "0 mirror-like, 1 matte (lit material only).",
+          "title": "Roughness"
+        },
+        "texture": {
+          "default": "none",
+          "description": "Procedural pattern drawn by the shader (no image file).",
+          "enum": [
+            "none",
+            "brick",
+            "wood",
+            "stone",
+            "tile",
+            "glass"
+          ],
+          "title": "Texture",
+          "type": "string"
+        }
+      },
+      "title": "PartMaterial",
+      "type": "object"
+    },
     "PartNode": {
       "additionalProperties": false,
       "description": "A named part of an object, edited like a Blender outliner entry.\n\nNodes are a flat list; `parent` names an earlier node. A child's position and rotation are in its parent's local\nspace (the parent's size is not inherited). `position` is the centre of the node's base: y = 0 stands it on the\nobject's base (or on its parent's origin).",
@@ -611,7 +690,8 @@
             "cone",
             "sphere",
             "prism",
-            "gable"
+            "gable",
+            "extrude"
           ],
           "title": "Primitive",
           "type": "string"
@@ -673,6 +753,45 @@
           "minimum": 0,
           "title": "Taper",
           "type": "number"
+        },
+        "material": {
+          "$ref": "#/$defs/PartMaterial",
+          "default": {
+            "color": null,
+            "colorRole": null,
+            "emissive": 0.0,
+            "roughness": null,
+            "texture": "none"
+          }
+        },
+        "bevel": {
+          "default": 0,
+          "description": "box: chamfer of the edges as a share of each side.",
+          "maximum": 0.45,
+          "minimum": 0,
+          "title": "Bevel",
+          "type": "number"
+        },
+        "profile": {
+          "default": [],
+          "description": "extrude: convex outline, 3 to 12 points, any winding.",
+          "items": {
+            "$ref": "#/$defs/Point2"
+          },
+          "maxItems": 12,
+          "title": "Profile",
+          "type": "array"
+        },
+        "operation": {
+          "default": "add",
+          "description": "add: its own solid. union / subtract: merged into, or cut out of, the solid of its parent.",
+          "enum": [
+            "add",
+            "union",
+            "subtract"
+          ],
+          "title": "Operation",
+          "type": "string"
         }
       },
       "required": [
@@ -780,6 +899,28 @@
         "kind"
       ],
       "title": "PlacedObject",
+      "type": "object"
+    },
+    "Point2": {
+      "additionalProperties": false,
+      "description": "A point of an extrusion outline on the ground plane, inside the unit footprint.",
+      "properties": {
+        "x": {
+          "default": 0,
+          "maximum": 0.5,
+          "minimum": -0.5,
+          "title": "X",
+          "type": "number"
+        },
+        "z": {
+          "default": 0,
+          "maximum": 0.5,
+          "minimum": -0.5,
+          "title": "Z",
+          "type": "number"
+        }
+      },
+      "title": "Point2",
       "type": "object"
     },
     "Rotation": {
@@ -1246,7 +1387,7 @@
             }
           ],
           "default": null,
-          "description": "World seed chosen by the creator of a map; none: the project's.",
+          "description": "World seed chosen by the creator of a map; none: random.",
           "title": "Seed"
         }
       },

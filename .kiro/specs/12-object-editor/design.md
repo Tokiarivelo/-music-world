@@ -54,3 +54,40 @@
   The browser draft is restored on the next visit (read with `useSyncExternalStore`, no hydration mismatch).
 - Not done: a 3D gizmo in the world view (plan-view handles instead), picking a store template inside the create dialog
   (use `?from=<id>`), the placed object's own part overrides (`overrides` of the spec: only `color` and `variant`).
+
+## As built (phase 4, part tools and look)
+
+- 4.1: pure `mirrorNode` (copy of the subtree, position negated and rotation flipped on the axis), `arrayNode` (2–8
+  copies, spacing along an axis) and `nudgeNode` in `lib/node-model.ts`, buttons in `PartTreePanel`. All respect the
+  48-node limit (unchanged when exceeded). Deviation: the "gizmo" is the numeric fields plus ±0.05 m nudge buttons;
+  the object viewport is a 2D canvas, so drag handles are not added there.
+- 4.2: `PartNode.material` `{color, color_role, emissive, roughness}` (pydantic `PartMaterial`). A tint is a **vertex
+  colour** multiplied by the instance colour (white keeps the object colour; it never replaces it); a palette role is
+  resolved with the template palette in `buildNodeGeometries(nodes, palette)`; `emissive` brightens the vertex colour
+  up to ×1.6 (works unlit and lit). Roughness only applies with `fx.material = polished` and is the **mean of the
+  parts that set one** (the lit material has one value per kind: `recipeRoughness`). The 2D viewport and thumbnails do
+  not show tints yet. Legacy `parts` get white vertex colours when a node is painted (merge needs equal attributes).
+- Template editor usability: every field has a plain-language `hint` (`hint.*` keys, en/fr/mg) under it, number fields
+  show their range and a slider next to the exact box (`fields/Hint.tsx`, `NumberInput`, `BoundedNumber`,
+  `SelectInput`, `ColorInput`, `ToggleInput`); the part inspector explains position, rotation, size and look.
+  Zones, rules and recipe parts do not have hints yet.
+- Follow-up to 4.2: tints show in thumbnails and the 2D viewport (`faceFill`, per-triangle vertex colour in
+  `sceneFaces`). Zones are explained: intro text, a top-view `ZoneMap` (far edge up, numbered like the list), quick
+  placements (`zone-model.ts`: whole, halves, centre), coverage %, and bound hints (-1 edge, 0 centre, 1 edge). Rules,
+  recipes and recipe parts have hints too.
+- 4.3: `PartMaterial.texture` (`none, brick, wood, stone, tile, glass`). No image: `xr/shapes/part-textures.ts` adds a
+  per-vertex `aTex` id (only when a part is textured) and `addPartTextures(material)` patches the fragment shader of
+  the recipe kind's material (lit or flat; keeps an earlier `onBeforeCompile`, so swim and sway still work). The
+  pattern is drawn in object-space metres on the plane a face looks along (normal from screen derivatives) and
+  multiplies the colour. Limits: not shown in the 2D editor preview; the old `horizon-view` material is not patched;
+  instances that grow from zero scale stretch the pattern while they grow (`vMwObj` follows the instance scale).
+- 4.4: new primitive `extrude` (convex outline `profile` of 3–12 points, validated in pydantic and mirrored in
+  `isConvexProfile`; 4n − 4 triangles), `bevel` on a box (chamfer 0–0.45, 44 triangles instead of 12) and
+  `operation` (`add`, `union`, `subtract`): a union / subtract part is merged into, or cut out of, its **parent**, which
+  must be a plain part (a combined part cannot have a combined child). Booleans run in `xr/shapes/node-csg.ts` with
+  `three-bvh-csg` 0.0.19 + `three-mesh-bvh` 0.10.0 (both MIT, added to the README table). Faces keep the look of the
+  part they come from (cut walls take the base's look). `buildNodePieces` returns `{id, geometry}` pieces (the viewport
+  uses it, since combined parts give no piece of their own). Python counts a combined part as its own triangles + 48
+  (an estimate: the real count is only known after the build, where `buildRecipeGeometry` still checks the budget and falls
+  back to a box). Limits: parent-child only (no cut between siblings), cutters do not follow the parent's later edits
+  until a rebuild (rebuilt every time), booleans run on every build of a recipe kind (once per kind, not per instance).

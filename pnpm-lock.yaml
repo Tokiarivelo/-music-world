@@ -31,6 +31,12 @@ importers:
       three:
         specifier: npm:super-three@0.185.0
         version: super-three@0.185.0
+      three-bvh-csg:
+        specifier: ^0.0.19
+        version: 0.0.19(super-three@0.185.0)(three-mesh-bvh@0.10.0(super-three@0.185.0))
+      three-mesh-bvh:
+        specifier: ^0.10.0
+        version: 0.10.0(super-three@0.185.0)
       zod:
         specifier: 4.6.7
         version: 4.6.7
@@ -2509,6 +2515,17 @@ packages:
   tapable@2.3.4:
     resolution: {integrity: sha512-NHFiWnAbMJxNNpBwiO7jJVGDuqMxT9/oV8v57RR+fgBQShkJil5inGD8/xWy0hjLyHQyX1tu27QANhlz3KBqCg==}
     engines: {node: '>=6'}
+
+  three-bvh-csg@0.0.19:
+    resolution: {integrity: sha512-aYX12cVnkBV7QZFagoilf7VhL/w5VLFD2fqAYsAU1VyadMkAxjWYPsU+wOoNFc8krp+GI6PwAbT3yEeWTOu+KA==}
+    peerDependencies:
+      three: '>=0.179.0'
+      three-mesh-bvh: '>=0.9.11'
+
+  three-mesh-bvh@0.10.0:
+    resolution: {integrity: sha512-QHKCD67pgd7YkAcPa4rvuPJjeUm1shFKcFSW8QqnJ0t2uhwi+yyadLpDWI8t0VQsivfFjhVCYvf6rVk9Z0R1gQ==}
+    peerDependencies:
+      three: '>= 0.159.0'
 
   three-mesh-bvh@0.9.18:
     resolution: {integrity: sha512-S76hOBnsSG4jsuEyCu98K63klONG4NwJANabPY1LUD5l7oUgu2xtKC0IwnX/XyPzo4YZ1D7ZU+gHVA479UdQmA==}
@@ -5340,6 +5357,15 @@ snapshots:
   tailwindcss@4.3.5: {}
 
   tapable@2.3.4: {}
+
+  three-bvh-csg@0.0.19(super-three@0.185.0)(three-mesh-bvh@0.10.0(super-three@0.185.0)):
+    dependencies:
+      three: super-three@0.185.0
+      three-mesh-bvh: 0.10.0(super-three@0.185.0)
+
+  three-mesh-bvh@0.10.0(super-three@0.185.0):
+    dependencies:
+      three: super-three@0.185.0
 
   three-mesh-bvh@0.9.18(super-three@0.185.0):
     dependencies:

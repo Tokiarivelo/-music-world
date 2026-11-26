@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildNodeGeometries, type PartNode } from "./node-builder";
+import { buildNodeGeometries, plainMaterial, type PartNode } from "./node-builder";
 import { buildRecipeGeometry, type ShapeRecipe } from "./recipe-builder";
 import { triangleCount } from "./builtin-shapes";
 
@@ -79,5 +79,48 @@ describe("node builder", () => {
     const b = bounds(g);
     expect(b.max.y - b.min.y).toBeCloseTo(1, 6);
     expect(triangleCount(g)).toBe(12);
+  });
+});
+
+describe('part look', () => {
+  const base = (m: Partial<PartNode['material']>): PartNode => node({ id: 'x', material: { ...plainMaterial(), ...m } });
+
+  it('gives no colour attribute to plain parts', () => {
+    const [g] = buildNodeGeometries([base({})]);
+    expect(g!.hasAttribute('color')).toBe(false);
+  });
+
+  it('tints a part from a hex, a palette role, and boosts a glowing one', () => {
+    const [a, b, c] = buildNodeGeometries(
+      [base({ color: '#ff0000' }), base({ colorRole: 'accent' }), base({ emissive: 1 })].map((n, i) => ({ ...n, id: `n${i}` })),
+      { accent: '#00ff00' },
+    );
+    expect(a!.getAttribute('color').getX(0)).toBeGreaterThan(0.9);
+    expect(a!.getAttribute('color').getY(0)).toBe(0);
+    expect(b!.getAttribute('color').getY(0)).toBeGreaterThan(0.9);
+    expect(b!.getAttribute('color').getX(0)).toBe(0);
+    expect(c!.getAttribute('color').getX(0)).toBeCloseTo(1.6);
+  });
+});
+
+describe('part textures', () => {
+  const tex = (texture: PartNode['material']['texture'], id: string) => node({ id, material: { ...plainMaterial(), texture } });
+
+  it('adds the pattern id per vertex only when a part is textured', () => {
+    const [plain] = buildNodeGeometries([tex('none', 'a')]);
+    expect(plain!.hasAttribute('aTex')).toBe(false);
+    const [a, b] = buildNodeGeometries([tex('brick', 'a'), tex('none', 'b')]);
+    expect(a!.getAttribute('aTex').getX(0)).toBe(1);
+    expect(b!.getAttribute('aTex').getX(0)).toBe(0);
+  });
+
+  it('keeps one attribute set when a recipe mixes textured nodes and legacy parts', () => {
+    const recipe = {
+      schema: 'music-world.shape.v1', name: 'mix', budget: { maxTriangles: 500 }, footprint: 0.5, heightScale: 1,
+      parts: [{ op: 'box', width: 0.4, depth: 0.4, height: 0.4 }],
+      nodes: [tex('glass', 'g')],
+    } as unknown as ShapeRecipe;
+    const g = buildRecipeGeometry(recipe)!;
+    expect(g.getAttribute('aTex').count).toBe(g.getAttribute('position').count);
   });
 });
