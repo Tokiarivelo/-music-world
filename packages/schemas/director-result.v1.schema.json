@@ -724,7 +724,8 @@
             "cone",
             "sphere",
             "prism",
-            "gable"
+            "gable",
+            "extrude"
           ],
           "title": "Primitive",
           "type": "string"
@@ -796,6 +797,35 @@
             "roughness": null,
             "texture": "none"
           }
+        },
+        "bevel": {
+          "default": 0,
+          "description": "box: chamfer of the edges as a share of each side.",
+          "maximum": 0.45,
+          "minimum": 0,
+          "title": "Bevel",
+          "type": "number"
+        },
+        "profile": {
+          "default": [],
+          "description": "extrude: convex outline, 3 to 12 points, any winding.",
+          "items": {
+            "$ref": "#/$defs/Point2"
+          },
+          "maxItems": 12,
+          "title": "Profile",
+          "type": "array"
+        },
+        "operation": {
+          "default": "add",
+          "description": "add: its own solid. union / subtract: merged into, or cut out of, the solid of its parent.",
+          "enum": [
+            "add",
+            "union",
+            "subtract"
+          ],
+          "title": "Operation",
+          "type": "string"
         }
       },
       "required": [
@@ -903,6 +933,28 @@
         "kind"
       ],
       "title": "PlacedObject",
+      "type": "object"
+    },
+    "Point2": {
+      "additionalProperties": false,
+      "description": "A point of an extrusion outline on the ground plane, inside the unit footprint.",
+      "properties": {
+        "x": {
+          "default": 0,
+          "maximum": 0.5,
+          "minimum": -0.5,
+          "title": "X",
+          "type": "number"
+        },
+        "z": {
+          "default": 0,
+          "maximum": 0.5,
+          "minimum": -0.5,
+          "title": "Z",
+          "type": "number"
+        }
+      },
+      "title": "Point2",
       "type": "object"
     },
     "Rotation": {

@@ -41,7 +41,7 @@ function nodeOf(
     position: vec(x, f.y, z),
     rotation: vec(),
     size: vec(f.width, f.height, f.depth),
-    material: plainMaterial(),
+    material: plainMaterial(), bevel: 0, profile: [], operation: "add" as const,
   };
   if (of === "box") return { ...base, primitive: "box", sides: 8, taper: 1 };
   if (of === "spike")

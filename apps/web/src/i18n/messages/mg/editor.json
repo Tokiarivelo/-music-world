@@ -310,5 +310,21 @@
   "material.texture.wood": "Hazo",
   "material.texture.stone": "Vato",
   "material.texture.tile": "Tuile",
-  "material.texture.glass": "Fitaratra"
+  "material.texture.glass": "Fitaratra",
+  "parts.primitive.extrude": "Extrusion",
+  "tools.bevel": "Biseau",
+  "tools.bevelHint": "Mamboribory ny sisin’ny boaty: 0 maranitra, 0,45 boribory be. 44 triangle fa tsy 12.",
+  "tools.operation": "Fampifangaroana amin’ny ray",
+  "tools.operation.add": "Ampahany misaraka",
+  "tools.operation.union": "Atsoboy amin’ny ray",
+  "tools.operation.subtract": "Esory amin’ny ray",
+  "tools.operationHint": "Ny fanatsoboana dia mampiraikitra ity ampahany ity amin’ny rainy ary manala ny tarehy miafina. Ny fanesorana dia manao lavaka ao amin’ny rainy araka ny endriny (varavarankely, varavarana). Triangle fanampiny no laniny.",
+  "tools.profile": "Sisiny",
+  "tools.profileHint": "Zoro avy ambony (x, z ao anatin’ny footprint, -0,5 hatramin’ny 0,5). Tsy maintsy convex: tsy misy zoro miditra anaty.",
+  "tools.profilePoint": "Zoro {n} {axis}",
+  "tools.profileAdd": "Ampio zoro aorian’ny {n}",
+  "tools.profileRemove": "Esory ny zoro {n}",
+  "tools.profileRegular": "Sisiny tsara",
+  "tools.profileNotConvex": "Tsy convex ity sisiny ity: tsy aseho mandra-pahitsiny.",
+  "tools.profileSides": "{n} zoro"
 }

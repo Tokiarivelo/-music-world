@@ -243,7 +243,7 @@ Third-party components:
 |---|---|---|
 | [Bravura](https://github.com/steinbergmedia/bravura) font (Steinberg) | SIL Open Font License 1.1 (`assets/fonts/bravura/LICENSE.txt`) | Clef and note glyph outlines |
 | [Immersive Web SDK](https://github.com/facebook/immersive-web-sdk) `@iwsdk/core` 1.1.0, IWER 2.8.0 | MIT | WebXR runtime, Quest emulator |
-| three.js (super-three 0.185.0), Next.js 16, React 19, zod, fast-check | MIT | Web app |
+| three.js (super-three 0.185.0), three-bvh-csg 0.0.19 and three-mesh-bvh 0.10.0 (boolean cuts in the object editor), Next.js 16, React 19, zod, fast-check | MIT | Web app |
 | [Demucs](https://github.com/facebookresearch/demucs) | MIT | Stem separation |
 | [Basic Pitch](https://github.com/spotify/basic-pitch) | Apache-2.0 | Note transcription (bundled ONNX model) |
 | librosa (ISC), PyTorch (BSD), onnxruntime (MIT), soundfile (BSD) | permissive | Analysis |

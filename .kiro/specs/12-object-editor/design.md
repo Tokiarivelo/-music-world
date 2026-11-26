@@ -81,3 +81,13 @@
   pattern is drawn in object-space metres on the plane a face looks along (normal from screen derivatives) and
   multiplies the colour. Limits: not shown in the 2D editor preview; the old `horizon-view` material is not patched;
   instances that grow from zero scale stretch the pattern while they grow (`vMwObj` follows the instance scale).
+- 4.4: new primitive `extrude` (convex outline `profile` of 3–12 points, validated in pydantic and mirrored in
+  `isConvexProfile`; 4n − 4 triangles), `bevel` on a box (chamfer 0–0.45, 44 triangles instead of 12) and
+  `operation` (`add`, `union`, `subtract`): a union / subtract part is merged into, or cut out of, its **parent**, which
+  must be a plain part (a combined part cannot have a combined child). Booleans run in `xr/shapes/node-csg.ts` with
+  `three-bvh-csg` 0.0.19 + `three-mesh-bvh` 0.10.0 (both MIT, added to the README table). Faces keep the look of the
+  part they come from (cut walls take the base's look). `buildNodePieces` returns `{id, geometry}` pieces (the viewport
+  uses it, since combined parts give no piece of their own). Python counts a combined part as its own triangles + 48
+  (an estimate: the real count is only known after the build, where `buildRecipeGeometry` still checks the budget and falls
+  back to a box). Limits: parent-child only (no cut between siblings), cutters do not follow the parent's later edits
+  until a rebuild (rebuilt every time), booleans run on every build of a recipe kind (once per kind, not per instance).

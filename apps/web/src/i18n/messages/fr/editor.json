@@ -310,5 +310,21 @@
   "material.texture.wood": "Bois",
   "material.texture.stone": "Pierre",
   "material.texture.tile": "Carrelage",
-  "material.texture.glass": "Verre"
+  "material.texture.glass": "Verre",
+  "parts.primitive.extrude": "Extrusion",
+  "tools.bevel": "Biseau",
+  "tools.bevelHint": "Arrondit les arêtes d’une boîte : 0 est vif, 0,45 très arrondi. Coûte 44 triangles au lieu de 12.",
+  "tools.operation": "Combiner avec le parent",
+  "tools.operation.add": "Pièce séparée",
+  "tools.operation.union": "Fusionner dans le parent",
+  "tools.operation.subtract": "Découper dans le parent",
+  "tools.operationHint": "Fusionner soude cette pièce à son parent et supprime les faces cachées. Découper perce le parent à la forme de cette pièce (fenêtre, porte). Seule une pièce dont le parent est une pièce séparée peut le faire. Coûte des triangles en plus.",
+  "tools.profile": "Contour",
+  "tools.profileHint": "Coins de la forme vue de dessus (x, z dans l’empreinte, -0,5 à 0,5). Il doit être convexe : aucun coin ne rentre vers l’intérieur.",
+  "tools.profilePoint": "Coin {n} {axis}",
+  "tools.profileAdd": "Ajouter un coin après {n}",
+  "tools.profileRemove": "Supprimer le coin {n}",
+  "tools.profileRegular": "Contour régulier",
+  "tools.profileNotConvex": "Ce contour n’est pas convexe : il n’est pas dessiné tant que vous ne le corrigez pas.",
+  "tools.profileSides": "{n} coins"
 }

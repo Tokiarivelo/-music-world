@@ -28,7 +28,7 @@ function node(s: Spec): PartNode {
     size: { x: s.size[0], y: s.size[1], z: s.size[2] },
     sides: s.sides ?? 8,
     taper: s.taper ?? 1,
-    material: plainMaterial(),
+    material: plainMaterial(), bevel: 0, profile: [], operation: "add" as const,
   };
 }
 

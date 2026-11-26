@@ -12,7 +12,13 @@ export type NodeField = 'px' | 'py' | 'pz' | 'rx' | 'ry' | 'rz' | 'sx' | 'sy' | 
 export const MAX_NODES = 48;
 export const MAX_NODE_DEPTH = 4;
 export const NODE_NAME_MAX = 40;
-export const PRIMITIVES: readonly NodePrimitive[] = ['box', 'cylinder', 'cone', 'sphere', 'prism', 'gable'];
+export const PRIMITIVES: readonly NodePrimitive[] = ['box', 'cylinder', 'cone', 'sphere', 'prism', 'gable', 'extrude'];
+export type NodeOperation = PartNode['operation'];
+export type ProfilePoint = PartNode['profile'][number];
+export const MAX_PROFILE_POINTS = 12;
+export const MIN_PROFILE_POINTS = 3;
+export const BEVEL_MAX = 0.45;
+const SQUARE_PROFILE: ProfilePoint[] = [{ x: -0.5, z: -0.5 }, { x: 0.5, z: -0.5 }, { x: 0.5, z: 0.5 }, { x: -0.5, z: 0.5 }];
 
 export const NODE_BOUNDS: Readonly<Record<NodeField, { min: number; max: number; integer?: boolean }>> = {
   px: { min: -2, max: 2 }, py: { min: -2, max: 2 }, pz: { min: -2, max: 2 },
@@ -174,7 +180,7 @@ export function addNode(nodes: readonly PartNode[], primitive: NodePrimitive, pa
     size: { x: 0.3, y: 0.3, z: 0.3 },
     sides: 8,
     taper: 1,
-    material: plainMaterial(),
+    material: plainMaterial(), bevel: 0, profile: primitive === 'extrude' ? SQUARE_PROFILE.map((q) => ({ ...q })) : [], operation: 'add' as const,
   };
   if (parent === null) return [...nodes, node];
   const end = nodes.reduce((at, n, i) => (subtreeIds(nodes, parent).has(n.id) ? i : at), -1);
@@ -182,7 +188,87 @@ export function addNode(nodes: readonly PartNode[], primitive: NodePrimitive, pa
 }
 
 export function setNodePrimitive(nodes: readonly PartNode[], id: string, primitive: NodePrimitive): PartNode[] {
-  return nodes.map((n) => (n.id === id ? { ...n, primitive } : n));
+  return nodes.map((n) => {
+    if (n.id !== id) return n;
+    const profile = primitive === 'extrude' && n.profile.length < MIN_PROFILE_POINTS ? SQUARE_PROFILE.map((q) => ({ ...q })) : n.profile;
+    return { ...n, primitive, profile };
+  });
+}
+
+const edit = (nodes: readonly PartNode[], id: string, change: (n: PartNode) => PartNode): PartNode[] => nodes.map((n) => (n.id === id ? change(n) : n));
+
+/** Chamfer of a box's edges, 0 (sharp) to 0.45 (a share of each side). */
+export function setNodeBevel(nodes: readonly PartNode[], id: string, raw: number): PartNode[] {
+  const v = Math.min(BEVEL_MAX, Math.max(0, Number.isFinite(raw) ? raw : 0));
+  return edit(nodes, id, (n) => ({ ...n, bevel: v }));
+}
+
+/** Whether `id` may be combined into its parent: it needs a parent that is a plain part, and no combined child of its own. */
+export function canCombine(nodes: readonly PartNode[], id: string): boolean {
+  const node = nodes.find((n) => n.id === id);
+  const parent = node?.parent ? nodes.find((n) => n.id === node.parent) : undefined;
+  return !!node && !!parent && parent.operation === 'add' && !nodes.some((n) => n.parent === id && n.operation !== 'add');
+}
+
+/** Sets how a part meets its parent: its own solid (add), merged into it (union) or cut out of it (subtract). */
+export function setNodeOperation(nodes: readonly PartNode[], id: string, operation: NodeOperation): PartNode[] {
+  if (operation !== 'add' && !canCombine(nodes, id)) return [...nodes];
+  return edit(nodes, id, (n) => ({ ...n, operation }));
+}
+
+/** True when the outline turns the same way at every corner (collinear points allowed) and has an area (mirrors `shape.py`). */
+export function isConvexProfile(points: readonly ProfilePoint[]): boolean {
+  const n = points.length;
+  if (n < MIN_PROFILE_POINTS) return false;
+  let sign = 0;
+  let area2 = 0;
+  for (let i = 0; i < n; i += 1) {
+    const a = points[i]!;
+    const b = points[(i + 1) % n]!;
+    const c = points[(i + 2) % n]!;
+    const cross = (b.x - a.x) * (c.z - b.z) - (b.z - a.z) * (c.x - b.x);
+    area2 += a.x * b.z - b.x * a.z;
+    if (Math.abs(cross) < 1e-9) continue;
+    const step = cross > 0 ? 1 : -1;
+    if (sign && step !== sign) return false;
+    sign = step;
+  }
+  return Math.abs(area2) > 1e-6;
+}
+
+const clampPoint = (v: number) => Math.min(0.5, Math.max(-0.5, Number.isFinite(v) ? v : 0));
+
+/** A regular outline of `sides` corners inside the unit footprint. */
+export function regularProfile(sides: number): ProfilePoint[] {
+  const n = Math.min(MAX_PROFILE_POINTS, Math.max(MIN_PROFILE_POINTS, Math.round(sides)));
+  return Array.from({ length: n }, (_, i) => {
+    const a = (i / n) * Math.PI * 2;
+    return { x: Number((0.5 * Math.cos(a)).toFixed(4)), z: Number((0.5 * Math.sin(a)).toFixed(4)) };
+  });
+}
+
+export function setProfile(nodes: readonly PartNode[], id: string, profile: readonly ProfilePoint[]): PartNode[] {
+  return edit(nodes, id, (n) => ({ ...n, profile: profile.map((p) => ({ x: clampPoint(p.x), z: clampPoint(p.z) })) }));
+}
+
+export function setProfilePoint(nodes: readonly PartNode[], id: string, index: number, axis: 'x' | 'z', raw: number): PartNode[] {
+  return edit(nodes, id, (n) => ({ ...n, profile: n.profile.map((p, i) => (i === index ? { ...p, [axis]: clampPoint(raw) } : p)) }));
+}
+
+/** Adds a corner after `index` (halfway to the next one). Unchanged at 12 corners. */
+export function addProfilePoint(nodes: readonly PartNode[], id: string, index: number): PartNode[] {
+  return edit(nodes, id, (n) => {
+    if (n.profile.length >= MAX_PROFILE_POINTS || index < 0 || index >= n.profile.length) return n;
+    const a = n.profile[index]!;
+    const b = n.profile[(index + 1) % n.profile.length]!;
+    const mid = { x: Number(((a.x + b.x) / 2).toFixed(4)), z: Number(((a.z + b.z) / 2).toFixed(4)) };
+    return { ...n, profile: [...n.profile.slice(0, index + 1), mid, ...n.profile.slice(index + 1)] };
+  });
+}
+
+/** Removes a corner. Unchanged at 3 corners. */
+export function removeProfilePoint(nodes: readonly PartNode[], id: string, index: number): PartNode[] {
+  return edit(nodes, id, (n) => (n.profile.length <= MIN_PROFILE_POINTS ? n : { ...n, profile: n.profile.filter((_, i) => i !== index) }));
 }
 
 export function readNodeField(node: PartNode, field: NodeField): number {

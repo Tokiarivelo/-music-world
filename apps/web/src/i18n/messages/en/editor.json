@@ -310,5 +310,21 @@
   "material.texture.wood": "Wood",
   "material.texture.stone": "Stone",
   "material.texture.tile": "Tile",
-  "material.texture.glass": "Glass"
+  "material.texture.glass": "Glass",
+  "parts.primitive.extrude": "Extrusion",
+  "tools.bevel": "Bevel",
+  "tools.bevelHint": "Rounds off the edges of a box: 0 is sharp, 0.45 is very round. Costs 44 triangles instead of 12.",
+  "tools.operation": "Combine with the parent",
+  "tools.operation.add": "Separate part",
+  "tools.operation.union": "Merge into the parent",
+  "tools.operation.subtract": "Cut out of the parent",
+  "tools.operationHint": "Merge welds this part to its parent and removes the faces hidden inside. Cut makes a hole in the parent with the shape of this part (a window or door). Only a part whose parent is a separate part can do this. Costs extra triangles.",
+  "tools.profile": "Outline",
+  "tools.profileHint": "Corners of the shape seen from above (x, z in the footprint, -0.5 to 0.5). It must be convex: no corner may point inward.",
+  "tools.profilePoint": "Corner {n} {axis}",
+  "tools.profileAdd": "Add a corner after {n}",
+  "tools.profileRemove": "Remove corner {n}",
+  "tools.profileRegular": "Regular outline",
+  "tools.profileNotConvex": "This outline is not convex: it is not drawn until you fix it.",
+  "tools.profileSides": "{n} corners"
 }

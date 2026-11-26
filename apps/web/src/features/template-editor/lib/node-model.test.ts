@@ -129,4 +129,41 @@ describe('node-model', () => {
     const b = m.setNodeMaterial(a, 'roof', { texture: 'lava' as never });
     expect(b.find((n) => n.id === 'roof')!.material.texture).toBe('brick');
   });
+
+  it('clamps the bevel and gives an extrusion a default outline', () => {
+    expect(m.setNodeBevel(house, 'walls', 9).find((n) => n.id === 'walls')!.bevel).toBe(0.45);
+    expect(m.setNodeBevel(house, 'walls', -1).find((n) => n.id === 'walls')!.bevel).toBe(0);
+    const swapped = m.setNodePrimitive(house, 'walls', 'extrude').find((n) => n.id === 'walls')!;
+    expect(swapped.profile).toHaveLength(4);
+    expect(m.isConvexProfile(swapped.profile)).toBe(true);
+    expect(m.addNode(house, 'extrude', null).at(-1)!.profile).toHaveLength(4);
+  });
+
+  it('edits an outline within its limits and tells convex from not convex', () => {
+    let nodes = m.addNode(house, 'extrude', null);
+    const id = nodes.at(-1)!.id;
+    nodes = m.setProfile(nodes, id, m.regularProfile(6));
+    expect(nodes.find((n) => n.id === id)!.profile).toHaveLength(6);
+    for (let i = 0; i < 10; i += 1) nodes = m.addProfilePoint(nodes, id, 0);
+    expect(nodes.find((n) => n.id === id)!.profile).toHaveLength(m.MAX_PROFILE_POINTS);
+    for (let i = 0; i < 20; i += 1) nodes = m.removeProfilePoint(nodes, id, 0);
+    expect(nodes.find((n) => n.id === id)!.profile).toHaveLength(m.MIN_PROFILE_POINTS);
+    nodes = m.setProfilePoint(nodes, id, 0, 'x', 5);
+    expect(nodes.find((n) => n.id === id)!.profile[0]!.x).toBe(0.5);
+    const dent = [{ x: -0.5, z: -0.5 }, { x: 0, z: 0 }, { x: 0.5, z: -0.5 }, { x: 0, z: 0.5 }];
+    expect(m.isConvexProfile(dent)).toBe(false);
+  });
+
+  it('combines a part with its parent only when the tree allows it', () => {
+    expect(m.canCombine(house, 'walls')).toBe(false); // a root
+    expect(m.canCombine(house, 'roof')).toBe(true);
+    const cut = m.setNodeOperation(house, 'roof', 'subtract');
+    expect(cut.find((n) => n.id === 'roof')!.operation).toBe('subtract');
+    expect(m.setNodeOperation(house, 'walls', 'union')).toEqual(house);
+    const withKnob = m.addNode(cut, 'box', 'roof');
+    const knob = withKnob.find((n) => !cut.some((o) => o.id === n.id))!;
+    expect(knob.parent).toBe('roof');
+    expect(m.canCombine(withKnob, knob.id)).toBe(false); // its parent is combined
+    expect(valid(cut)).toBe(true);
+  });
 });

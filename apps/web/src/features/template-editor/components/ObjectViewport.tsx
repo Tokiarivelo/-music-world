@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '@/i18n';
-import { buildNodeGeometries } from '@/xr/shapes/node-builder';
+import { buildNodePieces } from '@/xr/shapes/node-builder';
 import { faceFill } from '../lib/face-color';
 import { DEFAULT_VIEW, MAX_PITCH, sceneFaces, type ThumbView } from '../lib/thumbnail';
 import type { PartNode } from '../lib/node-model';
@@ -22,9 +22,9 @@ export function ObjectViewport({ nodes, selected, color, highlight, palette }: {
   const drag = useRef<{ x: number; y: number } | null>(null);
   const [view, setView] = useState<ThumbView>(DEFAULT_VIEW);
   const groups = useMemo(() => {
-    const visible = nodes.filter((n) => !n.hidden);
-    const geometries = buildNodeGeometries(nodes, palette);
-    const out = geometries.map((g, i) => ({ id: visible[i]!.id, positions: g.getAttribute('position').array, colors: g.hasAttribute('color') ? g.getAttribute('color').array : undefined }));
+    const pieces = buildNodePieces(nodes, palette);
+    const geometries = pieces.map((p) => p.geometry);
+    const out = geometries.map((g, i) => ({ id: pieces[i]!.id, positions: g.getAttribute('position').array, colors: g.hasAttribute('color') ? g.getAttribute('color').array : undefined }));
     geometries.forEach((g) => g.dispose());
     return out;
   }, [nodes, palette]);
