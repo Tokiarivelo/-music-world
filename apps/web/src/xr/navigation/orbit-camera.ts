@@ -26,7 +26,7 @@ import {
   NAV_TARGET_MAX_LIFT_M,
   NAV_TARGET_RADIUS_M,
   NAV_TURN_SPEED_RAD,
-} from '../constants';
+} from "../constants";
 
 export interface Vec3 {
   x: number;
@@ -44,8 +44,14 @@ export interface OrbitPose {
   readonly distance: number;
 }
 
-export type ViewPresetId = 'overview' | 'horizon' | 'staff' | 'city' | 'top';
-export const VIEW_PRESET_IDS: readonly ViewPresetId[] = ['overview', 'staff', 'city', 'top', 'horizon'];
+export type ViewPresetId = "overview" | "horizon" | "staff" | "city" | "top";
+export const VIEW_PRESET_IDS: readonly ViewPresetId[] = [
+  "overview",
+  "staff",
+  "city",
+  "top",
+  "horizon",
+];
 
 /** Keyboard axes held this frame: each in {−1, 0, 1}. */
 export interface FlyKeys {
@@ -67,7 +73,8 @@ export const PITCH_MIN = NAV_PITCH_MIN_DEG * DEG;
 export const PITCH_MAX = NAV_PITCH_MAX_DEG * DEG;
 const EPSILON = 1e-4;
 
-const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
+const clamp = (v: number, lo: number, hi: number): number =>
+  Math.min(hi, Math.max(lo, v));
 
 /** Wraps an angle to (−π, π]. */
 export function wrapAngle(a: number): number {
@@ -80,7 +87,14 @@ export function wrapAngle(a: number): number {
 export function clampPose(pose: OrbitPose): OrbitPose {
   const c = DIORAMA_POSITION;
   const { target } = pose;
-  const values = [target.x, target.y, target.z, pose.yaw, pose.pitch, pose.distance];
+  const values = [
+    target.x,
+    target.y,
+    target.z,
+    pose.yaw,
+    pose.pitch,
+    pose.distance,
+  ];
   if (!values.every(Number.isFinite)) return cinematicPose();
   return {
     target: {
@@ -95,7 +109,10 @@ export function clampPose(pose: OrbitPose): OrbitPose {
 }
 
 /** Camera position of a pose (writes into `out` so the system does not allocate per frame). */
-export function poseToCamera(pose: OrbitPose, out: Vec3 = { x: 0, y: 0, z: 0 }): Vec3 {
+export function poseToCamera(
+  pose: OrbitPose,
+  out: Vec3 = { x: 0, y: 0, z: 0 },
+): Vec3 {
   const { target, yaw, pitch, distance } = pose;
   out.x = target.x + distance * Math.cos(pitch) * Math.sin(yaw);
   out.y = target.y + distance * Math.sin(pitch);
@@ -103,7 +120,12 @@ export function poseToCamera(pose: OrbitPose, out: Vec3 = { x: 0, y: 0, z: 0 }):
   return out;
 }
 
-function presetPose(offset: Vec3, yawDeg: number, pitchDeg: number, distance: number): OrbitPose {
+function presetPose(
+  offset: Vec3,
+  yawDeg: number,
+  pitchDeg: number,
+  distance: number,
+): OrbitPose {
   const c = DIORAMA_POSITION;
   return clampPose({
     target: { x: c.x + offset.x, y: c.y + offset.y, z: c.z + offset.z },
@@ -117,13 +139,18 @@ function presetPose(offset: Vec3, yawDeg: number, pitchDeg: number, distance: nu
  * Cinematic camera distance for an aspect ratio (I2 requirement 4): the plate fits the height on landscape (the 16:9
  * distance is kept for every wider view) and its width on portrait. Non-finite or non-positive aspects use 16:9.
  */
-export function cinematicDistance(aspect: number = DESKTOP_REFERENCE_ASPECT): number {
-  const a = Number.isFinite(aspect) && aspect > 0 ? aspect : DESKTOP_REFERENCE_ASPECT;
+export function cinematicDistance(
+  aspect: number = DESKTOP_REFERENCE_ASPECT,
+): number {
+  const a =
+    Number.isFinite(aspect) && aspect > 0 ? aspect : DESKTOP_REFERENCE_ASPECT;
   return DESKTOP_CAMERA_DISTANCE_M * Math.max(1, DESKTOP_REFERENCE_ASPECT / a);
 }
 
 /** The fixed isometric pose of the default look (requirement 1.1): equals `desktopCameraPose()` at 16:9. */
-export function cinematicPose(aspect: number = DESKTOP_REFERENCE_ASPECT): OrbitPose {
+export function cinematicPose(
+  aspect: number = DESKTOP_REFERENCE_ASPECT,
+): OrbitPose {
   return presetPose(
     DESKTOP_CAMERA_TARGET_OFFSET,
     DESKTOP_CAMERA_AZIMUTH_DEG,
@@ -136,8 +163,15 @@ export function cinematicPose(aspect: number = DESKTOP_REFERENCE_ASPECT): OrbitP
  * Global view of the explore mode: the cinematic framing seen from higher and slightly further, so the whole scene
  * (city, staff, scenery, notes, sky) is in the frame and fills the view nicely.
  */
-export function overviewPose(aspect: number = DESKTOP_REFERENCE_ASPECT): OrbitPose {
-  return presetPose({ x: 0, y: 0.05, z: 0 }, DESKTOP_CAMERA_AZIMUTH_DEG, 36, cinematicDistance(aspect) * 1.15);
+export function overviewPose(
+  aspect: number = DESKTOP_REFERENCE_ASPECT,
+): OrbitPose {
+  return presetPose(
+    { x: 0, y: 0.05, z: 0 },
+    DESKTOP_CAMERA_AZIMUTH_DEG,
+    36,
+    cinematicDistance(aspect) * 1.15,
+  );
 }
 
 /** View presets (requirement 4.1, `design.md` § Camera pose). The city of `neon-nocturne` lies on the −x side. */
@@ -160,8 +194,16 @@ export function orbit(pose: OrbitPose, dxPx: number, dyPx: number): OrbitPose {
 }
 
 /** Ground-plane "grab" pan: the plate follows the pointer (`viewportPx` = canvas height in CSS pixels). */
-export function pan(pose: OrbitPose, dxPx: number, dyPx: number, viewportPx: number, fovDeg: number): OrbitPose {
-  const metresPerPx = (2 * pose.distance * Math.tan((fovDeg * DEG) / 2)) / Math.max(1, viewportPx);
+export function pan(
+  pose: OrbitPose,
+  dxPx: number,
+  dyPx: number,
+  viewportPx: number,
+  fovDeg: number,
+): OrbitPose {
+  const metresPerPx =
+    (2 * pose.distance * Math.tan((fovDeg * DEG) / 2)) /
+    Math.max(1, viewportPx);
   const sin = Math.sin(pose.yaw);
   const cos = Math.cos(pose.yaw);
   // right = (cos, 0, −sin), forward = (−sin, 0, −cos); drag right → target left, drag down → target forward.
@@ -169,27 +211,47 @@ export function pan(pose: OrbitPose, dxPx: number, dyPx: number, viewportPx: num
   const f = dyPx * metresPerPx;
   return clampPose({
     ...pose,
-    target: { x: pose.target.x + r * cos - f * sin, y: pose.target.y, z: pose.target.z - r * sin - f * cos },
+    target: {
+      x: pose.target.x + r * cos - f * sin,
+      y: pose.target.y,
+      z: pose.target.z - r * sin - f * cos,
+    },
   });
 }
 
 /** Zoom toward the target: factor < 1 comes closer. */
 export function zoom(pose: OrbitPose, factor: number): OrbitPose {
-  return clampPose({ ...pose, distance: pose.distance * (factor > 0 ? factor : 1) });
+  return clampPose({
+    ...pose,
+    distance: pose.distance * (factor > 0 ? factor : 1),
+  });
 }
 
 /** Keyboard fly (requirement 3.1): ground move relative to the view, turn and zoom; `dtSec` capped. */
 export function fly(pose: OrbitPose, keys: FlyKeys, dtSec: number): OrbitPose {
   const dt = clamp(dtSec, 0, NAV_MAX_STEP_SEC);
   const tilt = keys.tilt ?? 0;
-  if (dt === 0 || (keys.forward === 0 && keys.right === 0 && keys.turn === 0 && keys.zoom === 0 && tilt === 0)) return pose;
-  const speed = NAV_FLY_SPEED * pose.distance * (keys.fast ? NAV_FAST_FACTOR : 1) * dt;
+  if (
+    dt === 0 ||
+    (keys.forward === 0 &&
+      keys.right === 0 &&
+      keys.turn === 0 &&
+      keys.zoom === 0 &&
+      tilt === 0)
+  )
+    return pose;
+  const speed =
+    NAV_FLY_SPEED * pose.distance * (keys.fast ? NAV_FAST_FACTOR : 1) * dt;
   const sin = Math.sin(pose.yaw);
   const cos = Math.cos(pose.yaw);
   const r = keys.right * speed;
   const f = keys.forward * speed;
   return clampPose({
-    target: { x: pose.target.x + r * cos - f * sin, y: pose.target.y, z: pose.target.z - r * sin - f * cos },
+    target: {
+      x: pose.target.x + r * cos - f * sin,
+      y: pose.target.y,
+      z: pose.target.z - r * sin - f * cos,
+    },
     yaw: pose.yaw + keys.turn * NAV_TURN_SPEED_RAD * dt,
     pitch: pose.pitch + tilt * NAV_TURN_SPEED_RAD * 0.6 * dt,
     distance: pose.distance * Math.exp(-keys.zoom * NAV_KEY_ZOOM_RATE * dt),
@@ -212,7 +274,11 @@ export function posesEqual(a: OrbitPose, b: OrbitPose): boolean {
  * Exponential easing toward `goal` (requirement 4.4), shortest yaw path; returns `goal` itself once close. Camera
  * only: frame time never schedules a world event.
  */
-export function approachPose(current: OrbitPose, goal: OrbitPose, dtSec: number): OrbitPose {
+export function approachPose(
+  current: OrbitPose,
+  goal: OrbitPose,
+  dtSec: number,
+): OrbitPose {
   if (posesEqual(current, goal)) return goal;
   const k = 1 - Math.exp(-NAV_EASE_PER_SEC * clamp(dtSec, 0, NAV_MAX_STEP_SEC));
   const mix = (a: number, b: number): number => a + (b - a) * k;

@@ -39,9 +39,9 @@ import { NoteSynth } from './audio/note-synth';
 import { keyboardPad } from './keyboard-pad';
 import { ScorePlayer, type ScoreNote } from './audio/score-player';
 import { worldSpan } from '@/engine/city';
-import { anchorPlacement, plateWidthM, rootScale, setWorldSpan, worldWidthM } from './scale';
+import { anchorPlacement, plateWidthM, rootScale, setWorldSpan, viewToWorld, worldWidthM } from './scale';
 import { bindNavigationInput } from './navigation/navigation-input';
-import type { CameraMode, NavigationController, NavigationState, WalkMapView } from './navigation/navigation-controller';
+import type { CameraMode, NavigationController, NavigationState } from './navigation/navigation-controller';
 import type { ViewPresetId } from './navigation/orbit-camera';
 import type { MusicScene, WorldClock } from './systems/world-systems';
 import type { WorldControls } from './systems/xr-systems';
@@ -63,6 +63,8 @@ export interface InstalledScene extends Pick<MusicScene, 'setScene' | 'setLightL
   setEditRay?(target: { rayDown(r: { origin: Vec3; dir: Vec3 }): boolean; rayMove(r: { origin: Vec3; dir: Vec3 }): void; rayUp(): void } | null): void;
   /** Projects a point of the plan (plate metres) to canvas pixels; null behind the camera (I9 picking). */
   project?(p: Vec3): { x: number; y: number } | null;
+  /** Ground point under a client pixel at height `groundY` (world metres); null above the horizon. */
+  groundAt?(clientX: number, clientY: number, groundY: number): { x: number; z: number } | null;
   /** Desktop camera navigation (08-navigation-mode); the host binds its input to the canvas. */
   navigation: NavigationController;
   /** Called on dispose, after the input is unbound. */
@@ -126,10 +128,11 @@ export interface WorldHandle {
   setCameraMode(mode: CameraMode): void;
   setViewPreset(id: ViewPresetId): void;
   resetView(): void;
-  /** Walk mode: area, walker and obstacles for the minimap (null outside the walk mode). */
-  walkMap(): WalkMapView | null;
-  /** Walk mode: drops the walker at a world position (pegman). */
-  placeWalker(x: number, z: number): void;
+  /**
+   * Pegman drop: the walker lands (Superman style) on the ground under the canvas point; the view does not change
+   * before. False when the point is not on the ground (sky).
+   */
+  landAt(clientX: number, clientY: number): boolean;
   /** Calls `listener(state)` now and whenever the camera mode or selected preset changes. */
   onNavigationChange(listener: (state: NavigationState) => void): () => void;
   /** Calls `listener(immersive)` now and whenever an XR session starts or ends; returns an unsubscribe function. */
@@ -232,6 +235,18 @@ const defaultDeps: WorldHostDeps = {
       },
       setControls: (controls) => {
         rig.controls = controls;
+      },
+      groundAt: (clientX, clientY, groundY) => {
+        const cam = (world as IWSDK.World).camera;
+        const el = world.renderer.domElement;
+        const r = el.getBoundingClientRect();
+        if (r.width < 1 || r.height < 1) return null;
+        cam.updateMatrixWorld();
+        tmp.set(((clientX - r.left) / r.width) * 2 - 1, 1 - ((clientY - r.top) / r.height) * 2, 0.5).unproject(cam);
+        const dy = tmp.y - cam.position.y;
+        if (dy > -1e-6) return null;
+        const k = (groundY - cam.position.y) / dy;
+        return k > 0 ? { x: cam.position.x + (tmp.x - cam.position.x) * k, z: cam.position.z + (tmp.z - cam.position.z) * k } : null;
       },
       project: (p) => {
         const root = scene.root;
@@ -540,9 +555,14 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     resetView() {
       if (!disposed) nav.reset();
     },
-    walkMap: () => (disposed ? null : nav.walkMap()),
-    placeWalker(x, z) {
-      if (!disposed) nav.placeWalker(x, z);
+    landAt(clientX, clientY) {
+      if (disposed || world.session) return false;
+      const ground = scene.groundAt?.(clientX, clientY, nav.mode === 'walk' || domeStore.enabled ? 0 : DIORAMA_POSITION.y);
+      if (!ground) return false;
+      // The explore view shows the diorama scale; the walk mode lives in the big world.
+      const big = nav.mode === 'walk' || domeStore.enabled ? ground : viewToWorld({ x: ground.x, y: 0, z: ground.z }, 'immersive');
+      nav.landAt(big.x, big.z);
+      return true;
     },
     onNavigationChange: (listener) => nav.subscribe(listener),
     enterVR: () => world.launchXR(),

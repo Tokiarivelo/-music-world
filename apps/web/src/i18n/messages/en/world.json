@@ -145,8 +145,5 @@
   "view.landscape.snow": "Snow",
   "view.landscape.rocky": "Rocky",
   "view.landscape.city": "City",
-  "nav.mapLabel": "Walk map",
-  "nav.mapHint": "Click or drag on the map to stand anywhere",
-  "nav.pegman": "Drag the little person onto the map",
-  "nav.pegmanHint": "Drag me onto the map to stand there"
+  "nav.pegmanHint": "Drag me over the world and drop me: I land there and you start walking"
 }

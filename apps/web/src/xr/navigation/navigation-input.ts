@@ -3,7 +3,7 @@
  * navigation system drains once per frame. `NavigationInput` has no DOM dependency; `bindNavigationInput` attaches it
  * to the canvas and the window.
  */
-import type { FlyKeys } from './orbit-camera';
+import type { FlyKeys } from "./orbit-camera";
 
 /** Mouse buttons (`PointerEvent.button`). */
 const BUTTON_LEFT = 0;
@@ -42,22 +42,22 @@ interface Pointer {
 
 /** Codes of the held movement keys (`KeyboardEvent.code`), requirement 3.1. */
 const MOVE_KEYS: ReadonlySet<string> = new Set([
-  'KeyW',
-  'KeyA',
-  'KeyS',
-  'KeyD',
-  'KeyQ',
-  'KeyE',
-  'Equal',
-  'NumpadAdd',
-  'Minus',
-  'NumpadSubtract',
-  'ShiftLeft',
-  'ShiftRight',
-  'ArrowLeft',
-  'ArrowRight',
-  'ArrowUp',
-  'ArrowDown',
+  "KeyW",
+  "KeyA",
+  "KeyS",
+  "KeyD",
+  "KeyQ",
+  "KeyE",
+  "Equal",
+  "NumpadAdd",
+  "Minus",
+  "NumpadSubtract",
+  "ShiftLeft",
+  "ShiftRight",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowUp",
+  "ArrowDown",
 ]);
 
 export function isNavigationKey(code: string): boolean {
@@ -79,7 +79,13 @@ export class NavigationInput {
   private midY = 0;
 
   /** Right / middle button or Shift + left drag pans; left drag orbits (requirement 2.1). */
-  pointerDown(id: number, x: number, y: number, button: number, shift: boolean): void {
+  pointerDown(
+    id: number,
+    x: number,
+    y: number,
+    button: number,
+    shift: boolean,
+  ): void {
     this.pointers.set(id, { x, y, pan: button !== BUTTON_LEFT || shift });
     if (this.pointers.size === 2) this.updatePair();
   }
@@ -107,7 +113,8 @@ export class NavigationInput {
       const prevY = this.midY;
       this.updatePair();
       // Two fingers: pinch zooms by spread ratio, the midpoint pans.
-      if (prevSpread > 0 && this.spread > 0) this.zoomFactor *= prevSpread / this.spread;
+      if (prevSpread > 0 && this.spread > 0)
+        this.zoomFactor *= prevSpread / this.spread;
       this.panX += this.midX - prevX;
       this.panY += this.midY - prevY;
       this.moved = true;
@@ -155,18 +162,26 @@ export class NavigationInput {
   drain(out: NavigationDelta): NavigationDelta {
     const k = out.keys;
     const has = (code: string): number => (this.held.has(code) ? 1 : 0);
-    k.forward = has('KeyW') - has('KeyS');
-    k.right = has('KeyD') - has('KeyA');
-    k.turn = has('KeyE') - has('KeyQ') + has('ArrowRight') - has('ArrowLeft');
-    k.tilt = has('ArrowUp') - has('ArrowDown');
-    k.zoom = Math.sign(has('Equal') + has('NumpadAdd')) - Math.sign(has('Minus') + has('NumpadSubtract'));
-    k.fast = this.held.has('ShiftLeft') || this.held.has('ShiftRight');
+    k.forward = has("KeyW") - has("KeyS");
+    k.right = has("KeyD") - has("KeyA");
+    k.turn = has("KeyE") - has("KeyQ") + has("ArrowRight") - has("ArrowLeft");
+    k.tilt = has("ArrowUp") - has("ArrowDown");
+    k.zoom =
+      Math.sign(has("Equal") + has("NumpadAdd")) -
+      Math.sign(has("Minus") + has("NumpadSubtract"));
+    k.fast = this.held.has("ShiftLeft") || this.held.has("ShiftRight");
     out.orbitX = this.orbitX;
     out.orbitY = this.orbitY;
     out.panX = this.panX;
     out.panY = this.panY;
     out.zoom = this.zoomFactor;
-    out.moved = this.moved || k.forward !== 0 || k.right !== 0 || k.turn !== 0 || k.tilt !== 0 || k.zoom !== 0;
+    out.moved =
+      this.moved ||
+      k.forward !== 0 ||
+      k.right !== 0 ||
+      k.turn !== 0 ||
+      k.tilt !== 0 ||
+      k.zoom !== 0;
     this.reset();
     return out;
   }
@@ -191,25 +206,43 @@ export class NavigationInput {
 
 /** True when keyboard shortcuts must not fire: focus in a text field, a select or an editable element (3.3). */
 export function isEditableTarget(target: EventTarget | null): boolean {
-  if (!target || typeof (target as { tagName?: unknown }).tagName !== 'string') return false;
+  if (!target || typeof (target as { tagName?: unknown }).tagName !== "string")
+    return false;
   const el = target as HTMLElement;
   if (el.isContentEditable) return true;
   const tag = el.tagName;
-  if (tag === 'TEXTAREA' || tag === 'SELECT') return true;
-  if (tag !== 'INPUT') return false;
+  if (tag === "TEXTAREA" || tag === "SELECT") return true;
+  if (tag !== "INPUT") return false;
   // Buttons and sliders do not take text: the seek slider keeps the camera keys working.
   const type = (el as HTMLInputElement).type;
-  return !['button', 'checkbox', 'radio', 'range', 'reset', 'submit', 'color', 'file', 'image'].includes(type);
+  return ![
+    "button",
+    "checkbox",
+    "radio",
+    "range",
+    "reset",
+    "submit",
+    "color",
+    "file",
+    "image",
+  ].includes(type);
 }
 
 /** Keyboard events with a modifier (except Shift) are left to the browser and the page. */
-export function hasCommandModifier(event: Pick<KeyboardEvent, 'ctrlKey' | 'altKey' | 'metaKey'>): boolean {
+export function hasCommandModifier(
+  event: Pick<KeyboardEvent, "ctrlKey" | "altKey" | "metaKey">,
+): boolean {
   return event.ctrlKey || event.altKey || event.metaKey;
 }
 
 /** Wheel delta → zoom factor (`deltaMode` 1 = lines, 2 = pages). */
-export function wheelFactor(deltaY: number, deltaMode: number, perPixel: number): number {
-  const px = deltaMode === 1 ? deltaY * 16 : deltaMode === 2 ? deltaY * 400 : deltaY;
+export function wheelFactor(
+  deltaY: number,
+  deltaMode: number,
+  perPixel: number,
+): number {
+  const px =
+    deltaMode === 1 ? deltaY * 16 : deltaMode === 2 ? deltaY * 400 : deltaY;
   return Math.exp(Math.max(-400, Math.min(400, px)) * perPixel);
 }
 
@@ -221,20 +254,25 @@ export function bindNavigationInput(
   canvas: HTMLElement,
   input: NavigationInput,
   isEnabled: () => boolean,
-  options: { wheelPerPixel: number; win?: Window; lockLook?: (button: number) => boolean },
+  options: {
+    wheelPerPixel: number;
+    win?: Window;
+    lockLook?: (button: number) => boolean;
+  },
 ): () => void {
   const win = options.win ?? window;
   const down = (e: PointerEvent): void => {
     if (!isEnabled()) return;
     // Walk mode: holding a button locks the pointer, so the head turns without end (360°, up and down).
-    if (e.pointerType === 'mouse' && options.lockLook?.(e.button) === true) {
+    if (e.pointerType === "mouse" && options.lockLook?.(e.button) === true) {
       canvas.requestPointerLock?.();
       return;
     }
     input.pointerDown(e.pointerId, e.clientX, e.clientY, e.button, e.shiftKey);
     canvas.setPointerCapture?.(e.pointerId);
   };
-  const locked = (): boolean => canvas.ownerDocument?.pointerLockElement === canvas;
+  const locked = (): boolean =>
+    canvas.ownerDocument?.pointerLockElement === canvas;
   const move = (e: PointerEvent): void => {
     if (!isEnabled()) return;
     if (locked()) input.look(e.movementX, e.movementY);
@@ -243,7 +281,8 @@ export function bindNavigationInput(
   const up = (e: PointerEvent): void => {
     if (locked()) canvas.ownerDocument.exitPointerLock();
     input.pointerUp(e.pointerId);
-    if (canvas.hasPointerCapture?.(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
+    if (canvas.hasPointerCapture?.(e.pointerId))
+      canvas.releasePointerCapture(e.pointerId);
   };
   const wheel = (e: WheelEvent): void => {
     if (!isEnabled()) return;
@@ -254,32 +293,39 @@ export function bindNavigationInput(
     if (isEnabled()) e.preventDefault(); // right-drag pans
   };
   const keyDown = (e: KeyboardEvent): void => {
-    if (!isEnabled() || hasCommandModifier(e) || isEditableTarget(e.target) || !isNavigationKey(e.code)) return;
-    if (e.code.startsWith('Arrow') && options.lockLook?.(BUTTON_RIGHT) === true) e.preventDefault(); // arrows look, the page must not scroll
+    if (
+      !isEnabled() ||
+      hasCommandModifier(e) ||
+      isEditableTarget(e.target) ||
+      !isNavigationKey(e.code)
+    )
+      return;
+    if (e.code.startsWith("Arrow") && options.lockLook?.(BUTTON_RIGHT) === true)
+      e.preventDefault(); // arrows look, the page must not scroll
     input.key(e.code, true);
   };
   const keyUp = (e: KeyboardEvent): void => input.key(e.code, false);
   const blur = (): void => input.clear();
 
-  canvas.addEventListener('pointerdown', down);
-  canvas.addEventListener('pointermove', move);
-  canvas.addEventListener('pointerup', up);
-  canvas.addEventListener('pointercancel', up);
-  canvas.addEventListener('wheel', wheel, { passive: false });
-  canvas.addEventListener('contextmenu', menu);
-  win.addEventListener('keydown', keyDown);
-  win.addEventListener('keyup', keyUp);
-  win.addEventListener('blur', blur);
+  canvas.addEventListener("pointerdown", down);
+  canvas.addEventListener("pointermove", move);
+  canvas.addEventListener("pointerup", up);
+  canvas.addEventListener("pointercancel", up);
+  canvas.addEventListener("wheel", wheel, { passive: false });
+  canvas.addEventListener("contextmenu", menu);
+  win.addEventListener("keydown", keyDown);
+  win.addEventListener("keyup", keyUp);
+  win.addEventListener("blur", blur);
   return () => {
-    canvas.removeEventListener('pointerdown', down);
-    canvas.removeEventListener('pointermove', move);
-    canvas.removeEventListener('pointerup', up);
-    canvas.removeEventListener('pointercancel', up);
-    canvas.removeEventListener('wheel', wheel);
-    canvas.removeEventListener('contextmenu', menu);
-    win.removeEventListener('keydown', keyDown);
-    win.removeEventListener('keyup', keyUp);
-    win.removeEventListener('blur', blur);
+    canvas.removeEventListener("pointerdown", down);
+    canvas.removeEventListener("pointermove", move);
+    canvas.removeEventListener("pointerup", up);
+    canvas.removeEventListener("pointercancel", up);
+    canvas.removeEventListener("wheel", wheel);
+    canvas.removeEventListener("contextmenu", menu);
+    win.removeEventListener("keydown", keyDown);
+    win.removeEventListener("keyup", keyUp);
+    win.removeEventListener("blur", blur);
     input.clear();
   };
 }

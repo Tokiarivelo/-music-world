@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useT } from "@/i18n";
 import type { WorldHandle } from "@/xr/world-host";
 import { ExploreIcon, PegmanIcon, ResetIcon } from "./NavIcons";
-import { WALK_MAP_ID, WalkMap } from "./WalkMap";
 import type { NavigationState } from "@/xr/navigation/navigation-controller";
 import { VIEW_PRESET_IDS } from "@/xr/navigation/orbit-camera";
 import type { NavigationCommands } from "../hooks/use-navigation-shortcuts";
@@ -35,14 +34,13 @@ export function NavigationControls({
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
 
   // The Walk button is also the pegman: a click toggles the mode, a press and move (> 6 px) starts a drag, and the
-  // walk mode only starts then, so a simple click is unchanged.
+  // walk mode only starts at the drop, so a simple click is unchanged.
   useEffect(() => {
     const move = (e: PointerEvent): void => {
       const p = pressed.current;
       if (!p || Math.hypot(e.clientX - p.x, e.clientY - p.y) < 6) return;
       pressed.current = null;
       suppressClick.current = true;
-      if (!walking) commands.toggleWalk();
       setDrag({ x: e.clientX, y: e.clientY });
     };
     const end = (): void => {
@@ -56,29 +54,18 @@ export function NavigationControls({
       window.removeEventListener("pointerup", end);
       window.removeEventListener("pointercancel", end);
     };
-  }, [walking, commands]);
+  }, [handle]);
 
-  // Pegman: drag the little person onto the map to stand there (the map opens as soon as the drag starts).
+  // Pegman: drag the little person over the 3D world; the view only changes at the drop.
   useEffect(() => {
     if (!drag || !handle) return;
     const move = (e: PointerEvent): void =>
       setDrag({ x: e.clientX, y: e.clientY });
     const up = (e: PointerEvent): void => {
-      const map = handle.walkMap();
-      const el = document.getElementById(WALK_MAP_ID);
-      if (map && el) {
-        const r = el.getBoundingClientRect();
-        if (
-          e.clientX >= r.left &&
-          e.clientX <= r.right &&
-          e.clientY >= r.top &&
-          e.clientY <= r.bottom
-        ) {
-          const u = ((e.clientX - r.left) / r.width - 0.5) * 2;
-          const v = ((e.clientY - r.top) / r.height - 0.5) * 2;
-          handle.placeWalker(map.cx + u * map.limit, map.cz + v * map.limit);
-        }
-      }
+      // Dropped on the 3D view (not on a button or a panel): land there and start the walk mode.
+      const over = document.elementFromPoint(e.clientX, e.clientY);
+      if (over instanceof HTMLCanvasElement)
+        handle.landAt(e.clientX, e.clientY);
       setDrag(null);
     };
     window.addEventListener("pointermove", move);
@@ -93,9 +80,6 @@ export function NavigationControls({
 
   return (
     <>
-      {walking && handle && (
-        <WalkMap dragging={drag !== null} handle={handle} />
-      )}
       {drag && (
         <div
           className="pointer-events-none fixed z-30 -translate-x-1/2 -translate-y-full text-[var(--mw-accent)] drop-shadow-lg"
