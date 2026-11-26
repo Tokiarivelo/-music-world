@@ -23,5 +23,12 @@
   "tour.notes.body": "Quand le morceau est en pause, clique une note pour l'entendre, glisse-la sur une autre ligne, ou ajoute une ligne.",
   "tour.vr.title": "Entre dans le monde en VR",
   "tour.vr.body": "Sur un Quest, ouvre cette page dans le navigateur et choisis Entrer en VR pour te tenir dans le monde et t'y déplacer.",
-  "demoHint": "Sans compte ni envoi : le morceau de démo se joue dans ton navigateur, avec une courte visite."
+  "demoHint": "Sans compte ni envoi : le morceau de démo se joue dans ton navigateur, avec une courte visite.",
+  "navPlaylist": "Mes morceaux",
+  "playlist.title": "Mes morceaux",
+  "playlist.private": "Les morceaux que vous avez écoutés. Ils sont enregistrés dans ce navigateur, pour votre compte uniquement ; personne d’autre ne peut les voir.",
+  "playlist.empty": "Rien n’a encore été joué. Ouvrez la démo ou envoyez un morceau.",
+  "playlist.plays": "{count} lectures",
+  "playlist.play": "Lire",
+  "playlist.remove": "Retirer {title} de mes morceaux"
 }

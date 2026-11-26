@@ -3,6 +3,7 @@
  * (template, seed): no three.js, so they are cheap to unit-test. Plate frame: centred on the origin, top at y = 0,
  * x to the right, z toward the viewer, in metres.
  */
+import { worldSize } from '@/engine/city';
 import { zonesFor, type ZoneRect } from '@/engine/layout';
 import { hashSeed, mulberry32, uniform, type Rng } from '@/engine/prng';
 import type { ShapeKind, WorldTemplate } from '@/engine/types';
@@ -83,7 +84,7 @@ function cluster(rng: Rng, half: number, blocked: readonly ZoneRect[]): Peak[] {
 
 /** Mountain peaks along the plate edges, outside the structure zones. Deterministic for (template, seed). */
 export function buildTerrainField(template: WorldTemplate, seed: number): TerrainField {
-  const half = template.terrain.size / 2;
+  const half = worldSize(template) / 2;
   if (template.terrain.mountains !== 'edges') return { half, peaks: [] };
   const rng = mulberry32(hashSeed(seed, 'terrain-field'));
   const blocked = blockedZones(template);

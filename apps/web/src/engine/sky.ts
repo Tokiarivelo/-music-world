@@ -4,10 +4,12 @@
  * note can be picked (click, tap, VR ray). Pure: a position depends only on (plan, record, t), so a seek gives the same
  * picture as playing. Plate frame as in `layout.ts`.
  */
-import { AURORA_GAP_FACTOR, AURORA_HEIGHT_RATIO, PIANO_HIGH_MIDI, PIANO_LOW_MIDI, STAFF_LINE_GAP_RATIO } from './constants';
+import { Color } from 'three';
+import { AURORA_GAP_FACTOR, PIANO_HIGH_MIDI, PIANO_LOW_MIDI, STAFF_LINE_GAP_RATIO } from './constants';
 import { hashSeed } from './prng';
+import { rainSway } from './rain';
 import type { SpawnPlan, SpawnRecord } from './spawn-plan';
-import { staffPoint, type StaffPath } from './staff';
+import type { StaffPath } from './staff';
 import type { Vec3 } from './types';
 
 /** Seconds of already played notes that stay in the sky (fading), and the minimum look-ahead window. */
@@ -85,29 +87,78 @@ export function skyU(plan: SpawnPlan, r: SpawnRecord, t: number): number {
   return SKY_U_MIN + (SKY_U_MAX - SKY_U_MIN) * along;
 }
 
-/** Sky position of one record at time t; the horizontal axis is the song time, the height is the pitch. */
+/** Sky position of one record at time t in the circular mountain horizon. */
 export function skyPosition(plan: SpawnPlan, r: SpawnRecord, t: number): { position: Vec3; curtain: number } {
-  const u = skyU(plan, r, t);
-  const path = skyPath(plan);
-  const base = staffPoint(path, u);
-  const a = staffPoint(path, Math.max(0, u - 0.01));
-  const b = staffPoint(path, Math.min(1, u + 0.01));
-  const len = Math.hypot(b.x - a.x, b.z - a.z) || 1;
-  const nx = -(b.z - a.z) / len;
-  const nz = (b.x - a.x) / len;
-  const curtain = Math.min(SKY_CURTAINS - 1, Math.floor(hash01(plan.seed, r.noteId, 'curtain') * SKY_CURTAINS));
-  const side = (curtain - (SKY_CURTAINS - 1) / 2) * SKY_CURTAIN_SPACING_GAPS * path.lineGap;
+  const size = plan.template.terrain.size;
+  // Circular placement along the horizon of the mountains that surround the world
+  const targetDist = Math.hypot(r.target.x, r.target.z);
+  const baseAngle = targetDist > 0.01 ? Math.atan2(r.target.z, r.target.x) : (hash01(plan.seed, r.noteId, 'ang') * Math.PI * 2);
+  const spread = (hash01(plan.seed, r.noteId, 'spr') - 0.5) * 0.45;
+  const angle = baseAngle + spread;
+
+  // Mountain horizon radius: placing notes on the ridges of the mountains encircling the world
+  const radVar = (hash01(plan.seed, r.noteId, 'rad') - 0.5) * 0.25;
+  const radius = size * (1.75 + radVar);
+
+  // Height along the mountain horizon: resting gently in the aurora band right above the crests
+  // Guaranteed >= plan.staff.baseY to keep invariant
+  const minBaseY = Math.max(plan.staff.baseY, size * 0.28);
+  const pitchH = size * 0.16 * skyPitch(r.midi);
   const phase = hash01(plan.seed, r.noteId, 'bob') * Math.PI * 2;
-  const bob = Math.sin(t * 0.6 + phase) * path.lineGap * 0.35;
-  const sway = Math.sin(t * 0.35 + phase * 1.7) * path.lineGap * 0.5;
+  const bob = Math.sin(t * 0.7 + phase) * size * 0.02;
+  const y = Math.max(plan.staff.baseY, minBaseY + pitchH + bob);
+
+  const curtain = Math.min(SKY_CURTAINS - 1, Math.floor(hash01(plan.seed, r.noteId, 'curtain') * SKY_CURTAINS));
+
   return {
     curtain,
     position: {
-      x: base.x + nx * (side + sway),
-      y: base.y + path.lineGap * SKY_HEIGHT_GAPS * skyHeightFraction(r.midi) + bob,
-      z: base.z + nz * (side + sway),
+      x: Math.cos(angle) * radius,
+      y,
+      z: Math.sin(angle) * radius,
     },
   };
+}
+
+/**
+ * Trajectory of a note descending from the mountain horizon to its target on the scene.
+ * As music plays, each note at onset swoops gracefully down from the mountains to plant into the ground.
+ */
+export function auroraDescentPosition(
+  horizon: Vec3,
+  target: Vec3,
+  noteHash: number,
+  progress: number,
+  plateSize: number,
+): Vec3 {
+  const p = Math.min(1, Math.max(0, progress));
+  const pXZ = p * p * (3 - 2 * p);
+  const pY = Math.pow(p, 1.35);
+  const sway = rainSway(noteHash, p, plateSize * 0.3);
+  return {
+    x: horizon.x + (target.x - horizon.x) * pXZ + sway.dx,
+    y: horizon.y + (target.y - horizon.y) * pY,
+    z: horizon.z + (target.z - horizon.z) * pXZ + sway.dz,
+  };
+}
+
+/**
+ * Multi-color rainbow hex for a descending note.
+ * Radiates vibrant rainbow hues (arc-en-ciel) as the note swoops down to give life to objects.
+ */
+/**
+ * Multi-color rainbow hex for a descending note.
+ * Harmonizes with the initial analyzed note color and blooms into vibrant rainbow hues (arc-en-ciel)
+ * as the note swoops down to give life to the planted object.
+ */
+export function rainbowHex(progress: number, t: number, midi: number, baseHex?: string | null): string {
+  const hue = ((progress * 1.5 + t * 0.8 + (midi % 12) / 12) % 1 + 1) % 1;
+  const rainbow = new Color().setHSL(hue, 1.0, 0.65);
+  if (baseHex) {
+    const base = new Color(baseHex);
+    return `#${base.lerp(rainbow, Math.min(1, progress * 1.4)).getHexString()}`;
+  }
+  return `#${rainbow.getHexString()}`;
 }
 
 /** Notes visible in the aurora sky at t, by onset. A record with `onset` in [t - past, t + future) is in the window. */

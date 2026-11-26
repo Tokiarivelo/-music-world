@@ -10,17 +10,18 @@ describe('objects touched by a falling note blink in rainbow colours', () => {
     const plan = buildSpawnPlan(demo, DEFAULT_TEMPLATE, 1);
     const view = new StructureView(plan);
     const touched = (view as unknown as { touched: Map<number, number> }).touched;
+    const rainbowable = (i: number): boolean => plan.records[i]!.kind !== 'terrain_ridge'; // hills keep their own colour
     let at = -1;
-    for (let t = 1; t < 120 && touched.size === 0; t += 0.05) {
+    for (let t = 1; t < 120 && ![...touched.keys()].some(rainbowable); t += 0.05) {
       view.update(worldStateAt(plan, t));
       at = t;
     }
     expect(touched.size, 'a falling note touches an object somewhere in the demo').toBeGreaterThan(0);
-    const [index] = [...touched.keys()];
+    const index = [...touched.keys()].find(rainbowable)!;
     const colorOf = (t: number): number[] => {
       view.update(worldStateAt(plan, t));
       const s = worldStateAt(plan, t).structures.find((x) => x.index === index)!;
-      return Array.from(view.mesh(s.kind)!.instanceColor!.array.slice(s.slot * 3, s.slot * 3 + 3));
+      return Array.from(view.meshFor(s.kind, s.slot, s.variant)!.instanceColor!.array.slice(s.slot * 3, s.slot * 3 + 3));
     };
     const during = colorOf(at + 0.01);
     const blink = colorOf(at + 0.12);

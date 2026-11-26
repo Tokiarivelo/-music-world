@@ -82,17 +82,16 @@ export interface UnderwaterColors {
 export function underwaterColors(palette: Palette): UnderwaterColors {
   const background = new Color(palette.background);
   const primary = new Color(palette.primary);
-  const secondary = new Color(palette.secondary);
   const terrain = new Color(palette.terrain);
   const deep = background.clone().lerp(primary, 0.28);
-  const sand = new Color('#b9a77c');
+  const sand = new Color('#deb887');
   return {
-    surface: background.clone().lerp(primary, 0.7).lerp(secondary, 0.15),
-    mid: background.clone().lerp(primary, 0.45),
+    surface: primary.clone().lerp(new Color('#80f4ff'), 0.5).lerp(new Color('#ffffff'), 0.3),
+    mid: background.clone().lerp(primary, 0.55),
     deep,
-    ray: primary.clone().lerp(new Color(palette.staff), 0.55),
-    seabed: terrain.clone().lerp(sand, 0.45).lerp(background, 0.25),
-    duneNear: terrain.clone().lerp(sand, 0.3).lerp(background, 0.3),
+    ray: new Color('#dff8ff'),
+    seabed: terrain.clone().lerp(sand, 0.6).lerp(background, 0.1),
+    duneNear: terrain.clone().lerp(sand, 0.42).lerp(background, 0.2),
     duneFar: deep.clone().lerp(terrain, 0.3),
   };
 }

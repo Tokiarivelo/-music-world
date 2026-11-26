@@ -14,7 +14,8 @@ import { createComponent, createSystem, Types, type Entity, type World } from '@
 import { AmbientLight, Color, DirectionalLight, Group } from 'three';
 import type { SpawnPlan } from '@/engine/spawn-plan';
 import { worldStateAt, type WorldState } from '@/engine/world-state';
-import { anchorPlacement, cameraFar, rootScale, scaleStore, type ScaleMode } from '../scale';
+import { worldSpan } from '@/engine/city';
+import { anchorPlacement, cameraFar, rootScale, scaleStore, setWorldSpan, type ScaleMode } from '../scale';
 import { EnvironmentView } from '../views/environment-view';
 import { HorizonView } from '../views/horizon-view';
 import { FxView } from '../views/fx-view';
@@ -233,6 +234,7 @@ export function installMusicSystems(world: World, options: { perfLog?: boolean }
     },
     setScene(plan, clock) {
       terrainSize = plan.template.terrain.size;
+      setWorldSpan(worldSpan(plan.template));
       applyScale();
       world.scene.background = new Color(plan.template.palette.background);
       entity.setValue(ClockComponent, 'clock', clock);

@@ -10,6 +10,7 @@
 import { LAYOUT_CELL_MARGIN, LAYOUT_CELL_SIZE, PIANO_HIGH_MIDI, PIANO_LOW_MIDI, PLATE_INSET } from './constants';
 import type { NumericRange } from './mapping';
 import { noteStream } from './prng';
+import { worldSize } from './city';
 import type { ShapeKind, Vec3, WorldTemplate } from './types';
 
 /** Zone rectangle in plate metres (min < max on both axes). */
@@ -32,7 +33,7 @@ function clamp01(v: number): number {
 
 /** Zones of `kind` in metres; the whole (inset) plate when the template defines none or only degenerate ones. */
 export function zonesFor(kind: ShapeKind, template: WorldTemplate): ZoneRect[] {
-  const half = (template.terrain.size / 2) * PLATE_INSET;
+  const half = (worldSize(template) / 2) * PLATE_INSET;
   const normalized = template.zones
     .filter((z) => z.kind === kind)
     .map((z) => ({

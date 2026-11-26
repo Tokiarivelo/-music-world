@@ -38,7 +38,8 @@ import { EditController, type NoteEditEvent } from './interaction/edit-controlle
 import { NoteSynth } from './audio/note-synth';
 import { keyboardPad } from './keyboard-pad';
 import { ScorePlayer, type ScoreNote } from './audio/score-player';
-import { anchorPlacement, plateWidthM, rootScale } from './scale';
+import { worldSpan } from '@/engine/city';
+import { anchorPlacement, plateWidthM, rootScale, setWorldSpan, worldWidthM } from './scale';
 import { bindNavigationInput } from './navigation/navigation-input';
 import type { CameraMode, NavigationController, NavigationState } from './navigation/navigation-controller';
 import type { ViewPresetId } from './navigation/orbit-camera';
@@ -418,8 +419,11 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   // Walk mode: the plate and the structures that have landed (recomputed twice a second at most).
   const centre = anchorPlacement('immersive');
   let cache: { plan: SpawnPlan; slot: number; circles: readonly Circle[] } | null = null;
-  nav.configureWalk({ cx: centre.x, cz: centre.z, half: plateWidthM('immersive') / 2 }, () => {
+  const walkBounds = { cx: centre.x, cz: centre.z, half: plateWidthM('immersive') / 2 };
+  nav.configureWalk(walkBounds, () => {
     if (!basePlan || !baseClock) return [];
+    setWorldSpan(worldSpan(basePlan.template));
+    walkBounds.half = worldWidthM('immersive') / 2;
     const slot = Math.floor(baseClock.now() * 2);
     if (cache?.plan !== basePlan || cache.slot !== slot) {
       const scale = rootScale('immersive', basePlan.template.terrain.size);

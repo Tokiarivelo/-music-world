@@ -8,7 +8,6 @@
  * Implemented efficiently via InstancedMesh and procedural ribbons (3 draw calls total).
  */
 import {
-  AdditiveBlending,
   BufferGeometry,
   CatmullRomCurve3,
   Color,
@@ -26,7 +25,7 @@ import {
   ShaderMaterial,
   Vector3,
 } from 'three';
-import { hashSeed, mulberry32, type Rng } from '@/engine/prng';
+import { hashSeed, mulberry32 } from '@/engine/prng';
 import type { WorldState } from '@/engine/world-state';
 import { environmentScale, scaleStore, type ScaleMode } from '../scale';
 import type { WorldView } from './world-view';

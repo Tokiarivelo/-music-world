@@ -6,7 +6,7 @@ import { buildSpawnPlan } from './spawn-plan';
 import { worldStateAt } from './world-state';
 
 const OCEAN = makeTemplate({
-  mappings: [{ when: {}, spawn: 'building' }],
+  mappings: [{ when: {}, spawn: 'crystal' }],
   zones: [{ kind: 'spike', xMin: -0.5, xMax: 0.5, zMin: -0.5, zMax: 0.5 }],
   scenery: [
     { kind: 'building', count: 4 },

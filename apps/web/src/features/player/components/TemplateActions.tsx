@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "@/features/auth";
-import { EditCopyLink, PublishTemplateButton } from "@/features/template-store";
+import { PublishTemplateButton } from "@/features/template-store";
 import type { Template } from "@/templates/generated";
 
 interface TemplateActionsProps {
@@ -17,15 +17,13 @@ export function TemplateActions({
 }: TemplateActionsProps) {
   const session = useSession();
   const publishable = generatedHere && session.status !== "loading";
+  if (!publishable) return null;
   return (
     <div className="flex flex-col gap-1">
-      <EditCopyLink template={template} />
-      {publishable && (
-        <PublishTemplateButton
-          template={template}
-          signedIn={session.user !== null}
-        />
-      )}
+      <PublishTemplateButton
+        template={template}
+        signedIn={session.user !== null}
+      />
     </div>
   );
 }

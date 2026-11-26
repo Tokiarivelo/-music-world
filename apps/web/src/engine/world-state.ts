@@ -41,6 +41,9 @@ export interface StructureState {
   /** Smoothstep of the growth time, in [0, 1]. */
   readonly growth: number;
   readonly position: Vec3;
+  /** Rotation about the vertical axis and building variant (see `SpawnRecord`). */
+  readonly yaw: number;
+  readonly variant: number;
   readonly height: number;
   readonly emissive: number;
   readonly colorRole: PaletteRole | null;
@@ -184,6 +187,8 @@ export function worldStateAt(plan: SpawnPlan, t: number): WorldState {
         phase: elapsed < r.growSec ? 'growing' : 'alive',
         growth,
         position: r.target,
+        yaw: r.yaw,
+        variant: r.variant,
         height: r.height * growth,
         emissive: r.emissive,
         colorRole: r.colorRole,

@@ -40,6 +40,7 @@ import { environmentColors, underwaterColors, type EnvironmentColors } from '../
 import type { WorldState } from '@/engine/world-state';
 import { LANDSCAPES, type LandscapeId } from '@/engine/landscapes';
 import { domeStore } from '../dome-store';
+import { MeadowDecorView } from './meadow-decor';
 import type { WorldView } from './world-view';
 
 const SKY_VERTEX = /* glsl */ `
@@ -79,13 +80,42 @@ void main() {
   star *= smoothstep(0.35, 0.0, length(f));
   col += uStar * star * (0.35 + 0.65 * hash(cell + 7.0));
   if (uUnder > 0.5) {
-    // Water column: surface light above fading to deep blue, slanted light shafts that sway slowly.
+    // Water column: surface light above fading to deep blue, shimmering sunlight shafts.
     float up = clamp(vDir.y * 0.5 + 0.5, 0.0, 1.0);
-    col = mix(uHorizon, uMid, smoothstep(0.35, 0.62, up));
-    col = mix(col, uZenith, smoothstep(0.6, 1.0, up));
-    float az = atan(vDir.z, vDir.x);
-    float shafts = sin(az * 9.0 + vDir.y * 5.0 + uTime * 0.15) * sin(az * 23.0 - vDir.y * 3.0 - uTime * 0.1);
-    col += uRay * smoothstep(0.25, 0.9, shafts) * smoothstep(0.4, 0.95, up) * 0.22;
+    col = mix(uHorizon, uMid, smoothstep(0.2, 0.55, up));
+    col = mix(col, uZenith, smoothstep(0.5, 0.95, up));
+
+    // 1. Shimmering water surface reflections visible at the ceiling
+    if (vDir.y > 0.12) {
+      vec2 surfUv = vDir.xz / max(0.12, vDir.y);
+      float rip1 = sin(surfUv.x * 14.0 + uTime * 0.75) * cos(surfUv.y * 14.0 + uTime * 0.55);
+      float rip2 = sin((surfUv.x + surfUv.y) * 22.0 - uTime * 0.95) * cos((surfUv.x - surfUv.y) * 18.0 + uTime * 0.8);
+      float rip3 = sin(surfUv.x * 36.0 - uTime * 1.3) * sin(surfUv.y * 36.0 + uTime * 1.15);
+      float surfaceCaustics = pow(1.0 - abs(rip1 * 0.5 + rip2 * 0.35 + rip3 * 0.15), 3.5);
+
+      // Sunlight core and glowing halo piercing through the water surface
+      vec3 sunDir = normalize(vec3(-0.25, 0.95, -0.2));
+      float sunDot = max(0.0, dot(vDir, sunDir));
+      float sunCore = pow(sunDot, 32.0);
+      float sunHalo = pow(sunDot, 4.0);
+
+      vec3 surfaceWater = (uRay * 1.45 + vec3(0.45, 0.85, 1.0));
+      col += surfaceWater * surfaceCaustics * smoothstep(0.15, 0.88, vDir.y) * 0.7;
+      col += vec3(1.0, 1.0, 1.0) * (sunCore * 1.8 + sunHalo * 0.6);
+    }
+
+    // 2. Volumetric sun rays / light shafts (god rays) streaming through the water column
+    vec3 sunDir = normalize(vec3(-0.25, 0.95, -0.2));
+    vec3 beamAxis = normalize(cross(sunDir, vec3(0.0, 0.0, 1.0)));
+    float beamCoord = dot(vDir, beamAxis) / max(0.08, dot(vDir, sunDir) * 0.45 + 0.55);
+    float beam1 = sin(beamCoord * 16.0 + uTime * 0.22);
+    float beam2 = sin(beamCoord * 34.0 - uTime * 0.16 + sin(beamCoord * 4.0));
+    float beam3 = sin(beamCoord * 68.0 + uTime * 0.31);
+    float shafts = smoothstep(0.18, 0.85, beam1 * 0.45 + beam2 * 0.35 + beam3 * 0.2 + 0.5);
+
+    float forwardScattering = pow(max(0.0, dot(vDir, sunDir)), 1.8);
+    float shaftGlow = shafts * (0.35 + 0.65 * forwardScattering) * smoothstep(-0.25, 0.85, vDir.y);
+    col += (uRay * 1.6 + vec3(0.3, 0.75, 1.0)) * shaftGlow * 0.75;
   }
   gl_FragColor = vec4(col, 1.0);
   #include <colorspace_fragment>
@@ -111,6 +141,53 @@ void main() {
   float ring = smoothstep(0.5, 0.42, d) * (0.35 + 0.65 * smoothstep(0.25, 0.45, d));
   if (ring < 0.02) discard;
   gl_FragColor = vec4(uColor, ring * 0.7);
+}
+`;
+
+const SEABED_VERTEX = /* glsl */ `
+varying vec3 vWorldPos;
+void main() {
+  vec4 worldPos = modelMatrix * vec4(position, 1.0);
+  vWorldPos = worldPos.xyz;
+  gl_Position = projectionMatrix * viewMatrix * worldPos;
+}`;
+
+const SEABED_FRAGMENT = /* glsl */ `
+uniform vec3 uSandColor;
+uniform vec3 uDeepColor;
+uniform vec3 uRayColor;
+uniform float uTime;
+varying vec3 vWorldPos;
+
+float waveCaustic(vec2 p, float t) {
+  vec2 p1 = p * 0.16 + vec2(t * 0.14, t * 0.09);
+  vec2 p2 = p * 0.28 - vec2(t * 0.11, -t * 0.15);
+  vec2 p3 = p * 0.44 + vec2(-t * 0.08, t * 0.13);
+
+  float w1 = sin(p1.x + sin(p1.y * 1.5)) * cos(p1.y + cos(p1.x * 1.5));
+  float w2 = sin(p2.x + cos(p2.y * 1.7)) * cos(p2.y + sin(p2.x * 1.3));
+  float w3 = sin(p3.x - sin(p3.y * 1.2)) * cos(p3.y + cos(p3.x * 1.8));
+
+  float c1 = pow(1.0 - abs(w1), 3.0);
+  float c2 = pow(1.0 - abs(w2), 3.0);
+  float c3 = pow(1.0 - abs(w3), 2.5);
+
+  return (c1 + c2 * 0.75 + c3 * 0.5) / 2.25;
+}
+
+void main() {
+  float dist = length(vWorldPos.xz);
+  float fade = smoothstep(12.0, 110.0, dist);
+  vec3 col = mix(uSandColor, uDeepColor, fade);
+
+  // Dynamic sunlight caustics dancing across the ocean floor
+  float caust = waveCaustic(vWorldPos.xz, uTime);
+  float causticIntensity = caust * (1.0 - smoothstep(10.0, 95.0, dist));
+  vec3 causticLight = (uRayColor * 1.8 + vec3(0.5, 0.9, 1.0)) * causticIntensity * 0.85;
+
+  col += causticLight;
+  gl_FragColor = vec4(col, 1.0);
+  #include <colorspace_fragment>
 }`;
 
 const groundTextures = new Map<string, Texture>();
@@ -238,7 +315,8 @@ export class EnvironmentView implements WorldView {
   readonly fog: Fog;
   readonly colors: EnvironmentColors;
   private readonly sky: Mesh<SphereGeometry, ShaderMaterial>;
-  private readonly ground: Mesh<CircleGeometry, MeshBasicMaterial>;
+  private readonly ground: Mesh<CircleGeometry, MeshBasicMaterial | ShaderMaterial>;
+  private readonly seabedMaterial: ShaderMaterial | null = null;
   private hills: Mesh<BufferGeometry, MeshBasicMaterial>;
   private readonly mist: Mesh<BufferGeometry, MeshBasicMaterial>;
   private landscape: LandscapeId | null = null;
@@ -247,6 +325,7 @@ export class EnvironmentView implements WorldView {
   private readonly underwater: boolean;
   private readonly bubbles: Points<BufferGeometry, ShaderMaterial> | null = null;
   private readonly reduced: boolean;
+  private readonly meadowDecor: MeadowDecorView;
 
   constructor(plan: SpawnPlan) {
     this.underwater = plan.template.fx.environment === 'underwater';
@@ -293,7 +372,23 @@ export class EnvironmentView implements WorldView {
       groundColors.push(c.r, c.g, c.b);
     }
     groundGeometry.setAttribute('color', new Float32BufferAttribute(groundColors, 3));
-    this.ground = new Mesh(groundGeometry, new MeshBasicMaterial({ vertexColors: true, side: DoubleSide }));
+    if (this.underwater) {
+      this.seabedMaterial = new ShaderMaterial({
+        vertexShader: SEABED_VERTEX,
+        fragmentShader: SEABED_FRAGMENT,
+        uniforms: {
+          uSandColor: { value: colors.ground },
+          uDeepColor: { value: colors.horizon },
+          uRayColor: { value: water.ray },
+          uTime: { value: 0 },
+        },
+        side: DoubleSide,
+      });
+    }
+    this.ground = new Mesh(
+      groundGeometry,
+      this.seabedMaterial ?? new MeshBasicMaterial({ vertexColors: true, side: DoubleSide }),
+    );
     this.ground.position.y = -0.02; // below the VR floor plane: no z-fight with a floor-level surface
 
     this.seed = hashSeed(plan.seed, 'environment-hills');
@@ -354,6 +449,7 @@ export class EnvironmentView implements WorldView {
       this.bubbles.renderOrder = 2;
       this.object.add(this.bubbles);
     }
+    this.meadowDecor = new MeadowDecorView(plan.seed);
     this.object.add(this.sky, this.ground, this.hills, this.mist);
     this.applyScale(scaleStore.mode);
     const offScale = scaleStore.subscribe((mode) => this.applyScale(mode));
@@ -387,6 +483,7 @@ export class EnvironmentView implements WorldView {
 
   /** The ground tile keeps its size relative to the plate (grass stays grass-sized on the table-top diorama too). */
   private fitGroundTexture(k: number): void {
+    if (!(this.ground.material instanceof MeshBasicMaterial)) return;
     const map = this.ground.material.map;
     const tileM = LANDSCAPES[this.landscape ?? 'template'].tileM;
     if (!map || !tileM) return;
@@ -400,27 +497,35 @@ export class EnvironmentView implements WorldView {
    */
   private applyLandscape(): void {
     const { enabled, landscape } = domeStore.settings;
+    const isMeadow = enabled && !this.underwater && landscape === 'meadow';
+    if (isMeadow) {
+      if (!this.meadowDecor.object.parent) this.object.add(this.meadowDecor.object);
+    } else {
+      this.meadowDecor.object.removeFromParent();
+    }
     const id: LandscapeId = enabled && !this.underwater ? landscape : 'template';
     if (id === this.landscape) return;
     this.landscape = id;
     const l = LANDSCAPES[id];
-    const ground = this.ground.material;
     const geometry = this.ground.geometry;
     const count = geometry.getAttribute('position').count;
     const colors: number[] = [];
     const haze = id === 'template' ? this.colors.horizon : new Color(l.haze);
-    const centre = id === 'template' ? this.colors.ground : new Color(l.gain, l.gain, l.gain);
+    const centre = id === 'meadow' ? new Color('#52b828') : id === 'template' ? this.colors.ground : new Color(l.gain, l.gain, l.gain);
     for (let i = 0; i < count; i++) {
       const c = centre.clone().lerp(haze, i === 0 ? 0 : 1);
       colors.push(c.r, c.g, c.b);
     }
     geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
-    if (l.texture) {
-      const texture = groundTexture(l.texture);
-      ground.map = texture;
-      this.fitGroundTexture(environmentScale(scaleStore.mode));
-    } else ground.map = null;
-    ground.needsUpdate = true;
+    if (this.ground.material instanceof MeshBasicMaterial) {
+      const ground = this.ground.material;
+      if (l.texture) {
+        const texture = groundTexture(l.texture);
+        ground.map = texture;
+        this.fitGroundTexture(environmentScale(scaleStore.mode));
+      } else ground.map = null;
+      ground.needsUpdate = true;
+    }
     const near = id === 'template' ? this.colors.hillsNear : new Color(l.hillsNear);
     const far = id === 'template' ? this.colors.hillsFar : new Color(l.hillsFar);
     const fresh = hillsGeometry(this.seed, near, far, this.underwater ? 0.12 : l.hillAmp, this.underwater ? 0.05 : l.hillJag);
@@ -430,17 +535,21 @@ export class EnvironmentView implements WorldView {
     this.fog.color.copy(haze); // the ground and the hills melt into the haze of the landscape
   }
 
-  /** Static except the bubbles and the light shafts, which follow the audio clock (view only, frozen when motion is reduced). */
+  /** Static except the bubbles, light shafts, seabed caustics and river shimmer, which follow the audio clock. */
   update(state?: WorldState): void {
+    if (state && this.meadowDecor.object.visible && !this.reduced) this.meadowDecor.update(state);
     if (!this.underwater || this.reduced) return;
     const t = state?.t ?? 0;
     this.sky.material.uniforms.uTime!.value = t;
+    if (this.seabedMaterial) this.seabedMaterial.uniforms.uTime!.value = t;
     if (this.bubbles) this.bubbles.material.uniforms.uTime!.value = t;
   }
 
   dispose(): void {
     this.unsubscribe();
     this.offLandscape();
+    this.meadowDecor.dispose();
+    this.seabedMaterial?.dispose();
     for (const mesh of [this.sky, this.ground, this.hills, this.mist, ...(this.bubbles ? [this.bubbles] : [])]) {
       mesh.geometry.dispose();
       mesh.material.dispose();

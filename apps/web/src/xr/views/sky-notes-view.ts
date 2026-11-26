@@ -48,9 +48,10 @@ export class SkyNotesView implements WorldView {
     // with drifting patches of light between dark gaps. Plate units: the landscape reaches about 55 of them.
     const size = plan.template.terrain.size;
     const rings = [
-      { radius: size * 5.4, bottom: size * 0.5, height: size * 1.5, bands: 3 },
-      { radius: size * 6.7, bottom: size * 0.8, height: size * 2.1, bands: 4 },
-      { radius: size * 8.0, bottom: size * 1.1, height: size * 2.6, bands: 5 },
+      { radius: size * 2.1, bottom: size * 0.22, height: size * 0.55, bands: 4 },
+      { radius: size * 3.8, bottom: size * 0.4, height: size * 1.2, bands: 3 },
+      { radius: size * 5.4, bottom: size * 0.5, height: size * 1.5, bands: 4 },
+      { radius: size * 7.0, bottom: size * 0.8, height: size * 2.0, bands: 5 },
     ];
     rings.forEach((r, i) => {
       const colors = { primary: AURORA_GREENS[i % AURORA_GREENS.length]!, accent: AURORA_COLORS[(i + 1) % AURORA_COLORS.length]!, secondary: AURORA_TOPS[i % AURORA_TOPS.length]! };

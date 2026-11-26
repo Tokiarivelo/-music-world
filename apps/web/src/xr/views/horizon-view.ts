@@ -5,6 +5,7 @@
  * `MAX_KINDS`), unlit (colors baked in the vertices), fogged with the environment. Fixed in the world like the environment and
  * scaled with the plate (`plateWidthM`), so on the table-top diorama it is a miniature backdrop.
  */
+import { templateHasCity } from '@/engine/city';
 import {
   Color,
   DynamicDrawUsage,
@@ -36,10 +37,17 @@ const FALLBACK_KINDS: readonly ShapeKind[] = ['tree', 'conifer', 'bush'];
 const SWIMMERS: ReadonlySet<string> = new Set([
   'whale', 'shark', 'manta_ray', 'dolphin', 'jellyfish', 'fish_school', 'clownfish', 'seahorse', 'sea_turtle',
 ].map((n) => `recipe:${n}`));
+/** Corals, sponges and anemones that form vibrant tropical reefs. */
+const CORAL_KINDS: ReadonlySet<string> = new Set([
+  'coral_fan', 'staghorn_coral', 'brain_coral', 'sea_anemone', 'tube_sponge', 'starfish', 'sea_urchin',
+].map((n) => `recipe:${n}`));
+const REEF_PALETTE: readonly string[] = [
+  '#ff3b7f', '#ff6b35', '#ffbe0b', '#00f5d4', '#00bbf9', '#9d4edd', '#e0287a', '#ff8800', '#52b828',
+];
 /** Kinds that need the plate's own place (they are the stage, not the backdrop). */
 const SKIPPED: ReadonlySet<string> = new Set(['building', 'cloud', ...MOVING_KINDS]);
-/** The inner edge (m from the plate centre, in the big world): starts right at the edge of the plate. */
-const INNER_M = IMMERSIVE_PLATE_M / 2 + 2;
+/** The inner edge (m from the plate centre, in the big world): leaves an open central meadow glade for the river. */
+const INNER_M = 24;
 /** The ground disc is centred on the world origin, the plate 30 m off it: stay well inside. */
 const OUTER_M = Math.min(ENV_GROUND_RADIUS_M * IMMERSIVE_ENV_SCALE - 60, 260);
 const CLUMPS = 16;
@@ -89,10 +97,10 @@ export function horizonPosition(rng: Rng, clumps: readonly { x: number; z: numbe
  */
 export function foliageTint(kind: string, rng: Rng, target: Color): Color {
   const v = rng();
-  if (kind === 'conifer') return target.setRGB(0.26 + 0.12 * v, 0.5 + 0.18 * v, 0.46 + 0.1 * rng());
-  if (kind === 'bush') return target.setRGB(0.5 + 0.2 * v, 0.58 + 0.18 * v, 0.28 + 0.12 * rng());
-  if (rng() < 0.08) return target.setRGB(0.95, 0.55 + 0.2 * v, 0.2); // an autumn tree
-  return target.setRGB(0.32 + 0.3 * v, 0.55 + 0.2 * (1 - v), 0.24 + 0.1 * rng());
+  if (kind === 'conifer') return target.setRGB(0.18 + 0.12 * v, 0.62 + 0.18 * v, 0.42 + 0.1 * rng());
+  if (kind === 'bush') return target.setRGB(0.42 + 0.2 * v, 0.72 + 0.18 * v, 0.22 + 0.12 * rng());
+  if (rng() < 0.08) return target.setRGB(0.95, 0.68 + 0.2 * v, 0.25); // a golden sunlit tree
+  return target.setRGB(0.36 + 0.35 * v, 0.72 + 0.2 * (1 - v), 0.24 + 0.1 * rng());
 }
 
 export class HorizonView implements WorldView {
@@ -104,7 +112,7 @@ export class HorizonView implements WorldView {
 
   constructor(plan: SpawnPlan) {
     this.object.name = 'horizon';
-    const kinds = horizonKinds(plan);
+    const kinds = templateHasCity(plan.template) ? [] : horizonKinds(plan); // a city fills the world to the horizon
     const underwater = plan.template.fx.environment === 'underwater';
     const rng = mulberry32(hashSeed(plan.seed, 'horizon'));
     const clumps = Array.from({ length: CLUMPS }, () => {
@@ -138,8 +146,9 @@ export class HorizonView implements WorldView {
         sc.set(width * size * squash, height * size, width * size / squash);
         m.compose(pos, q, sc);
         mesh.setMatrixAt(i, m);
-        if (tinted) roleColor(plan.template.palette, roles[Math.floor(rng() * roles.length)]!, color);
-        else foliageTint(kind, rng, color).multiplyScalar(0.62); // unlit vertex colors come out brighter than lit ones
+        if (underwater && CORAL_KINDS.has(kind)) color.set(REEF_PALETTE[Math.floor(rng() * REEF_PALETTE.length)]!);
+        else if (tinted) roleColor(plan.template.palette, roles[Math.floor(rng() * roles.length)]!, color);
+        else foliageTint(kind, rng, color).multiplyScalar(0.95);
         mesh.setColorAt(i, color);
       }
       mesh.instanceMatrix.needsUpdate = true;

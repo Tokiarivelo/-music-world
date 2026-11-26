@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { usePlaylist } from "@/features/playlist";
 import {
-  DirectorPanel,
   useDirector,
   type DirectorSource,
 } from "@/features/director";
@@ -20,7 +20,6 @@ import { useAiTemplateChoice } from "../hooks/use-ai-template-choice";
 import { useWorldControls } from "../hooks/use-world-controls";
 import { synthesizeSong } from "../lib/synth-song";
 import { PlayerBar } from "./PlayerBar";
-import { TemplateActions } from "./TemplateActions";
 
 const { analysis } = DEMO_SONG;
 const DEMO_SOURCE: DirectorSource = { kind: "demo", analysis };
@@ -49,6 +48,12 @@ export function DemoPlayback({
   const controls = useWorldControls(player, DEMO_SONG.title, choice);
   const { clock } = player;
   const { template } = choice;
+  const { ready: playlistReady, played } = usePlaylist();
+  useEffect(() => {
+    if (player.run > 0 && playlistReady) {
+      played("demo", DEMO_SONG.title, { durationSec: analysis.durationSec, key: analysis.key, tempoBpm: analysis.tempoBpm, templateRef: storeTemplateId });
+    }
+  }, [player.run, playlistReady, played, storeTemplateId]);
   const seed = usePlaySeed(player.run, DEMO_SEED);
   const scene = useMemo(
     () => ({ analysis, template, seed, clock }),
@@ -58,15 +63,7 @@ export function DemoPlayback({
     <div className="relative h-dvh w-full">
       <WorldView controls={controls} editsKey={analysis.audioHash} onScoreMode={player.setMuted} scene={scene} />
       <div className="absolute left-3 top-3 z-10 max-w-[calc(100%-11rem)] sm:max-w-none">
-        <SiteNav />
-        <div className="mt-2" />
-        <DirectorPanel director={director} template={template} />
-        <div className="mt-2 rounded-lg bg-[var(--mw-bg)]/80 px-3 py-2 empty:hidden">
-          <TemplateActions
-            template={template}
-            generatedHere={director.templates.includes(template)}
-          />
-        </div>
+        <SiteNav template={template} />
       </div>
       <GuidedTour />
       {/* IWSDK sizes its canvas to the window, so the controls float above it. */}

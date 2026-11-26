@@ -213,16 +213,56 @@ export function buildRoads(seed: number, size: number): RoadNetwork {
 /** Does the template drive vehicles (so it needs roads)? */
 export function templateHasRoads(template: WorldTemplate): boolean {
   const driving = (kind: string): boolean => kind === 'car' || kind === 'bicycle';
-  return template.scenery.some((s) => driving(s.kind)) || template.mappings.some((m) => driving(m.spawn));
+  const city = (template.mappings ?? []).some((m) => m.spawn === 'building'); // a city has boulevards, and its notes become cars
+  return city || template.scenery.some((s) => driving(s.kind)) || template.mappings.some((m) => driving(m.spawn));
+}
+
+/** Spatial hash of the centre line samples of a network, so a distance query looks at a few cells, not every sample. */
+interface RoadGrid {
+  readonly cell: number;
+  readonly cells: Map<number, number[]>; // cell key -> flat [x0, z0, x1, z1, ...]
+}
+const grids = new WeakMap<RoadNetwork, RoadGrid>();
+const GRID_CELL = 1.5;
+const gridKey = (i: number, j: number): number => i * 100003 + j;
+
+function gridOf(network: RoadNetwork): RoadGrid {
+  let grid = grids.get(network);
+  if (!grid) {
+    const cells = new Map<number, number[]>();
+    for (const road of network.roads) {
+      for (let n = 0; n < SAMPLES; n += 1) {
+        const key = gridKey(Math.floor(road.px[n]! / GRID_CELL), Math.floor(road.pz[n]! / GRID_CELL));
+        const list = cells.get(key) ?? [];
+        list.push(road.px[n]!, road.pz[n]!);
+        cells.set(key, list);
+      }
+    }
+    grid = { cell: GRID_CELL, cells };
+    grids.set(network, grid);
+  }
+  return grid;
 }
 
 /** Distance from a point to the nearest road centre line, and that nearest point. */
 export function nearestRoad(network: RoadNetwork, x: number, z: number): { dist: number; px: number; pz: number } {
+  const grid = gridOf(network);
+  const ci = Math.floor(x / grid.cell);
+  const cj = Math.floor(z / grid.cell);
   let best = { dist: Infinity, px: 0, pz: 0 };
-  for (const road of network.roads) {
-    for (let n = 0; n < SAMPLES; n += 1) {
-      const d = Math.hypot(x - road.px[n]!, z - road.pz[n]!);
-      if (d < best.dist) best = { dist: d, px: road.px[n]!, pz: road.pz[n]! };
+  // Rings of cells around the query, stopping once the next ring cannot hold a closer sample.
+  for (let r = 0; r < 400; r += 1) {
+    if (best.dist < (r - 1) * grid.cell) break;
+    for (let i = ci - r; i <= ci + r; i += 1) {
+      for (let j = cj - r; j <= cj + r; j += 1) {
+        if (Math.max(Math.abs(i - ci), Math.abs(j - cj)) !== r) continue;
+        const list = grid.cells.get(gridKey(i, j));
+        if (!list) continue;
+        for (let k = 0; k < list.length; k += 2) {
+          const d = Math.hypot(x - list[k]!, z - list[k + 1]!);
+          if (d < best.dist) best = { dist: d, px: list[k]!, pz: list[k + 1]! };
+        }
+      }
     }
   }
   return best;

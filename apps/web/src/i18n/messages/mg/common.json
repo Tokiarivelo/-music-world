@@ -23,5 +23,12 @@
   "tour.notes.body": "Rehefa mijanona ny hira, tsindrio ny note henoina, tarao any amin'ny andalana hafa, na manampia andalana vaovao.",
   "tour.vr.title": "Miditra ao anaty VR",
   "tour.vr.body": "Amin'ny Quest, sokafy ity pejy ity ao amin'ny navigateur ary fidio ny Miditra VR mba hijoro ao anaty tontolo sy handeha.",
-  "demoHint": "Tsy mila kaonty na fandefasana: milalao ao amin'ny navigateur ny hira demo, miaraka amin'ny fitsidihana fohy."
+  "demoHint": "Tsy mila kaonty na fandefasana: milalao ao amin'ny navigateur ny hira demo, miaraka amin'ny fitsidihana fohy.",
+  "navPlaylist": "Ireo hira nalaiko",
+  "playlist.title": "Ireo hira nalaiko",
+  "playlist.private": "Ireo hira nalainao. Voatahiry ato amin’ity navigateur ity ho an’ny kaontinao ihany izy ireo; tsy hitan’ny olon-kafa.",
+  "playlist.empty": "Tsy mbola nisy nilalaovina. Sokafy ny demo na alefaso ny hira iray.",
+  "playlist.plays": "{count} fotoana nilalaovana",
+  "playlist.play": "Alefaso",
+  "playlist.remove": "Esory ny {title} amin’ireo hira nalaiko"
 }

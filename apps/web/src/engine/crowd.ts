@@ -18,6 +18,7 @@
 import { hashSeed, mulberry32 } from './prng';
 import { MOVING_KINDS, objectPoseAt, type Pose } from './motion';
 import { isSwimmer, SWIMMERS } from './swim';
+import { worldSize } from './city';
 import { buildRoads, LANE_OFFSET, roadPoint, type Road } from './roads';
 import type { SpawnPlan } from './spawn-plan';
 
@@ -104,7 +105,7 @@ export function musicClockOf(plan: Pick<SpawnPlan, 'beats' | 'energy' | 'duratio
 
 /** Footprint of the vehicles (metres), to space them on a lane. */
 const VEHICLE_LENGTH: Readonly<Record<string, number>> = { car: 0.75, bicycle: 0.3 };
-const TRAFFIC_MAX: Readonly<Record<string, number>> = { car: 22, bicycle: 8 };
+const TRAFFIC_MAX: Readonly<Record<string, number>> = { car: 60, bicycle: 16 };
 const TRAFFIC_ROAD: Readonly<Record<string, 'main' | 'bike'>> = { car: 'main', bicycle: 'bike' };
 const AIR_CAP: Readonly<Record<string, number>> = { airplane: 3, cloud: 10 };
 const SPACING = 1.9;
@@ -135,7 +136,7 @@ function trafficOf(plan: Pick<SpawnPlan, 'seed' | 'template'>, kind: string): Tr
   }
   let found = perPlan.get(kind);
   if (!found) {
-    const network = buildRoads(plan.seed, plan.template.terrain.size);
+    const network = buildRoads(plan.seed, worldSize(plan.template));
     const roads = network.roads.filter((r) => r.kind === TRAFFIC_ROAD[kind]);
     const lanes: Lane[] = roads.flatMap((road) => [{ road, dir: 1 as const }, { road, dir: -1 as const }]);
     const perLane = Math.min(...roads.map((r) => Math.floor(r.length / ((VEHICLE_LENGTH[kind] ?? 0.5) * SPACING))));
@@ -279,7 +280,7 @@ export function crowdItemsOf(plan: Pick<SpawnPlan, 'records' | 'template'>, radi
  * recent ones) has `hidden: true`.
  */
 export function crowdPosesAt(plan: SpawnPlan, items: readonly CrowdItem[], t: number): Map<number, Pose> {
-  const size = plan.template.terrain.size;
+  const size = worldSize(plan.template);
   const clock = musicClockOf(plan);
   const tau = clock.at(t);
   const tauNext = clock.at(t + HEADING_PROBE_SEC);
@@ -334,3 +335,15 @@ export function crowdPosesAt(plan: SpawnPlan, items: readonly CrowdItem[], t: nu
   return out;
 }
 
+
+/**
+ * Where a vehicle that lands at `landAt` is on its road at that moment: the note falls onto the road and the car drives
+ * off from there. `k` is the rank of the record among the vehicles of its kind.
+ */
+export function vehicleLanding(plan: SpawnPlan, kind: string, k: number, landAt: number): { x: number; z: number } | null {
+  if (!(kind in TRAFFIC_ROAD)) return null;
+  const traffic = trafficOf(plan, kind);
+  if (traffic.lanes.length === 0) return null;
+  const pose = trafficPose(traffic, k % traffic.cap, musicClockOf(plan).at(landAt));
+  return { x: pose.x, z: pose.z };
+}

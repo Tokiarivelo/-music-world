@@ -3,6 +3,7 @@ import { AdditiveBlending, Matrix4, Vector3, type InstancedMesh, type MeshBasicM
 import { mulberry32 } from '@/engine/prng';
 import { DEMO_ANALYSIS as demo } from '@/engine/__fixtures__/demo-analysis';
 import { buildSpawnPlan } from '@/engine/spawn-plan';
+import { isCityKind, templateHasCity, worldSize } from '@/engine/city';
 import { worldStateAt } from '@/engine/world-state';
 import { DEFAULT_TEMPLATE } from '@/templates/default';
 import { ARC_HEIGHT_MAX, DECOR_ARC_COUNT, PARTICLE_SPIN, SHAPE_TRIANGLE_BUDGET } from '../constants';
@@ -85,8 +86,8 @@ describe('terrain field (04-default-template requirement 2)', () => {
     expect(cracks).not.toEqual(crackNetwork(field, 4));
     expect(cracks.length).toBeGreaterThan(1000);
     for (let i = 0; i < cracks.length; i += 3) {
-      expect(Math.abs(cracks[i]!)).toBeLessThanOrEqual(6);
-      expect(Math.abs(cracks[i + 2]!)).toBeLessThanOrEqual(6);
+      expect(Math.abs(cracks[i]!)).toBeLessThanOrEqual(worldSize(DEFAULT_TEMPLATE) / 2);
+      expect(Math.abs(cracks[i + 2]!)).toBeLessThanOrEqual(worldSize(DEFAULT_TEMPLATE) / 2);
     }
   });
 });
@@ -140,10 +141,16 @@ describe('recipe kinds (05-ai-world-director task 6.3)', () => {
   });
 });
 
+/** City ground, water, poles and lamps (4), the four extra building variants (4), scaffolding and cranes (2). */
+const CITY_DRAW_CALLS = 11; // plus the road mesh of the boulevards
+
 describe('StructureView (task 4.3)', () => {
   it('uses one InstancedMesh per kind and matches the state after any seek', () => {
     const view = new StructureView(plan);
-    expect(view.drawCalls()).toBe(plan.tracks.length);
+    // one per kind, plus (city) ground, water, poles and lamps, the 4 extra building variants, scaffolding and cranes,
+    // the road mesh and one shared blob-shadow mesh when trees or cars exist
+    const extra = templateHasCity(plan.template) ? CITY_DRAW_CALLS + (plan.tracks.some((t) => ['tree', 'conifer', 'bush', 'car'].includes(t.kind)) ? 1 : 0) : 0;
+    expect(view.drawCalls()).toBe(plan.tracks.length + extra);
     const m = new Matrix4();
     const scale = new Vector3();
     for (const t of [20, 3, 24, 0.5, 11]) {
@@ -151,11 +158,17 @@ describe('StructureView (task 4.3)', () => {
       view.update(state);
       const live = new Set(state.structures.map((s) => `${s.kind}#${s.slot}`));
       for (const track of plan.tracks) {
-        const mesh = view.mesh(track.kind) as InstancedMesh;
-        for (let i = 0; i < mesh.count; i++) {
-          mesh.getMatrixAt(i, m);
-          scale.setFromMatrixScale(m);
-          expect(scale.y > 0).toBe(live.has(`${track.kind}#${i}`));
+        const meshes = view.meshesOf(track.kind);
+        for (let i = 0; i < meshes[0]!.count; i++) {
+          const drawn = meshes.some((mesh) => {
+            mesh.getMatrixAt(i, m);
+            scale.setFromMatrixScale(m);
+            return scale.y > 0;
+          });
+          // A city note also builds the spots around it: those are drawn without being a live structure.
+          if (templateHasCity(plan.template) && isCityKind(track.kind)) {
+            if (live.has(`${track.kind}#${i}`)) expect(drawn).toBe(true);
+          } else expect(drawn).toBe(live.has(`${track.kind}#${i}`));
         }
       }
     }

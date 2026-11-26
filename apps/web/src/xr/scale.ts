@@ -32,7 +32,19 @@ export function plateWidthM(mode: ScaleMode): number {
 
 /** Scale of the scene root: plate metres (template units) to world metres. */
 export function rootScale(mode: ScaleMode, terrainSize: number): number {
-  return plateWidthM(mode) / (terrainSize > 0 ? terrainSize : 1);
+  const wide = mode === 'immersive' ? 1 : span; // the big world keeps the object size; the table-top diorama fits the whole city
+  return plateWidthM(mode) / ((terrainSize > 0 ? terrainSize : 1) * wide);
+}
+
+/** How many plates wide the world is (a city is wider than its plate); set when a scene is loaded. */
+let span = 1;
+export function setWorldSpan(value: number): void {
+  span = value >= 1 ? value : 1;
+}
+
+/** Width of the area the viewer can walk, in metres. */
+export function worldWidthM(mode: ScaleMode): number {
+  return plateWidthM(mode) * span;
 }
 
 /** Size factor of instances: in the wide immersive plate objects keep their calibrated size (see `IMMERSIVE_OBJECT_SCALE`). */

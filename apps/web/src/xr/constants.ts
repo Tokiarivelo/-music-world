@@ -32,7 +32,7 @@ export const ENV_STAR_DENSITY = 0.012;
  * Immersive scale (I7): plate width in metres, how far the viewer starts from the plate centre (inside its near edge),
  * eye height, environment scale (ground, hills, fog), far plane, and the margin the viewer may walk past the plate.
  */
-export const IMMERSIVE_PLATE_M = 110;
+export const IMMERSIVE_PLATE_M = 140;
 export const IMMERSIVE_START_Z_M = 35;
 /**
  * Objects maintain their full calibrated size so they fill the landscape with presence and architectural volume,

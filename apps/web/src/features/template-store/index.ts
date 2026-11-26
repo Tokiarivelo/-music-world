@@ -1,4 +1,4 @@
-export { createStoreTemplate, getStoreTemplate, publishStoreTemplate, updateStoreTemplate, uploadThumbnail } from './api/template-store.api';
+export { listStoreTemplates, createStoreTemplate, getStoreTemplate, publishStoreTemplate, updateStoreTemplate, uploadThumbnail } from './api/template-store.api';
 export { renderThumbnail } from './lib/thumbnail';
 export { EditCopyLink } from './components/EditCopyLink';
 export { PublishTemplateButton } from './components/PublishTemplateButton';

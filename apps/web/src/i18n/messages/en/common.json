@@ -23,5 +23,12 @@
   "tour.notes.body": "When the song is paused, click a note to hear it, drag it to another line, or add a new line.",
   "tour.vr.title": "Step inside in VR",
   "tour.vr.body": "On a Quest, open this page in the browser and choose Enter VR to stand inside the world and walk around.",
-  "demoHint": "No account, no upload: the demo song plays in your browser, with a short tour."
+  "demoHint": "No account, no upload: the demo song plays in your browser, with a short tour.",
+  "navPlaylist": "My songs",
+  "playlist.title": "My songs",
+  "playlist.private": "The songs you played. They are saved in this browser for your account only; nobody else can see them.",
+  "playlist.empty": "Nothing played yet. Open the demo or upload a song.",
+  "playlist.plays": "{count} plays",
+  "playlist.play": "Play",
+  "playlist.remove": "Remove {title} from my songs"
 }
