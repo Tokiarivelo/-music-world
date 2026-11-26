@@ -335,5 +335,12 @@
   "variants.jitter": "Variation de couleur",
   "variants.jitterHint": "De combien la luminosité de chaque copie peut varier, jusqu'à ± cette part (0 = aucune).",
   "variants.remove": "Supprimer la variante",
-  "variants.add": "Ajouter une variante"
+  "variants.add": "Ajouter une variante",
+  "history.label": "Historique",
+  "history.undo": "Annuler",
+  "history.redo": "Rétablir",
+  "history.resetStock": "Revenir au modèle d'origine",
+  "history.resetOpening": "Revenir à l'ouverture",
+  "history.same": "Identique à la référence.",
+  "history.diff": "Par rapport à la référence : {added} ajoutées, {removed} supprimées, {changed} modifiées ; variantes modifiées : {variants}."
 }

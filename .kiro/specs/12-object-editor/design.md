@@ -98,3 +98,7 @@
   picks one (`variantLook` in `engine/recipe-scale.ts`): height multiplier and a deterministic lightness jitter of its
   colour (`jitterHex`, seeded by `layout.seed` + object id). Applied to hand-placed objects only; template scenery and
   note spawns keep variant 0 for recipes. Editor: `VariantsPanel` under the part tree (en, fr, mg).
+- 5.2: `lib/object-history.ts` (pure undo / redo of one recipe, 100 steps, `stockOf` by name `house` / `house_2`, `diffRecipe`
+  by node id, `resetTo`), hook `useObjectHistory` (history per edited object, opening snapshot kept) and `ObjectHistoryBar`
+  (undo, redo, reset to stock or to how it was opened, one-line diff). Part and variant edits go through it; a reset is
+  itself undoable. The map creator keeps its own history (`map-creator/lib/history.ts`).

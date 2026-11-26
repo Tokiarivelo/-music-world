@@ -335,5 +335,12 @@
   "variants.jitter": "Colour jitter",
   "variants.jitterHint": "How much each copy's lightness may vary, up to ± this share (0 = none).",
   "variants.remove": "Remove variant",
-  "variants.add": "Add variant"
+  "variants.add": "Add variant",
+  "history.label": "History",
+  "history.undo": "Undo",
+  "history.redo": "Redo",
+  "history.resetStock": "Reset to stock",
+  "history.resetOpening": "Reset to opening",
+  "history.same": "Same as the reference.",
+  "history.diff": "Against the reference: {added} added, {removed} removed, {changed} changed parts; variants changed: {variants}."
 }

@@ -335,5 +335,12 @@
   "variants.jitter": "Fiovaovan'ny loko",
   "variants.jitterHint": "Hatraiza no mety hiovaovan'ny famirapiratan'ny kopia tsirairay, hatramin'ny ± io ampahany io (0 = tsy misy).",
   "variants.remove": "Esory ny karazany",
-  "variants.add": "Ampio karazany"
+  "variants.add": "Ampio karazany",
+  "history.label": "Tantara",
+  "history.undo": "Foano",
+  "history.redo": "Averina",
+  "history.resetStock": "Avereno ny tany am-boalohany",
+  "history.resetOpening": "Avereno araka ny nanokafana azy",
+  "history.same": "Mitovy amin'ny fototra.",
+  "history.diff": "Raha oharina amin'ny fototra: {added} nampiana, {removed} nesorina, {changed} novaina; karazany novaina: {variants}."
 }
