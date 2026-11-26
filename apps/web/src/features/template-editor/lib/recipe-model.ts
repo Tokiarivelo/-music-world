@@ -83,6 +83,7 @@ export function newRecipe(taken: readonly string[]): Recipe {
     schema: 'music-world.shape.v1',
     name: freshRecipeName(taken),
     parts: [newPart()],
+    nodes: [],
     budget: { maxTriangles: 500 },
     footprint: 0.25,
     heightScale: 1,
