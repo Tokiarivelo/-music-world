@@ -5,7 +5,11 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Path, Request
 
-from music_world.director.application.use_cases.direct_layout import DirectedLayout, DirectLayout
+from music_world.director.application.use_cases.direct_layout import (
+    DirectDemoLayout,
+    DirectedLayout,
+    DirectLayout,
+)
 from music_world.director.application.use_cases.generate_world import (
     GenerateDemoWorld,
     GeneratedWorld,
@@ -15,6 +19,7 @@ from music_world.director.application.use_cases.list_providers import ListProvid
 from music_world.director.domain.errors import RateLimitedError
 from music_world.schemas.director import (
     DemoDirectorRequest,
+    DemoLayoutRequest,
     DirectorProviders,
     DirectorRequest,
     DirectorResult,
@@ -138,3 +143,23 @@ async def direct_layout(
 ) -> LayoutResult:
     template = body.template.model_dump(by_alias=True, exclude_none=True)
     return _layout_result(await use_case.execute(project_id, template, body.provider))
+
+
+def _demo_layout_use_case(request: Request, caller: CurrentCaller) -> DirectDemoLayout:
+    _rate_limit(request, caller)
+    use_case: DirectDemoLayout = request.app.state.container.director.direct_demo_layout
+    return use_case
+
+
+@router.post(
+    "/director/layout/demo",
+    response_model=LayoutResult,
+    response_model_by_alias=True,
+    summary="Write the object layout of the chosen template for the shipped demo song",
+    responses=_RESPONSES,
+)
+async def direct_demo_layout(
+    body: DemoLayoutRequest, use_case: Annotated[DirectDemoLayout, Depends(_demo_layout_use_case)]
+) -> LayoutResult:
+    template = body.template.model_dump(by_alias=True, exclude_none=True)
+    return _layout_result(await use_case.execute(body.analysis, template, body.provider))

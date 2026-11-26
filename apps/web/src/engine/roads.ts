@@ -214,7 +214,8 @@ export function buildRoads(seed: number, size: number): RoadNetwork {
 export function templateHasRoads(template: WorldTemplate): boolean {
   const driving = (kind: string): boolean => kind === 'car' || kind === 'bicycle';
   const city = (template.mappings ?? []).some((m) => m.spawn === 'building'); // a city has boulevards, and its notes become cars
-  return city || template.scenery.some((s) => driving(s.kind)) || template.mappings.some((m) => driving(m.spawn));
+  if (city) return false; // a city drives on its street grid (`traffic.ts`), not on boulevards
+  return template.scenery.some((s) => driving(s.kind)) || template.mappings.some((m) => driving(m.spawn));
 }
 
 /** Spatial hash of the centre line samples of a network, so a distance query looks at a few cells, not every sample. */

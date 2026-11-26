@@ -33,7 +33,7 @@ import {
     templateHasCity,
 } from './city';
 import { noteStream, uniform } from './prng';
-import { layoutOf, reefKind, reefOf, reefSpot, themeOf, worldPlanKind } from './world-plan';
+import { layoutOf, reefKind, rotationOf, reefOf, reefSpot, themeOf, worldPlanKind } from './world-plan';
 import { recipeScale } from './recipe-scale';
 import { applyEdits, linesOf, staffUOfSnapped, MAIN_LINE_ID, type LayoutEdits, type StaffLine } from './edits';
 import { buildStaffPath, lineOffsetY, type StaffPath } from './staff';
@@ -277,8 +277,11 @@ const PLAN_MIX: readonly (readonly [ShapeKind, number])[] = [
 /** Share of the notes that are rainbow notes. */
 const RAINBOW_SHARE = 0.14;
 
-function plannedKind(seed: number, noteId: string, mapped: ShapeKind): ShapeKind {
+function plannedKind(template: WorldTemplate, seed: number, noteId: string, mapped: ShapeKind, index: number): ShapeKind {
   if (!PLAN_KINDS.has(mapped)) return mapped; // clouds, planes, needles and hills keep their rule
+  // The director's mix, in order, when it wrote one for this city (kinds the plan places only).
+  const rotation = rotationOf(template)?.filter((k) => PLAN_KINDS.has(k));
+  if (rotation && rotation.length > 0) return rotation[index % rotation.length]!;
   const u = noteStream(seed, `${noteId}:plan`)();
   let acc = 0;
   for (const [kind, weight] of PLAN_MIX) {
@@ -375,7 +378,7 @@ export function buildSpawnPlan(
   const cityMode = templateHasCity(template);
   const reefMode = ['reef', 'realm'].includes(worldPlanKind(template));
   const kindOf = (note: NoteEvent, mapped: ShapeKind, index: number): ShapeKind =>
-    cityMode ? plannedKind(seed, note.id, mapped) : reefMode ? reefKind(template, seed, note.id, mapped, index) : mapped;
+    cityMode ? plannedKind(template, seed, note.id, mapped, index) : reefMode ? reefKind(template, seed, note.id, mapped, index) : mapped;
   const themeTotals = new Map<string, number>();
   const countTheme = (kind: ShapeKind, n: number): void => {
     const theme = themeOf(kind);

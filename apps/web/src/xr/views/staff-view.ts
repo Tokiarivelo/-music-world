@@ -343,7 +343,11 @@ export class StaffView implements WorldView {
     } else {
       for (const n of state.notesOnStaff) if (isRecordShown(this.plan, n.index, hidden)) this.place(n.glyph, n.position, n.u, this.noteHex(n.index));
       for (const f of state.fallingNotes) {
-        if (isRecordShown(this.plan, f.index, hidden)) this.place(f.glyph, f.position, this.plan.staff.playheadU, this.noteHex(f.index));
+        if (!isRecordShown(this.plan, f.index, hidden)) continue;
+        const r = this.plan.records[f.index]!;
+        // A rainbow note (I38) already shows its colours while it falls, so the object it will touch is no surprise.
+        const hex = r.rainbow ? rainbowHex(f.progress, state.t, r.midi, this.noteHex(f.index)) : this.noteHex(f.index);
+        this.place(f.glyph, f.position, this.plan.staff.playheadU, hex);
       }
     }
     this.placeEditMarks(state);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { beatPosition, buildCity, cityFront, inLake, lightColor, rankedSpot } from './city';
+import { beatPosition, buildCity, cityFront, inLake, rankedSpot, SIGNAL_CYCLE, signalColor } from './city';
 import { buildRoads, nearestRoad, ROAD_HALF_WIDTH } from './roads';
 
 describe('city plan', () => {
@@ -42,10 +42,20 @@ describe('city plan', () => {
     expect(cityFront(city, 100, 100)).toBeGreaterThanOrEqual(city.maxRadius);
   });
 
-  it('cycles traffic lights with opposite axes', () => {
-    for (const beat of [0, 2, 3.7, 5, 7.8]) {
-      expect([lightColor(0, beat), lightColor(1, beat)]).not.toEqual([2, 2]);
+  it('runs the lights like a real crossing: green, yellow, red, never green for both streets', () => {
+    const seen = new Set<number>();
+    let order = '';
+    for (let t = 0; t < SIGNAL_CYCLE; t += 0.25) {
+      const a = signalColor(0, t, 0);
+      const b = signalColor(1, t, 0);
+      expect(a === 2 && b === 2).toBe(false);
+      expect(a !== 0 && b !== 0).toBe(false); // while one street may go, the other is red
+      seen.add(a);
+      if (order.at(-1) !== String(a)) order += a;
     }
+    expect(seen).toEqual(new Set([0, 1, 2]));
+    expect(order.replace(/^(.*?)$/, '$1')).toMatch(/2.*1.*0/); // green, then yellow, then red
+    expect(signalColor(0, 1, 3)).toBe(signalColor(0, 1 + SIGNAL_CYCLE, 3));
     expect(beatPosition([0, 1, 2, 3], 1.5)).toBeCloseTo(1.5);
     expect(beatPosition([], 2)).toBe(4);
   });

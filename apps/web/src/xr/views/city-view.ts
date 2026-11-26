@@ -16,7 +16,7 @@ import {
   type BufferGeometry,
 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { beatPosition, cityFront, cityOf, lightColor, type City } from '@/engine/city';
+import { cityFront, cityOf, signalColor, type City } from '@/engine/city';
 import type { SpawnPlan } from '@/engine/spawn-plan';
 import type { WorldState } from '@/engine/world-state';
 import { buildCityGeometry, buildWaterGeometry, type CityTone } from '../shapes/city-geometry';
@@ -91,9 +91,8 @@ export class CityView implements WorldView {
     this.lastT = state.t;
     const front = cityFront(this.city, state.t, this.plan.durationSec);
     for (const material of this.materials) setReveal(material, front);
-    const beat = beatPosition(this.plan.beats, state.t);
     this.city.lights.forEach((light, i) => {
-      this.lamps.setColorAt(i, this.tint.copy(COLORS[lightColor(light.axis, beat)]!).multiplyScalar(light.key < front ? 1.6 : 0));
+      this.lamps.setColorAt(i, this.tint.copy(COLORS[signalColor(light.axis, state.t, light.phase)]!).multiplyScalar(light.key < front ? 1.6 : 0));
     });
     if (this.lamps.instanceColor) this.lamps.instanceColor.needsUpdate = true;
   }

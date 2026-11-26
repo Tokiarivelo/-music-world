@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { DEMO_ANALYSIS as demo } from './__fixtures__/demo-analysis';
 import { buildSpawnPlan } from './spawn-plan';
+import { worldSize } from './city';
 import { inventoryOf, reefOf, roleOf, worldPlanKind } from './world-plan';
 import { TemplateSchema } from '@/templates/generated';
 import { DEFAULT_TEMPLATE } from '@/templates/default';
@@ -30,7 +31,7 @@ describe('world plans', () => {
   it('lays a reef: patches of every theme inside the plate, deterministic', () => {
     const reef = reefOf(ABYSS, 3);
     expect(new Set(reef.patches.map((p) => p.theme))).toEqual(new Set(['kelp', 'coral', 'sand', 'wreck']));
-    for (const p of reef.patches) expect(Math.hypot(p.x, p.z) + p.radius).toBeLessThan(ABYSS.terrain.size / 2 + 0.01);
+    for (const p of reef.patches) expect(Math.hypot(p.x, p.z) + p.radius).toBeLessThan(worldSize(ABYSS) / 2 + 0.01);
     expect(reefOf(ABYSS, 3)).toEqual(reef);
   });
 
@@ -60,7 +61,7 @@ describe('world plans', () => {
     };
     const directed = { ...realm, layout };
     const reef = reefOf(directed, 5);
-    const half = realm.terrain.size / 2;
+    const half = worldSize(realm) / 2;
     expect(reef.patches).toHaveLength(2);
     expect(reef.patches.find((p) => p.theme === 'forest')!.x).toBeGreaterThan(0.3 * half);
     const plan = buildSpawnPlan(demo, directed, 5);
@@ -73,5 +74,17 @@ describe('world plans', () => {
     for (const r of trees) expect(Math.hypot(r.target.x - 0.5 * half, r.target.z - 0.4 * half)).toBeLessThan(0.25 * half);
     // Without a layout the plan is derived and still valid; with one it differs.
     expect(buildSpawnPlan(demo, realm, 5).records.map((r) => r.target)).not.toEqual(plan.records.map((r) => r.target));
+  });
+
+  it('lets the director set the mix of a city, and orders grounded notes whatever their rule gave', () => {
+    const directed = { ...DEFAULT_TEMPLATE, layout: { inventory: [], patches: [], sequence: [{ kind: 'tree' as const, patch: null, weight: 1 }, { kind: 'car' as const, patch: null, weight: 1 }] } };
+    const kinds = new Set(buildSpawnPlan(demo, directed, 4).records.map((r) => r.kind));
+    expect(kinds.has('tree') && kinds.has('car')).toBe(true);
+    expect(kinds.has('bush') || kinds.has('conifer') || kinds.has('bicycle')).toBe(false); // the mix replaces the default one
+    const realm = featured('enchanted-realm');
+    const only = { ...realm, layout: { inventory: [], patches: [{ id: 'a', theme: 'forest' as const, x: 0, z: 0.5, radius: 0.3 }], sequence: [{ kind: 'recipe:magic_tree' as const, patch: 'a', weight: 1 }] } };
+    const first = realm.scenery.reduce((n, i) => n + i.count, 0);
+    const grounded = buildSpawnPlan(demo, only, 4).records.filter((r) => r.index >= first && r.kind.startsWith('recipe:') && !['recipe:dragon'].includes(r.kind));
+    expect(new Set(grounded.map((r) => r.kind))).toEqual(new Set(['recipe:magic_tree']));
   });
 });

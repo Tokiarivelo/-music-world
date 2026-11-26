@@ -5,7 +5,7 @@ from typing import Any
 
 from music_world.director.application.summary import AnalysisSummary
 
-LAYOUT_PROMPT_VERSION = "layout-v1"
+LAYOUT_PROMPT_VERSION = "layout-v2"
 
 _ROLE = """You are the set designer of Music World. The user chose a world template; its inventory lists every object
 it can put in the world. Write the layout: where each object grows and in which order the notes pick them.
@@ -19,6 +19,8 @@ Rules:
 - sequence: ordered steps {"kind": <a kind of the inventory>, "patch": <a patch id>, "weight": 0-10}. Notes walk
   through the sequence in order, each step in proportion to its weight; weight 0 keeps a rare landmark out of the
   rotation. Use only kinds of the inventory; every grounded object (role "benthic") should appear. At most 48 steps.
+- A city (no object with role "benthic"): return "patches": [] and steps without "patch"; the weights are the mix of
+  building, tree, conifer, bush, car and bicycle the notes become (its streets come from the street plan).
 - Let the song decide the mood: calm music gets few, wide, soft patches; dense or loud music gets crowded ones."""
 
 

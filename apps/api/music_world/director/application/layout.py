@@ -102,10 +102,26 @@ def inventory_of(template: dict[str, Any]) -> list[dict[str, str]]:
     return [{"kind": k, "role": role_of(k)} for k in kinds]
 
 
+_CITY_MIX: dict[str, float] = {
+    "building": 3.0,
+    "tree": 2.0,
+    "conifer": 0.8,
+    "bush": 1.4,
+    "car": 2.5,
+    "bicycle": 0.3,
+}
+
+
 def mock_layout(template: dict[str, Any], audio_hash: str = "") -> dict[str, Any]:
-    """Deterministic layout from the inventory: one patch set per theme, from the centre outwards, centre first."""
+    """Deterministic layout from the inventory: one patch set per theme, from the centre outwards, centre first.
+
+    A city has no patches (its streets, lots and gardens come from the street plan): the sequence is the mix of
+    buildings, trees, cars and so on the notes become."""
     inventory = inventory_of(template)
     grounded = [i["kind"] for i in inventory if i["role"] == "benthic"]
+    if not grounded:
+        city = [{"kind": i["kind"], "weight": _CITY_MIX[i["kind"]]} for i in inventory if i["kind"] in _CITY_MIX]
+        return {"inventory": inventory, "patches": [], "sequence": city}
     themes = [t for t in THEME_ORDER if any(_THEME_OF[k] == t for k in grounded)]
     offset = int(hashlib.sha256(audio_hash.encode()).hexdigest()[:6], 16) / 0xFFFFFF * 2 * math.pi
     wanted = [(t, i) for t in themes for i in range(_PATCHES[t])]
@@ -147,6 +163,6 @@ def parse_layout(raw: dict[str, Any], template: dict[str, Any]) -> WorldLayout |
     except ValidationError:
         return None
     steps = [s for s in layout.sequence if s.kind in known]
-    if not steps or not layout.patches:
+    if not steps or (any(s.patch is not None for s in steps) and not layout.patches):
         return None
     return layout.model_copy(update={"sequence": steps})

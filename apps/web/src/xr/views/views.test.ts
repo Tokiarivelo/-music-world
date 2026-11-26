@@ -148,8 +148,8 @@ describe('StructureView (task 4.3)', () => {
   it('uses one InstancedMesh per kind and matches the state after any seek', () => {
     const view = new StructureView(plan);
     // one per kind, plus (city) ground, water, poles and lamps, the 4 extra building variants, scaffolding and cranes,
-    // the road mesh and one shared blob-shadow mesh when trees or cars exist
-    const extra = templateHasCity(plan.template) ? CITY_DRAW_CALLS + (plan.tracks.some((t) => ['tree', 'conifer', 'bush', 'car'].includes(t.kind)) ? 1 : 0) : 0;
+    // (no road mesh: a city drives on its streets) and one shared blob-shadow mesh when trees or cars exist
+    const extra = templateHasCity(plan.template) ? CITY_DRAW_CALLS - 1 + (plan.tracks.some((t) => ['tree', 'conifer', 'bush', 'car'].includes(t.kind)) ? 1 : 0) : 0;
     expect(view.drawCalls()).toBe(plan.tracks.length + extra);
     const m = new Matrix4();
     const scale = new Vector3();

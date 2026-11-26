@@ -18,7 +18,8 @@
 import { hashSeed, mulberry32 } from './prng';
 import { MOVING_KINDS, objectPoseAt, type Pose } from './motion';
 import { FLYERS, isSwimmer, SWIMMERS } from './swim';
-import { worldSize } from './city';
+import { templateHasCity, worldSize } from './city';
+import { STREET_VEHICLES, streetTrafficOf } from './traffic';
 import { buildRoads, LANE_OFFSET, roadPoint, type Road } from './roads';
 import type { SpawnPlan } from './spawn-plan';
 
@@ -194,7 +195,8 @@ function ranksOf(plan: Pick<SpawnPlan, 'tracks'>): Map<number, Rank> {
 }
 
 /** How many records of a kind are shown at once (the most recent ones); `Infinity` for a kind with no limit. */
-function capOf(plan: Pick<SpawnPlan, 'seed' | 'template'>, kind: string): number {
+function capOf(plan: Pick<SpawnPlan, 'seed' | 'template' | 'durationSec'>, kind: string): number {
+  if (STREET_VEHICLES.has(kind) && templateHasCity(plan.template)) return streetTrafficOf(plan).caps[kind as 'car' | 'bicycle'];
   if (kind in TRAFFIC_ROAD) return trafficOf(plan, kind).cap;
   if (kind in AIR_CAP) return AIR_CAP[kind]!;
   return SWIMMERS[kind]?.cap ?? Infinity;
@@ -301,6 +303,12 @@ export function crowdPosesAt(plan: SpawnPlan, items: readonly CrowdItem[], t: nu
         out.set(item.index, HIDDEN);
         continue;
       }
+      if (STREET_VEHICLES.has(item.kind) && templateHasCity(plan.template)) {
+        // Vehicles of a city drive on its streets and obey its lights (`traffic.ts`).
+        const street = streetTrafficOf(plan);
+        out.set(item.index, street.poseAt(item.kind as 'car' | 'bicycle', rank.k % street.caps[item.kind as 'car' | 'bicycle'], t) ?? HIDDEN);
+        continue;
+      }
       if (item.kind in TRAFFIC_ROAD) {
         const traffic = trafficOf(plan, item.kind);
         out.set(item.index, trafficPose(traffic, rank.k % traffic.cap, tau));
@@ -341,6 +349,11 @@ export function crowdPosesAt(plan: SpawnPlan, items: readonly CrowdItem[], t: nu
  * off from there. `k` is the rank of the record among the vehicles of its kind.
  */
 export function vehicleLanding(plan: SpawnPlan, kind: string, k: number, landAt: number): { x: number; z: number } | null {
+  if (STREET_VEHICLES.has(kind) && templateHasCity(plan.template)) {
+    const street = streetTrafficOf(plan);
+    const pose = street.poseAt(kind as 'car' | 'bicycle', k % street.caps[kind as 'car' | 'bicycle'], landAt);
+    return pose ? { x: pose.x, z: pose.z } : null;
+  }
   if (!(kind in TRAFFIC_ROAD)) return null;
   const traffic = trafficOf(plan, kind);
   if (traffic.lanes.length === 0) return null;

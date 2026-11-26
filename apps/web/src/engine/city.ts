@@ -8,9 +8,10 @@
  * k-th note of a class takes the lot at its share of the ranking, so the town spreads over the whole plate as the song
  * goes on. `cityFront` gives the radius reached at a time; streets, lakes and lights appear inside it.
  */
+import { BENTHIC_THEME } from './benthic';
 import { PLATE_INSET } from './constants';
 import { hashSeed, mulberry32, uniform } from './prng';
-import { buildRoads, nearestRoad, ROAD_HALF_WIDTH, templateHasRoads, type RoadNetwork } from './roads';
+import { buildRoads, nearestRoad, ROAD_HALF_WIDTH, type RoadNetwork } from './roads';
 import type { ShapeKind, WorldTemplate } from './types';
 
 export const STREET_HALF = 0.15;
@@ -84,6 +85,8 @@ export interface TrafficLight {
   /** Yaw of the head: it looks toward the middle of its crossing. */
   readonly facing: number;
   readonly key: number;
+  /** Seconds the signal of its crossing is shifted by, so the crossings do not all change at once. */
+  readonly phase: number;
 }
 
 export interface City {
@@ -111,10 +114,26 @@ export const CITY_SPAN = 4;
 /** Largest world of a city, in plate metres. */
 export const CITY_MAX_SIZE = 64;
 
-/** How many times wider than its plate the world of a template is (1, or `CITY_SPAN` for a city). */
+/** A reef or a realm (I41): objects grow in patches, so the world is wider than the plate too, less than a city. */
+export const GROUNDED_SPAN = 2;
+export const GROUNDED_MAX_SIZE = 48;
+
+/** Does the template grow objects on the ground in patches (seabed life, castles, enchanted forests)? */
+function hasGroundedLife(template: WorldTemplate): boolean {
+  const kinds = [
+    ...(template.mappings ?? []).map((m) => m.spawn),
+    ...(template.scenery ?? []).map((s) => s.kind),
+    ...(template.recipes ?? []).map((r) => `recipe:${r.name}`),
+  ];
+  return kinds.some((k) => k in BENTHIC_THEME);
+}
+
+/** How many times wider than its plate the world of a template is (1, `CITY_SPAN` for a city, `GROUNDED_SPAN` for a reef or realm). */
 export function worldSpan(template: WorldTemplate): number {
   // Capped: the plan has thousands of spots per 10 000 square units, so a template with a big plate is not widened as much.
-  return templateHasCity(template) ? Math.max(1, Math.min(CITY_SPAN, CITY_MAX_SIZE / Math.max(1, template.terrain.size))) : 1;
+  if (templateHasCity(template)) return Math.max(1, Math.min(CITY_SPAN, CITY_MAX_SIZE / Math.max(1, template.terrain.size)));
+  if (hasGroundedLife(template)) return Math.max(1, Math.min(GROUNDED_SPAN, GROUNDED_MAX_SIZE / Math.max(1, template.terrain.size)));
+  return 1;
 }
 
 /** Side of the area the music fills, in plate metres: everything is placed, drawn and walked inside it. */
@@ -122,9 +141,9 @@ export function worldSize(template: WorldTemplate): number {
   return template.terrain.size * worldSpan(template);
 }
 
-/** The city of a world: with the ring boulevards when the template drives vehicles. */
+/** The city of a world: streets in a grid with traffic lights at the crossings (the traffic follows them, `traffic.ts`). */
 export function cityOf(template: WorldTemplate, seed: number): City {
-  return buildCity(seed, worldSize(template), templateHasRoads(template));
+  return buildCity(seed, worldSize(template), false); // the street grid is the only road network of a city
 }
 
 /** Big things that stand in the parks: equalizer needles, hills, crystals. */
@@ -267,12 +286,14 @@ export function buildCity(seed: number, size: number, rings = true): City {
     for (const sz of lines) {
       if (inLake({ lakes }, sx, sz, 0.3)) continue;
       if (roadDist(sx, sz) < ROAD_HALF_WIDTH + 0.2) continue;
+      const phase = signalPhase(sx, sz);
       for (const cx of [-1, 1] as const) {
         for (const cz of [-1, 1] as const) {
           const x = sx + cx * off;
           const z = sz + cz * off;
           if (Math.abs(x) > half || Math.abs(z) > half) continue;
-          lights.push({ x, z, axis: cx * cz > 0 ? 0 : 1, facing: Math.atan2(-cx, -cz), key: Math.hypot(x, z) });
+          // The pole stands at the right of the road, past the stop line: the corners with cx * cz < 0 face the x streets.
+          lights.push({ x, z, axis: cx * cz < 0 ? 0 : 1, facing: Math.atan2(-cx, -cz), key: Math.hypot(x, z), phase });
         }
       }
     }
@@ -309,12 +330,25 @@ export function cityFront(city: Pick<City, 'maxRadius'>, t: number, durationSec:
   return city.maxRadius * Math.min(1.05, 0.08 + 1.0 * Math.sqrt(p));
 }
 
-/** Colors of a traffic light: 0 red, 1 yellow, 2 green. `beat` is the position in beats; the cycle lasts 8 beats. */
-export function lightColor(axis: 0 | 1, beat: number): 0 | 1 | 2 {
-  const c = ((beat % 8) + 8) % 8;
-  const mine = axis === 0 ? c : (c + 4) % 8;
-  return mine < 3.4 ? 2 : mine < 4 ? 1 : 0;
+/** Signal of a crossing, as on a real road: green, then yellow, then red for one street while the other has its turn. */
+export const SIGNAL_GREEN = 8;
+export const SIGNAL_YELLOW = 2;
+export const SIGNAL_CYCLE = 22; // two turns of 11 s: 8 green + 2 yellow + 1 all red
+
+/** Phase of the crossing of two streets (seconds): the same for every light of the crossing. */
+export function signalPhase(sx: number, sz: number): number {
+  const v = Math.sin(Math.round(sx * 100) * 12.9898 + Math.round(sz * 100) * 78.233) * 43758.5453;
+  return (v - Math.floor(v)) * SIGNAL_CYCLE;
 }
+
+/** Colors of a traffic light at time `t` (seconds): 0 red, 1 yellow, 2 green. Axis 0 is the streets along x. */
+export function signalColor(axis: 0 | 1, t: number, phase: number): 0 | 1 | 2 {
+  const c = (((t + phase + (axis === 1 ? SIGNAL_CYCLE / 2 : 0)) % SIGNAL_CYCLE) + SIGNAL_CYCLE) % SIGNAL_CYCLE;
+  return c < SIGNAL_GREEN ? 2 : c < SIGNAL_GREEN + SIGNAL_YELLOW ? 1 : 0;
+}
+
+/** Footprints (plate metres) in a city, where a car must be smaller than a house and fit its lane. */
+export const CITY_FOOTPRINT: Readonly<Record<string, number>> = { car: 0.17, bicycle: 0.1, tree: 0.3, conifer: 0.28, bush: 0.22 };
 
 /** Position `t` in beats from the sorted beat times (extrapolated at the ends; seconds when there is no grid). */
 export function beatPosition(beats: readonly number[], t: number): number {

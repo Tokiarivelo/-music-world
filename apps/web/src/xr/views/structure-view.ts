@@ -21,7 +21,7 @@ import {
 import { isRecordShown } from '@/engine/layers';
 import { crowdItemsOf, crowdPosesAt, type CrowdItem } from '@/engine/crowd';
 import { buildRoads, templateHasRoads } from '@/engine/roads';
-import { BUILDING_VARIANT_FOOTPRINT, BUILDING_VARIANT_HEIGHT, cityFront, cityOf, isCityKind, templateHasCity, worldSize, type City } from '@/engine/city';
+import { BUILDING_VARIANT_FOOTPRINT, CITY_FOOTPRINT, BUILDING_VARIANT_HEIGHT, cityFront, cityOf, isCityKind, templateHasCity, worldSize, type City } from '@/engine/city';
 import { buildRoadGeometry } from '../shapes/road-geometry';
 import { buildingVariantGeometries, craneGeometry, scaffoldGeometry } from '../shapes/house-shapes';
 import { revealMaterial, setReveal } from '../shapes/reveal-material';
@@ -55,6 +55,8 @@ const MIN_SCALE = 1e-4;
 const RIDGE_KIND: ShapeKind = 'terrain_ridge';
 const RIDGE_PRIMARY_MIX = 0;
 const RIDGE_LIGHT = 1.2;
+const CITY_HILL = '#7a9a62';
+const RIDGE_MIN_LUMINANCE = 0.09;
 /** Equalizer needles are additive and thin: boost their instance color so they read as light (requirement 5.2). */
 const SPIKE_GLOW = 2.2;
 /** Objects (I8) that cast a blob shadow, and the foliage that sways in the wind. */
@@ -120,6 +122,11 @@ function nominalHeightOf(kind: ShapeKind, template: WorldTemplate): number {
 }
 
 export class StructureView implements WorldView {
+  /** Footprint of a kind here: smaller cars and trees in a city, where they must fit the streets and the houses. */
+  private footprintIn(kind: ShapeKind): number {
+    return (this.cityMode ? CITY_FOOTPRINT[kind] : undefined) ?? footprintOf(kind, this.plan.template);
+  }
+
   readonly object = new Group();
   private readonly meshes = new Map<ShapeKind, InstancedMesh>();
   /** Extra InstancedMeshes of the body variants of a kind (models loaded for polished worlds only), same slots. */
@@ -164,7 +171,7 @@ export class StructureView implements WorldView {
     const sizeCrowd = (): void => {
       // Collision radii follow the size the instances are drawn at, which depends on the scale mode.
       const unit = objectScale(scaleStore.mode);
-      this.crowd = crowdItemsOf(plan, (kind: string) => (footprintOf(kind as ShapeKind, plan.template) / 2) * unit);
+      this.crowd = crowdItemsOf(plan, (kind: string) => (this.footprintIn(kind as ShapeKind) / 2) * unit);
     };
     sizeCrowd();
     this.object.name = 'structures';
@@ -185,6 +192,11 @@ export class StructureView implements WorldView {
     this.ridgeColor = new Color(palette.terrain)
       .lerp(new Color(palette.primary), RIDGE_PRIMARY_MIX)
       .multiplyScalar(lightness(RIDGE_LIGHT));
+    // In a daylight city the hills of the parks are grassy knolls, not the (near black) night terrain colour.
+    if (this.cityMode) this.ridgeColor.set(CITY_HILL).multiplyScalar(lightness(1));
+    // A night palette must not turn the hills into black cut-outs: keep them at a readable luminance.
+    const lum = 0.2126 * this.ridgeColor.r + 0.7152 * this.ridgeColor.g + 0.0722 * this.ridgeColor.b;
+    if (lum < RIDGE_MIN_LUMINANCE) this.ridgeColor.multiplyScalar(Math.min(8, RIDGE_MIN_LUMINANCE / Math.max(lum, 1e-3)));
     const polished = plan.template.fx.material === 'polished';
     for (const track of plan.tracks) {
       const capacity = this.capacityOf(track.kind, track.recordIndices.length);
@@ -547,7 +559,7 @@ export class StructureView implements WorldView {
       const site = this.cityMode && s.kind === 'building';
       const footprint = site
         ? (BUILDING_VARIANT_FOOTPRINT[s.variant] ?? 0.4) * unit
-        : footprintOf(s.kind, this.plan.template) * (0.6 + 0.4 * s.growth) * unit;
+        : this.footprintIn(s.kind) * (0.6 + 0.4 * s.growth) * unit;
       const built = site ? this.builtHeight(s) : s.height;
       this.scale.set(footprint, Math.max(MIN_SCALE, built) * unit, footprint);
       const pose = poses?.get(s.index) ?? null;

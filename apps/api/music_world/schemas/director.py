@@ -104,3 +104,11 @@ class LayoutRequest(ContractModel):
 
     template: WorldTemplate
     provider: ProviderName | None = None
+
+
+class DemoLayoutRequest(ContractModel):
+    """Body of `POST /api/director/layout/demo`: the demo analysis and the template the user chose."""
+
+    analysis: AnalysisResult
+    template: WorldTemplate
+    provider: ProviderName | None = None

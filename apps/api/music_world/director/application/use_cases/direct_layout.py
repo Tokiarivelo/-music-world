@@ -10,10 +10,12 @@ import structlog
 from music_world.director.application.layout import inventory_of, mock_layout, parse_layout
 from music_world.director.application.ports import LLMProvider, ProjectAnalyses, PromptRequest, SpendTracker
 from music_world.director.application.summary import summarize
-from music_world.director.domain.errors import ProviderError
+from music_world.director.domain.demo import DEMO_AUDIO_HASH
+from music_world.director.domain.errors import DemoAnalysisMismatchError, ProviderError
 from music_world.director.domain.providers import MOCK, FallbackReason, ProviderId, fallback_chain
 from music_world.director.domain.spend import over_cap
 from music_world.director.infrastructure.prompts.layout import LayoutPromptSet
+from music_world.schemas.analysis import AnalysisResult
 from music_world.schemas.template import WorldLayout
 
 log = structlog.get_logger(__name__)
@@ -50,8 +52,12 @@ class DirectLayout:
         self._prompts = LayoutPromptSet()
 
     async def execute(self, project_id: str, template: dict[str, Any], provider: ProviderId | None) -> DirectedLayout:
+        return await self.direct(await self._analyses.execute(project_id), template, provider)
+
+    async def direct(
+        self, analysis: AnalysisResult, template: dict[str, Any], provider: ProviderId | None
+    ) -> DirectedLayout:
         requested = provider or self._default
-        analysis = await self._analyses.execute(project_id)
         summary = summarize(analysis)
         skipped: list[LayoutStepSkipped] = []
         if requested != MOCK and requested not in self._providers:
@@ -88,3 +94,17 @@ class DirectLayout:
             return DirectedLayout(layout, name, chosen.model, requested, skipped)
         layout = WorldLayout.model_validate(mock_layout(template, summary.audio_hash))
         return DirectedLayout(layout, MOCK, self._providers[MOCK].model, requested, skipped)
+
+
+class DirectDemoLayout:
+    """The layout director on the shipped demo song only (the public demo cannot spend on arbitrary input)."""
+
+    def __init__(self, direct: DirectLayout, demo_audio_hash: str = DEMO_AUDIO_HASH) -> None:
+        self._direct, self._hash = direct, demo_audio_hash
+
+    async def execute(
+        self, analysis: AnalysisResult, template: dict[str, Any], provider: ProviderId | None
+    ) -> DirectedLayout:
+        if analysis.audio_hash != self._hash:
+            raise DemoAnalysisMismatchError("only the demo song analysis is accepted here")
+        return await self._direct.direct(analysis, template, provider)

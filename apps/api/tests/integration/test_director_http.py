@@ -7,6 +7,7 @@ from typing import Any
 
 from httpx import ASGITransport, AsyncClient
 
+from music_world.director.infrastructure.default_template import default_template
 from music_world.main import create_app
 from music_world.schemas.analysis import AnalysisResult
 from music_world.shared.container import Container
@@ -117,3 +118,17 @@ async def test_layout_route_writes_a_layout_for_the_chosen_template() -> None:
     assert body["provider"] == "mock"
     assert body["layout"]["patches"][0]["theme"] == "keep"
     assert any(step["kind"] == "recipe:magic_tree" for step in body["layout"]["sequence"])
+
+
+async def test_demo_layout_route_writes_a_city_mix_and_rejects_another_song() -> None:
+    c = _client(InMemoryAnalysisRepository(), Settings(app_env="test"))
+    body = {**_demo_body(), "template": default_template()}
+    async with c, LifespanManager(c):
+        ok = await c.post("/api/director/layout/demo", json=body)
+        other = _demo_body()
+        other["analysis"]["audioHash"] = "sha256:" + "0" * 64
+        bad = await c.post("/api/director/layout/demo", json={**other, "template": default_template()})
+    assert ok.status_code == 200, ok.text
+    layout = ok.json()["layout"]
+    assert layout["patches"] == [] and {s["kind"] for s in layout["sequence"]} >= {"building"}
+    assert bad.status_code in (400, 409, 422)

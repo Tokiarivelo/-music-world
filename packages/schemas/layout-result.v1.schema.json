@@ -176,10 +176,18 @@
           "title": "Kind"
         },
         "patch": {
-          "description": "Id of a layout patch.",
-          "pattern": "^[a-z0-9_]{1,24}$",
-          "title": "Patch",
-          "type": "string"
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9_]{1,24}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a layout patch; none for objects the street plan of a city places.",
+          "title": "Patch"
         },
         "weight": {
           "default": 1.0,
@@ -191,8 +199,7 @@
         }
       },
       "required": [
-        "kind",
-        "patch"
+        "kind"
       ],
       "title": "LayoutStep",
       "type": "object"

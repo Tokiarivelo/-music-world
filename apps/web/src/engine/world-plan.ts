@@ -9,6 +9,7 @@
  * Pure functions of (template, seed): same input, same plan. LLM output stays data: the plan only reads kind names.
  */
 import { noteStream, hashSeed, mulberry32 } from './prng';
+import { BENTHIC_THEME, type ReefTheme } from './benthic';
 import { templateHasCity } from './city';
 import { worldSize } from './city';
 import type { ShapeKind, Vec3, WorldTemplate } from './types';
@@ -20,29 +21,6 @@ export interface InventoryItem {
   readonly role: ObjectRole;
 }
 
-const BENTHIC_THEME: Readonly<Record<string, ReefTheme>> = {
-  'recipe:kelp': 'kelp',
-  'recipe:seagrass': 'kelp',
-  'recipe:staghorn_coral': 'coral',
-  'recipe:brain_coral': 'coral',
-  'recipe:coral_fan': 'coral',
-  'recipe:tube_sponge': 'coral',
-  'recipe:sea_anemone': 'coral',
-  'recipe:starfish': 'sand',
-  'recipe:sea_urchin': 'sand',
-  'recipe:crab': 'sand',
-  'recipe:seashell': 'sand',
-  'recipe:shipwreck': 'wreck',
-  // Enchanted Realm (I40): a keep at the centre, villages, enchanted forests and crystal fields around it.
-  'recipe:castle': 'keep',
-  'recipe:dragon': 'keep',
-  'recipe:wizard_tower': 'village',
-  'recipe:mushroom_house': 'village',
-  'recipe:giant_mushroom': 'forest',
-  'recipe:magic_tree': 'forest',
-  'recipe:glow_flower': 'forest',
-  'recipe:crystal_cluster': 'crystal',
-};
 /** Kinds the plan places once or rarely (one castle, a few dragons, one wreck): weight when picking a kind for a note. */
 const PICK_WEIGHT: Readonly<Record<string, number>> = { 'recipe:shipwreck': 0, 'recipe:castle': 0, 'recipe:dragon': 0.12, 'recipe:wizard_tower': 0.5 };
 const GIANTS: ReadonlySet<string> = new Set(['recipe:whale', 'recipe:shark']);
@@ -85,7 +63,7 @@ export function worldPlanKind(template: WorldTemplate): WorldPlanKind {
 
 // ---------------------------------------------------------------------------------------------------- reef plan
 
-export type ReefTheme = 'kelp' | 'coral' | 'sand' | 'wreck' | 'keep' | 'village' | 'forest' | 'crystal';
+export type { ReefTheme };
 
 export interface ReefPatch {
   readonly theme: ReefTheme;
@@ -109,7 +87,7 @@ type Layout = NonNullable<WorldTemplate['layout']>;
 /** The layout the director wrote for this template (I41), when it is usable: patches, and steps that use them. */
 export function layoutOf(template: WorldTemplate): Layout | null {
   const layout = template.layout;
-  if (!layout || layout.patches.length === 0 || layout.sequence.length === 0) return null;
+  if (!layout || layout.sequence.length === 0) return null;
   return layout;
 }
 
@@ -130,7 +108,7 @@ function reefFromLayout(layout: Layout, size: number): Reef {
 export function reefOf(template: WorldTemplate, seed: number): Reef {
   const size = worldSize(template);
   const layout = layoutOf(template);
-  if (layout) return reefFromLayout(layout, size);
+  if (layout && layout.patches.length > 0) return reefFromLayout(layout, size);
   const items = inventoryOf(template).filter((i) => i.role === 'benthic');
   const key = `${seed}:${size}:${items.map((i) => i.kind).join(',')}`;
   const cached = reefCache.get(key);
@@ -193,7 +171,7 @@ const rotations = new WeakMap<object, readonly ShapeKind[]>();
  * The order in which the notes pick objects: the steps of the director's sequence, each repeated in proportion to its
  * weight and spread out evenly (smooth weighted round robin), so a rare object comes back at regular intervals.
  */
-function rotationOf(template: WorldTemplate): readonly ShapeKind[] | null {
+export function rotationOf(template: WorldTemplate): readonly ShapeKind[] | null {
   const layout = layoutOf(template);
   if (!layout) return null;
   const cached = rotations.get(layout);
@@ -223,10 +201,11 @@ export const REEF_SHARE = 0.4;
 export function reefKind(template: WorldTemplate, seed: number, noteId: string, mapped: ShapeKind, index = 0): ShapeKind {
   const role = roleOf(mapped);
   if (role === 'giant' || role === 'effect') return mapped;
-  if (role === 'benthic') return mapped;
+  const rotation = rotationOf(template);
+  // The director's sequence orders every grounded note, whatever its rule gave it; swimmers keep their rule.
+  if (role === 'benthic') return rotation ? rotation[index % rotation.length]! : mapped;
   const rng = noteStream(seed, `${noteId}:reefkind`);
   if (rng() >= REEF_SHARE) return mapped;
-  const rotation = rotationOf(template);
   if (rotation) return rotation[index % rotation.length]!;
   const items = inventoryOf(template).filter((i) => i.role === 'benthic' && (PICK_WEIGHT[i.kind] ?? 1) > 0);
   if (items.length === 0) return mapped;

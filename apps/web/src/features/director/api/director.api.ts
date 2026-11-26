@@ -24,12 +24,11 @@ export async function generateWorld(source: DirectorSource, provider: ProviderId
   return DirectorResultSchema.parse(await apiJson(url, init));
 }
 
-/** `POST /api/projects/{id}/layout`: the director writes where each object of the chosen template grows. */
-export async function directLayout(projectId: string, template: Template, provider?: ProviderId): Promise<LayoutResult> {
-  const init = {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ template, ...(provider ? { provider } : {}) }),
-  };
-  return LayoutResultSchema.parse(await apiJson(`/api/projects/${encodeURIComponent(projectId)}/layout`, init));
+/** The director writes where each object of the chosen template grows (a project's song, or the shipped demo song). */
+export async function directLayout(source: DirectorSource, template: Template, provider?: ProviderId): Promise<LayoutResult> {
+  const url =
+    source.kind === 'project' ? `/api/projects/${encodeURIComponent(source.projectId)}/layout` : '/api/director/layout/demo';
+  const body = { template, ...(provider ? { provider } : {}), ...(source.kind === 'demo' ? { analysis: source.analysis } : {}) };
+  const init = { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) };
+  return LayoutResultSchema.parse(await apiJson(url, init));
 }

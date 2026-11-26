@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { usePlaylist } from "@/features/playlist";
 import {
+  useDirectedLayout,
   useDirector,
   type DirectorSource,
 } from "@/features/director";
@@ -47,7 +48,7 @@ export function DemoPlayback({
   const choice = useAiTemplateChoice(director, store);
   const controls = useWorldControls(player, DEMO_SONG.title, choice);
   const { clock } = player;
-  const { template } = choice;
+  const template = useDirectedLayout(DEMO_SOURCE, choice.template);
   const { ready: playlistReady, played } = usePlaylist();
   useEffect(() => {
     if (player.run > 0 && playlistReady) {

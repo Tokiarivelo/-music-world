@@ -146,7 +146,11 @@ class LayoutStep(ContractModel):
     """One object of the inventory, the patch it grows in and how often the notes pick it."""
 
     kind: ShapeKind
-    patch: str = Field(pattern=r"^[a-z0-9_]{1,24}$", description="Id of a layout patch.")
+    patch: str | None = Field(
+        default=None,
+        pattern=r"^[a-z0-9_]{1,24}$",
+        description="Id of a layout patch; none for objects the street plan of a city places.",
+    )
     weight: float = Field(default=1.0, ge=0, le=10, description="0 keeps the object out of the note rotation.")
 
 
@@ -167,7 +171,7 @@ class WorldLayout(ContractModel):
             raise ValueError("layout: patch ids must be unique")
         known = set(ids)
         for step in self.sequence:
-            if step.patch not in known:
+            if step.patch is not None and step.patch not in known:
                 raise ValueError(f"layout: step {step.kind} uses the unknown patch {step.patch}")
         return self
 

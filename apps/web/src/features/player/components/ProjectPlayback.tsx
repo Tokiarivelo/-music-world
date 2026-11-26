@@ -56,7 +56,7 @@ function ProjectWorld({
   const choice = useAiTemplateChoice(director, store);
   const controls = useWorldControls(player, t("projectTitle"), choice);
   const { clock } = player;
-  const template = useDirectedLayout(projectId, choice.template);
+  const template = useDirectedLayout(source, choice.template);
   // Every start of the song goes into this user's list of played songs (kept in this browser only).
   const { ready: playlistReady, played } = usePlaylist();
   const { durationSec, key: songKey, tempoBpm } = analysis;
