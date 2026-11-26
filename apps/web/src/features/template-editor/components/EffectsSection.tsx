@@ -17,6 +17,7 @@ export function EffectsSection({ draft, errors, update }: SectionProps) {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <SelectInput
           label={t('fx.particles')}
+          hint={t('hint.fx.particles')}
           value={particles}
           options={[
             { value: 'arcs', label: t('opt.arcs') },
@@ -28,6 +29,7 @@ export function EffectsSection({ draft, errors, update }: SectionProps) {
         />
         <SelectInput
           label={t('fx.chordLinks')}
+          hint={t('hint.fx.chordLinks')}
           value={chordLinks}
           options={[
             { value: 'light_arc', label: t('opt.light_arc') },
@@ -38,6 +40,7 @@ export function EffectsSection({ draft, errors, update }: SectionProps) {
         />
         <SelectInput
           label={t('fx.material')}
+          hint={t('hint.fx.material')}
           value={material}
           options={[
             { value: 'polished', label: t('opt.polished') },
@@ -48,12 +51,13 @@ export function EffectsSection({ draft, errors, update }: SectionProps) {
         />
         <NumberInput
           label={t('fx.bloom')}
+          hint={t('hint.fx.bloom')}
           field="fx.bloom"
           value={bloom}
           error={firstError(errors, 'fx.bloom')}
           onChange={(v) => update((d) => setNumber(d, 'fx.bloom', v))}
         />
-        <ToggleInput label={t('fx.beatPulse')} checked={beatPulse} onChange={(v) => update((d) => setOption(d, 'fx', 'beatPulse', v))} />
+        <ToggleInput label={t('fx.beatPulse')} hint={t('hint.fx.beatPulse')} checked={beatPulse} onChange={(v) => update((d) => setOption(d, 'fx', 'beatPulse', v))} />
       </div>
     </Section>
   );

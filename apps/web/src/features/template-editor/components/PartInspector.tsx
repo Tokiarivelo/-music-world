@@ -2,9 +2,9 @@
 
 import { useId } from 'react';
 import { useT } from '@/i18n';
-import { CONTROL } from '../consts/ui.consts';
+import { BUTTON, CONTROL } from '../consts/ui.consts';
 import {
-  NODE_BOUNDS, PRIMITIVES, readNodeField, setNodeNumber, setNodePrimitive,
+  NODE_BOUNDS, PART_ROLES, PRIMITIVES, readNodeField, setNodeMaterial, setNodeNumber, setNodePrimitive,
   type NodeField, type NodePrimitive, type PartNode,
 } from '../lib/node-model';
 
@@ -57,6 +57,7 @@ export function PartInspector({ nodes, node, onChange }: { nodes: readonly PartN
       {GROUPS.map((g) => (
         <div key={g.key} role="group" aria-label={t(`inspector.${g.key}`)} className="flex flex-col gap-1">
           <span className="text-xs opacity-80">{t(`inspector.${g.key}`)}</span>
+          <span className="text-xs opacity-60">{t(`inspector.hint.${g.key}`)}</span>
           <div className="flex gap-2">
             {g.fields.map((f, i) => (
               <NumberField key={f} field={f} label={`${t(`inspector.${g.key}`)} ${axis[i]!.toUpperCase()}`} value={readNodeField(node, f)} onChange={(v) => onChange(setNodeNumber(nodes, node.id, f, v))} />
@@ -70,6 +71,50 @@ export function PartInspector({ nodes, node, onChange }: { nodes: readonly PartN
       {node.primitive === 'prism' && (
         <NumberField field="taper" label={t('inspector.taper')} value={readNodeField(node, 'taper')} onChange={(v) => onChange(setNodeNumber(nodes, node.id, 'taper', v))} />
       )}
+      <fieldset className="flex flex-col gap-2 border-t border-white/10 pt-2">
+        <legend className="text-sm font-medium">{t('material.title')}</legend>
+        <div className="flex flex-col gap-1">
+          <label htmlFor={`${primitiveId}-tint`} className="text-xs opacity-80">{t('material.color')}</label>
+          <div className="flex items-center gap-2">
+            <input
+              id={`${primitiveId}-tint`}
+              type="color"
+              className="h-8 w-10 rounded border border-white/20 bg-transparent"
+              value={node.material.color ?? '#ffffff'}
+              onChange={(e) => onChange(setNodeMaterial(nodes, node.id, { color: e.target.value }))}
+            />
+            <button type="button" className={BUTTON} disabled={!node.material.color} onClick={() => onChange(setNodeMaterial(nodes, node.id, { color: null }))}>
+              {t('material.clear')}
+            </button>
+            <span className="text-xs opacity-70">{node.material.color ?? t('material.colorNone')}</span>
+          </div>
+          <span className="text-xs opacity-60">{t('material.colorHint')}</span>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor={`${primitiveId}-role`} className="text-xs opacity-80">{t('material.role')}</label>
+          <select
+            id={`${primitiveId}-role`}
+            className={CONTROL}
+            value={node.material.colorRole ?? ''}
+            onChange={(e) => onChange(setNodeMaterial(nodes, node.id, { colorRole: (e.target.value || null) as (typeof PART_ROLES)[number] | null }))}
+          >
+            <option value="">{t('material.roleNone')}</option>
+            {PART_ROLES.map((r) => (
+              <option key={r} value={r}>{t(`role.${r}`)}</option>
+            ))}
+          </select>
+          <span className="text-xs opacity-60">{t('material.roleHint')}</span>
+        </div>
+        <div className="flex gap-2">
+          <NumberField label={t('material.emissive')} field="taper" value={node.material.emissive} onChange={(v) => onChange(setNodeMaterial(nodes, node.id, { emissive: v }))} />
+          <NumberField label={t('material.roughness')} field="taper" value={node.material.roughness ?? 0.7} onChange={(v) => onChange(setNodeMaterial(nodes, node.id, { roughness: v }))} />
+        </div>
+        <span className="text-xs opacity-60">{t('material.emissiveHint')}</span>
+        <span className="text-xs opacity-60">{t('material.roughnessHint')}</span>
+        <button type="button" className={BUTTON} disabled={node.material.roughness === null} onClick={() => onChange(setNodeMaterial(nodes, node.id, { roughness: null }))}>
+          {t('material.roughnessAuto')}
+        </button>
+      </fieldset>
     </fieldset>
   );
 }

@@ -16,6 +16,7 @@ export function TerrainSection({ draft, errors, update }: SectionProps) {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <SelectInput
           label={t('terrain.style')}
+          hint={t('hint.terrain.style')}
           value={style}
           options={[
             { value: 'cracked_plate', label: t('opt.cracked_plate') },
@@ -26,6 +27,7 @@ export function TerrainSection({ draft, errors, update }: SectionProps) {
         />
         <SelectInput
           label={t('terrain.mountains')}
+          hint={t('hint.terrain.mountains')}
           value={mountains}
           options={[
             { value: 'edges', label: t('opt.edges') },
@@ -36,6 +38,7 @@ export function TerrainSection({ draft, errors, update }: SectionProps) {
         />
         <NumberInput
           label={t('terrain.size')}
+          hint={t('hint.terrain.size')}
           field="terrain.size"
           value={size}
           error={firstError(errors, 'terrain.size')}

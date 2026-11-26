@@ -222,12 +222,13 @@ export function polishedMaterial(
   vertexColors: boolean,
   sky: Texture | null = null,
   reflectionScale = 1,
+  roughness?: number,
 ): MeshStandardMaterial {
   const surface = surfaceOf(kind);
   const material = new MeshStandardMaterial({
     color: 0xffffff,
     vertexColors,
-    roughness: surface.roughness,
+    roughness: roughness ?? surface.roughness,
     metalness: surface.metalness,
     envMap: sky,
     envMapIntensity: surface.reflection * reflectionScale,

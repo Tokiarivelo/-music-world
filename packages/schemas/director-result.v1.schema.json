@@ -622,6 +622,71 @@
       "title": "Part",
       "type": "object"
     },
+    "PartMaterial": {
+      "additionalProperties": false,
+      "description": "Look of one part. A colour tints the object's own colour (white keeps it); it never replaces it.",
+      "properties": {
+        "color": {
+          "anyOf": [
+            {
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Hex tint of the part. Wins over `color_role`.",
+          "title": "Color"
+        },
+        "colorRole": {
+          "anyOf": [
+            {
+              "enum": [
+                "primary",
+                "accent",
+                "secondary",
+                "staff",
+                "line"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Tint taken from the template palette.",
+          "title": "Colorrole"
+        },
+        "emissive": {
+          "default": 0,
+          "description": "Glow: 0 none, 1 about 60 % brighter.",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Emissive",
+          "type": "number"
+        },
+        "roughness": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "0 mirror-like, 1 matte (lit material only).",
+          "title": "Roughness"
+        }
+      },
+      "title": "PartMaterial",
+      "type": "object"
+    },
     "PartNode": {
       "additionalProperties": false,
       "description": "A named part of an object, edited like a Blender outliner entry.\n\nNodes are a flat list; `parent` names an earlier node. A child's position and rotation are in its parent's local\nspace (the parent's size is not inherited). `position` is the centre of the node's base: y = 0 stands it on the\nobject's base (or on its parent's origin).",
@@ -707,6 +772,15 @@
           "minimum": 0,
           "title": "Taper",
           "type": "number"
+        },
+        "material": {
+          "$ref": "#/$defs/PartMaterial",
+          "default": {
+            "color": null,
+            "colorRole": null,
+            "emissive": 0.0,
+            "roughness": null
+          }
         }
       },
       "required": [
@@ -1192,7 +1266,7 @@
             }
           ],
           "default": null,
-          "description": "World seed chosen by the creator of a map; none: the project's.",
+          "description": "World seed chosen by the creator of a map; none: random.",
           "title": "Seed"
         }
       },

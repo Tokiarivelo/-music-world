@@ -1,3 +1,4 @@
+import { plainMaterial } from '@/xr/shapes/node-builder';
 import type { Template } from '@/templates/generated';
 
 /** Pure, immutable edits of a recipe's part tree (`recipe.nodes`, flat, parents first). Mirrors `shape.py` limits. */
@@ -172,6 +173,7 @@ export function addNode(nodes: readonly PartNode[], primitive: NodePrimitive, pa
     size: { x: 0.3, y: 0.3, z: 0.3 },
     sides: 8,
     taper: 1,
+    material: plainMaterial(),
   };
   if (parent === null) return [...nodes, node];
   const end = nodes.reduce((at, n, i) => (subtreeIds(nodes, parent).has(n.id) ? i : at), -1);
@@ -217,4 +219,29 @@ export function updateNodes(template: Template, index: number, change: (nodes: r
   const recipe = template.recipes[index];
   if (!recipe) return template;
   return { ...template, recipes: template.recipes.map((r, i) => (i === index ? { ...r, nodes: change(r.nodes ?? []) } : r)) };
+}
+
+export type NodeMaterial = PartNode['material'];
+export type MaterialPatch = Partial<Pick<NodeMaterial, 'color' | 'colorRole' | 'emissive' | 'roughness'>>;
+export const PART_ROLES = ['primary', 'accent', 'secondary', 'staff', 'line'] as const;
+const HEX = /^#[0-9a-fA-F]{6}$/;
+
+/** Changes the look of one part. Invalid hex becomes null; numbers are clamped to 0..1; a hex clears the role. */
+export function setNodeMaterial(nodes: readonly PartNode[], id: string, patch: MaterialPatch): PartNode[] {
+  const unit = (v: number) => Math.min(1, Math.max(0, Number.isFinite(v) ? v : 0));
+  return nodes.map((n) => {
+    if (n.id !== id) return n;
+    const next: NodeMaterial = { ...n.material };
+    if ('color' in patch) {
+      next.color = patch.color && HEX.test(patch.color) ? patch.color.toLowerCase() : null;
+      if (next.color) next.colorRole = null;
+    }
+    if ('colorRole' in patch) {
+      next.colorRole = patch.colorRole ?? null;
+      if (next.colorRole) next.color = null;
+    }
+    if (patch.emissive !== undefined) next.emissive = unit(patch.emissive);
+    if ('roughness' in patch) next.roughness = patch.roughness === null || patch.roughness === undefined ? null : unit(patch.roughness);
+    return { ...n, material: next };
+  });
 }

@@ -9,10 +9,10 @@
  * A recipe that does not validate against its own budget is never built: `buildRecipeGeometry` returns null and the
  * caller falls back to a plain box (the zod schema does not re-check pydantic validators).
  */
-import { BoxGeometry, BufferGeometry, ConeGeometry, CylinderGeometry } from 'three';
+import { BoxGeometry, BufferGeometry, ConeGeometry, CylinderGeometry, Float32BufferAttribute } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '@/engine/prng';
-import { buildNodeGeometries } from './node-builder';
+import { buildNodeGeometries, type PartPalette } from './node-builder';
 import type { Template } from '@/templates/generated';
 
 export type ShapeRecipe = NonNullable<Template['recipes']>[number];
@@ -119,8 +119,15 @@ function partGeometries(part: Part): BufferGeometry[] {
 }
 
 /** Builds the recipe's geometry, or null when it is empty or over its own triangle budget. */
-export function buildRecipeGeometry(recipe: ShapeRecipe): BufferGeometry | null {
-  const pieces = [...(recipe.parts ?? []).flatMap(partGeometries), ...buildNodeGeometries(recipe.nodes ?? [])];
+export function buildRecipeGeometry(recipe: ShapeRecipe, palette?: PartPalette): BufferGeometry | null {
+  const pieces = [...(recipe.parts ?? []).flatMap(partGeometries), ...buildNodeGeometries(recipe.nodes ?? [], palette)];
+  // Merging needs the same attributes everywhere: legacy parts get white (no tint) when a node is painted.
+  if (pieces.some((g) => g.hasAttribute('color'))) {
+    for (const g of pieces) {
+      if (g.hasAttribute('color')) continue;
+      g.setAttribute('color', new Float32BufferAttribute(new Float32Array(g.getAttribute('position').count * 3).fill(1), 3));
+    }
+  }
   const merged = pieces.length > 0 ? mergeGeometries(pieces) : null;
   if (!merged) return null;
   const triangles = merged.getAttribute('position').count / 3;
@@ -132,4 +139,10 @@ export function buildRecipeGeometry(recipe: ShapeRecipe): BufferGeometry | null 
   const box = merged.boundingBox!;
   const height = box.max.y - box.min.y;
   return height > 0 ? merged.translate(0, -box.min.y, 0).scale(1, 1 / height, 1) : null;
+}
+
+/** Mean roughness of the visible parts that set one (the lit material has a single value per kind), or null. */
+export function recipeRoughness(recipe: ShapeRecipe): number | null {
+  const set = (recipe.nodes ?? []).filter((n) => !n.hidden && typeof n.material?.roughness === 'number');
+  return set.length === 0 ? null : set.reduce((sum, n) => sum + n.material!.roughness!, 0) / set.length;
 }

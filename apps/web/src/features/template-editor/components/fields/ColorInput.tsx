@@ -4,11 +4,13 @@ import { useId, useState } from 'react';
 import { CONTROL, FOCUS, HEX_PATTERN } from '../../consts/ui.consts';
 import type { EditorError } from '../../lib/editor-validate';
 import { FieldError } from './FieldError';
+import { describedBy, Hint } from './Hint';
 
 interface ColorInputProps {
   label: string;
   hexLabel: string;
   value: string;
+  hint?: string;
   error?: EditorError;
   onChange(hex: string): void;
 }
@@ -16,7 +18,7 @@ interface ColorInputProps {
 const HEX = new RegExp(HEX_PATTERN);
 
 /** Color picker plus a `#rrggbb` text box; the text is committed only when it is a complete valid color. */
-export function ColorInput({ label, hexLabel, value, error, onChange }: ColorInputProps) {
+export function ColorInput({ label, hexLabel, value, hint, error, onChange }: ColorInputProps) {
   const id = useId();
   const [typed, setTyped] = useState<string | null>(null);
   return (
@@ -43,7 +45,7 @@ export function ColorInput({ label, hexLabel, value, error, onChange }: ColorInp
           maxLength={7}
           spellCheck={false}
           aria-invalid={error ? true : undefined}
-          aria-describedby={error ? `${id}-error` : undefined}
+          aria-describedby={describedBy(id, hint, !!error)}
           onChange={(e) => {
             const text = e.target.value;
             setTyped(text);
@@ -55,6 +57,7 @@ export function ColorInput({ label, hexLabel, value, error, onChange }: ColorInp
           onBlur={() => setTyped(null)}
         />
       </div>
+      <Hint id={`${id}-hint`}>{hint}</Hint>
       <FieldError id={`${id}-error`} error={error} />
     </div>
   );

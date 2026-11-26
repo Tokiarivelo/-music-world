@@ -112,4 +112,14 @@ describe('node-model', () => {
     const out = m.nudgeNode(house, 'roof', 'y', 100);
     expect(out.find((n) => n.id === 'roof')!.position?.y).toBe(2);
   });
+
+  it('sets the look of one part: hex clears the role, roles clear the hex, numbers clamp', () => {
+    const a = m.setNodeMaterial(house, 'roof', { color: '#FF8800' });
+    expect(a.find((n) => n.id === 'roof')!.material.color).toBe('#ff8800');
+    const b = m.setNodeMaterial(a, 'roof', { colorRole: 'accent', emissive: 3, roughness: -1 });
+    const roof = b.find((n) => n.id === 'roof')!.material;
+    expect(roof).toMatchObject({ color: null, colorRole: 'accent', emissive: 1, roughness: 0 });
+    expect(m.setNodeMaterial(b, 'roof', { color: 'nope' }).find((n) => n.id === 'roof')!.material.color).toBeNull();
+    expect(b.find((n) => n.id === 'walls')!.material).toEqual(house.find((n) => n.id === 'walls')!.material);
+  });
 });

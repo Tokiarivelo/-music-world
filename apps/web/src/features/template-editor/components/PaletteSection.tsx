@@ -17,6 +17,7 @@ export function PaletteSection({ draft, errors, update }: SectionProps) {
           <ColorInput
             key={role}
             label={t(`palette.${role}`)}
+            hint={t(`hint.palette.${role}`)}
             hexLabel={t('paletteHex', { role: t(`palette.${role}`) })}
             value={draft.palette[role]}
             error={firstError(errors, `palette.${role}`)}

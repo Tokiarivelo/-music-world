@@ -61,3 +61,13 @@
   copies, spacing along an axis) and `nudgeNode` in `lib/node-model.ts`, buttons in `PartTreePanel`. All respect the
   48-node limit (unchanged when exceeded). Deviation: the "gizmo" is the numeric fields plus ±0.05 m nudge buttons;
   the object viewport is a 2D canvas, so drag handles are not added there.
+- 4.2: `PartNode.material` `{color, color_role, emissive, roughness}` (pydantic `PartMaterial`). A tint is a **vertex
+  colour** multiplied by the instance colour (white keeps the object colour; it never replaces it); a palette role is
+  resolved with the template palette in `buildNodeGeometries(nodes, palette)`; `emissive` brightens the vertex colour
+  up to ×1.6 (works unlit and lit). Roughness only applies with `fx.material = polished` and is the **mean of the
+  parts that set one** (the lit material has one value per kind: `recipeRoughness`). The 2D viewport and thumbnails do
+  not show tints yet. Legacy `parts` get white vertex colours when a node is painted (merge needs equal attributes).
+- Template editor usability: every field has a plain-language `hint` (`hint.*` keys, en/fr/mg) under it, number fields
+  show their range and a slider next to the exact box (`fields/Hint.tsx`, `NumberInput`, `BoundedNumber`,
+  `SelectInput`, `ColorInput`, `ToggleInput`); the part inspector explains position, rotation, size and look.
+  Zones, rules and recipe parts do not have hints yet.

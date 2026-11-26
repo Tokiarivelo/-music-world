@@ -357,7 +357,7 @@
             }
           ],
           "default": null,
-          "description": "World seed chosen by the creator of a map; none: the project's.",
+          "description": "World seed chosen by the creator of a map; none: random.",
           "title": "Seed"
         }
       },

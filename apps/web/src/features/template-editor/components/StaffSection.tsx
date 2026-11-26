@@ -16,6 +16,7 @@ export function StaffSection({ draft, errors, update }: SectionProps) {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <SelectInput
           label={t('staff.style')}
+          hint={t('hint.staff.style')}
           value={style}
           options={[
             { value: 'glowing_lines', label: t('opt.glowing_lines') },
@@ -27,6 +28,7 @@ export function StaffSection({ draft, errors, update }: SectionProps) {
         />
         <SelectInput
           label={t('staff.path')}
+          hint={t('hint.staff.path')}
           value={path}
           options={[
             { value: 'diagonal_curve', label: t('opt.diagonal_curve') },
@@ -37,6 +39,7 @@ export function StaffSection({ draft, errors, update }: SectionProps) {
         />
         <SelectInput
           label={t('staff.clef')}
+          hint={t('hint.staff.clef')}
           value={clef}
           options={[
             { value: 'treble', label: t('opt.treble') },
@@ -47,6 +50,7 @@ export function StaffSection({ draft, errors, update }: SectionProps) {
         />
         <NumberInput
           label={t('staff.glow')}
+          hint={t('hint.staff.glow')}
           field="staff.glow"
           value={glow}
           error={firstError(errors, 'staff.glow')}
@@ -54,6 +58,7 @@ export function StaffSection({ draft, errors, update }: SectionProps) {
         />
         <NumberInput
           label={t('staff.lookahead')}
+          hint={t('hint.staff.lookahead')}
           field="staff.lookahead"
           value={lookahead}
           error={firstError(errors, 'staff.lookahead')}
@@ -61,6 +66,7 @@ export function StaffSection({ draft, errors, update }: SectionProps) {
         />
         <NumberInput
           label={t('staff.fallDuration')}
+          hint={t('hint.staff.fallDuration')}
           field="staff.fallDuration"
           value={fallDuration}
           error={firstError(errors, 'staff.fallDuration')}

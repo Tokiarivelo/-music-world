@@ -11,6 +11,7 @@ import {
   BufferGeometry,
   ConeGeometry,
   CylinderGeometry,
+  Color,
   Euler,
   Float32BufferAttribute,
   Matrix4,
@@ -111,10 +112,34 @@ function localMatrix(node: PartNode): Matrix4 {
   );
 }
 
+/** A part with no tint, no glow and the kind's own roughness. */
+export const plainMaterial = (): PartNode["material"] => ({ color: null, colorRole: null, emissive: 0, roughness: null });
+
+/** Palette roles a part can take its tint from (`PartMaterial.colorRole`). */
+export type PartPalette = Partial<Record<string, string>>;
+/** `emissive` 1 multiplies the colour by 1 + this. Vertex colours are not clamped by the unlit or the lit material. */
+export const EMISSIVE_BOOST = 0.6;
+
+/** RGB of a part's tint and glow; white (no change) when it has neither. Colours are in linear space like three's. */
+export function partTint(node: PartNode, palette?: PartPalette): [number, number, number] {
+  const m = node.material;
+  const hex = m?.color ?? (m?.colorRole ? palette?.[m.colorRole] : undefined);
+  const c = new Color(hex ?? "#ffffff");
+  const k = 1 + EMISSIVE_BOOST * (m?.emissive ?? 0);
+  return [c.r * k, c.g * k, c.b * k];
+}
+
+/** True when any visible node changes the object's colour or glows. */
+export function hasPartLook(nodes: readonly PartNode[]): boolean {
+  return nodes.some((n) => !n.hidden && (n.material?.color || n.material?.colorRole || (n.material?.emissive ?? 0) > 0));
+}
+
 /** One geometry per visible node, in world (object) space, in list order. */
 export function buildNodeGeometries(
   nodes: readonly PartNode[],
+  palette?: PartPalette,
 ): BufferGeometry[] {
+  const painted = hasPartLook(nodes);
   const world = new Map<string, Matrix4>();
   const out: BufferGeometry[] = [];
   for (const node of nodes) {
@@ -128,6 +153,13 @@ export function buildNodeGeometries(
     const g = unitPrimitive(node);
     g.scale(s?.x ?? 0.5, s?.y ?? 0.5, s?.z ?? 0.5);
     g.applyMatrix4(matrix);
+    if (painted) {
+      const [r, gr, b] = partTint(node, palette);
+      const count = g.getAttribute("position").count;
+      const colors = new Float32Array(count * 3);
+      for (let v = 0; v < count; v++) colors.set([r, gr, b], v * 3);
+      g.setAttribute("color", new Float32BufferAttribute(colors, 3));
+    }
     out.push(g);
   }
   return out;

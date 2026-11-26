@@ -55,8 +55,8 @@ describe('EditorForm', () => {
     fireEvent.change(staff, { target: { value: store.getState().draft.palette.background } });
     const field = screen.getByLabelText('Staff, hex code') as HTMLInputElement;
     expect(field.getAttribute('aria-invalid')).toBe('true');
-    const message = document.getElementById(field.getAttribute('aria-describedby')!);
-    expect(message?.textContent).toBe('The staff must stand out from the background.');
+    const messages = field.getAttribute('aria-describedby')!.split(' ').map((id) => document.getElementById(id)?.textContent);
+    expect(messages).toContain('The staff must stand out from the background.');
     expect(within(screen.getByRole('status')).getByText('1 problem to fix')).toBeTruthy();
   });
 
