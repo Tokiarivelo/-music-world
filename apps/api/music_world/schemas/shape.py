@@ -206,6 +206,19 @@ class ShapeBudget(ContractModel):
     )
 
 
+class RecipeVariant(ContractModel):
+    """One look of a recipe (a house type): a height factor and a colour jitter range."""
+
+    name: NodeName
+    height: float = Field(default=1, ge=0.5, le=1.5, description="Multiplies the instance height.")
+    jitter: float = Field(
+        default=0, ge=0, le=0.5, description="Colour jitter: lightness varies by up to +/- this share."
+    )
+
+
+MAX_VARIANTS = 9
+
+
 class ShapeRecipe(ContractModel):
     """Parts of a shape from a closed list of operations, with its own triangle budget."""
 
@@ -214,6 +227,9 @@ class ShapeRecipe(ContractModel):
     parts: list[Part] = Field(default=[], max_length=8, description="Legacy operations; `nodes` is the editable form.")
     nodes: list[PartNode] = Field(
         default=[], max_length=MAX_NODES, description="Part tree (flat, parents first). Built after `parts`."
+    )
+    variants: list[RecipeVariant] = Field(
+        default=[], max_length=MAX_VARIANTS, description="Looks picked by a placed object's `variant` index (0-based)."
     )
     budget: ShapeBudget = ShapeBudget()
     footprint: float = Field(

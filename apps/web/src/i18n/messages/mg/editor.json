@@ -326,5 +326,14 @@
   "tools.profileRemove": "Esory ny zoro {n}",
   "tools.profileRegular": "Sisiny tsara",
   "tools.profileNotConvex": "Tsy convex ity sisiny ity: tsy aseho mandra-pahitsiny.",
-  "tools.profileSides": "{n} zoro"
+  "tools.profileSides": "{n} zoro",
+  "variants.title": "Karazany",
+  "variants.hint": "Endrika azon'ny zavatra apetraka fidiana amin'ny laharan'ny karazany (1 no voalohany). Samy manana ny haavony sy ny hamaivanan'ny loko.",
+  "variants.name": "Anarana",
+  "variants.height": "Haavo",
+  "variants.heightHint": "Ampahany amin'ny haavo mahazatra (0,5 hatramin'ny 1,5).",
+  "variants.jitter": "Fiovaovan'ny loko",
+  "variants.jitterHint": "Hatraiza no mety hiovaovan'ny famirapiratan'ny kopia tsirairay, hatramin'ny ± io ampahany io (0 = tsy misy).",
+  "variants.remove": "Esory ny karazany",
+  "variants.add": "Ampio karazany"
 }

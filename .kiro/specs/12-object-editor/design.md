@@ -91,3 +91,10 @@
   (an estimate: the real count is only known after the build, where `buildRecipeGeometry` still checks the budget and falls
   back to a box). Limits: parent-child only (no cut between siblings), cutters do not follow the parent's later edits
   until a rebuild (rebuilt every time), booleans run on every build of a recipe kind (once per kind, not per instance).
+
+## As built (phase 5)
+
+- 5.1: `ShapeRecipe.variants` (≤ 9 `RecipeVariant` `{name, height 0.5–1.5, jitter 0–0.5}`). A placed object's `variant` index
+  picks one (`variantLook` in `engine/recipe-scale.ts`): height multiplier and a deterministic lightness jitter of its
+  colour (`jitterHex`, seeded by `layout.seed` + object id). Applied to hand-placed objects only; template scenery and
+  note spawns keep variant 0 for recipes. Editor: `VariantsPanel` under the part tree (en, fr, mg).

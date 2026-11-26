@@ -43,6 +43,7 @@ function recipe(
     name,
     parts: [],
     nodes: nodes.map(node),
+    variants: [],
     budget: { maxTriangles: 500 },
     footprint,
     heightScale,

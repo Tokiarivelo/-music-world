@@ -326,5 +326,14 @@
   "tools.profileRemove": "Remove corner {n}",
   "tools.profileRegular": "Regular outline",
   "tools.profileNotConvex": "This outline is not convex: it is not drawn until you fix it.",
-  "tools.profileSides": "{n} corners"
+  "tools.profileSides": "{n} corners",
+  "variants.title": "Variants",
+  "variants.hint": "Looks a placed object can pick by its variant number (1 is the first). Each has a height factor and a colour jitter range.",
+  "variants.name": "Name",
+  "variants.height": "Height",
+  "variants.heightHint": "Share of the normal height (0.5 to 1.5).",
+  "variants.jitter": "Colour jitter",
+  "variants.jitterHint": "How much each copy's lightness may vary, up to ± this share (0 = none).",
+  "variants.remove": "Remove variant",
+  "variants.add": "Add variant"
 }

@@ -34,3 +34,13 @@ describe('recipe scale', () => {
     for (let i = 0; i < a.length; i += 1) expect(b[i]!.height).toBeCloseTo(a[i]!.height * 0.3, 9);
   });
 });
+
+describe('variants', () => {
+  it('jitters lightness deterministically within the range and keeps plain hex without jitter', async () => {
+    const { jitterHex } = await import('./recipe-scale');
+    expect(jitterHex('#808080', 0, 1)).toBe('#808080');
+    expect(jitterHex('#808080', 0.5, 1)).toBe('#c0c0c0');
+    expect(jitterHex('#808080', 0.5, -1)).toBe('#404040');
+    expect(jitterHex('#ffffff', 0.5, 1)).toBe('#ffffff');
+  });
+});

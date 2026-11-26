@@ -10,6 +10,7 @@ import { copyStockAsRecipe, recipeOf } from '../lib/object-source';
 import { ObjectViewport } from './ObjectViewport';
 import { PartInspector } from './PartInspector';
 import { PartTreePanel } from './PartTreePanel';
+import { VariantsPanel } from './VariantsPanel';
 import { Section } from './fields/Section';
 
 export interface ObjectEditorProps extends Pick<SectionProps, 'draft' | 'update'> {
@@ -51,10 +52,13 @@ export function ObjectEditor({ draft, update, kind, onSelectKind }: ObjectEditor
   const selected = nodes.find((n) => n.id === part) ?? null;
   const change = (next: typeof nodes) => update((d) => updateNodes(d, index, () => [...next]));
   return (
+    <>
     <Section title={t('parts.title')}>
       <ObjectViewport nodes={nodes} selected={part} color={draft.palette.primary} highlight={draft.palette.accent} palette={draft.palette} />
       <PartTreePanel nodes={nodes} selected={part} onSelect={setPart} onChange={change} />
       {selected && <PartInspector nodes={nodes} node={selected} onChange={change} />}
     </Section>
+    <VariantsPanel draft={draft} update={update} index={index} />
+    </>
   );
 }
