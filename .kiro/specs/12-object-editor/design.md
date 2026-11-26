@@ -91,3 +91,18 @@
   (an estimate: the real count is only known after the build, where `buildRecipeGeometry` still checks the budget and falls
   back to a box). Limits: parent-child only (no cut between siblings), cutters do not follow the parent's later edits
   until a rebuild (rebuilt every time), booleans run on every build of a recipe kind (once per kind, not per instance).
+
+## As built (phase 5)
+
+- 5.1: `ShapeRecipe.variants` (≤ 9 `RecipeVariant` `{name, height 0.5–1.5, jitter 0–0.5}`). A placed object's `variant` index
+  picks one (`variantLook` in `engine/recipe-scale.ts`): height multiplier and a deterministic lightness jitter of its
+  colour (`jitterHex`, seeded by `layout.seed` + object id). Applied to hand-placed objects only; template scenery and
+  note spawns keep variant 0 for recipes. Editor: `VariantsPanel` under the part tree (en, fr, mg).
+- 5.2: `lib/object-history.ts` (pure undo / redo of one recipe, 100 steps, `stockOf` by name `house` / `house_2`, `diffRecipe`
+  by node id, `resetTo`), hook `useObjectHistory` (history per edited object, opening snapshot kept) and `ObjectHistoryBar`
+  (undo, redo, reset to stock or to how it was opened, one-line diff). Part and variant edits go through it; a reset is
+  itself undoable. The map creator keeps its own history (`map-creator/lib/history.ts`).
+- 5.3: `lib/budget-model.ts`: `liveTriangles` (triangles of the geometry the web builder really makes, booleans and
+  extrusions included; the old `recipeTriangles` ignored part trees) and `drawCallEstimate` (12 fixed meshes + one per
+  kind in use, limit 100). `BudgetMeter` in the object editor shows both live. Enforced: `recipeBudget` (live triangles
+  above the recipe budget) and `drawCalls` (estimate above 100) are validation errors, so saving is refused.

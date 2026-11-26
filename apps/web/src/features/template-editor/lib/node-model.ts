@@ -334,3 +334,37 @@ export function setNodeMaterial(nodes: readonly PartNode[], id: string, patch: M
     return { ...n, material: next };
   });
 }
+
+export type RecipeVariant = NonNullable<Template['recipes'][number]['variants']>[number];
+export const MAX_VARIANTS = 9;
+
+function updateRecipe(template: Template, index: number, change: (r: Template['recipes'][number]) => Template['recipes'][number]): Template {
+  const recipe = template.recipes[index];
+  return recipe ? { ...template, recipes: template.recipes.map((r, i) => (i === index ? change(r) : r)) } : template;
+}
+
+/** Adds a variant (at most 9; unchanged beyond that). */
+export function addVariant(template: Template, index: number): Template {
+  return updateRecipe(template, index, (r) => {
+    const list = r.variants ?? [];
+    if (list.length >= MAX_VARIANTS) return r;
+    return { ...r, variants: [...list, { name: `Variant ${list.length + 1}`, height: 1, jitter: 0 }] };
+  });
+}
+
+export function removeVariant(template: Template, index: number, at: number): Template {
+  return updateRecipe(template, index, (r) => ({ ...r, variants: (r.variants ?? []).filter((_, i) => i !== at) }));
+}
+
+/** Patches one variant; height is clamped to 0.5–1.5, jitter to 0–0.5, the name to 1–40 characters. */
+export function patchVariant(template: Template, index: number, at: number, patch: Partial<RecipeVariant>): Template {
+  return updateRecipe(template, index, (r) => ({
+    ...r,
+    variants: (r.variants ?? []).map((v, i) => {
+      if (i !== at) return v;
+      const next = { ...v, ...patch };
+      const num = (x: number | undefined, lo: number, hi: number, fb: number) => (Number.isFinite(x) ? Math.min(hi, Math.max(lo, x as number)) : fb);
+      return { name: (next.name ?? '').slice(0, 40) || v.name, height: num(next.height, 0.5, 1.5, 1), jitter: num(next.jitter, 0, 0.5, 0) };
+    }),
+  }));
+}

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { STOCK_RECIPES } from '@/xr/shapes/stock-recipes';
 import * as m from './node-model';
 import type { PartNode } from './node-model';
+import type { Template } from '@/templates/generated';
 
 const house = STOCK_RECIPES.find((r) => r.name === 'house')!.nodes as PartNode[];
 
@@ -165,5 +166,20 @@ describe('node-model', () => {
     expect(knob.parent).toBe('roof');
     expect(m.canCombine(withKnob, knob.id)).toBe(false); // its parent is combined
     expect(valid(cut)).toBe(true);
+  });
+});
+
+describe('variants', () => {
+  it('adds up to nine, patches with clamps and removes', async () => {
+    const { addVariant, patchVariant, removeVariant, MAX_VARIANTS } = await import('./node-model');
+    const base = { recipes: [{ name: 'a', parts: [], nodes: [], variants: [] }] } as unknown as Template;
+    const list = (t: Template) => t.recipes[0]!.variants;
+    let t = base;
+    for (let i = 0; i < 12; i++) t = addVariant(t, 0);
+    expect(list(t)).toHaveLength(MAX_VARIANTS);
+    t = patchVariant(t, 0, 0, { height: 9, jitter: -1, name: '' });
+    expect(list(t)[0]).toMatchObject({ height: 1.5, jitter: 0, name: 'Variant 1' });
+    t = removeVariant(t, 0, 0);
+    expect(list(t)).toHaveLength(MAX_VARIANTS - 1);
   });
 });

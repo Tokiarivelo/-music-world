@@ -84,6 +84,7 @@ export function newRecipe(taken: readonly string[]): Recipe {
     name: freshRecipeName(taken),
     parts: [newPart()],
     nodes: [],
+    variants: [],
     budget: { maxTriangles: 500 },
     footprint: 0.25,
     heightScale: 1,

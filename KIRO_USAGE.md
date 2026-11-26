@@ -378,3 +378,9 @@ repository:
   bevel / boolean (`three-bvh-csg`). Schema gained `PartMaterial`, `extrude`, `bevel`, `operation` (pydantic → `make
   schemas`); a pydantic validator keeps outlines convex and combined parts under a plain parent. Volume tests of the
   boolean results caught a wrong cutter-wall group mapping. Template editor fields got explicit hints. No hooks fired.
+
+### 2026-11-26 — Object editor phase 5, variants, history, budgets (Claude Code)
+
+- Skills used: `start`, `handoff`. Spec 12 tasks 5.1–5.4: recipe variants (schema `RecipeVariant`, `make schemas`),
+  undo / redo / reset / diff per object, live triangle and draw-call budgets (the old triangle estimate ignored part
+  trees), acceptance test of the edit-and-save round trip. No hooks fired.

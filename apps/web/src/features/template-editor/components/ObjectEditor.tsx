@@ -8,8 +8,12 @@ import { templateObjects } from '../lib/inventory-model';
 import { updateNodes } from '../lib/node-model';
 import { copyStockAsRecipe, recipeOf } from '../lib/object-source';
 import { ObjectViewport } from './ObjectViewport';
+import { ObjectHistoryBar } from './ObjectHistoryBar';
+import { useObjectHistory } from '../hooks/use-object-history';
+import { BudgetMeter } from './BudgetMeter';
 import { PartInspector } from './PartInspector';
 import { PartTreePanel } from './PartTreePanel';
+import { VariantsPanel } from './VariantsPanel';
 import { Section } from './fields/Section';
 
 export interface ObjectEditorProps extends Pick<SectionProps, 'draft' | 'update'> {
@@ -22,6 +26,7 @@ export function ObjectEditor({ draft, update, kind, onSelectKind }: ObjectEditor
   const t = useT('editor');
   const [part, setPart] = useState<string | null>(null);
   const object = useMemo(() => templateObjects(draft).find((o) => o.kind === kind) ?? null, [draft, kind]);
+  const history = useObjectHistory(draft, object?.recipeIndex ?? -1, update);
   if (!object) return null;
   const index = object.recipeIndex;
   const recipe = index === null ? null : draft.recipes[index];
@@ -49,12 +54,17 @@ export function ObjectEditor({ draft, update, kind, onSelectKind }: ObjectEditor
   }
   const nodes = recipe.nodes ?? [];
   const selected = nodes.find((n) => n.id === part) ?? null;
-  const change = (next: typeof nodes) => update((d) => updateNodes(d, index, () => [...next]));
+  const change = (next: typeof nodes) => history.edit((d) => updateNodes(d, index, () => [...next]));
   return (
+    <>
     <Section title={t('parts.title')}>
+      <ObjectHistoryBar recipe={recipe} opening={history.opening} canUndo={history.canUndo} canRedo={history.canRedo} onUndo={history.undo} onRedo={history.redo} onReset={history.reset} />
+      <BudgetMeter draft={draft} recipe={recipe} />
       <ObjectViewport nodes={nodes} selected={part} color={draft.palette.primary} highlight={draft.palette.accent} palette={draft.palette} />
       <PartTreePanel nodes={nodes} selected={part} onSelect={setPart} onChange={change} />
       {selected && <PartInspector nodes={nodes} node={selected} onChange={change} />}
     </Section>
+    <VariantsPanel draft={draft} update={history.edit} index={index} />
+    </>
   );
 }

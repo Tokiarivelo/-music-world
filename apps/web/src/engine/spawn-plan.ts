@@ -34,7 +34,7 @@ import {
 } from './city';
 import { noteStream, uniform } from './prng';
 import { layoutOf, reefKind, rotationOf, reefOf, reefSpot, themeOf, worldPlanKind } from './world-plan';
-import { recipeScale } from './recipe-scale';
+import { jitterHex, recipeScale, variantLook } from './recipe-scale';
 import { applyEdits, linesOf, staffUOfSnapped, MAIN_LINE_ID, type LayoutEdits, type StaffLine } from './edits';
 import { buildStaffPath, lineOffsetY, type StaffPath } from './staff';
 import type { EngineAnalysis, GlyphKind, NoteEvent, PaletteRole, ShapeKind, Stem, Vec3, WorldTemplate } from './types';
@@ -347,12 +347,14 @@ function sceneryRecords(
 function placedRecords(template: WorldTemplate, fallDuration: number): Omit<SpawnRecord, 'index' | 'slot'>[] {
   return (template.layout?.placed ?? []).map((o) => {
     const size = kindSize(o.kind, template);
+    const look = variantLook(template, o.kind, o.variant);
+    const unit = noteStream(template.layout?.seed ?? 0, `jitter:${o.id}`)() * 2 - 1;
     return {
       noteId: `scenery:placed:${o.id}`,
       stem: null,
       line: MAIN_LINE_ID,
       lineY: 0,
-      colorHex: o.color,
+      colorHex: o.color === null ? null : jitterHex(o.color, look.jitter, unit),
       kind: o.kind,
       onset: SCENERY_LANDED_AT - fallDuration,
       duration: 0,
@@ -368,7 +370,7 @@ function placedRecords(template: WorldTemplate, fallDuration: number): Omit<Spaw
       siteFrom: 0,
       siteTo: 0,
       rainbow: false,
-      height: (size.base + size.extra * 0.5) * o.scale,
+      height: (size.base + size.extra * 0.5) * o.scale * look.height,
       emissive: EMISSIVE_BASE + EMISSIVE_VELOCITY_SCALE * 0.5,
       colorRole: null,
       structureHex: null,

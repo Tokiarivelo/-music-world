@@ -963,6 +963,39 @@
       "title": "Point2",
       "type": "object"
     },
+    "RecipeVariant": {
+      "additionalProperties": false,
+      "description": "One look of a recipe (a house type): a height factor and a colour jitter range.",
+      "properties": {
+        "name": {
+          "maxLength": 40,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "height": {
+          "default": 1,
+          "description": "Multiplies the instance height.",
+          "maximum": 1.5,
+          "minimum": 0.5,
+          "title": "Height",
+          "type": "number"
+        },
+        "jitter": {
+          "default": 0,
+          "description": "Colour jitter: lightness varies by up to +/- this share.",
+          "maximum": 0.5,
+          "minimum": 0,
+          "title": "Jitter",
+          "type": "number"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "RecipeVariant",
+      "type": "object"
+    },
     "Rotation": {
       "additionalProperties": false,
       "description": "Euler angles in degrees, applied in the order y, x, z.",
@@ -1085,6 +1118,16 @@
           },
           "maxItems": 48,
           "title": "Nodes",
+          "type": "array"
+        },
+        "variants": {
+          "default": [],
+          "description": "Looks picked by a placed object's `variant` index (0-based).",
+          "items": {
+            "$ref": "#/$defs/RecipeVariant"
+          },
+          "maxItems": 9,
+          "title": "Variants",
           "type": "array"
         },
         "budget": {

@@ -48,7 +48,7 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
 
 ## Phase 5 — Variants, history, budgets, save (`phase-I49-editor-finish`)
 
-- [ ] 5.1 Variants and colour jitter ranges (buildings)
-- [ ] 5.2 Undo / redo command stack, reset to stock, diff against stock
-- [ ] 5.3 Live triangle and draw-call budgets, enforced
-- [ ] 5.4 Save with the template, validation, end-to-end acceptance test, docs, handoff, PR merged
+- [x] 5.1 Variants and colour jitter ranges (buildings)
+- [x] 5.2 Undo / redo command stack, reset to stock, diff against stock
+- [x] 5.3 Live triangle and draw-call budgets, enforced
+- [x] 5.4 Save with the template, validation, end-to-end acceptance test, docs, handoff, PR merged
