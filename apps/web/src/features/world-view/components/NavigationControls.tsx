@@ -60,8 +60,13 @@ export function NavigationControls({
   // Pegman: drag the little person over the 3D world; the view only changes at the drop.
   useEffect(() => {
     if (!drag || !handle) return;
-    const move = (e: PointerEvent): void =>
+    const move = (e: PointerEvent): void => {
       setDrag({ x: e.clientX, y: e.clientY });
+      // The landing circle follows the pointer over the 3D view only (not over the map or the buttons).
+      const over = document.elementFromPoint(e.clientX, e.clientY);
+      const on3d = over instanceof HTMLCanvasElement && over.id !== WALK_MAP_ID;
+      handle.showLanding(on3d ? { x: e.clientX, y: e.clientY } : null);
+    };
     const up = (e: PointerEvent): void => {
       // Dropped on the 3D view (not on a button or a panel): land there and start the walk mode.
       const over = document.elementFromPoint(e.clientX, e.clientY);
@@ -70,12 +75,14 @@ export function NavigationControls({
         if (p) handle.landAtMap(p.x, p.z);
       } else if (over instanceof HTMLCanvasElement)
         handle.landAt(e.clientX, e.clientY);
+      handle.showLanding(null);
       setDrag(null);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
     window.addEventListener("pointercancel", up);
     return () => {
+      handle.showLanding(null);
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       window.removeEventListener("pointercancel", up);

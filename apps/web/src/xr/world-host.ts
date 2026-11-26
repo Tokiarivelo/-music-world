@@ -48,6 +48,7 @@ import {
   rootScale,
   setWorldSpan,
   viewToWorld,
+  VIEW_SCALE,
   worldWidthM,
 } from "./scale";
 import { setWaterTime, setWaterWalker } from "./water-store";
@@ -98,6 +99,8 @@ export interface InstalledScene extends Pick<
     clientY: number,
     groundY: number,
   ): { x: number; z: number } | null;
+  /** Translucent disc on the ground at a world point (where the pegman would land); `null` hides it. */
+  setLandingMarker?(at: { x: number; y: number; z: number; radius: number } | null): void;
   /** Desktop camera navigation (08-navigation-mode); the host binds its input to the canvas. */
   navigation: NavigationController;
   /** Called on dispose, after the input is unbound. */
@@ -166,6 +169,8 @@ export interface WorldHandle {
    * before. False when the point is not on the ground (sky).
    */
   landAt(clientX: number, clientY: number): boolean;
+  /** Shows the landing circle under a client pixel while the pegman is dragged; `null` hides it. */
+  showLanding(point: { x: number; y: number } | null): void;
   /** Map of the walk area (streets, roads, lakes, structures, walker); null before a world is loaded. */
   walkMap(): WalkMapView | null;
   /** Pegman dropped on the map: lands at this world position and starts the walk mode. */
@@ -248,6 +253,20 @@ const defaultDeps: WorldHostDeps = {
       new URLSearchParams(location.search).get("perf") === "1";
     const { Vector3 } = await import("three");
     const tmp = new Vector3();
+    // Landing marker: a flat translucent disc with a brighter rim, drawn over the ground.
+    const { Mesh, Group, CircleGeometry, RingGeometry, MeshBasicMaterial, DoubleSide } = await import("three");
+    const marker = new Group();
+    const discMaterial = new MeshBasicMaterial({ color: 0xffb000, transparent: true, opacity: 0.35, depthWrite: false, side: DoubleSide });
+    const rimMaterial = new MeshBasicMaterial({ color: 0xffd060, transparent: true, opacity: 0.85, depthWrite: false, side: DoubleSide });
+    const disc = new Mesh(new CircleGeometry(1, 48), discMaterial);
+    const rim = new Mesh(new RingGeometry(0.9, 1, 48), rimMaterial);
+    for (const m of [disc, rim]) {
+      m.rotation.x = -Math.PI / 2;
+      m.renderOrder = 50;
+      marker.add(m);
+    }
+    marker.visible = false;
+    (world as IWSDK.World).scene.add(marker);
     const scene = installMusicSystems(world as IWSDK.World, { perfLog });
     const rig = installXRSystems(
       world as IWSDK.World,
@@ -262,7 +281,14 @@ const defaultDeps: WorldHostDeps = {
     );
     return {
       navigation,
-      disposeNavigation: () => disposeNavigation(navigation),
+      disposeNavigation: () => {
+        disposeNavigation(navigation);
+        (world as IWSDK.World).scene.remove(marker);
+        for (const m of [disc, rim]) {
+          m.geometry.dispose();
+          (m.material as { dispose(): void }).dispose();
+        }
+      },
       setScene: (plan, clock) => scene.setScene(plan, clock),
       setLightLevel: (level) => scene.setLightLevel(level),
       setScaleMode: (mode) => scene.setScaleMode(mode),
@@ -299,6 +325,15 @@ const defaultDeps: WorldHostDeps = {
       },
       setControls: (controls) => {
         rig.controls = controls;
+      },
+      setLandingMarker: (at) => {
+        if (!at) {
+          marker.visible = false;
+          return;
+        }
+        marker.position.set(at.x, at.y + at.radius * 0.02, at.z);
+        marker.scale.setScalar(at.radius);
+        marker.visible = true;
       },
       groundAt: (clientX, clientY, groundY) => {
         const cam = (world as IWSDK.World).camera;
@@ -729,6 +764,21 @@ async function buildWorld(
     },
     landAtMap(x, z) {
       if (!disposed && !world.session) nav.landAt(x, z);
+    },
+    showLanding(point) {
+      if (disposed || world.session || !point) {
+        scene.setLandingMarker?.(null);
+        return;
+      }
+      const big = nav.mode === "walk" || domeStore.enabled;
+      const y = big ? 0 : DIORAMA_POSITION.y;
+      const ground = scene.groundAt?.(point.x, point.y, y);
+      if (!ground) {
+        scene.setLandingMarker?.(null);
+        return;
+      }
+      // About 2 m wide in the big world, in proportion on the table-top diorama.
+      scene.setLandingMarker?.({ x: ground.x, y, z: ground.z, radius: big ? 1.6 : 1.6 / VIEW_SCALE });
     },
     landAt(clientX, clientY) {
       if (disposed || world.session) return false;

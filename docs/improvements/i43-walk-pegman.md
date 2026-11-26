@@ -33,3 +33,8 @@ Problem: in walk mode the viewer could end up inside a building with no idea whe
 - Nine building types (villa, warehouse, twin tower and pagoda added; `house-shapes.ts`, `engine/city.ts`), 18 facade colours with a
   per-building light/warm jitter. Four more building meshes: city draw calls 11 → 15 (check on Quest).
 - Object editor: spec `12-object-editor`, not started (open question 17).
+
+## Landing circle
+
+While the pegman is dragged over the 3D view, a translucent amber disc with a brighter rim shows on the ground where it
+would land (`WorldHandle.showLanding`, `InstalledScene.setLandingMarker`); it hides over the map, the buttons and the sky.
