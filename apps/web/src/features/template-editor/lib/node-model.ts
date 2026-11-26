@@ -1,0 +1,155 @@
+import type { Template } from '@/templates/generated';
+
+/** Pure, immutable edits of a recipe's part tree (`recipe.nodes`, flat, parents first). Mirrors `shape.py` limits. */
+
+export type Recipe = Template['recipes'][number];
+export type PartNode = Recipe['nodes'][number];
+export type NodePrimitive = PartNode['primitive'];
+export type NodeField = 'px' | 'py' | 'pz' | 'rx' | 'ry' | 'rz' | 'sx' | 'sy' | 'sz' | 'sides' | 'taper';
+
+export const MAX_NODES = 48;
+export const MAX_NODE_DEPTH = 4;
+export const NODE_NAME_MAX = 40;
+export const PRIMITIVES: readonly NodePrimitive[] = ['box', 'cylinder', 'cone', 'sphere', 'prism', 'gable'];
+
+export const NODE_BOUNDS: Readonly<Record<NodeField, { min: number; max: number; integer?: boolean }>> = {
+  px: { min: -2, max: 2 }, py: { min: -2, max: 2 }, pz: { min: -2, max: 2 },
+  rx: { min: -180, max: 180 }, ry: { min: -180, max: 180 }, rz: { min: -180, max: 180 },
+  sx: { min: 0.02, max: 2 }, sy: { min: 0.02, max: 2 }, sz: { min: 0.02, max: 2 },
+  sides: { min: 3, max: 12, integer: true }, taper: { min: 0, max: 1 },
+};
+
+export function clampNode(field: NodeField, value: number): number {
+  const { min, max, integer } = NODE_BOUNDS[field];
+  if (!Number.isFinite(value)) return min;
+  const v = Math.min(max, Math.max(min, value));
+  return integer ? Math.round(v) : v;
+}
+
+export function nodeDepth(nodes: readonly PartNode[], id: string): number {
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  let depth = 1;
+  for (let n = byId.get(id); n?.parent; n = byId.get(n.parent)) depth += 1;
+  return depth;
+}
+
+/** `id` and every node below it, in list order. */
+export function subtreeIds(nodes: readonly PartNode[], id: string): Set<string> {
+  const ids = new Set([id]);
+  for (const n of nodes) if (n.parent && ids.has(n.parent)) ids.add(n.id);
+  return ids;
+}
+
+export function freshNodeId(nodes: readonly PartNode[], base: string): string {
+  const stem = base.toLowerCase().replace(/[^a-z0-9_]/g, '_').replace(/_\d+$/, '').slice(0, 20) || 'part';
+  const taken = new Set(nodes.map((n) => n.id));
+  for (let i = 1; ; i += 1) {
+    const id = `${stem}_${i}`;
+    if (!taken.has(id)) return id;
+  }
+}
+
+export function renameNode(nodes: readonly PartNode[], id: string, raw: string): PartNode[] {
+  const name = raw.trim().slice(0, NODE_NAME_MAX);
+  if (!name) return [...nodes];
+  return nodes.map((n) => (n.id === id ? { ...n, name } : n));
+}
+
+/** Hiding a part hides what hangs from it in the viewport; the flag itself stays on the one node. */
+export function toggleHidden(nodes: readonly PartNode[], id: string): PartNode[] {
+  return nodes.map((n) => (n.id === id ? { ...n, hidden: !n.hidden } : n));
+}
+
+export function deleteNode(nodes: readonly PartNode[], id: string): PartNode[] {
+  const gone = subtreeIds(nodes, id);
+  return nodes.filter((n) => !gone.has(n.id));
+}
+
+/** Copies a part with its children right after the subtree, offset a little; unchanged when over the node limit. */
+export function duplicateNode(nodes: readonly PartNode[], id: string): PartNode[] {
+  const ids = subtreeIds(nodes, id);
+  const copied = nodes.filter((n) => ids.has(n.id));
+  if (copied.length === 0 || nodes.length + copied.length > MAX_NODES) return [...nodes];
+  const rename = new Map<string, string>();
+  const used = [...nodes];
+  for (const n of copied) {
+    const fresh = freshNodeId(used, n.id);
+    rename.set(n.id, fresh);
+    used.push({ ...n, id: fresh });
+  }
+  const copies = copied.map((n): PartNode => {
+    const root = n.id === id;
+    return {
+      ...n,
+      id: rename.get(n.id)!,
+      name: root ? `${n.name} copy`.slice(0, NODE_NAME_MAX) : n.name,
+      parent: n.parent && rename.has(n.parent) ? rename.get(n.parent)! : n.parent,
+      position: root ? { ...n.position, x: clampNode('px', (n.position?.x ?? 0) + 0.1) } : n.position,
+    };
+  });
+  const last = nodes.reduce((at, n, i) => (ids.has(n.id) ? i : at), -1);
+  return [...nodes.slice(0, last + 1), ...copies, ...nodes.slice(last + 1)];
+}
+
+/** A new part under `parent` (null: a root). Unchanged when the tree is full or too deep. */
+export function addNode(nodes: readonly PartNode[], primitive: NodePrimitive, parent: string | null): PartNode[] {
+  if (nodes.length >= MAX_NODES) return [...nodes];
+  if (parent !== null && (!nodes.some((n) => n.id === parent) || nodeDepth(nodes, parent) >= MAX_NODE_DEPTH)) return [...nodes];
+  const id = freshNodeId(nodes, primitive);
+  const node: PartNode = {
+    id,
+    name: `${primitive[0]!.toUpperCase()}${primitive.slice(1)}`,
+    primitive,
+    parent,
+    hidden: false,
+    position: { x: 0, y: 0, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 },
+    size: { x: 0.3, y: 0.3, z: 0.3 },
+    sides: 8,
+    taper: 1,
+  };
+  if (parent === null) return [...nodes, node];
+  const end = nodes.reduce((at, n, i) => (subtreeIds(nodes, parent).has(n.id) ? i : at), -1);
+  return [...nodes.slice(0, end + 1), node, ...nodes.slice(end + 1)];
+}
+
+export function setNodePrimitive(nodes: readonly PartNode[], id: string, primitive: NodePrimitive): PartNode[] {
+  return nodes.map((n) => (n.id === id ? { ...n, primitive } : n));
+}
+
+export function readNodeField(node: PartNode, field: NodeField): number {
+  switch (field) {
+    case 'px': return node.position?.x ?? 0;
+    case 'py': return node.position?.y ?? 0;
+    case 'pz': return node.position?.z ?? 0;
+    case 'rx': return node.rotation?.x ?? 0;
+    case 'ry': return node.rotation?.y ?? 0;
+    case 'rz': return node.rotation?.z ?? 0;
+    case 'sx': return node.size?.x ?? 0.5;
+    case 'sy': return node.size?.y ?? 0.5;
+    case 'sz': return node.size?.z ?? 0.5;
+    case 'sides': return node.sides ?? 8;
+    case 'taper': return node.taper ?? 1;
+  }
+}
+
+export function setNodeNumber(nodes: readonly PartNode[], id: string, field: NodeField, raw: number): PartNode[] {
+  const v = clampNode(field, raw);
+  return nodes.map((n) => {
+    if (n.id !== id) return n;
+    switch (field) {
+      case 'px': case 'py': case 'pz': return { ...n, position: { ...n.position, [field[1]!]: v } };
+      case 'rx': case 'ry': case 'rz': return { ...n, rotation: { ...n.rotation, [field[1]!]: v } };
+      case 'sx': case 'sy': case 'sz': return { ...n, size: { ...n.size, [field[1]!]: v } };
+      case 'sides': return { ...n, sides: v };
+      case 'taper': return { ...n, taper: v };
+    }
+  });
+}
+
+/** Applies a node-list change to recipe `index` of the template. */
+export function updateNodes(template: Template, index: number, change: (nodes: readonly PartNode[]) => PartNode[]): Template {
+  const recipe = template.recipes[index];
+  if (!recipe) return template;
+  return { ...template, recipes: template.recipes.map((r, i) => (i === index ? { ...r, nodes: change(r.nodes ?? []) } : r)) };
+}
