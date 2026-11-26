@@ -15,14 +15,20 @@ export function recipeOf(template: Template, object: InventoryObject): ShapeReci
   return stock ? (STOCK_RECIPES.find((r) => r.name === stock) ?? null) : null;
 }
 
-/** Triangle positions (non-indexed) of the object, or null when it has no editable shape. */
-export function objectPositions(template: Template, object: InventoryObject): ArrayLike<number> | null {
+/** Triangle positions (non-indexed) and part tints of the object, or null when it has no editable shape. */
+export function objectMesh(template: Template, object: InventoryObject): { positions: ArrayLike<number>; colors?: ArrayLike<number> } | null {
   const recipe = recipeOf(template, object);
-  const geometry = recipe ? buildRecipeGeometry(recipe) : null;
+  const geometry = recipe ? buildRecipeGeometry(recipe, template.palette) : null;
   if (!geometry) return null;
   const positions = geometry.getAttribute('position').array;
+  const colors = geometry.hasAttribute('color') ? geometry.getAttribute('color').array : undefined;
   geometry.dispose();
-  return positions;
+  return { positions, colors };
+}
+
+/** Triangle positions (non-indexed) of the object, or null when it has no editable shape. */
+export function objectPositions(template: Template, object: InventoryObject): ArrayLike<number> | null {
+  return objectMesh(template, object)?.positions ?? null;
 }
 
 /** Adds the stock copy of a builtin object as a recipe of the template; returns its new kind, or null when not possible. */

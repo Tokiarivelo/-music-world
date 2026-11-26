@@ -49,10 +49,11 @@ export function RecipeEditor({ errors, update, index, recipe }: RecipeEditorProp
         </button>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <BoundedNumber label={t('recipe.footprint')} value={recipe.footprint} {...RECIPE_BOUNDS.footprint} onChange={(v) => update((d) => setRecipeNumber(d, index, 'footprint', v))} />
-        <BoundedNumber label={t('recipe.heightScale')} value={recipe.heightScale} {...RECIPE_BOUNDS.heightScale} onChange={(v) => update((d) => setRecipeNumber(d, index, 'heightScale', v))} />
+        <BoundedNumber hint={t('recipe.hint.footprint')} label={t('recipe.footprint')} value={recipe.footprint} {...RECIPE_BOUNDS.footprint} onChange={(v) => update((d) => setRecipeNumber(d, index, 'footprint', v))} />
+        <BoundedNumber hint={t('recipe.hint.heightScale')} label={t('recipe.heightScale')} value={recipe.heightScale} {...RECIPE_BOUNDS.heightScale} onChange={(v) => update((d) => setRecipeNumber(d, index, 'heightScale', v))} />
         <BoundedNumber
           label={t('recipe.budget')}
+          hint={t('recipe.hint.budget')}
           value={recipe.budget.maxTriangles}
           {...RECIPE_BOUNDS.maxTriangles}
           error={budgetError}

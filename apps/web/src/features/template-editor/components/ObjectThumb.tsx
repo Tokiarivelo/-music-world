@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef } from 'react';
 import type { Template } from '@/templates/generated';
 import type { InventoryObject } from '../lib/inventory-model';
-import { objectPositions } from '../lib/object-source';
+import { faceFill } from '../lib/face-color';
+import { objectMesh } from '../lib/object-source';
 import { thumbnailFaces } from '../lib/thumbnail';
 
 const SIZE = 56;
@@ -13,8 +14,8 @@ export function ObjectThumb({ template, object }: { template: Template; object: 
   const ref = useRef<HTMLCanvasElement>(null);
   const recipe = object.recipeIndex === null ? null : template.recipes[object.recipeIndex];
   const faces = useMemo(() => {
-    const positions = objectPositions(template, object);
-    return positions ? thumbnailFaces(positions) : [];
+    const mesh = objectMesh(template, object);
+    return mesh ? thumbnailFaces(mesh.positions, 0.08, undefined, mesh.colors) : [];
     // The thumbnail follows the recipe of the object, not the whole draft.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recipe, object.kind]);
@@ -30,7 +31,7 @@ export function ObjectThumb({ template, object }: { template: Template; object: 
       ctx.lineTo(f.points[2] * SIZE, f.points[3] * SIZE);
       ctx.lineTo(f.points[4] * SIZE, f.points[5] * SIZE);
       ctx.closePath();
-      ctx.fillStyle = `rgb(${Math.round(r! * f.shade)},${Math.round(g! * f.shade)},${Math.round(b! * f.shade)})`;
+      ctx.fillStyle = faceFill([r!, g!, b!], f);
       ctx.fill();
     }
   }, [faces, color]);

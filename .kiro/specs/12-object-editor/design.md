@@ -71,3 +71,7 @@
   show their range and a slider next to the exact box (`fields/Hint.tsx`, `NumberInput`, `BoundedNumber`,
   `SelectInput`, `ColorInput`, `ToggleInput`); the part inspector explains position, rotation, size and look.
   Zones, rules and recipe parts do not have hints yet.
+- Follow-up to 4.2: tints show in thumbnails and the 2D viewport (`faceFill`, per-triangle vertex colour in
+  `sceneFaces`). Zones are explained: intro text, a top-view `ZoneMap` (far edge up, numbered like the list), quick
+  placements (`zone-model.ts`: whole, halves, centre), coverage %, and bound hints (-1 edge, 0 centre, 1 edge). Rules,
+  recipes and recipe parts have hints too.

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '@/i18n';
 import { buildNodeGeometries } from '@/xr/shapes/node-builder';
+import { faceFill } from '../lib/face-color';
 import { DEFAULT_VIEW, MAX_PITCH, sceneFaces, type ThumbView } from '../lib/thumbnail';
 import type { PartNode } from '../lib/node-model';
 
@@ -15,18 +16,18 @@ function hex(color: string): [number, number, number] {
 }
 
 /** Orbit view of the object: drag (or arrow keys) to turn around it; the selected part is highlighted. */
-export function ObjectViewport({ nodes, selected, color, highlight }: { nodes: readonly PartNode[]; selected: string | null; color: string; highlight: string }) {
+export function ObjectViewport({ nodes, selected, color, highlight, palette }: { nodes: readonly PartNode[]; selected: string | null; color: string; highlight: string; palette?: Record<string, string> }) {
   const t = useT('editor');
   const ref = useRef<HTMLCanvasElement>(null);
   const drag = useRef<{ x: number; y: number } | null>(null);
   const [view, setView] = useState<ThumbView>(DEFAULT_VIEW);
   const groups = useMemo(() => {
     const visible = nodes.filter((n) => !n.hidden);
-    const geometries = buildNodeGeometries(nodes);
-    const out = geometries.map((g, i) => ({ id: visible[i]!.id, positions: g.getAttribute('position').array }));
+    const geometries = buildNodeGeometries(nodes, palette);
+    const out = geometries.map((g, i) => ({ id: visible[i]!.id, positions: g.getAttribute('position').array, colors: g.hasAttribute('color') ? g.getAttribute('color').array : undefined }));
     geometries.forEach((g) => g.dispose());
     return out;
-  }, [nodes]);
+  }, [nodes, palette]);
   const faces = useMemo(() => sceneFaces(groups, view), [groups, view]);
   useEffect(() => {
     const ctx = ref.current?.getContext('2d');
@@ -41,7 +42,7 @@ export function ObjectViewport({ nodes, selected, color, highlight }: { nodes: r
       ctx.lineTo(f.points[2] * SIZE, f.points[3] * SIZE);
       ctx.lineTo(f.points[4] * SIZE, f.points[5] * SIZE);
       ctx.closePath();
-      ctx.fillStyle = `rgb(${Math.round(r * f.shade)},${Math.round(g * f.shade)},${Math.round(b * f.shade)})`;
+      ctx.fillStyle = faceFill([r, g, b], f);
       ctx.fill();
       if (f.id === selected) {
         ctx.strokeStyle = highlight;
