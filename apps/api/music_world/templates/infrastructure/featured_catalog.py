@@ -15,6 +15,7 @@ NEMO_STORE_ID = "00000000-0000-7000-8000-000000000002"
 AURORA_STORE_ID = "00000000-0000-7000-8000-000000000003"
 LIVING_CITY_STORE_ID = "00000000-0000-7000-8000-000000000004"
 ABYSSAL_STORE_ID = "00000000-0000-7000-8000-000000000005"
+ENCHANTED_STORE_ID = "00000000-0000-7000-8000-000000000006"
 FEATURED_AT = datetime(2026, 11, 26, tzinfo=UTC)
 # Store id → file. Fixed UUIDv7-shaped ids so links to a launch template never change.
 FEATURED_FILES: dict[str, str] = {
@@ -23,6 +24,7 @@ FEATURED_FILES: dict[str, str] = {
     AURORA_STORE_ID: "aurora-night.json",  # northern lights launch template (staff style aurora)
     LIVING_CITY_STORE_ID: "living-city.json",  # trees, clouds, cars and planes (I8)
     ABYSSAL_STORE_ID: "abyssal-currents.json",  # ocean world whose notes ride sea currents (staff style current)
+    ENCHANTED_STORE_ID: "enchanted-realm.json",  # fantasy world: castle, dragons, wizard towers, mushrooms, crystals (I40)
 }
 
 

@@ -68,7 +68,7 @@ describe('buildSpawnPlan properties', () => {
         const plan = buildSpawnPlan(analysis, tpl, seed);
         expect(plan.records.map((r) => r.noteId).sort()).toEqual(analysis.notes.map((n) => n.id).sort());
         for (const r of plan.records) {
-          if (templateHasCity(tpl) && isCityKind(r.kind)) continue; // a city places them on its lots, see below
+          if (templateHasCity(tpl)) continue; // a city places objects on its lots and keeps the others off its roads, see below
           const zones = zonesFor(r.kind, tpl);
           expect(
             zones.some(

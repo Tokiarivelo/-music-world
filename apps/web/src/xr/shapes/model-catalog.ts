@@ -56,6 +56,15 @@ export const MODELS: Readonly<Record<string, ModelSpec>> = {
   'recipe:crab': { file: 'crab', forward: 'x', natural: true },
   'recipe:seashell': { file: 'seashell', forward: 'x', natural: true },
   'recipe:shipwreck': { file: 'shipwreck', forward: 'x', natural: true },
+  // Enchanted Realm (I40, `scripts/blender/build_fantasy.py`): used by polished templates that define a recipe of that name.
+  'recipe:castle': { file: 'castle', forward: 'x', natural: true },
+  'recipe:wizard_tower': { file: 'wizard_tower', forward: 'x', natural: true },
+  'recipe:mushroom_house': { file: 'mushroom_house', forward: 'x', natural: true },
+  'recipe:giant_mushroom': { file: 'giant_mushroom', forward: 'x', natural: true },
+  'recipe:crystal_cluster': { file: 'crystal_cluster', forward: 'x', natural: true },
+  'recipe:magic_tree': { file: 'magic_tree', forward: 'x', natural: true },
+  'recipe:dragon': { file: 'dragon', forward: 'x', natural: true },
+  'recipe:glow_flower': { file: 'glow_flower', forward: 'x', natural: true },
 };
 
 /**

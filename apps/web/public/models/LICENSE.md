@@ -44,6 +44,16 @@ python -I scripts/blender/build_models.py --out apps/web/public/models
 | `crab.glb` | `recipe:crab` (ocean life, polished templates) | see `build_ocean.py` |
 | `seashell.glb` | `recipe:seashell` (ocean life, polished templates) | see `build_ocean.py` |
 | `shipwreck.glb` | `recipe:shipwreck` (ocean life, polished templates) | see `build_ocean.py` |
+| `castle.glb` | `recipe:castle` (fantasy, polished templates) | see `build_fantasy.py` |
+| `wizard_tower.glb` | `recipe:wizard_tower` (fantasy, polished templates) | see `build_fantasy.py` |
+| `mushroom_house.glb` | `recipe:mushroom_house` (fantasy, polished templates) | see `build_fantasy.py` |
+| `giant_mushroom.glb` | `recipe:giant_mushroom` (fantasy, polished templates) | see `build_fantasy.py` |
+| `crystal_cluster.glb` | `recipe:crystal_cluster` (fantasy, polished templates) | see `build_fantasy.py` |
+| `magic_tree.glb` | `recipe:magic_tree` (fantasy, polished templates) | see `build_fantasy.py` |
+| `dragon.glb` | `recipe:dragon` (fantasy, polished templates) | see `build_fantasy.py` |
+| `glow_flower.glb` | `recipe:glow_flower` (fantasy, polished templates) | see `build_fantasy.py` |
+
+Fantasy models come from `scripts/blender/build_fantasy.py` (`make fantasy-models`).
 
 Ocean models come from `scripts/blender/build_ocean.py` (`make ocean-models`); their colours are the real colours of the species.
 

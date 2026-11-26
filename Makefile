@@ -157,6 +157,9 @@ check-api: test-api ## Lint, format check, types and tests of the API
 ocean-models: ## Rebuild the ocean life models (same bpy setup as `make models`)
 	$(or $(PYTHON),python3) -I scripts/blender/build_ocean.py --out apps/web/public/models
 
+fantasy-models: ## Rebuild the Enchanted Realm models (same bpy setup as `make models`)
+	$(or $(PYTHON),python3) -I scripts/blender/build_fantasy.py --out apps/web/public/models
+
 models: ## Rebuild the 3D models with Blender (pip install bpy in a Python 3.13 venv, then PYTHON=<venv>/bin/python)
 	$(or $(PYTHON),python3) -I scripts/blender/build_models.py --out apps/web/public/models
 

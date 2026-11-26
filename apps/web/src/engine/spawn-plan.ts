@@ -33,6 +33,7 @@ import {
     templateHasCity,
 } from './city';
 import { noteStream, uniform } from './prng';
+import { reefKind, reefOf, reefSpot, themeOf, worldPlanKind } from './world-plan';
 import { recipeScale } from './recipe-scale';
 import { applyEdits, linesOf, staffUOfSnapped, MAIN_LINE_ID, type LayoutEdits, type StaffLine } from './edits';
 import { buildStaffPath, lineOffsetY, type StaffPath } from './staff';
@@ -210,9 +211,27 @@ function roadSettler(template: WorldTemplate, seed: number): (kind: ShapeKind, a
  * ranked from the centre outwards so the music builds the town over the whole plate; everything else (and every other
  * template) keeps the zone placement. `totals` are the number of objects of each class, to spread them over the ranking.
  */
-function placerFor(template: WorldTemplate, seed: number, totals: { building: number; garden: number; monument: number }): Placer {
+function placerFor(
+  template: WorldTemplate,
+  seed: number,
+  totals: { building: number; garden: number; monument: number },
+  themeTotals: ReadonlyMap<string, number> = new Map(),
+): Placer {
   const settle = roadSettler(template, seed);
   const plain = (kind: ShapeKind, at: () => Vec3): Placed => ({ target: settle(kind, at()), yaw: 0, variant: 0, heightMul: 1, minGrowSec: 0, siteFrom: 0, siteTo: 0 });
+  if (['reef', 'realm'].includes(worldPlanKind(template))) {
+    // Seabed life grows in the patches of the reef plan (kelp forests, coral gardens, sandy flats, the wreck), from the centre out.
+    const reef = reefOf(template, seed);
+    const seenTheme = new Map<string, number>();
+    return (kind, at) => {
+      const theme = themeOf(kind);
+      if (!theme) return plain(kind, at);
+      const ordinal = seenTheme.get(theme) ?? 0;
+      seenTheme.set(theme, ordinal + 1);
+      const spot = reefSpot(reef, kind, ordinal, themeTotals.get(theme) ?? 1, seed, `${kind}:${ordinal}`);
+      return { ...plain(kind, () => spot ?? at()), yaw: spot ? (ordinal * 2.399963) % (Math.PI * 2) : 0 };
+    };
+  }
   if (!templateHasCity(template)) return plain;
   const city = cityOf(template, seed);
   const seen = { building: 0, garden: 0, monument: 0 };
@@ -352,9 +371,21 @@ export function buildSpawnPlan(
     if (cls !== null) totals[cls] += n;
   };
   const cityMode = templateHasCity(template);
-  const kindOf = (note: NoteEvent, mapped: ShapeKind): ShapeKind => (cityMode ? plannedKind(seed, note.id, mapped) : mapped);
+  const reefMode = ['reef', 'realm'].includes(worldPlanKind(template));
+  const kindOf = (note: NoteEvent, mapped: ShapeKind): ShapeKind =>
+    cityMode ? plannedKind(seed, note.id, mapped) : reefMode ? reefKind(template, seed, note.id, mapped) : mapped;
+  const themeTotals = new Map<string, number>();
+  const countTheme = (kind: ShapeKind, n: number): void => {
+    const theme = themeOf(kind);
+    if (theme) themeTotals.set(theme, (themeTotals.get(theme) ?? 0) + n);
+  };
+  if (reefMode) for (const item of template.scenery) countTheme(item.kind, item.count);
   for (const item of template.scenery) if (!(cityMode && PLAN_KINDS.has(item.kind))) count(item.kind, item.count);
-  for (const note of notes) count(kindOf(note, mapNote(note, template, edited?.lineOf.get(note.id) ?? MAIN_LINE_ID).kind), 1);
+  for (const note of notes) {
+    const planned = kindOf(note, mapNote(note, template, edited?.lineOf.get(note.id) ?? MAIN_LINE_ID).kind);
+    count(planned, 1);
+    if (reefMode) countTheme(planned, 1);
+  }
   const claimSlot = (kind: ShapeKind, index: number): number => {
     const indices = trackIndices.get(kind) ?? [];
     trackIndices.set(kind, indices);
@@ -363,7 +394,7 @@ export function buildSpawnPlan(
     return slot;
   };
 
-  const place = placerFor(template, seed, totals);
+  const place = placerFor(template, seed, totals, themeTotals);
   /** A city object takes the slot of its first spot (spots are unique, so are slots); the others the next free slot. */
   const slotOf = (r: { siteFrom: number; siteTo: number }, claimed: number): number => (r.siteTo > r.siteFrom ? r.siteFrom : claimed);
   const scenery = sceneryRecords(template, seed, fallDuration, zonesOf, layout, place).map(
