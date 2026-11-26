@@ -210,5 +210,6 @@
   "inspector.rotation": "Rotation",
   "inspector.size": "Size",
   "inspector.sides": "Sides",
-  "inspector.taper": "Taper"
+  "inspector.taper": "Taper",
+  "viewport.label": "Object view: drag or use the arrow keys to turn around it"
 }

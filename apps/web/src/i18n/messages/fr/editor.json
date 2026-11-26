@@ -210,5 +210,6 @@
   "inspector.rotation": "Rotation",
   "inspector.size": "Taille",
   "inspector.sides": "Côtés",
-  "inspector.taper": "Effilement"
+  "inspector.taper": "Effilement",
+  "viewport.label": "Vue de l'objet : glissez ou utilisez les flèches pour tourner autour"
 }

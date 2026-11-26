@@ -7,6 +7,7 @@ import type { SectionProps } from '../interfaces/section.types';
 import { templateObjects } from '../lib/inventory-model';
 import { updateNodes } from '../lib/node-model';
 import { copyStockAsRecipe, recipeOf } from '../lib/object-source';
+import { ObjectViewport } from './ObjectViewport';
 import { PartInspector } from './PartInspector';
 import { PartTreePanel } from './PartTreePanel';
 import { Section } from './fields/Section';
@@ -51,6 +52,7 @@ export function ObjectEditor({ draft, update, kind, onSelectKind }: ObjectEditor
   const change = (next: typeof nodes) => update((d) => updateNodes(d, index, () => [...next]));
   return (
     <Section title={t('parts.title')}>
+      <ObjectViewport nodes={nodes} selected={part} color={draft.palette.primary} highlight={draft.palette.accent} />
       <PartTreePanel nodes={nodes} selected={part} onSelect={setPart} onChange={change} />
       {selected && <PartInspector nodes={nodes} node={selected} onChange={change} />}
     </Section>
