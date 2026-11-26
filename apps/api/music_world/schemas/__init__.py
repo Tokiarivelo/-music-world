@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from music_world.schemas import account, analysis, director, edits, health, job, project, shape, store, template
 from music_world.schemas.account import AuthSession
 from music_world.schemas.analysis import AnalysisResult
-from music_world.schemas.director import DirectorProviders, DirectorResult
+from music_world.schemas.director import DirectorProviders, DirectorResult, LayoutResult
 from music_world.schemas.edits import LayoutEdits
 from music_world.schemas.health import DependencyChecks, Health
 from music_world.schemas.job import Job, JobAccepted
@@ -23,6 +23,7 @@ EXPORTED: dict[str, type[BaseModel]] = {
     analysis.SCHEMA_ID: AnalysisResult,
     director.PROVIDERS_SCHEMA_ID: DirectorProviders,
     director.RESULT_SCHEMA_ID: DirectorResult,
+    director.LAYOUT_SCHEMA_ID: LayoutResult,
     edits.SCHEMA_ID: LayoutEdits,
     health.SCHEMA_ID: Health,
     job.SCHEMA_ID: Job,

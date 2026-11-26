@@ -44,4 +44,34 @@ describe('world plans', () => {
     }
     expect(plan.records.some((r) => ['recipe:whale', 'recipe:dolphin', 'recipe:clownfish'].includes(r.kind))).toBe(true);
   });
+
+  it('follows the layout the director wrote: its patches, and the order of its sequence', () => {
+    const realm = featured('enchanted-realm');
+    const layout = {
+      inventory: [],
+      patches: [
+        { id: 'grove', theme: 'forest' as const, x: 0.5, z: 0.4, radius: 0.2 },
+        { id: 'hill', theme: 'crystal' as const, x: -0.5, z: -0.4, radius: 0.2 },
+      ],
+      sequence: [
+        { kind: 'recipe:magic_tree', patch: 'grove', weight: 3 },
+        { kind: 'recipe:crystal_cluster', patch: 'hill', weight: 1 },
+      ],
+    };
+    const directed = { ...realm, layout };
+    const reef = reefOf(directed, 5);
+    const half = realm.terrain.size / 2;
+    expect(reef.patches).toHaveLength(2);
+    expect(reef.patches.find((p) => p.theme === 'forest')!.x).toBeGreaterThan(0.3 * half);
+    const plan = buildSpawnPlan(demo, directed, 5);
+    const first = realm.scenery.reduce((n, i) => n + i.count, 0); // the scenery stands before the first note
+    const grounded = plan.records.filter((r) => r.index >= first && (r.kind === 'recipe:magic_tree' || r.kind === 'recipe:crystal_cluster'));
+    expect(grounded.length).toBeGreaterThan(0);
+    const trees = grounded.filter((r) => r.kind === 'recipe:magic_tree');
+    expect(trees.length).toBeGreaterThan(0);
+    for (const r of grounded.filter((g) => g.kind === 'recipe:crystal_cluster')) expect(Math.hypot(r.target.x + 0.5 * half, r.target.z + 0.4 * half)).toBeLessThan(0.25 * half);
+    for (const r of trees) expect(Math.hypot(r.target.x - 0.5 * half, r.target.z - 0.4 * half)).toBeLessThan(0.25 * half);
+    // Without a layout the plan is derived and still valid; with one it differs.
+    expect(buildSpawnPlan(demo, realm, 5).records.map((r) => r.target)).not.toEqual(plan.records.map((r) => r.target));
+  });
 });

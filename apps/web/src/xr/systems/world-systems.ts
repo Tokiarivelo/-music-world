@@ -23,6 +23,7 @@ import { SkyNotesView } from '../views/sky-notes-view';
 import { StaffView } from '../views/staff-view';
 import { StructureView } from '../views/structure-view';
 import { WeatherView } from '../views/weather-view';
+import { RealmGlowView } from '../views/realm-glow-view';
 import { TerrainView } from '../views/terrain-view';
 import type { WorldView } from '../views/world-view';
 
@@ -124,6 +125,7 @@ export const StaffSystem = viewSystem((plan) => new StaffView(plan));
 export const StructureSystem = viewSystem((plan) => new StructureView(plan));
 export const FxSystem = viewSystem((plan) => new FxView(plan));
 export const SkySystem = viewSystem((plan) => new SkyNotesView(plan));
+export const RealmGlowSystem = viewSystem((plan) => new RealmGlowView(plan));
 export const WeatherSystem = viewSystem((plan) => new WeatherView(plan), true);
 export const HorizonSystem = viewSystem((plan) => new HorizonView(plan), true);
 export const EnvironmentSystem = viewSystem((plan) => new EnvironmentView(plan), true);
@@ -185,6 +187,7 @@ export function installMusicSystems(world: World, options: { perfLog?: boolean }
   world.registerSystem(StructureSystem);
   world.registerSystem(FxSystem);
   world.registerSystem(SkySystem);
+  world.registerSystem(RealmGlowSystem);
   world.registerSystem(WeatherSystem);
   world.registerSystem(HorizonSystem);
   world.registerSystem(EnvironmentSystem);

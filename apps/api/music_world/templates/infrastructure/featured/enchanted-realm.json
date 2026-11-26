@@ -98,10 +98,6 @@
   "zones": [],
   "scenery": [
     {
-      "kind": "terrain_ridge",
-      "count": 3
-    },
-    {
       "kind": "recipe:castle",
       "count": 1
     },

@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from pathlib import Path
 from typing import Any
 
 from httpx import ASGITransport, AsyncClient
@@ -96,3 +97,23 @@ async def test_rate_limit_answers_429() -> None:
         codes = [(await c.post("/api/director/demo", json=_demo_body())).status_code for _ in range(3)]
         last = await c.post("/api/director/demo", json=_demo_body())
     assert codes == [200, 200, 429] and last.json()["error"]["code"] == "RATE_LIMITED"
+
+
+async def test_layout_route_writes_a_layout_for_the_chosen_template() -> None:
+    analyses = InMemoryAnalysisRepository()
+    audio = wav_bytes()
+    await analyses.save(
+        AnalysisResult.model_validate({**_base(), "audioHash": "sha256:" + hashlib.sha256(audio).hexdigest()})
+    )
+    realm = json.loads(
+        (Path(__file__).parents[2] / "music_world/templates/infrastructure/featured/enchanted-realm.json").read_text()
+    )
+    c = _client(analyses, Settings(app_env="test"))
+    async with c, LifespanManager(c):
+        created = (await c.post("/api/projects", files={"audio": ("a.wav", audio, "audio/wav")})).json()
+        response = await c.post(f"/api/projects/{created['projectId']}/layout", json={"template": realm})
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["provider"] == "mock"
+    assert body["layout"]["patches"][0]["theme"] == "keep"
+    assert any(step["kind"] == "recipe:magic_tree" for step in body["layout"]["sequence"])

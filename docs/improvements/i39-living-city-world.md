@@ -16,3 +16,4 @@ the walkable area, roads, terrain and horizon follow `worldSize(template)`).
   a swinging tower crane for tall buildings, bare concrete turning into the building colour.
 - Placement of buildings, trees and bushes bypasses zones and layouts in a city template; needles and hills stand in parks.
 - Limits: cars on the boulevards do not stop at the lights (decorative, beat-synced); the horizon tree ring is off in a city.
+- Layout (I41): see `docs/improvements/i41-ai-layout-realm-staging.md`; the director can now write the object layout of a chosen template (reef and realm worlds).

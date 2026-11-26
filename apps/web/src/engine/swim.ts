@@ -43,6 +43,8 @@ export const SWIMMERS: Readonly<Record<string, SwimSpec>> = {
   'recipe:clownfish': { speed: 0.28, roam: 0.4, depth: [0.02, 0.1], wave: 10, wiggle: 0.5, cap: 8 },
   'recipe:fish_school': { speed: 0.8, roam: 1.1, depth: [0.05, 0.26], wave: 18, cap: 6 },
   'recipe:pufferfish': { speed: 0.2, roam: 0.7, depth: [0.04, 0.18], wave: 16, cap: 4 },
+  // Enchanted Realm (I41): dragons fly over the realm in wide slow circles, high above the towers.
+  'recipe:dragon': { speed: 0.75, roam: 1.1, depth: [0.28, 0.55], wave: 17, cap: 2 },
   'recipe:crab': { speed: 0.12, roam: 0.4, depth: [0, 0], wave: 10, upright: true, sideways: true, cap: 5 },
 };
 
@@ -50,6 +52,9 @@ const MAX_PITCH = 0.45;
 const MAX_ROLL = 0.5;
 
 const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
+
+/** Swimming kinds that fly: they roam on land worlds too (the others swim in underwater worlds only). */
+export const FLYERS: ReadonlySet<string> = new Set(['recipe:dragon']);
 
 export function isSwimmer(kind: string): boolean {
   return kind in SWIMMERS;

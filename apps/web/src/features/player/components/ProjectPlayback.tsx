@@ -7,6 +7,7 @@ import { SiteNav } from "@/features/navigation";
 import type { Analysis } from "@/templates/generated";
 import { extendWithGenericNotes } from "@/engine/generic-notes";
 import {
+  useDirectedLayout,
   useDirector,
   type DirectorSource,
 } from "@/features/director";
@@ -55,7 +56,7 @@ function ProjectWorld({
   const choice = useAiTemplateChoice(director, store);
   const controls = useWorldControls(player, t("projectTitle"), choice);
   const { clock } = player;
-  const { template } = choice;
+  const template = useDirectedLayout(projectId, choice.template);
   // Every start of the song goes into this user's list of played songs (kept in this browser only).
   const { ready: playlistReady, played } = usePlaylist();
   const { durationSec, key: songKey, tempoBpm } = analysis;

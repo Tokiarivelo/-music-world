@@ -162,6 +162,7 @@ export const SWIM_MODES: Readonly<Record<string, { mode: SwimMode; speed: number
   'recipe:whale': { mode: 'fluke', speed: 1.2, amount: 0.05 },
   'recipe:dolphin': { mode: 'fluke', speed: 4.2, amount: 0.07 },
   'recipe:manta_ray': { mode: 'wing', speed: 2.2, amount: 0.12 },
+  'recipe:dragon': { mode: 'wing', speed: 3.2, amount: 0.1 },
   'recipe:jellyfish': { mode: 'pulse', speed: 2.6, amount: 1 },
   'recipe:kelp': { mode: 'plant', speed: 1.1, amount: 0.3 },
   'recipe:seagrass': { mode: 'plant', speed: 1.5, amount: 0.3 },

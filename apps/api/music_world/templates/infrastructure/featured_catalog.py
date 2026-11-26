@@ -24,7 +24,7 @@ FEATURED_FILES: dict[str, str] = {
     AURORA_STORE_ID: "aurora-night.json",  # northern lights launch template (staff style aurora)
     LIVING_CITY_STORE_ID: "living-city.json",  # trees, clouds, cars and planes (I8)
     ABYSSAL_STORE_ID: "abyssal-currents.json",  # ocean world whose notes ride sea currents (staff style current)
-    ENCHANTED_STORE_ID: "enchanted-realm.json",  # fantasy world: castle, dragons, wizard towers, mushrooms, crystals (I40)
+    ENCHANTED_STORE_ID: "enchanted-realm.json",  # fantasy world: castle, dragons, towers, mushrooms (I40)
 }
 
 

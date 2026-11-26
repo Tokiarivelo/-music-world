@@ -35,6 +35,7 @@ from music_world.analysis.application.use_cases.get_project_analysis import GetP
 from music_world.analysis.infrastructure.project_audio_source import ProjectsAudioSource
 from music_world.analysis.infrastructure.sqlalchemy_analysis_repository import SqlAlchemyAnalysisRepository
 from music_world.director.application.ports import LLMProvider, ProjectAnalyses
+from music_world.director.application.use_cases.direct_layout import DirectLayout
 from music_world.director.application.use_cases.generate_world import (
     GenerateDemoWorld,
     GenerateProjectWorld,
@@ -108,6 +109,7 @@ log = structlog.get_logger(__name__)
 class DirectorServices:
     generate_world: GenerateWorld
     generate_project_world: GenerateProjectWorld
+    direct_layout: DirectLayout
     generate_demo_world: GenerateDemoWorld
     list_providers: ListProviders
     limiter: SlidingWindowLimiter
@@ -172,6 +174,14 @@ def build_director(
     return DirectorServices(
         generate_world=generate,
         generate_project_world=GenerateProjectWorld(analyses, generate),
+        direct_layout=DirectLayout(
+            analyses,
+            chain,
+            ObjectStoreSpendTracker(store),
+            default_provider=default,
+            spend_cap_usd=settings.meta_spend_cap_usd,
+            timeout_sec=settings.director_timeout_sec,
+        ),
         generate_demo_world=GenerateDemoWorld(generate),
         list_providers=ListProviders(models, set(chain), default),
         limiter=SlidingWindowLimiter(settings.director_rate_limit_per_hour, 3600.0),

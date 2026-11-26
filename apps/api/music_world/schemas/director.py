@@ -6,10 +6,11 @@ from pydantic import ConfigDict, Field
 
 from music_world.schemas.analysis import AnalysisResult
 from music_world.schemas.base import ContractModel
-from music_world.schemas.template import WorldTemplate
+from music_world.schemas.template import WorldLayout, WorldTemplate
 
 RESULT_SCHEMA_ID = "music-world.director-result.v1"
 PROVIDERS_SCHEMA_ID = "music-world.director-providers.v1"
+LAYOUT_SCHEMA_ID = "music-world.layout-result.v1"
 
 ProviderName = Literal["muse", "bedrock", "mock"]
 FallbackReason = Literal[
@@ -83,4 +84,23 @@ class DemoDirectorRequest(ContractModel):
     """Body of `POST /api/director/demo`: the shipped demo analysis (the demo song has no project)."""
 
     analysis: AnalysisResult
+    provider: ProviderName | None = None
+
+
+class LayoutResult(ContractModel):
+    """The object layout the director wrote for a chosen template, and which provider wrote it."""
+
+    model_config = ConfigDict(title="LayoutResult")
+
+    layout: WorldLayout
+    provider: ProviderName
+    model: str
+    requested_provider: ProviderName
+    fallbacks: list[FallbackStep] = Field(default_factory=list)
+
+
+class LayoutRequest(ContractModel):
+    """Body of `POST /api/projects/{id}/layout`: the template the user chose, and an optional provider."""
+
+    template: WorldTemplate
     provider: ProviderName | None = None

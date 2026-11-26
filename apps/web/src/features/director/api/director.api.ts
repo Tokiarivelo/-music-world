@@ -1,8 +1,11 @@
 import {
   DirectorProvidersSchema,
   DirectorResultSchema,
+  LayoutResultSchema,
   type DirectorProviders,
   type DirectorResult,
+  type LayoutResult,
+  type Template,
 } from '@/templates/generated';
 import { apiJson } from '@/lib/api-client';
 import type { DirectorSource, ProviderId } from '../interfaces/director.interfaces';
@@ -19,4 +22,14 @@ export async function generateWorld(source: DirectorSource, provider: ProviderId
   const body = source.kind === 'project' ? { provider } : { provider, analysis: source.analysis };
   const init = { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) };
   return DirectorResultSchema.parse(await apiJson(url, init));
+}
+
+/** `POST /api/projects/{id}/layout`: the director writes where each object of the chosen template grows. */
+export async function directLayout(projectId: string, template: Template, provider?: ProviderId): Promise<LayoutResult> {
+  const init = {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ template, ...(provider ? { provider } : {}) }),
+  };
+  return LayoutResultSchema.parse(await apiJson(`/api/projects/${encodeURIComponent(projectId)}/layout`, init));
 }

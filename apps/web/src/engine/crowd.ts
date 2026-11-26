@@ -17,7 +17,7 @@
  */
 import { hashSeed, mulberry32 } from './prng';
 import { MOVING_KINDS, objectPoseAt, type Pose } from './motion';
-import { isSwimmer, SWIMMERS } from './swim';
+import { FLYERS, isSwimmer, SWIMMERS } from './swim';
 import { worldSize } from './city';
 import { buildRoads, LANE_OFFSET, roadPoint, type Road } from './roads';
 import type { SpawnPlan } from './spawn-plan';
@@ -270,7 +270,7 @@ function shortestAngle(from: number, to: number, weight: number): number {
 export function crowdItemsOf(plan: Pick<SpawnPlan, 'records' | 'template'>, radiusOf: (kind: string) => number): CrowdItem[] {
   const items: CrowdItem[] = [];
   const sea = plan.template.fx.environment === 'underwater'; // animals swim only in water
-  for (const r of plan.records) if (MOVING_KINDS.has(r.kind) || (sea && isSwimmer(r.kind))) items.push({ index: r.index, kind: r.kind, radius: radiusOf(r.kind) });
+  for (const r of plan.records) if (MOVING_KINDS.has(r.kind) || ((sea || FLYERS.has(r.kind)) && isSwimmer(r.kind))) items.push({ index: r.index, kind: r.kind, radius: radiusOf(r.kind) });
   return items;
 }
 

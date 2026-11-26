@@ -19,6 +19,8 @@ export interface ModelSpec {
   readonly flip?: boolean;
   /** Painted in the colours of the real thing (ocean life): the palette only tints it slightly instead of recolouring it. */
   readonly natural?: boolean;
+  /** Scale on top of the footprint (a castle must tower over the village though recipes stop at a 1.5 footprint). */
+  readonly scale?: number;
 }
 
 /** Kind (`tree`, `recipe:shark`…) to model. Kinds not listed keep their procedural shape. */
@@ -57,13 +59,13 @@ export const MODELS: Readonly<Record<string, ModelSpec>> = {
   'recipe:seashell': { file: 'seashell', forward: 'x', natural: true },
   'recipe:shipwreck': { file: 'shipwreck', forward: 'x', natural: true },
   // Enchanted Realm (I40, `scripts/blender/build_fantasy.py`): used by polished templates that define a recipe of that name.
-  'recipe:castle': { file: 'castle', forward: 'x', natural: true },
+  'recipe:castle': { file: 'castle', forward: 'x', natural: true, scale: 2.4 },
   'recipe:wizard_tower': { file: 'wizard_tower', forward: 'x', natural: true },
   'recipe:mushroom_house': { file: 'mushroom_house', forward: 'x', natural: true },
   'recipe:giant_mushroom': { file: 'giant_mushroom', forward: 'x', natural: true },
   'recipe:crystal_cluster': { file: 'crystal_cluster', forward: 'x', natural: true },
   'recipe:magic_tree': { file: 'magic_tree', forward: 'x', natural: true },
-  'recipe:dragon': { file: 'dragon', forward: 'x', natural: true },
+  'recipe:dragon': { file: 'dragon', forward: 'x', natural: true, scale: 1.5 },
   'recipe:glow_flower': { file: 'glow_flower', forward: 'x', natural: true },
 };
 
@@ -96,7 +98,7 @@ export function hasModel(kind: string): boolean {
  */
 export function fitModel(
   geometry: BufferGeometry,
-  spec: Pick<ModelSpec, 'forward' | 'flip'>,
+  spec: Pick<ModelSpec, 'forward' | 'flip' | 'scale'>,
   footprint: number,
   nominalHeight: number,
 ): BufferGeometry {
@@ -107,7 +109,8 @@ export function fitModel(
   const box = g.boundingBox!;
   g.translate(-(box.max.x + box.min.x) / 2, -box.min.y, -(box.max.z + box.min.z) / 2);
   const side = Math.max(box.max.x - box.min.x, box.max.z - box.min.z);
-  g.scale(1 / side, footprint / (side * nominalHeight), 1 / side);
+  const k = spec.scale ?? 1;
+  g.scale(k / side, (k * footprint) / (side * nominalHeight), k / side);
   g.computeBoundingBox();
   g.computeBoundingSphere();
   return g;

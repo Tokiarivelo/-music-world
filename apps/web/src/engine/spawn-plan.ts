@@ -33,7 +33,7 @@ import {
     templateHasCity,
 } from './city';
 import { noteStream, uniform } from './prng';
-import { reefKind, reefOf, reefSpot, themeOf, worldPlanKind } from './world-plan';
+import { layoutOf, reefKind, reefOf, reefSpot, themeOf, worldPlanKind } from './world-plan';
 import { recipeScale } from './recipe-scale';
 import { applyEdits, linesOf, staffUOfSnapped, MAIN_LINE_ID, type LayoutEdits, type StaffLine } from './edits';
 import { buildStaffPath, lineOffsetY, type StaffPath } from './staff';
@@ -223,12 +223,14 @@ function placerFor(
     // Seabed life grows in the patches of the reef plan (kelp forests, coral gardens, sandy flats, the wreck), from the centre out.
     const reef = reefOf(template, seed);
     const seenTheme = new Map<string, number>();
+    const directed = layoutOf(template) !== null; // a layout fills each patch with the kinds of its steps
     return (kind, at) => {
       const theme = themeOf(kind);
       if (!theme) return plain(kind, at);
-      const ordinal = seenTheme.get(theme) ?? 0;
-      seenTheme.set(theme, ordinal + 1);
-      const spot = reefSpot(reef, kind, ordinal, themeTotals.get(theme) ?? 1, seed, `${kind}:${ordinal}`);
+      const group = directed ? kind : theme;
+      const ordinal = seenTheme.get(group) ?? 0;
+      seenTheme.set(group, ordinal + 1);
+      const spot = reefSpot(reef, kind, ordinal, themeTotals.get(group) ?? 1, seed, `${kind}:${ordinal}`);
       return { ...plain(kind, () => spot ?? at()), yaw: spot ? (ordinal * 2.399963) % (Math.PI * 2) : 0 };
     };
   }
@@ -372,17 +374,19 @@ export function buildSpawnPlan(
   };
   const cityMode = templateHasCity(template);
   const reefMode = ['reef', 'realm'].includes(worldPlanKind(template));
-  const kindOf = (note: NoteEvent, mapped: ShapeKind): ShapeKind =>
-    cityMode ? plannedKind(seed, note.id, mapped) : reefMode ? reefKind(template, seed, note.id, mapped) : mapped;
+  const kindOf = (note: NoteEvent, mapped: ShapeKind, index: number): ShapeKind =>
+    cityMode ? plannedKind(seed, note.id, mapped) : reefMode ? reefKind(template, seed, note.id, mapped, index) : mapped;
   const themeTotals = new Map<string, number>();
   const countTheme = (kind: ShapeKind, n: number): void => {
     const theme = themeOf(kind);
-    if (theme) themeTotals.set(theme, (themeTotals.get(theme) ?? 0) + n);
+    if (!theme) return;
+    themeTotals.set(theme, (themeTotals.get(theme) ?? 0) + n);
+    themeTotals.set(kind, (themeTotals.get(kind) ?? 0) + n); // the director's layout fills patches kind by kind
   };
   if (reefMode) for (const item of template.scenery) countTheme(item.kind, item.count);
   for (const item of template.scenery) if (!(cityMode && PLAN_KINDS.has(item.kind))) count(item.kind, item.count);
-  for (const note of notes) {
-    const planned = kindOf(note, mapNote(note, template, edited?.lineOf.get(note.id) ?? MAIN_LINE_ID).kind);
+  for (const [i, note] of notes.entries()) {
+    const planned = kindOf(note, mapNote(note, template, edited?.lineOf.get(note.id) ?? MAIN_LINE_ID).kind, i);
     count(planned, 1);
     if (reefMode) countTheme(planned, 1);
   }
@@ -406,7 +410,7 @@ export function buildSpawnPlan(
     const index = first + i;
     const line = edited?.lineOf.get(note.id) ?? MAIN_LINE_ID;
     const mapped0 = mapNote(note, template, line);
-    const mapped: MappedNote = { ...mapped0, kind: kindOf(note, mapped0.kind) };
+    const mapped: MappedNote = { ...mapped0, kind: kindOf(note, mapped0.kind, i) };
     const zones = zonesOf(mapped.kind);
     const size = kindSize(mapped.kind, template);
     const velocity = clamp(note.velocity, 0, 1);

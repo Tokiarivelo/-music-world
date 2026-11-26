@@ -104,8 +104,33 @@ export interface Reef {
 const PATCH_COUNT: Readonly<Record<ReefTheme, number>> = { keep: 1, village: 3, forest: 4, crystal: 3, kelp: 3, coral: 4, sand: 2, wreck: 1 };
 const reefCache = new Map<string, Reef>();
 
+type Layout = NonNullable<WorldTemplate['layout']>;
+
+/** The layout the director wrote for this template (I41), when it is usable: patches, and steps that use them. */
+export function layoutOf(template: WorldTemplate): Layout | null {
+  const layout = template.layout;
+  if (!layout || layout.patches.length === 0 || layout.sequence.length === 0) return null;
+  return layout;
+}
+
+function reefFromLayout(layout: Layout, size: number): Reef {
+  const half = size / 2;
+  const patches = layout.patches.map((p): ReefPatch => ({
+    theme: p.theme,
+    x: p.x * half * 0.96,
+    z: p.z * half * 0.96,
+    radius: p.radius * half,
+    kinds: [...new Set(layout.sequence.filter((s) => s.patch === p.id).map((s) => s.kind))],
+  }));
+  // Filled from the centre outwards, like the derived plan.
+  patches.sort((a, b) => Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z));
+  return { patches };
+}
+
 export function reefOf(template: WorldTemplate, seed: number): Reef {
   const size = worldSize(template);
+  const layout = layoutOf(template);
+  if (layout) return reefFromLayout(layout, size);
   const items = inventoryOf(template).filter((i) => i.role === 'benthic');
   const key = `${seed}:${size}:${items.map((i) => i.kind).join(',')}`;
   const cached = reefCache.get(key);
@@ -132,6 +157,8 @@ export function reefOf(template: WorldTemplate, seed: number): Reef {
     }
     n += 1;
   }
+  const keep = patches.find((p) => p.theme === 'keep'); // the heart of the realm: its castle stands at the centre
+  if (keep) Object.assign(keep, { x: 0, z: 0 });
   patches.sort((a, b) => Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z));
   const reef = { patches };
   reefCache.set(key, reef);
@@ -148,26 +175,59 @@ export function themeOf(kind: ShapeKind): ReefTheme | null {
  */
 export function reefSpot(reef: Reef, kind: ShapeKind, ordinal: number, total: number, seed: number, noteId: string): Vec3 | null {
   const theme = themeOf(kind);
-  const mine = reef.patches.filter((p) => p.theme === theme);
+  const byKind = reef.patches.filter((p) => p.kinds.includes(kind));
+  const mine = byKind.length > 0 ? byKind : reef.patches.filter((p) => p.theme === theme);
   if (!theme || mine.length === 0) return null;
   const per = Math.max(1, Math.ceil(Math.max(1, total) / mine.length));
   const patch = mine[Math.min(mine.length - 1, Math.floor(ordinal / per))]!;
   const rng = noteStream(seed, `${noteId}:reef`);
+  if (theme === 'keep' && kind === 'recipe:castle') return { x: patch.x, y: 0, z: patch.z }; // the castle stands at the heart of its keep
   const a = rng() * Math.PI * 2;
   const d = patch.radius * Math.sqrt(rng()) * (0.35 + 0.65 * rng());
   return { x: patch.x + Math.cos(a) * d, y: 0, z: patch.z + Math.sin(a) * d };
+}
+
+const rotations = new WeakMap<object, readonly ShapeKind[]>();
+
+/**
+ * The order in which the notes pick objects: the steps of the director's sequence, each repeated in proportion to its
+ * weight and spread out evenly (smooth weighted round robin), so a rare object comes back at regular intervals.
+ */
+function rotationOf(template: WorldTemplate): readonly ShapeKind[] | null {
+  const layout = layoutOf(template);
+  if (!layout) return null;
+  const cached = rotations.get(layout);
+  if (cached) return cached.length > 0 ? cached : null;
+  const steps = layout.sequence.filter((s) => s.weight > 0);
+  const slots = steps.map((s) => Math.max(1, Math.round(s.weight * 2)));
+  const total = slots.reduce((a, b) => a + b, 0);
+  const credit = steps.map(() => 0);
+  const order: ShapeKind[] = [];
+  for (let n = 0; n < total; n += 1) {
+    let best = 0;
+    for (let i = 0; i < steps.length; i += 1) {
+      credit[i]! += slots[i]!;
+      if (credit[i]! > credit[best]!) best = i;
+    }
+    credit[best]! -= total;
+    order.push(steps[best]!.kind);
+  }
+  rotations.set(layout, order);
+  return order.length > 0 ? order : null;
 }
 
 /** Share of the notes the reef plan turns into seabed life (the rest keep their rule: swimmers, giants, bubbles). */
 export const REEF_SHARE = 0.4;
 
 /** What a note becomes in a reef: seabed life of the inventory, picked by weight, or the kind its rule gave it. */
-export function reefKind(template: WorldTemplate, seed: number, noteId: string, mapped: ShapeKind): ShapeKind {
+export function reefKind(template: WorldTemplate, seed: number, noteId: string, mapped: ShapeKind, index = 0): ShapeKind {
   const role = roleOf(mapped);
   if (role === 'giant' || role === 'effect') return mapped;
   if (role === 'benthic') return mapped;
   const rng = noteStream(seed, `${noteId}:reefkind`);
   if (rng() >= REEF_SHARE) return mapped;
+  const rotation = rotationOf(template);
+  if (rotation) return rotation[index % rotation.length]!;
   const items = inventoryOf(template).filter((i) => i.role === 'benthic' && (PICK_WEIGHT[i.kind] ?? 1) > 0);
   if (items.length === 0) return mapped;
   const total = items.reduce((n, i) => n + (PICK_WEIGHT[i.kind] ?? 1), 0);
