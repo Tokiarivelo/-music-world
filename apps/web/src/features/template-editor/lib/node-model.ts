@@ -91,6 +91,71 @@ export function duplicateNode(nodes: readonly PartNode[], id: string): PartNode[
   return [...nodes.slice(0, last + 1), ...copies, ...nodes.slice(last + 1)];
 }
 
+export type Axis = 'x' | 'y' | 'z';
+export const AXES: readonly Axis[] = ['x', 'y', 'z'];
+export const ARRAY_MIN = 2;
+export const ARRAY_MAX = 8;
+
+/** Copies of a subtree with fresh ids and remapped parents; `tweak` adjusts each copy (root flag given). */
+function cloneSubtree(nodes: readonly PartNode[], id: string, used: PartNode[], tweak: (n: PartNode, root: boolean) => PartNode): PartNode[] {
+  const ids = subtreeIds(nodes, id);
+  const rename = new Map<string, string>();
+  const copied = nodes.filter((n) => ids.has(n.id));
+  for (const n of copied) {
+    const fresh = freshNodeId(used, n.id);
+    rename.set(n.id, fresh);
+    used.push({ ...n, id: fresh });
+  }
+  return copied.map((n) => tweak({ ...n, id: rename.get(n.id)!, parent: n.parent && rename.has(n.parent) ? rename.get(n.parent)! : n.parent }, n.id === id));
+}
+
+function insertAfterSubtree(nodes: readonly PartNode[], id: string, copies: readonly PartNode[]): PartNode[] {
+  const ids = subtreeIds(nodes, id);
+  const last = nodes.reduce((at, n, i) => (ids.has(n.id) ? i : at), -1);
+  return [...nodes.slice(0, last + 1), ...copies, ...nodes.slice(last + 1)];
+}
+
+/** Reflects a part and its children across the plane normal to `axis` (position negated, rotation flipped). */
+export function mirrorNode(nodes: readonly PartNode[], id: string, axis: Axis): PartNode[] {
+  const size = subtreeIds(nodes, id).size;
+  if (size === 0 || !nodes.some((n) => n.id === id) || nodes.length + size > MAX_NODES) return [...nodes];
+  const flip: Record<Axis, Axis[]> = { x: ['y', 'z'], y: ['x', 'z'], z: ['x', 'y'] };
+  const copies = cloneSubtree(nodes, id, [...nodes], (n, root) => {
+    const position = { x: n.position?.x ?? 0, y: n.position?.y ?? 0, z: n.position?.z ?? 0 };
+    position[axis] = -position[axis];
+    const rotation = { x: n.rotation?.x ?? 0, y: n.rotation?.y ?? 0, z: n.rotation?.z ?? 0 };
+    for (const a of flip[axis]) rotation[a] = -rotation[a];
+    return { ...n, name: root ? `${n.name} mirror`.slice(0, NODE_NAME_MAX) : n.name, position, rotation };
+  });
+  return insertAfterSubtree(nodes, id, copies);
+}
+
+/** `count` copies in all (the part plus `count - 1` more) spaced `step` metres apart along `axis`. */
+export function arrayNode(nodes: readonly PartNode[], id: string, axis: Axis, count: number, step: number): PartNode[] {
+  const n = Math.min(ARRAY_MAX, Math.max(ARRAY_MIN, Math.round(Number.isFinite(count) ? count : ARRAY_MIN)));
+  const size = subtreeIds(nodes, id).size;
+  if (!nodes.some((x) => x.id === id) || nodes.length + size * (n - 1) > MAX_NODES) return [...nodes];
+  const bound = NODE_BOUNDS[`p${axis}` as NodeField];
+  const used = [...nodes];
+  const all: PartNode[] = [];
+  for (let i = 1; i < n; i += 1) {
+    all.push(...cloneSubtree(nodes, id, used, (c, root) => {
+      if (!root) return c;
+      const at = (c.position?.[axis] ?? 0) + i * (Number.isFinite(step) ? step : 0);
+      return { ...c, name: `${c.name} ${i + 1}`.slice(0, NODE_NAME_MAX), position: { x: c.position?.x ?? 0, y: c.position?.y ?? 0, z: c.position?.z ?? 0, [axis]: Math.min(bound.max, Math.max(bound.min, at)) } };
+    }));
+  }
+  return insertAfterSubtree(nodes, id, all);
+}
+
+/** Moves a part by `delta` metres along `axis` (clamped); the gizmo and the nudge buttons use it. */
+export function nudgeNode(nodes: readonly PartNode[], id: string, axis: Axis, delta: number): PartNode[] {
+  const node = nodes.find((n) => n.id === id);
+  if (!node) return [...nodes];
+  const field = `p${axis}` as NodeField;
+  return setNodeNumber(nodes, id, field, readNodeField(node, field) + delta);
+}
+
 /** A new part under `parent` (null: a root). Unchanged when the tree is full or too deep. */
 export function addNode(nodes: readonly PartNode[], primitive: NodePrimitive, parent: string | null): PartNode[] {
   if (nodes.length >= MAX_NODES) return [...nodes];

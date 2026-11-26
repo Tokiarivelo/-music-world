@@ -82,4 +82,34 @@ describe('node-model', () => {
     m.duplicateNode(house, 'walls'); m.deleteNode(house, 'roof'); m.setNodeNumber(house, 'walls', 'sx', 1); m.addNode(house, 'box', null);
     expect(JSON.stringify(house)).toBe(before);
   });
+
+  it('mirrors a subtree across an axis with fresh ids', () => {
+    const base = m.addNode(house, 'box', null);
+    const moved = m.setNodeNumber(m.setNodeNumber(base, 'box_1', 'px', 0.4), 'box_1', 'ry', 30);
+    const out = m.mirrorNode(moved, 'box_1', 'x');
+    const copy = out.find((n) => n.name === 'Box mirror')!;
+    expect(copy.position?.x).toBeCloseTo(-0.4);
+    expect(copy.rotation?.y).toBe(-30);
+    expect(out).toHaveLength(moved.length + 1);
+    expect(valid(out)).toBe(true);
+  });
+
+  it('arrays a part and keeps the tree valid', () => {
+    const out = m.arrayNode(house, 'roof', 'x', 3, 0.2);
+    expect(out).toHaveLength(house.length + 2 * m.subtreeIds(house, 'roof').size);
+    expect(out.find((n) => n.name === 'Roof 3')!.position?.x).toBeCloseTo((house.find((n) => n.id === 'roof')!.position?.x ?? 0) + 0.4);
+    expect(valid(out)).toBe(true);
+  });
+
+  it('refuses a mirror or array that would exceed the node limit', () => {
+    let full = [...house];
+    while (full.length < m.MAX_NODES) full = m.addNode(full, 'box', null);
+    expect(m.mirrorNode(full, 'box_1', 'x')).toEqual(full);
+    expect(m.arrayNode(full, 'box_1', 'x', 4, 0.1)).toEqual(full);
+  });
+
+  it('nudges within the bounds', () => {
+    const out = m.nudgeNode(house, 'roof', 'y', 100);
+    expect(out.find((n) => n.id === 'roof')!.position?.y).toBe(2);
+  });
 });

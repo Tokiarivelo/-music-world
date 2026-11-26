@@ -54,3 +54,10 @@
   The browser draft is restored on the next visit (read with `useSyncExternalStore`, no hydration mismatch).
 - Not done: a 3D gizmo in the world view (plan-view handles instead), picking a store template inside the create dialog
   (use `?from=<id>`), the placed object's own part overrides (`overrides` of the spec: only `color` and `variant`).
+
+## As built (phase 4, part tools and look)
+
+- 4.1: pure `mirrorNode` (copy of the subtree, position negated and rotation flipped on the axis), `arrayNode` (2–8
+  copies, spacing along an axis) and `nudgeNode` in `lib/node-model.ts`, buttons in `PartTreePanel`. All respect the
+  48-node limit (unchanged when exceeded). Deviation: the "gizmo" is the numeric fields plus ±0.05 m nudge buttons;
+  the object viewport is a 2D canvas, so drag handles are not added there.

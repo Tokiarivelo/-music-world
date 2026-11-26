@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useT } from '@/i18n';
 import { BUTTON, CONTROL, FOCUS } from '../consts/ui.consts';
 import {
-  addNode, deleteNode, duplicateNode, MAX_NODES, nodeDepth, PRIMITIVES, renameNode, toggleHidden,
+  addNode, ARRAY_MAX, ARRAY_MIN, arrayNode, AXES, deleteNode, duplicateNode, MAX_NODES, mirrorNode, nudgeNode, type Axis, nodeDepth, PRIMITIVES, renameNode, toggleHidden,
   type NodePrimitive, type PartNode,
 } from '../lib/node-model';
 
@@ -20,6 +20,9 @@ export function PartTreePanel({ nodes, selected, onSelect, onChange }: PartTreeP
   const t = useT('editor');
   const [primitive, setPrimitive] = useState<NodePrimitive>('box');
   const [renaming, setRenaming] = useState<string | null>(null);
+  const [axis, setAxis] = useState<Axis>('x');
+  const [count, setCount] = useState(3);
+  const [step, setStep] = useState(0.3);
   const current = nodes.find((n) => n.id === selected) ?? null;
   const commitRename = (id: string, value: string) => {
     onChange(renameNode(nodes, id, value));
@@ -78,6 +81,37 @@ export function PartTreePanel({ nodes, selected, onSelect, onChange }: PartTreeP
           {t('parts.delete')}
         </button>
       </div>
+      <fieldset className="flex flex-col gap-2" disabled={!current}>
+        <legend className="text-xs opacity-80">{t('parts.tools.tools')}</legend>
+        <div className="flex flex-wrap items-center gap-2">
+          <select aria-label={t('parts.tools.axis')} className={CONTROL} value={axis} onChange={(e) => setAxis(e.target.value as Axis)}>
+            {AXES.map((a) => (
+              <option key={a} value={a}>{a.toUpperCase()}</option>
+            ))}
+          </select>
+          <button type="button" className={BUTTON} disabled={!current} onClick={() => current && onChange(mirrorNode(nodes, current.id, axis))}>
+            {t('parts.tools.mirror')}
+          </button>
+          {([-1, 1] as const).map((dir) => (
+            <button key={dir} type="button" className={`${BUTTON} !px-2`} disabled={!current} aria-label={t('parts.tools.nudge', { axis: axis.toUpperCase(), dir: dir > 0 ? '+' : '−' })} onClick={() => current && onChange(nudgeNode(nodes, current.id, axis, dir * 0.05))}>
+              {dir > 0 ? '+' : '−'}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="flex flex-col gap-1 text-xs opacity-80">
+            {t('parts.tools.count')}
+            <input type="number" className={`${CONTROL} w-20`} min={ARRAY_MIN} max={ARRAY_MAX} value={count} onChange={(e) => e.target.value !== '' && setCount(e.target.valueAsNumber)} />
+          </label>
+          <label className="flex flex-col gap-1 text-xs opacity-80">
+            {t('parts.tools.step')}
+            <input type="number" className={`${CONTROL} w-24`} step={0.05} value={step} onChange={(e) => e.target.value !== '' && setStep(e.target.valueAsNumber)} />
+          </label>
+          <button type="button" className={BUTTON} disabled={!current} onClick={() => current && onChange(arrayNode(nodes, current.id, axis, count, step))}>
+            {t('parts.tools.array')}
+          </button>
+        </div>
+      </fieldset>
       <div className="flex flex-wrap items-center gap-2">
         <select aria-label={t('parts.primitive')} className={CONTROL} value={primitive} onChange={(e) => setPrimitive(e.target.value as NodePrimitive)}>
           {PRIMITIVES.map((p) => (

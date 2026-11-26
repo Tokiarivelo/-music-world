@@ -40,7 +40,7 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
 
 ## Phase 4 — Part tools and look (`phase-I48-part-tools`)
 
-- [ ] 4.1 Transform tools (numeric + gizmo), mirror, array
+- [x] 4.1 Transform tools (numeric + nudge), mirror, array
 - [ ] 4.2 Material per part: palette role or colour, emissive, roughness
 - [ ] 4.3 Procedural textures (brick, wood, stone, tile, glass)
 - [ ] 4.4 Extrude, bevel, boolean union and subtract
