@@ -52,7 +52,6 @@ Read docs/handoff.md and continue with the next actions.
 
 0. **Agent** — push `phase-I49-editor-finish`, open the PR to `main` and merge it. Then look at cars close up in a real
    browser (`/play/demo`, Walk) and the small black blobs near trees in the city view; Quest 3 check of the traffic cost.
-
 Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Submission deadline **2026-12-04 14:00 PT**.
 
 1. **Human** — roadmap Phase 0: Kiro credits request (before **2026-12-01 12:00 PT**), OVHcloud instance + bucket,
