@@ -12,24 +12,27 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 1. Repository state
 
-- Branch `phase-I48-part-tools` (phase 4 of the object editor) opened from `main` after `phase-I47-map-creator`. Push with gh credentials:
+- Branch `phase-I49-editor-finish` (phase 5, last of the object editor) from `main`; PR to open and merge. Push with gh credentials:
   `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
 - Checks on 2026-11-26: web vitest 832 passed (150 files), tsc and eslint clean; API pytest shape/template/schema subset 142
   passed, ruff and mypy clean; `validate-architecture.sh`: 2 pre-existing violations in `engine/sky.ts` (imports `three`, a flagged word in a comment).
 - No server left running. A Compose stack (old images) and another project's containers may run; leave them alone.
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-26, Claude Code, phase I48 `phase-I48-part-tools`)
+## 2. Last session (2026-11-26, Claude Code, phase I49 `phase-I49-editor-finish`)
 
-- 4.1 mirror, array, nudge of parts; 4.2 material per part (tint, palette role, glow, roughness) with tints in the 2D
-  viewport and thumbnails; 4.3 procedural textures by shader (brick, wood, stone, tile, glass, no image); 4.4 extrude
-  (convex outline), bevel (box) and boolean union / subtract with `three-bvh-csg` + `three-mesh-bvh` (MIT, README updated).
-- Template editor made explicit: a hint under every field (en, fr, mg), ranges and sliders on numbers, zones explained
-  (intro, top-view `ZoneMap`, quick placements, coverage, bound hints), hints on rules, recipes and recipe parts.
-- Deviations: no 3D gizmo (numeric fields + nudge buttons; the viewport is a 2D canvas); roughness is the mean of the
-  parts and needs the polished material; a boolean part works against its parent only; Python counts a combined part as
-  +48 triangles (estimate, the web build re-checks the budget). Details: `12-object-editor/design.md` § phase 4.
-- Malagasy texts are machine-written: have a native speaker review them. Textures are not shown in the 2D preview.
+- 5.1 `ShapeRecipe.variants` (≤ 9 `{name, height, jitter}`); a placed object's `variant` picks one (`variantLook`, `jitterHex`
+  in `engine/recipe-scale.ts`). `VariantsPanel` in the object editor.
+- 5.2 undo / redo / reset to stock (or to the opening state) / diff per object (`lib/object-history.ts`, `useObjectHistory`,
+  `ObjectHistoryBar`).
+- 5.3 `lib/budget-model.ts`: live triangles of the real geometry (the old `recipeTriangles` ignored part trees) and a
+  draw-call estimate (12 + kinds in use, limit 100); both enforced as validation errors; `BudgetMeter`.
+- 5.4 acceptance test `object-editor.acceptance.test.ts` (copy house, paint, texture, variant, validate, round trip);
+  README and `12-object-editor/design.md` § As built (phase 5) updated.
+- Deviations: variants apply to hand-placed objects only (scenery and notes keep variant 0 for recipes); draw calls are an
+  estimate; the map creator keeps its own history (no cross-feature import).
+- Checks: web vitest 839 passed (153 files), tsc and eslint clean; API shape/template/schema 150 passed, ruff and mypy
+  clean; `make arch`: the 2 known `engine/sky.ts` violations; `schemas-check` in sync.
 
 ## 2b. Earlier session (phases I39–I41)
 
@@ -48,7 +51,7 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 3. Next actions
 
-0. **Agent** — object editor, phase 5 (variants and colour jitter, undo / redo, budgets, save): `.kiro/specs/12-object-editor/tasks.md` § Phase 5, briefing `docs/next-task-object-editor.md`. Then look at cars close up in a real
+0. **Agent** — push `phase-I49-editor-finish`, open the PR to `main` and merge it. Then look at cars close up in a real
    browser (`/play/demo`, Walk) and the small black blobs near trees in the city view; Quest 3 check of the traffic cost.
 
 Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Submission deadline **2026-12-04 14:00 PT**.
@@ -108,7 +111,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | I8 lighting (blob shadows, wind), IWER check | Claude Code | done | PR phase-I8c-object-lighting; 58 draw calls in IWER |
 | I19-I21 polished, textured and modelled objects (12 CC0 GLB in `public/models`) (lit PBR, sky reflections, CC0 detail textures, `fx.material`) | Claude Code | done | PR phase-I19-polished-objects; report `docs/improvements/i19-polished-objects.md` |
 | I39–I41 city, playlist, layouts, traffic | Claude Code | done | branch `phase-I39-living-city`, PR to open |
-| 12-object-editor phases 1–4 (1.1–4.5) | Claude Code | done | branches `phase-I45-part-tree` … `phase-I48-part-tools`; phase 5 todo, one commit per task |
+| 12-object-editor phases 1–5 (1.1–5.4) | Claude Code | done | branches `phase-I45-part-tree` … `phase-I49-editor-finish`; PR of phase 5 to merge |
 | I8 GLB/LOD, Quest 3 check | — | blocked | human: GLB needs the sourcing decision (`docs/open-questions.md` 1–2, 12) |
 | I10 R2 bucket + seed | — | blocked | human: bucket, API token, `--only` seed |
 | I9 task 9, I16, I5–I7 Quest checks | — | blocked | human: Quest 3 |
@@ -145,5 +148,5 @@ The daily ones. The rest (API, web/XR, tooling): `docs/pitfalls.md`, read the gr
 | 08-navigation-mode | 1–6 done | — (human: try it on a phone) | design.md § As built |
 | 09-template-editor | 1–11 done | — (recipe editing done, phase A5) | design.md § As built |
 | 10-template-moderation | 6/7 done | 7 (human: review a real hidden template) | design.md § As built |
-| 12-object-editor | phases 1–4 done (1.1–4.5) | 5.1 variants and colour jitter | tasks.md § Phase 5; design.md § As built (phases 1–4) |
+| 12-object-editor | all phases done (1.1–5.4) | — (variants for scenery and notes: optional) | design.md § As built (phases 1–5) |
 | 11-editable-notes | 1–8, 10 done | 9 (Quest, human); VR panel line list | design.md § As built |
