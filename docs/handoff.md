@@ -45,8 +45,7 @@ Read docs/handoff.md and continue with the next actions.
 - I41 traffic (`engine/traffic.ts`): cars and bicycles drive on the city street grid, stop at real signals (green 8 s,
   yellow 2 s, red), keep their distance; ring boulevards, flyovers and tunnels removed in cities; smaller cars and trees
   (`CITY_FOOTPRINT`). Details and limits: `docs/improvements/i41-ai-layout-realm-staging.md`.
-- Screenshots checked (headless Chromium, swiftshader, mocked API): realm, reef, city explore and walk. Cars were not in
-  frame in the last city shots (end of song): check cars close up in a browser.
+- Screenshots checked (headless Chromium): realm, reef, city. Cars were not in frame: check them close up in a browser.
 - Not done: Quest 3 checks, black small blobs near trees in the city explore view (unidentified), I40 limits above.
 
 ## 3. Next actions
