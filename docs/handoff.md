@@ -12,7 +12,7 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 1. Repository state
 
-- Branch `phase-I39-living-city` (commits I39, I40, I41; **PR to `main` not opened yet**). Push with gh credentials:
+- Branch `phase-I43-walk-pegman` merged to `main` (I43 walk pegman, map, collisions; I44 water, building types). Push with gh credentials:
   `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
 - Checks on 2026-11-26: web vitest 698 passed, tsc and eslint clean; API pytest 398 passed, ruff and mypy clean;
   `validate-architecture.sh`: 2 pre-existing violations in `engine/sky.ts` (imports `three`, a comment with a flagged word).
@@ -36,7 +36,7 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 3. Next actions
 
-0. **Agent** — push `phase-I39-living-city`, open the PR to `main` and merge it; then look at cars close up in a real
+0. **Agent** — object editor and map creator: `docs/next-task-object-editor.md` (spec `12-object-editor`); then look at cars close up in a real
    browser (`/play/demo`, Walk) and the small black blobs near trees in the city view; Quest 3 check of the traffic cost.
 
 Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Submission deadline **2026-12-04 14:00 PT**.
