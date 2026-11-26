@@ -33,6 +33,19 @@ describe('EditorShell', () => {
     expect(screen.getByRole('link', { name: 'Sign in to save' })).toBeTruthy();
   });
 
+  it('hides and shows the glass panel, keeping the draft', async () => {
+    render(<EditorShell from={null} projectId={null} />);
+    await screen.findByText('Editing a copy of “Neon Nocturne”');
+    fireEvent.change(screen.getByLabelText('Template name'), { target: { value: 'Mine' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Hide panel' }));
+    const panel = screen.getByLabelText('Template editor panel', { selector: 'aside' });
+    expect(panel.getAttribute('aria-hidden')).toBe('true');
+    expect(panel.hasAttribute('inert')).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Show panel' }));
+    expect(panel.getAttribute('aria-hidden')).toBe('false');
+    expect((screen.getByLabelText('Template name') as HTMLInputElement).value).toBe('Mine');
+  });
+
   it('restores the unsaved document after the sign-in round trip', async () => {
     stashTemplate({ ...NEON_NOCTURNE, name: 'Half done', id: 'half-done' }, UNSAVED_KEY);
     render(<EditorShell from={null} projectId={null} />);

@@ -211,5 +211,8 @@
   "inspector.size": "Taille",
   "inspector.sides": "Côtés",
   "inspector.taper": "Effilement",
-  "viewport.label": "Vue de l'objet : glissez ou utilisez les flèches pour tourner autour"
+  "viewport.label": "Vue de l'objet : glissez ou utilisez les flèches pour tourner autour",
+  "panel.show": "Afficher le panneau",
+  "panel.hide": "Masquer le panneau",
+  "panel.label": "Panneau de l'éditeur de modèle"
 }

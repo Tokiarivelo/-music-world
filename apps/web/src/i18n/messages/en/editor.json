@@ -211,5 +211,8 @@
   "inspector.size": "Size",
   "inspector.sides": "Sides",
   "inspector.taper": "Taper",
-  "viewport.label": "Object view: drag or use the arrow keys to turn around it"
+  "viewport.label": "Object view: drag or use the arrow keys to turn around it",
+  "panel.show": "Show panel",
+  "panel.hide": "Hide panel",
+  "panel.label": "Template editor panel"
 }

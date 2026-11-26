@@ -33,3 +33,5 @@
   and effects have no editable shape yet.
 - Components: `InventoryPanel`, `ObjectThumb`, `ObjectEditor` (viewport + `PartTreePanel` + `PartInspector`), wired in
   `EditorShell` above the form. Strings in `editor.json` (en, fr, mg): `inventory.*`, `parts.*`, `inspector.*`, `viewport.*`.
+- Editor layout: the world preview fills the page; the form is a toggleable **glass panel** over it (translucent
+  `--mw-bg`, `backdrop-blur-2xl`, rounded, slide-in; `inert` + `aria-hidden` when hidden, "Show panel" button when closed).

@@ -211,5 +211,8 @@
   "inspector.size": "Habe",
   "inspector.sides": "Sisiny",
   "inspector.taper": "Fanify",
-  "viewport.label": "Fijerin'ny zavatra : sintony na ampiasao ny zana-tsipìka hihodina"
+  "viewport.label": "Fijerin'ny zavatra : sintony na ampiasao ny zana-tsipìka hihodina",
+  "panel.show": "Asehoy ny tontonana",
+  "panel.hide": "Afeno ny tontonana",
+  "panel.label": "Tontonan'ny mpanova maodely"
 }
