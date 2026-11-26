@@ -8,8 +8,8 @@ export interface EditViewState {
   readonly hover: string | null;
   /** Selected note ids; the last one is the primary (the one that is dragged and shown in the panel). */
   readonly selection: readonly string[];
-  /** Drag target of the primary note: its time is kept, only its pitch changes. */
-  readonly ghost: { readonly noteId: string; readonly midi: number } | null;
+  /** Drag target of the primary note: its new pitch and the shift of its time in seconds (0 = kept). */
+  readonly ghost: { readonly noteId: string; readonly midi: number; readonly dt: number } | null;
 }
 
 export const EDIT_IDLE: EditViewState = { enabled: false, hover: null, selection: [], ghost: null };
@@ -39,7 +39,8 @@ class EditStore {
       merged.hover === this.current.hover &&
       sameList(merged.selection, this.current.selection) &&
       merged.ghost?.noteId === this.current.ghost?.noteId &&
-      merged.ghost?.midi === this.current.ghost?.midi
+      merged.ghost?.midi === this.current.ghost?.midi &&
+      merged.ghost?.dt === this.current.ghost?.dt
     ) {
       return;
     }

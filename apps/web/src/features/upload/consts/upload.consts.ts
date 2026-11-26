@@ -25,4 +25,8 @@ export const LRC_ACCEPT = '.lrc,text/plain';
 /** Job polling while the worker analyses the song (a 3-minute song takes several minutes on CPU). */
 export const POLL_INTERVAL_MS = 1500;
 
-export const PLAY_PATH = (projectId: string): string => `/play/${encodeURIComponent(projectId)}`;
+export const PLAY_PATH = (projectId: string, templateRef: string | null = null): string =>
+  `/play/${encodeURIComponent(projectId)}${templateRef ? `?template=${encodeURIComponent(templateRef)}` : ''}`;
+
+/** Store templates offered at upload. */
+export const UPLOAD_TEMPLATE_LIMIT = 24;

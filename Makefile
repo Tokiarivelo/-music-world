@@ -1,6 +1,6 @@
 # Music World — root commands. See .kiro/steering/infrastructure.md and testing.md. `make help` lists the targets.
-.PHONY: help install garage-init garage-up \
-	dev dev-local dev-redis dev-infra dev-api dev-worker dev-web up down restart ps logs shell \
+.PHONY: ocean-models help install garage-init garage-up \
+	dev dev-all dev-db-password dev-web-stack kill-web kill-all dev-local dev-redis dev-infra dev-api dev-worker dev-web up down restart ps logs shell \
 	build build-api build-web rebuild \
 	test test-api test-web check check-api check-web bundle-check arch lint format schemas schemas-check \
 	deploy check-env db-password \
@@ -16,7 +16,8 @@ API_ENV_FILE := $(if $(wildcard $(API)/.env),--env-file .env,)
 SERVICE ?=
 # pytest-xdist workers for the API tests (measured: serial 34 s, 4 workers 25 s; use 0 to run serially in one process).
 PYTEST_WORKERS ?= 4
-# Port of the host web dev server: WEB_PORT in apps/web/.env.local (make reads it), or `make dev-web WEB_PORT=3001`.
+# Port of the host web dev server: WEB_PORT in apps/web/.env or .env.local (make reads them), or `make dev-web WEB_PORT=3001`.
+-include $(WEB)/.env
 -include $(WEB)/.env.local
 WEB_PORT ?= 3000
 API_PORT ?= 8000
@@ -41,6 +42,30 @@ dev: ## Full stack in Docker (production-like) plus the local Garage S3 store. B
 	@bash infra/scripts/build-changed.sh web
 	@$(MAKE) --no-print-directory garage-up
 	$(DC) -f $(COMPOSE_DEV) up --no-build
+
+dev-web-stack: ## Stop stray web dev servers, start the Docker services except api and web (Postgres, Redis, Garage + bucket), then the web dev server on WEB_PORT
+	@$(MAKE) --no-print-directory kill-web
+	@$(MAKE) --no-print-directory dev-infra garage-up
+	@$(MAKE) --no-print-directory dev-web
+
+# Stops the host processes whose command matches PATTERN and whose working directory is DIR. Next allows one dev server
+# per folder, so a forgotten one makes the next `make dev-web` fail. The Docker stack is not touched (see make down).
+define stop_in
+	@for pid in $$(pgrep -f '$(2)'); do \
+		if [ "$$(readlink /proc/$$pid/cwd 2>/dev/null)" = "$(CURDIR)/$(1)" ]; then echo "stop $$pid: $$(ps -o args= -p $$pid | cut -c1-70)"; kill $$pid 2>/dev/null; fi; \
+	done; true
+endef
+
+kill-web: ## Stop the web dev servers still running on this machine, whatever their port
+	$(call stop_in,$(WEB),next)
+
+kill-all: kill-web ## Stop every host dev process of the project (web, api, worker); Docker containers keep running (make down)
+	$(call stop_in,$(API),uvicorn|arq)
+
+dev-all: ## Everything in one terminal: Postgres, Redis and Garage in Docker, then API, worker and web on the host (Ctrl+C stops the three)
+	@$(MAKE) --no-print-directory kill-all
+	@$(MAKE) --no-print-directory dev-infra garage-up
+	$(MAKE) -j3 --output-sync=line dev-api dev-worker dev-web
 
 dev-local: ## Everything on the host, no Docker: API (SQLite) + web, plus Redis and the worker when redis-server is installed
 	@mkdir -p $(API)/.data
@@ -129,6 +154,12 @@ check: schemas-check check-api check-web arch ## Lint + types + tests + architec
 check-api: test-api ## Lint, format check, types and tests of the API
 	cd $(API) && uv run ruff check . && uv run ruff format --check . && uv run mypy
 
+ocean-models: ## Rebuild the ocean life models (same bpy setup as `make models`)
+	$(or $(PYTHON),python3) -I scripts/blender/build_ocean.py --out apps/web/public/models
+
+fantasy-models: ## Rebuild the Enchanted Realm models (same bpy setup as `make models`)
+	$(or $(PYTHON),python3) -I scripts/blender/build_fantasy.py --out apps/web/public/models
+
 models: ## Rebuild the 3D models with Blender (pip install bpy in a Python 3.13 venv, then PYTHON=<venv>/bin/python)
 	$(or $(PYTHON),python3) -I scripts/blender/build_models.py --out apps/web/public/models
 
@@ -171,6 +202,11 @@ check-env: ## Validate a production env file (default infra/.env; ENV_FILE=path)
 db-password: ## Local stack: set the Postgres user's password to the current infra/.env value (fixes "password authentication failed" on an old pgdata volume)
 	$(DC) exec -T postgres sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "ALTER USER \"$$POSTGRES_USER\" PASSWORD '"'"'$$POSTGRES_PASSWORD'"'"'"'
 	$(DC) up -d --no-build --force-recreate api worker
+
+dev-db-password: ## Host dev: give the Docker Postgres user the password found in DATABASE_URL of apps/api/.env (fixes "password authentication failed" in dev-api)
+	@PW=$$(sed -n 's|^DATABASE_URL=[^:]*://[^:]*:\([^@]*\)@.*|\1|p' $(API)/.env 2>/dev/null | head -n1); PW=$${PW:-music_world}; \
+	$(DC) -f $(COMPOSE_DEV) exec -T -e NEWPW="$$PW" postgres sh -c 'echo "ALTER USER \"$$POSTGRES_USER\" PASSWORD :'"'"'pw'"'"';" | psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -v ON_ERROR_STOP=1 -v pw="$$NEWPW"' \
+	&& echo "Postgres password aligned with $(API)/.env"
 
 # ---------------------------------------------------------------------------------------------------------------
 # Disk: prune and clean. Docker volumes (pgdata, storage, Let's Encrypt certificates) are touched only by

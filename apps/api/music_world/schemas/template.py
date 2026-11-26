@@ -12,8 +12,8 @@ from music_world.schemas.base import ContractModel
 from music_world.schemas.shape import ShapeRecipe
 
 SCHEMA_ID = "music-world.template.v1"
-MAX_RECIPES = 16  # the AI World Director is held to 4 (director/domain/renderable.py)
-MAX_SCENERY_ITEMS = 24
+MAX_RECIPES = 28  # the AI World Director is held to 4 (director/domain/renderable.py)
+MAX_SCENERY_ITEMS = 40
 MAX_SCENERY_TOTAL = 400
 
 HexColor = Annotated[str, StringConstraints(pattern=r"^#[0-9a-fA-F]{6}$")]
@@ -61,7 +61,10 @@ class Terrain(ContractModel):
 
 
 class Staff(ContractModel):
-    style: Literal["glowing_lines", "aurora"] = "glowing_lines"
+    style: Literal["glowing_lines", "aurora", "current"] = Field(
+        default="glowing_lines",
+        description="aurora: notes rain from the sky; current: notes are carried to the plate by ocean currents.",
+    )
     path: Literal["diagonal_curve", "straight"] = "diagonal_curve"
     clef: Literal["treble", "none"] = "treble"
     glow: float = Field(default=1.2, ge=0, le=3)
@@ -114,6 +117,65 @@ class SceneryItem(ContractModel):
     count: int = Field(ge=1, le=60)
 
 
+LayoutTheme = Literal["kelp", "coral", "sand", "wreck", "keep", "village", "forest", "crystal"]
+ObjectRole = Literal[
+    "building", "flora", "vehicle", "sky", "landmark", "terrain", "benthic", "swimmer", "giant", "effect", "other"
+]
+MAX_LAYOUT_PATCHES = 24
+MAX_LAYOUT_STEPS = 48
+
+
+class InventoryEntry(ContractModel):
+    """One kind of object the template can put in the world, with its role (what it is for)."""
+
+    kind: ShapeKind
+    role: ObjectRole
+
+
+class LayoutPatch(ContractModel):
+    """A region of the plate (normalized -1..1) where objects of one theme grow, from the centre of the world out."""
+
+    id: str = Field(pattern=r"^[a-z0-9_]{1,24}$")
+    theme: LayoutTheme
+    x: float = Field(ge=-1, le=1)
+    z: float = Field(ge=-1, le=1)
+    radius: float = Field(ge=0.05, le=0.6, description="Fraction of the half plate.")
+
+
+class LayoutStep(ContractModel):
+    """One object of the inventory, the patch it grows in and how often the notes pick it."""
+
+    kind: ShapeKind
+    patch: str | None = Field(
+        default=None,
+        pattern=r"^[a-z0-9_]{1,24}$",
+        description="Id of a layout patch; none for objects the street plan of a city places.",
+    )
+    weight: float = Field(default=1.0, ge=0, le=10, description="0 keeps the object out of the note rotation.")
+
+
+class WorldLayout(ContractModel):
+    """How the objects of a template are laid out: written by the director from the template's inventory.
+
+    Notes walk through `sequence` in order (each step in proportion to its weight): the note gets that object and a
+    spot inside that patch. A template without a layout gets one derived from its inventory (web engine)."""
+
+    inventory: list[InventoryEntry] = Field(default=[], max_length=MAX_RECIPES + 12)
+    patches: list[LayoutPatch] = Field(default=[], max_length=MAX_LAYOUT_PATCHES)
+    sequence: list[LayoutStep] = Field(default=[], max_length=MAX_LAYOUT_STEPS)
+
+    @model_validator(mode="after")
+    def _steps_use_known_patches(self) -> "WorldLayout":
+        ids = [p.id for p in self.patches]
+        if len(set(ids)) != len(ids):
+            raise ValueError("layout: patch ids must be unique")
+        known = set(ids)
+        for step in self.sequence:
+            if step.patch is not None and step.patch not in known:
+                raise ValueError(f"layout: step {step.kind} uses the unknown patch {step.patch}")
+        return self
+
+
 class Budget(ContractModel):
     instances_per_kind: int = Field(default=2000, ge=1, le=2000, description="Cap; extra notes reuse the oldest slot.")
 
@@ -127,6 +189,11 @@ class Fx(ContractModel):
         default="polished",
         description="polished: lit PBR with sky reflections on trees, cars, planes, clouds, crystals and recipes; "
         "flat: unlit colors (the look of the reference image).",
+    )
+    environment: Literal["land", "underwater"] = Field(
+        default="land",
+        description="land: sky, hills, weather; underwater: water column with light rays, seabed, dunes, fog and "
+        "rising bubbles (no sky, clouds, sun or rain).",
     )
 
 
@@ -167,6 +234,9 @@ class WorldTemplate(ContractModel):
         default=[],
         max_length=MAX_SCENERY_ITEMS,
         description="Objects present before the first note (an ocean full of fish, a forest…), placed from the seed.",
+    )
+    layout: WorldLayout | None = Field(
+        default=None, description="Object layout written by the director for this template's inventory."
     )
     meta: TemplateMeta | None = None
 

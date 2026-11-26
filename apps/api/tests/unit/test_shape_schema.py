@@ -84,7 +84,7 @@ def test_template_carries_recipes_with_unique_names() -> None:
     with pytest.raises(ValidationError, match="unique"):
         WorldTemplate.model_validate(_template(recipes=[recipe, recipe]))
     with pytest.raises(ValidationError):
-        WorldTemplate.model_validate(_template(recipes=[recipe | {"name": f"t{i}"} for i in range(17)]))
+        WorldTemplate.model_validate(_template(recipes=[recipe | {"name": f"t{i}"} for i in range(29)]))
 
 
 def test_renderability_accepts_only_defined_recipe_kinds() -> None:

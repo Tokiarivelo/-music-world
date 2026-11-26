@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePlaylist } from "@/features/playlist";
 import { useT } from "@/i18n";
 import { SiteNav } from "@/features/navigation";
 import type { Analysis } from "@/templates/generated";
 import { extendWithGenericNotes } from "@/engine/generic-notes";
 import {
-  DirectorPanel,
+  useDirectedLayout,
   useDirector,
   type DirectorSource,
 } from "@/features/director";
@@ -21,7 +22,6 @@ import { useAiTemplateChoice } from "../hooks/use-ai-template-choice";
 import { useWorldControls } from "../hooks/use-world-controls";
 import { seedFromHash } from "../lib/seed";
 import { PlayerBar } from "./PlayerBar";
-import { TemplateActions } from "./TemplateActions";
 
 interface ProjectWorldProps {
   projectId: string;
@@ -56,7 +56,13 @@ function ProjectWorld({
   const choice = useAiTemplateChoice(director, store);
   const controls = useWorldControls(player, t("projectTitle"), choice);
   const { clock } = player;
-  const { template } = choice;
+  const template = useDirectedLayout(source, choice.template);
+  // Every start of the song goes into this user's list of played songs (kept in this browser only).
+  const { ready: playlistReady, played } = usePlaylist();
+  const { durationSec, key: songKey, tempoBpm } = analysis;
+  useEffect(() => {
+    if (player.run > 0 && playlistReady) played(projectId, t("projectTitle"), { durationSec, key: songKey, tempoBpm, templateRef: storeTemplateId });
+  }, [player.run, playlistReady, played, projectId, t, durationSec, songKey, tempoBpm, storeTemplateId]);
   const seed = usePlaySeed(player.run, seedFromHash(analysis.audioHash));
   const editsRemote = useMemo(() => projectEditsRemote(projectId), [projectId]);
   // A song longer than the analysed first 5 minutes plays whole, with generic notes after the analysis ends.
@@ -73,15 +79,7 @@ function ProjectWorld({
     <div className="relative h-dvh w-full">
       <WorldView controls={controls} editsKey={analysis.audioHash} editsRemote={editsRemote} lyricsSearch={analysis.lyrics.length === 0 ? lyricsSearch : undefined} onScoreMode={player.setMuted} scene={scene} />
       <div className="absolute left-3 top-3 z-10 max-w-[calc(100%-11rem)] sm:max-w-none">
-        <SiteNav />
-        <div className="mt-2" />
-        <DirectorPanel director={director} template={template} />
-        <div className="mt-2 rounded-lg bg-[var(--mw-bg)]/80 px-3 py-2 empty:hidden">
-          <TemplateActions
-            template={template}
-            generatedHere={director.templates.includes(template)}
-          />
-        </div>
+        <SiteNav template={template} />
       </div>
       {/* IWSDK sizes its canvas to the window, so the controls float above it. */}
       <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-[var(--mw-bg)] to-transparent pt-6">

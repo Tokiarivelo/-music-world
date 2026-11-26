@@ -75,6 +75,9 @@ has no effect here and nothing on your host's port 3000 is used or needed. Postg
 cp apps/api/.env.example apps/api/.env          # optional: only to change a default
 cp apps/web/.env.example apps/web/.env.local    # optional: WEB_PORT, DEV_API_URL
 make dev-infra                                  # postgres + redis
+make dev-all                                    # everything: docker infra + api + worker + web, one terminal
+make dev-web-stack                              # postgres + redis + garage in Docker, then the web dev server on WEB_PORT
+make kill-web                                   # stop forgotten web dev servers (kill-all: web, api and worker too)
 make dev-api                                    # terminal 2: migrations, then uvicorn --reload on :8000
 make dev-worker                                 # terminal 3 (only to analyse a song)
 make dev-web                                    # terminal 4: Next dev server on WEB_PORT (default 3000)

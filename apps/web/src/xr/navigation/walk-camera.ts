@@ -7,6 +7,7 @@
 import type { SpawnPlan } from '@/engine/spawn-plan';
 import {
   EYE_HEIGHT_M,
+  IMMERSIVE_OBJECT_SCALE,
   KIND_FOOTPRINT,
   NAV_MAX_STEP_SEC,
   RECIPE_FOOTPRINT,
@@ -152,7 +153,7 @@ export function obstaclesAt(plan: SpawnPlan, t: number, scale: number, anchor: {
   for (const record of plan.records) {
     if (record.landAt > t) continue;
     const footprint = KIND_FOOTPRINT[record.kind] ?? recipeFootprint.get(record.kind) ?? RECIPE_FOOTPRINT;
-    out.push({ x: anchor.x + record.target.x * scale, z: anchor.z + record.target.z * scale, r: (footprint / 2) * scale });
+    out.push({ x: anchor.x + record.target.x * scale, z: anchor.z + record.target.z * scale, r: (footprint / 2) * scale * IMMERSIVE_OBJECT_SCALE });
   }
   return out;
 }

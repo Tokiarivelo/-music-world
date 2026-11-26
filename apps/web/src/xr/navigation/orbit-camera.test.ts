@@ -23,7 +23,6 @@ import {
   orbit,
   pan,
   poseToCamera,
-  posesEqual,
   zoom,
   type OrbitPose,
 } from './orbit-camera';
@@ -128,7 +127,8 @@ describe('cinematicPose', () => {
     expect(cam.y).toBeCloseTo(position.y, 9);
     expect(cam.z).toBeCloseTo(position.z, 9);
     expect(pose.target).toEqual(target);
-    expect(posesEqual(VIEW_PRESETS.overview, pose)).toBe(true);
+    expect(VIEW_PRESETS.overview.pitch).toBeGreaterThan(pose.pitch); // the global view is higher than the cinematic one
+    expect(VIEW_PRESETS.overview.distance).toBeGreaterThan(pose.distance);
   });
 
   it('defines every preset inside the bounds', () => {

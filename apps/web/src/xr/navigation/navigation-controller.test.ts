@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { NAV_EASE_MAX_SEC } from '../constants';
 import { NavigationController } from './navigation-controller';
-import { VIEW_PRESETS, cinematicPose } from './orbit-camera';
+import { VIEW_PRESETS, cinematicPose, overviewPose } from './orbit-camera';
 
 const VIEWPORT = 800;
 const FOV = 20;
@@ -93,7 +93,7 @@ describe('NavigationController (08-navigation-mode)', () => {
     expect(c.pose).toBe(moved);
     c.reset();
     c.step(NAV_EASE_MAX_SEC + 1, false, VIEWPORT, FOV);
-    expect(c.pose).toEqual(cinematicPose(1));
+    expect(c.pose).toEqual(overviewPose(1));
   });
 });
 

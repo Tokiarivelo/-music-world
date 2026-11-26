@@ -24,9 +24,9 @@ import {
   type World,
 } from '@iwsdk/core';
 import { Quaternion, Vector3, type Group } from 'three';
-import { IMMERSIVE_PLATE_M, VR_MIN_HEAD_HEIGHT_M, VR_PANEL_OFFSET, VR_PANEL_TILT_DEG } from '../constants';
+import { VR_MIN_HEAD_HEIGHT_M, VR_PANEL_OFFSET, VR_PANEL_TILT_DEG } from '../constants';
 import { SNAP_TURN_RAD, SnapTurn, glide, onPlate, turnAround } from '../locomotion';
-import { anchorPlacement, scaleStore, type ScaleMode } from '../scale';
+import { anchorPlacement, scaleStore, worldWidthM, type ScaleMode } from '../scale';
 import { PinchGesture } from '../pinch';
 import type { LayerId } from '@/engine/layers';
 import { keyboardPad, mergeAxis, mergeStick } from '../keyboard-pad';
@@ -347,7 +347,7 @@ export class XRLocomotionSystem extends createSystem({ rigs: { required: [XRRigC
         : glide(glideStick, yaw, delta);
       // The viewer goes one way, so the plate goes the other.
       const next = { ...pose, x: pose.x - move.dx, z: pose.z - move.dz };
-      if (onPlate(next, this.head, IMMERSIVE_PLATE_M / 2)) pose = next;
+      if (onPlate(next, this.head, worldWidthM('immersive') / 2)) pose = next;
       a.position.x = pose.x;
       a.position.z = pose.z;
       a.rotation.y = pose.yaw;

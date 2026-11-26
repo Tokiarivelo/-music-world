@@ -9,7 +9,7 @@ import { ENVIRONMENT_DRAW_CALLS, EnvironmentView } from './environment-view';
 
 const plan = buildSpawnPlan(demo, DEFAULT_TEMPLATE, 1);
 const DRAW_CALL_BUDGET = 6;
-const TRIANGLE_BUDGET = 5000;
+const TRIANGLE_BUDGET = 8000; // the hills are a 128 x 20 height field (5 k triangles), the rest about 1.3 k
 
 function meshes(root: Object3D): Array<Mesh<BufferGeometry, MeshBasicMaterial | ShaderMaterial>> {
   const found: Array<Mesh<BufferGeometry, MeshBasicMaterial | ShaderMaterial>> = [];
@@ -65,5 +65,18 @@ describe('environmentColors', () => {
     expect(c.horizon.getHex()).not.toBe(c.zenith.getHex());
     const other = environmentColors({ ...DEFAULT_TEMPLATE.palette, primary: '#22d3ee' });
     expect(other.horizon.getHex()).not.toBe(c.horizon.getHex());
+  });
+});
+
+describe('EnvironmentView underwater (Nemo Reef)', () => {
+  const water = new EnvironmentView(
+    buildSpawnPlan(demo, { ...DEFAULT_TEMPLATE, fx: { ...DEFAULT_TEMPLATE.fx, environment: 'underwater' } }, 1),
+  );
+
+  it('adds rising bubbles within the draw-call budget, hides the mist and keeps the air look unchanged', () => {
+    expect(water.object.children.length).toBe(ENVIRONMENT_DRAW_CALLS + 1);
+    expect(water.object.children.length).toBeLessThanOrEqual(DRAW_CALL_BUDGET);
+    expect(() => water.update(worldStateAt(plan, 5))).not.toThrow();
+    expect(new EnvironmentView(plan).object.children.length).toBe(ENVIRONMENT_DRAW_CALLS);
   });
 });

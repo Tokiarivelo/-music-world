@@ -1,5 +1,6 @@
 'use client';
 
+import { Sparkles } from 'lucide-react';
 import { useT } from '@/i18n';
 import type { Template } from '@/templates/generated';
 import type { DirectorState } from '../hooks/use-director';
@@ -44,9 +45,11 @@ export function DirectorPanel({ director, template }: DirectorPanelProps) {
           type="button"
           onClick={generate}
           disabled={busy}
-          className="rounded bg-[var(--mw-primary)] px-3 py-1 font-medium disabled:opacity-50"
+          title={t('generate')}
+          aria-label={t('generate')}
+          className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--mw-primary)] text-white shadow transition hover:brightness-110 active:scale-95 disabled:opacity-50"
         >
-          {t('generate')}
+          <Sparkles className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
       {status === 'generating' && <p role="status">{t('generating')}</p>}

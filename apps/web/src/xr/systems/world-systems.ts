@@ -14,13 +14,16 @@ import { createComponent, createSystem, Types, type Entity, type World } from '@
 import { AmbientLight, Color, DirectionalLight, Group } from 'three';
 import type { SpawnPlan } from '@/engine/spawn-plan';
 import { worldStateAt, type WorldState } from '@/engine/world-state';
-import { anchorPlacement, cameraFar, rootScale, scaleStore, type ScaleMode } from '../scale';
+import { worldSpan } from '@/engine/city';
+import { anchorPlacement, cameraFar, rootScale, scaleStore, setWorldSpan, type ScaleMode } from '../scale';
 import { EnvironmentView } from '../views/environment-view';
+import { HorizonView } from '../views/horizon-view';
 import { FxView } from '../views/fx-view';
 import { SkyNotesView } from '../views/sky-notes-view';
 import { StaffView } from '../views/staff-view';
 import { StructureView } from '../views/structure-view';
 import { WeatherView } from '../views/weather-view';
+import { RealmGlowView } from '../views/realm-glow-view';
 import { TerrainView } from '../views/terrain-view';
 import type { WorldView } from '../views/world-view';
 
@@ -122,7 +125,9 @@ export const StaffSystem = viewSystem((plan) => new StaffView(plan));
 export const StructureSystem = viewSystem((plan) => new StructureView(plan));
 export const FxSystem = viewSystem((plan) => new FxView(plan));
 export const SkySystem = viewSystem((plan) => new SkyNotesView(plan));
+export const RealmGlowSystem = viewSystem((plan) => new RealmGlowView(plan));
 export const WeatherSystem = viewSystem((plan) => new WeatherView(plan), true);
+export const HorizonSystem = viewSystem((plan) => new HorizonView(plan), true);
 export const EnvironmentSystem = viewSystem((plan) => new EnvironmentView(plan), true);
 
 /** Snapshot of `renderer.info` (04-default-template requirement 7.3). */
@@ -182,7 +187,9 @@ export function installMusicSystems(world: World, options: { perfLog?: boolean }
   world.registerSystem(StructureSystem);
   world.registerSystem(FxSystem);
   world.registerSystem(SkySystem);
+  world.registerSystem(RealmGlowSystem);
   world.registerSystem(WeatherSystem);
+  world.registerSystem(HorizonSystem);
   world.registerSystem(EnvironmentSystem);
   // The sky dome is far away: the default far plane would clip it.
   const applyFar = (mode: ScaleMode) => {
@@ -230,6 +237,7 @@ export function installMusicSystems(world: World, options: { perfLog?: boolean }
     },
     setScene(plan, clock) {
       terrainSize = plan.template.terrain.size;
+      setWorldSpan(worldSpan(plan.template));
       applyScale();
       world.scene.background = new Color(plan.template.palette.background);
       entity.setValue(ClockComponent, 'clock', clock);

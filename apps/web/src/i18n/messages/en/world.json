@@ -9,7 +9,7 @@
   "nav.exploring": "Exploring",
   "nav.reset": "Reset view",
   "nav.presetsLabel": "View presets",
-  "nav.hint": "Drag to orbit · right-drag to pan · wheel to zoom · WASD to move · R to reset",
+  "nav.hint": "Drag to orbit · right-drag to pan · wheel or + / − to zoom · WASD to move · Q / E or ← → to turn · ↑ ↓ to tilt · Shift to go faster · 1–5 views · R to reset · G to walk",
   "preset.overview": "Overview",
   "preset.staff": "Staff",
   "preset.city": "City",

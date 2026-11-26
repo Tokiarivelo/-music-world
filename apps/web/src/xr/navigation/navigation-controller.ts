@@ -3,13 +3,14 @@
  * Framework-free so it is tested without IWSDK; `NavigationSystem` calls {@link NavigationController.step} once per
  * frame and copies the pose to `world.camera`. Never reads the audio clock or the spawn plan (requirement 6.1).
  */
-import { DESKTOP_REFERENCE_ASPECT, NAV_EASE_MAX_SEC } from '../constants';
+import { DESKTOP_REFERENCE_ASPECT, NAV_DISTANCE_MAX_M, NAV_EASE_MAX_SEC } from '../constants';
 import { startPose, look, walk, walkCamera, type Circle, type WalkBounds, type WalkPose } from './walk-camera';
 import { NavigationInput, emptyDelta, type NavigationDelta } from './navigation-input';
 import {
   VIEW_PRESETS,
   approachPose,
   cinematicPose,
+  overviewPose,
   fly,
   orbit,
   pan,
@@ -30,6 +31,23 @@ export class NavigationController {
   readonly input = new NavigationInput();
   /** Snap instead of easing (prefers-reduced-motion, requirement 4.4). */
   reducedMotion = false;
+  private maxDistanceValue = NAV_DISTANCE_MAX_M;
+
+  /** Farthest any camera pose may be (diorama metres); the host lowers it in the big world, inside the sky dome. */
+  get maxDistance(): number {
+    return this.maxDistanceValue;
+  }
+
+  set maxDistance(value: number) {
+    if (value === this.maxDistanceValue) return;
+    this.maxDistanceValue = value;
+    this.poseValue = this.capped(this.poseValue);
+    this.goal = this.capped(this.goal);
+  }
+
+  private capped(pose: OrbitPose): OrbitPose {
+    return pose.distance > this.maxDistanceValue ? { ...pose, distance: this.maxDistanceValue } : pose;
+  }
   private modeValue: CameraMode = 'cinematic';
   private presetValue: ViewPresetId | null = null;
   private poseValue: OrbitPose = cinematicPose();
@@ -104,7 +122,7 @@ export class NavigationController {
     const onOverview = this.goal === this.poseValue && this.isCinematicGoal();
     this.aspect = aspect;
     if (!onOverview) return;
-    this.poseValue = cinematicPose(aspect);
+    this.poseValue = this.capped(cinematicPose(aspect));
     this.goal = this.poseValue;
   }
 
@@ -120,8 +138,11 @@ export class NavigationController {
       this.presetValue = null;
       this.moveTo(cinematicPose(this.aspect));
     } else {
-      // Explore starts from where the camera is (requirement 1.2): no jump.
-      this.presetValue = this.goal === VIEW_PRESETS.overview || this.isCinematicGoal() ? 'overview' : null;
+      // Explore starts from where the camera is (requirement 1.2), eased: from the cinematic framing it rises to the
+      // global view, so the whole scene is in the frame.
+      const onOverview = this.goal === VIEW_PRESETS.overview || this.isCinematicGoal();
+      this.presetValue = onOverview ? 'overview' : null;
+      if (onOverview) this.moveTo(overviewPose(this.aspect));
     }
     this.emit();
   }
@@ -133,7 +154,7 @@ export class NavigationController {
       this.input.clear();
     }
     this.presetValue = id;
-    this.moveTo(id === 'overview' ? cinematicPose(this.aspect) : VIEW_PRESETS[id]);
+    this.moveTo(id === 'overview' ? overviewPose(this.aspect) : VIEW_PRESETS[id]);
     this.emit();
   }
 
@@ -183,6 +204,7 @@ export class NavigationController {
       if (d.panX !== 0 || d.panY !== 0) p = pan(p, d.panX, d.panY, viewportPx, fovDeg);
       if (d.zoom !== 1) p = zoom(p, d.zoom);
       p = fly(p, d.keys, dtSec);
+      p = this.capped(p);
       this.poseValue = p;
       this.goal = p;
       if (this.presetValue !== null) {
@@ -201,7 +223,8 @@ export class NavigationController {
     return this.poseValue;
   }
 
-  private moveTo(goal: OrbitPose): void {
+  private moveTo(target: OrbitPose): void {
+    const goal = this.capped(target);
     this.goal = goal;
     this.easeElapsed = 0;
     if (this.reducedMotion) this.poseValue = goal;

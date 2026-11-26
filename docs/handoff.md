@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-25 · **Last updated by:** Claude Code (I22–I24: layouts, aurora notes, weather, Blender models)
+> **Date:** 2026-11-26 · **Last updated by:** Claude Code (I39–I41: city, playlist, layouts by the director, traffic)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -12,36 +12,32 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 1. Repository state
 
-- Branch `phase-I18-handoff` (docs only, PR to `main`); otherwise work from `main` (last: PR #39, I17). Push with gh credentials:
+- Branch `phase-I39-living-city` (commits I39, I40, I41; **PR to `main` not opened yet**). Push with gh credentials:
   `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
-- Merged: phases A2–A5, B4, I1–I7, I9–I17 (PRs #15–#39). Open PRs: #22 `phase-A3-moderation` and, stacked on it, `phase-A4-design-system` (check `gh pr list`).
-- Checks on 2026-11-25: web vitest 520 passed (99 files), API pytest 387 passed, `validate-architecture.sh` OK.
-- No server left running. A `music-world` Compose stack (old images) and another project's containers (`angaly_*`) may be
-  running — not started by these sessions; leave them alone. `make dev` and `make up` now also start the local Garage S3 store (I10).
+- Checks on 2026-11-26: web vitest 698 passed, tsc and eslint clean; API pytest 398 passed, ruff and mypy clean;
+  `validate-architecture.sh`: 2 pre-existing violations in `engine/sky.ts` (imports `three`, a comment with a flagged word).
+- No server left running. A Compose stack (old images) and another project's containers may run; leave them alone.
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-25, Claude Code, phases I10–I17 and handoff)
+## 2. Last session (2026-11-26, Claude Code, phases I39–I41)
 
-- I10 song catalog: S3 client for Garage and Cloudflare R2, `songs` table (migration `0007`), seed script and manifest,
-  note-quality proxies, director prompt v4 (about 20 % fewer input tokens). The Eric Clapton recording stays local (`is_public=false`).
-- I11 long songs: up to 5 minutes analysed whole; longer ones analysed on 5 minutes and played whole with generic notes
-  (`engine/generic-notes.ts`). I12: staff notes wear the color of their layer. I14: pure motion functions for clouds, cars, planes (I8 task 4 only).
-- I13 + I17 lyrics: LRCLIB lookup, then Whisper on the vocal stem (`base`), at upload and on a "Search lyrics" button/job
-  (`search_lyrics.py`, job kind added). Lookup sends artist, title, duration to lrclib.net (documented in `docs/improvements/i13-auto-lyrics.md`).
-- I16: layers page on the VR spatial panel (closes the I5 gap). I15: `docs/open-questions.md` created (11 questions, defaults applied); rules now say merge each finished phase and keep going.
-- I8 first slice (phase I18): `cloud tree conifer bush car bicycle airplane` kinds and the Living City template, procedural, now moving via `objectPoseAt`; `director-v5`.
-- Not done and needs you: I8 GLB assets (sourcing), Quest 3 checks (I5–I7, I9 task 9, I16), IWER run and screenshots of I9, R2 bucket + seed.
-
-## 2b. Latest session (I22–I24, branch `claude/practical-wozniak-5py6mf`, not merged)
-
-- I22 layouts + northern-lights notes (pickable when paused), I23 weather of the dome world, I24 Blender-built models and
-  the `.gitignore` fix that makes `apps/web/public/models` tracked. Report: `docs/improvements/i22-aurora-weather-blender.md`.
-- I25: photographic sky (Poly Haven HDRIs), horizon view, dome world with landscapes (walk camera confined to the dome), richer models.
-- I26: three car bodies (hatchback, coupe, retro) from the author's reference photos, variants by slot (`docs/improvements/i22-aurora-weather-blender.md`).
-- I27: Reference images downloaded to local `docs/reference/` (git-ignored, 86 assets across 12 object categories and candidates, metadata in `docs/reference/metadata.json`, index in `docs/reference-images.md`).
-- To check on a Quest 3: weather cost, picking sky notes with a ray, photographic sky and dome world. Open: PR to `main` (not opened by this session).
+- I39 living city (streets, lakes, bridges, lights, construction), I40 playlist ("My songs", private, in the browser) and
+  template choice at upload, plan-driven notes, authored models in cities. Reports: `docs/improvements/i39-*.md`, `i40-*.md`.
+- I40/I41 world plans: `inventoryOf(template)` and the template's optional `layout` (`WorldLayout`: inventory, patches,
+  sequence). The user picks the template, the director writes the layout (`POST /api/projects/{id}/layout`,
+  `/api/director/layout/demo`, prompt `layout-v2`), the engine follows it (reefs, realms and city mixes); derived layout
+  when the call fails. Enchanted Realm template + 8 Blender models (`make fantasy-models`), flying dragons, fairy lights, mist.
+- I41 traffic (`engine/traffic.ts`): cars and bicycles drive on the city street grid, stop at real signals (green 8 s,
+  yellow 2 s, red), keep their distance; ring boulevards, flyovers and tunnels removed in cities; smaller cars and trees
+  (`CITY_FOOTPRINT`). Details and limits: `docs/improvements/i41-ai-layout-realm-staging.md`.
+- Screenshots checked (headless Chromium, swiftshader, mocked API): realm, reef, city explore and walk. Cars were not in
+  frame in the last city shots (end of song): check cars close up in a browser.
+- Not done: Quest 3 checks, black small blobs near trees in the city explore view (unidentified), I40 limits above.
 
 ## 3. Next actions
+
+0. **Agent** — push `phase-I39-living-city`, open the PR to `main` and merge it; then look at cars close up in a real
+   browser (`/play/demo`, Walk) and the small black blobs near trees in the city view; Quest 3 check of the traffic cost.
 
 Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Submission deadline **2026-12-04 14:00 PT**.
 
@@ -99,6 +95,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | I8 seven procedural object kinds + Living City | Claude Code | done | PR phase-I8-realistic-objects; motion wired in I8b (PR phase-I8b-object-motion) |
 | I8 lighting (blob shadows, wind), IWER check | Claude Code | done | PR phase-I8c-object-lighting; 58 draw calls in IWER |
 | I19-I21 polished, textured and modelled objects (12 CC0 GLB in `public/models`) (lit PBR, sky reflections, CC0 detail textures, `fx.material`) | Claude Code | done | PR phase-I19-polished-objects; report `docs/improvements/i19-polished-objects.md` |
+| I39–I41 city, playlist, layouts, traffic | Claude Code | done | branch `phase-I39-living-city`, PR to open |
 | I8 GLB/LOD, Quest 3 check | — | blocked | human: GLB needs the sourcing decision (`docs/open-questions.md` 1–2, 12) |
 | I10 R2 bucket + seed | — | blocked | human: bucket, API token, `--only` seed |
 | I9 task 9, I16, I5–I7 Quest checks | — | blocked | human: Quest 3 |
@@ -114,6 +111,7 @@ The daily ones. The rest (API, web/XR, tooling): `docs/pitfalls.md`, read the gr
   CUDA. Disk on this laptop is ~98 % full: watch `df -h` before adding models or images.
 - Generated TS (`templates/generated`) and `packages/schemas` come from `make schemas` — never edit by hand.
   zod does not re-check pydantic `model_validator`s (analysis invariants, zone bounds).
+- Layout prompt: change it → bump `LAYOUT_PROMPT_VERSION` (`director/application/layout_prompt.py`).
 - Director: change any prompt → bump `PROMPT_VERSION`; mock output changes → bump `MOCK_MODEL`.
   `director/infrastructure/default_template.json` must equal the web `neon-nocturne.json` (test).
 - Never `docker volume prune` on the server (pgdata, storage, Let's Encrypt certificates).

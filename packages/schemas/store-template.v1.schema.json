@@ -61,6 +61,16 @@
           ],
           "title": "Material",
           "type": "string"
+        },
+        "environment": {
+          "default": "land",
+          "description": "land: sky, hills, weather; underwater: water column with light rays, seabed, dunes, fog and rising bubbles (no sky, clouds, sun or rain).",
+          "enum": [
+            "land",
+            "underwater"
+          ],
+          "title": "Environment",
+          "type": "string"
         }
       },
       "title": "Fx",
@@ -96,6 +106,173 @@
         "promptVersion"
       ],
       "title": "GeneratedBy",
+      "type": "object"
+    },
+    "InventoryEntry": {
+      "additionalProperties": false,
+      "description": "One kind of object the template can put in the world, with its role (what it is for).",
+      "properties": {
+        "kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "terrain_ridge",
+                "building",
+                "spike",
+                "crystal",
+                "cluster",
+                "cloud",
+                "tree",
+                "conifer",
+                "bush",
+                "car",
+                "bicycle",
+                "airplane"
+              ],
+              "type": "string"
+            },
+            {
+              "pattern": "^recipe:[a-z0-9_]{1,40}$",
+              "type": "string"
+            }
+          ],
+          "title": "Kind"
+        },
+        "role": {
+          "enum": [
+            "building",
+            "flora",
+            "vehicle",
+            "sky",
+            "landmark",
+            "terrain",
+            "benthic",
+            "swimmer",
+            "giant",
+            "effect",
+            "other"
+          ],
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "role"
+      ],
+      "title": "InventoryEntry",
+      "type": "object"
+    },
+    "LayoutPatch": {
+      "additionalProperties": false,
+      "description": "A region of the plate (normalized -1..1) where objects of one theme grow, from the centre of the world out.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_]{1,24}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "theme": {
+          "enum": [
+            "kelp",
+            "coral",
+            "sand",
+            "wreck",
+            "keep",
+            "village",
+            "forest",
+            "crystal"
+          ],
+          "title": "Theme",
+          "type": "string"
+        },
+        "x": {
+          "maximum": 1,
+          "minimum": -1,
+          "title": "X",
+          "type": "number"
+        },
+        "z": {
+          "maximum": 1,
+          "minimum": -1,
+          "title": "Z",
+          "type": "number"
+        },
+        "radius": {
+          "description": "Fraction of the half plate.",
+          "maximum": 0.6,
+          "minimum": 0.05,
+          "title": "Radius",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "theme",
+        "x",
+        "z",
+        "radius"
+      ],
+      "title": "LayoutPatch",
+      "type": "object"
+    },
+    "LayoutStep": {
+      "additionalProperties": false,
+      "description": "One object of the inventory, the patch it grows in and how often the notes pick it.",
+      "properties": {
+        "kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "terrain_ridge",
+                "building",
+                "spike",
+                "crystal",
+                "cluster",
+                "cloud",
+                "tree",
+                "conifer",
+                "bush",
+                "car",
+                "bicycle",
+                "airplane"
+              ],
+              "type": "string"
+            },
+            {
+              "pattern": "^recipe:[a-z0-9_]{1,40}$",
+              "type": "string"
+            }
+          ],
+          "title": "Kind"
+        },
+        "patch": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9_]{1,24}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a layout patch; none for objects the street plan of a city places.",
+          "title": "Patch"
+        },
+        "weight": {
+          "default": 1.0,
+          "description": "0 keeps the object out of the note rotation.",
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Weight",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "LayoutStep",
       "type": "object"
     },
     "MappingCondition": {
@@ -530,9 +707,11 @@
       "properties": {
         "style": {
           "default": "glowing_lines",
+          "description": "aurora: notes rain from the sky; current: notes are carried to the plate by ocean currents.",
           "enum": [
             "glowing_lines",
-            "aurora"
+            "aurora",
+            "current"
           ],
           "title": "Style",
           "type": "string"
@@ -649,6 +828,41 @@
       "title": "Terrain",
       "type": "object"
     },
+    "WorldLayout": {
+      "additionalProperties": false,
+      "description": "How the objects of a template are laid out: written by the director from the template's inventory.\n\nNotes walk through `sequence` in order (each step in proportion to its weight): the note gets that object and a\nspot inside that patch. A template without a layout gets one derived from its inventory (web engine).",
+      "properties": {
+        "inventory": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/InventoryEntry"
+          },
+          "maxItems": 40,
+          "title": "Inventory",
+          "type": "array"
+        },
+        "patches": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/LayoutPatch"
+          },
+          "maxItems": 24,
+          "title": "Patches",
+          "type": "array"
+        },
+        "sequence": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/LayoutStep"
+          },
+          "maxItems": 48,
+          "title": "Sequence",
+          "type": "array"
+        }
+      },
+      "title": "WorldLayout",
+      "type": "object"
+    },
     "WorldTemplate": {
       "additionalProperties": false,
       "description": "Palette, terrain, staff, note-to-shape mappings, layout zones and effects of a world.",
@@ -735,7 +949,8 @@
             "bloom": 0.8,
             "beatPulse": true,
             "chordLinks": "light_arc",
-            "material": "polished"
+            "material": "polished",
+            "environment": "land"
           }
         },
         "recipes": {
@@ -744,7 +959,7 @@
           "items": {
             "$ref": "#/$defs/ShapeRecipe"
           },
-          "maxItems": 16,
+          "maxItems": 28,
           "title": "Recipes",
           "type": "array"
         },
@@ -754,9 +969,21 @@
           "items": {
             "$ref": "#/$defs/SceneryItem"
           },
-          "maxItems": 24,
+          "maxItems": 40,
           "title": "Scenery",
           "type": "array"
+        },
+        "layout": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WorldLayout"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Object layout written by the director for this template's inventory."
         },
         "meta": {
           "anyOf": [

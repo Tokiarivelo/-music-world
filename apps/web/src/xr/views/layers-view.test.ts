@@ -35,8 +35,7 @@ afterEach(() => layerStore.set(NOTHING_HIDDEN));
 function liveInstances(view: StructureView): number {
   let n = 0;
   for (const kind of plan.tracks.map((t) => t.kind)) {
-    const mesh = view.mesh(kind)!;
-    for (let i = 0; i < mesh.count; i += 1) {
+    for (const mesh of view.meshesOf(kind)) for (let i = 0; i < mesh.count; i += 1) {
       const m = new Matrix4();
       mesh.getMatrixAt(i, m);
       if (m.elements[0] !== 0 || m.elements[5] !== 0) n += 1;

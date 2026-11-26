@@ -31,5 +31,8 @@
   "errors.SEPARATION_FAILED": "The analysis failed while separating the instruments.",
   "errors.TRANSCRIPTION_FAILED": "The analysis failed while detecting notes.",
   "errors.NETWORK": "The server could not be reached. Try again.",
-  "errors.UNKNOWN": "Something went wrong. Try again."
+  "errors.UNKNOWN": "Something went wrong. Try again.",
+  "templateLabel": "World template",
+  "templateDefault": "Neon Nocturne (default)",
+  "templateHint": "The world your song is built in. You can change it later while playing."
 }

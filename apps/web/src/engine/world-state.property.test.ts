@@ -137,7 +137,7 @@ describe('budget (req 1.5)', () => {
       big,
       makeTemplate({
         mappings: [
-          { when: { pitch: '<64' }, spawn: 'building' },
+          { when: { pitch: '<64' }, spawn: 'crystal' },
           { when: {}, spawn: 'spike' },
         ],
       }),
@@ -145,7 +145,7 @@ describe('budget (req 1.5)', () => {
     );
     for (const t of [0, 60, 120, DURATION]) {
       const s = worldStateAt(plan, t);
-      for (const kind of ['building', 'spike']) {
+      for (const kind of ['crystal', 'spike']) {
         expect(s.structures.filter((x) => x.kind === kind).length).toBeLessThanOrEqual(2000);
       }
     }

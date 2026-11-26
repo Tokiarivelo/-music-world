@@ -31,6 +31,7 @@ describe('neon-nocturne default template (task 3, req 4.1)', () => {
 
   it('builds the demo world with buildings, spikes and ridges', () => {
     const kinds = new Set(buildSpawnPlan(demo, DEFAULT_TEMPLATE, 1).records.map((r) => r.kind));
-    expect(kinds).toEqual(new Set(['building', 'spike', 'terrain_ridge']));
+    // the notes of a city are placed by its plan: buildings, trees and bushes, cars; needles and hills keep their rule
+    for (const kind of ['building', 'spike', 'terrain_ridge']) expect(kinds.has(kind as never)).toBe(true);
   });
 });

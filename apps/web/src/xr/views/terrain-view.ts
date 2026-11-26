@@ -35,6 +35,7 @@ import {
   TERRAIN_LIGHT_DIRECTION,
 } from '../constants';
 import { lightness } from '../palette';
+import { worldSize } from '@/engine/city';
 import { buildTerrainField, crackNetwork, fieldHeight, type TerrainField } from '../terrain-field';
 import { domeStore } from '../dome-store';
 import type { WorldView } from './world-view';
@@ -45,7 +46,7 @@ const MOUNTAIN_BLEND_HEIGHT = 0.06;
 
 /** Centre of the city (buildings and spikes zones) in plate metres, or null without zones. */
 function cityCentre(plan: SpawnPlan): { x: number; z: number } | null {
-  const half = plan.template.terrain.size / 2;
+  const half = worldSize(plan.template) / 2;
   const zones = plan.template.zones.filter((z) => z.kind === 'building' || z.kind === 'spike');
   if (zones.length === 0) return null;
   const x = zones.reduce((s, z) => s + (z.xMin + z.xMax) / 2, 0) / zones.length;
@@ -56,7 +57,7 @@ function cityCentre(plan: SpawnPlan): { x: number; z: number } | null {
 /** Plate top: the height field as a grid with baked vertex colors (plate gradient, city tint, mountain shading). */
 export function buildPlateTop(plan: SpawnPlan, field: TerrainField): BufferGeometry {
   const { palette } = plan.template;
-  const size = plan.template.terrain.size;
+  const size = worldSize(plan.template);
   const half = size / 2;
   const geometry = new PlaneGeometry(size, size, TERRAIN_GRID, TERRAIN_GRID).rotateX(-Math.PI / 2);
   const position = geometry.getAttribute('position');
@@ -121,7 +122,7 @@ export class TerrainView implements WorldView {
 
   constructor(plan: SpawnPlan) {
     const { palette, terrain } = plan.template;
-    const size = terrain.size;
+    const size = worldSize(plan.template);
     this.object.name = 'terrain';
     this.field = buildTerrainField(plan.template, plan.seed);
 

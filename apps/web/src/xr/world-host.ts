@@ -15,6 +15,9 @@ import {
   DESKTOP_CAMERA_ELEVATION_DEG,
   DESKTOP_CAMERA_FOV_DEG,
   HORIZON_FOV_DEG,
+  WALK_FOV_DEG,
+  NAV_DISTANCE_MAX_M,
+  NAV_DISTANCE_MAX_WORLD_M,
   DESKTOP_CAMERA_TARGET_OFFSET,
   DESKTOP_REFERENCE_ASPECT,
   DIORAMA_POSITION,
@@ -35,7 +38,8 @@ import { EditController, type NoteEditEvent } from './interaction/edit-controlle
 import { NoteSynth } from './audio/note-synth';
 import { keyboardPad } from './keyboard-pad';
 import { ScorePlayer, type ScoreNote } from './audio/score-player';
-import { anchorPlacement, plateWidthM, rootScale } from './scale';
+import { worldSpan } from '@/engine/city';
+import { anchorPlacement, plateWidthM, rootScale, setWorldSpan, worldWidthM } from './scale';
 import { bindNavigationInput } from './navigation/navigation-input';
 import type { CameraMode, NavigationController, NavigationState } from './navigation/navigation-controller';
 import type { ViewPresetId } from './navigation/orbit-camera';
@@ -315,10 +319,20 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   // The horizon preset opens the lens (the 20 degree tele lens only frames the plate); any other preset restores it.
   let wide = false;
   const applyScale = (): void => {
-    scene.setScaleMode(inSession || nav.mode === 'walk' || domeStore.enabled ? 'immersive' : 'diorama');
+    // The dome world is the big world in every mode: the orbit camera (explore, cinematic) is mapped to it by
+    // `viewToWorld`, so the whole landscape around the plate is in the frame.
+    const big = inSession || nav.mode === 'walk' || domeStore.enabled;
+    scene.setScaleMode(big ? 'immersive' : 'diorama');
+    nav.maxDistance = big ? NAV_DISTANCE_MAX_WORLD_M : NAV_DISTANCE_MAX_M;
     if (nav.state.preset === 'horizon') wide = true;
     else if (nav.state.preset !== null || nav.mode === 'cinematic') wide = false;
-    const fov = wide && !inSession ? HORIZON_FOV_DEG : DESKTOP_CAMERA_FOV_DEG;
+    const fov = nav.mode === 'walk'
+      ? WALK_FOV_DEG
+      : wide && !inSession
+        ? HORIZON_FOV_DEG
+        : !inSession && (nav.mode === 'explore' || domeStore.enabled)
+          ? 52
+          : DESKTOP_CAMERA_FOV_DEG;
     if (!world.session && world.camera.fov !== fov) {
       world.camera.fov = fov;
       world.camera.updateProjectionMatrix();
@@ -405,8 +419,11 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   // Walk mode: the plate and the structures that have landed (recomputed twice a second at most).
   const centre = anchorPlacement('immersive');
   let cache: { plan: SpawnPlan; slot: number; circles: readonly Circle[] } | null = null;
-  nav.configureWalk({ cx: centre.x, cz: centre.z, half: plateWidthM('immersive') / 2 }, () => {
+  const walkBounds = { cx: centre.x, cz: centre.z, half: plateWidthM('immersive') / 2 };
+  nav.configureWalk(walkBounds, () => {
     if (!basePlan || !baseClock) return [];
+    setWorldSpan(worldSpan(basePlan.template));
+    walkBounds.half = worldWidthM('immersive') / 2;
     const slot = Math.floor(baseClock.now() * 2);
     if (cache?.plan !== basePlan || cache.slot !== slot) {
       const scale = rootScale('immersive', basePlan.template.terrain.size);

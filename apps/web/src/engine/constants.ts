@@ -54,13 +54,15 @@ export const KIND_HEIGHT: Readonly<Record<string, { base: number; extra: number 
   cluster: { base: 0.25, extra: 0.7 },
   // Object kinds (I8): the nominal height (base + extra / 2) over the footprint matches the proportions of the
   // geometry in `xr/shapes/object-shapes.ts` (cloud 0.48, tree 1.4, conifer 1.5, bush 0.45, car 0.52, bicycle 0.48, airplane 0.23).
-  cloud: { base: 0.3, extra: 0.16 },
-  tree: { base: 0.2, extra: 0.2 },
-  conifer: { base: 0.2, extra: 0.2 },
-  bush: { base: 0.06, extra: 0.06 },
-  car: { base: 0.13, extra: 0.06 },
-  bicycle: { base: 0.08, extra: 0.03 },
-  airplane: { base: 0.1, extra: 0.04 },
+  // Realistic sizes in the big (dome) world, where the plate is 80 m: tree 3.5-5 m wide and 5-7 m tall, a car 4 m long.
+  // Footprint and height are scaled together so the proportions above hold (`xr/constants.ts` KIND_FOOTPRINT).
+  cloud: { base: 0.75, extra: 0.4 },
+  tree: { base: 0.44, extra: 0.44 },
+  conifer: { base: 0.44, extra: 0.44 },
+  bush: { base: 0.11, extra: 0.11 },
+  car: { base: 0.33, extra: 0.15 },
+  bicycle: { base: 0.12, extra: 0.045 },
+  airplane: { base: 0.25, extra: 0.1 },
 };
 export const RECIPE_HEIGHT = { base: 0.5, extra: 1.0 };
 /** Default footprint of a recipe in metres (`ShapeRecipe.footprint`); `xr/constants.ts` mirrors it. */
@@ -84,3 +86,8 @@ export const EMISSIVE_VELOCITY_SCALE = 0.9;
 export const PULSE_DECAY_SEC = 0.18;
 /** Light arc fade-in and fade-out after its chord ends. */
 export const ARC_FADE_SEC = 0.5;
+
+/** Ocean currents (I37): width of the shared flow meanders, as a share of the plate side. */
+export const CURRENT_MEANDER_RATIO = 0.07;
+/** Ocean currents: how much each note strays from the shared flow (0 = every note rides the same stream). */
+export const CURRENT_JITTER = 0.25;

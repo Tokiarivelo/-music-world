@@ -37,14 +37,14 @@ import type { SpawnPlan } from '@/engine/spawn-plan';
 import { SKY_IDS, resolveTime, skyWeights, weatherAt, type SkyId, type Weather } from '@/engine/weather';
 import type { WorldState } from '@/engine/world-state';
 import { ENV_SKY_RADIUS_M } from '../constants';
-import { radialAlphaTexture } from '../glyphs/halo-texture';
+import { diskAlphaTexture, radialAlphaTexture } from '../glyphs/halo-texture';
 import { environmentColors } from '../palette';
 import { environmentScale, scaleStore, type ScaleMode } from '../scale';
 import { weatherStore } from '../weather-store';
 import type { WorldView } from './world-view';
 
 /** Instance and vertex counts: the whole cost of the weather, in one place. */
-export const WEATHER_BUDGET = { clouds: 90, raindrops: 1400, birds: 24 } as const;
+export const WEATHER_BUDGET = { clouds: 36, raindrops: 1400, birds: 24 } as const;
 /** Number of draw calls of the weather view. */
 export const WEATHER_DRAW_CALLS = 7;
 
@@ -179,6 +179,8 @@ export class WeatherView implements WorldView {
   private readonly dark: boolean;
   private readonly horizon: Color;
   private readonly sun: Sprite;
+  /** The sharp disc of the sun (or the moon) inside its soft glow. */
+  private readonly core: Sprite;
   private readonly clouds: InstancedMesh;
   private readonly cloudBase: Array<{ az: number; el: number; speed: number; w: number; h: number }> = [];
   private readonly rain: LineSegments;
@@ -197,6 +199,7 @@ export class WeatherView implements WorldView {
   private readonly sc = new Vector3();
   private readonly up = new Vector3(0, 1, 0);
   private readonly tmp = new Color();
+  private readonly sunColor = new Color();
 
   constructor(private readonly plan: SpawnPlan) {
     this.object.name = 'weather';
@@ -224,6 +227,11 @@ export class WeatherView implements WorldView {
     this.sun.scale.setScalar(R * (this.dark ? 0.12 : 0.28));
     this.sun.renderOrder = -8;
     this.disposables.push(sunMaterial);
+    const disk = diskAlphaTexture(64);
+    const coreMaterial = new SpriteMaterial({ color: '#ffffff', alphaMap: disk, transparent: true, depthWrite: false, fog: false });
+    this.core = new Sprite(coreMaterial);
+    this.core.renderOrder = -7;
+    this.disposables.push(disk, coreMaterial);
 
     // Overcast / lightning dome: darkens the sky with the cloud cover, whitens it on a flash.
     this.overcast = new Mesh(
@@ -273,7 +281,7 @@ export class WeatherView implements WorldView {
       const az = rng() * Math.PI * 2;
       const el = 0.03 + 0.34 * rng();
       const speed = 0.002 + 0.004 * rng();
-      const w = R * (0.22 + 0.22 * rng());
+      const w = R * (0.13 + 0.15 * rng());
       for (let k = 0; k < 3; k += 1) {
         const pw = w * (0.7 + 0.5 * rng());
         this.cloudBase.push({ az: az + (rng() - 0.5) * 0.16, el: el + (rng() - 0.5) * 0.05, speed, w: pw, h: pw * (0.4 + 0.15 * rng()) });
@@ -346,7 +354,8 @@ export class WeatherView implements WorldView {
       this.birdBase.push({ radius: 16 + 34 * rng(), height: 10 + 18 * rng(), phase: rng() * Math.PI * 2, speed: (0.12 + 0.1 * rng()) * (rng() < 0.5 ? 1 : -1) });
     }
 
-    this.object.add(this.photo, this.overcast, this.sun, this.clouds, this.rain, this.bolt, this.boltGlow, this.birds);
+    this.object.visible = plan.template.fx.environment !== 'underwater'; // no sky, sun, clouds or rain under the sea
+    this.object.add(this.photo, this.overcast, this.sun, this.core, this.clouds, this.rain, this.bolt, this.boltGlow, this.birds);
     this.applyScale(scaleStore.mode);
     const offScale = scaleStore.subscribe((mode) => this.applyScale(mode));
     this.unsubscribe = offScale;
@@ -357,6 +366,7 @@ export class WeatherView implements WorldView {
   }
 
   update(state: WorldState): void {
+    if (!this.object.visible) return;
     const settings = weatherStore.settings;
     const w = weatherAt(this.plan, state.t, settings.mode);
     const t = state.t;
@@ -366,6 +376,7 @@ export class WeatherView implements WorldView {
     // A real sky already has its sun, clouds and overcast: the drawn ones only stay as the fallback.
     if (photo) {
       this.sun.visible = false;
+      this.core.visible = false;
       this.clouds.visible = false;
       this.overcast.visible = false;
     }
@@ -401,12 +412,41 @@ export class WeatherView implements WorldView {
   }
 
   private updateSky(w: Weather, t: number): void {
-    // The sun climbs from the horizon to its peak and down again over the song; behind the clouds it fades.
+    // The body crawls across the sky over the song (about 70 degrees of azimuth, a slow rise and fall), so it never
+    // races: the time of day decides where it starts. Day: a bright sun; sunset: a big orange sun sinking toward the
+    // horizon; night: a small cool moon. Behind the clouds it fades.
     const progress = this.plan.durationSec > 0 ? Math.min(1, Math.max(0, t / this.plan.durationSec)) : 0.5;
-    const a = Math.PI * (0.12 + 0.76 * progress);
-    this.sun.position.set(Math.cos(a) * R * 0.8, Math.sin(a) * R * 0.62 + R * 0.04, -R * 0.35);
-    (this.sun.material as SpriteMaterial).opacity = (this.dark ? 0.55 : 0.95) * w.sun;
+    const time = resolveTime(weatherStore.settings.time, this.luminance);
+    const deg = Math.PI / 180;
+    let az = (-35 + 70 * progress) * deg;
+    let el: number;
+    let size: number;
+    if (time === 'sunset') {
+      el = (13 - 9 * progress) * deg;
+      size = 0.34;
+      this.sunColor.set('#ff9a4a');
+    } else if (time === 'night') {
+      az = (-25 + 40 * progress) * deg;
+      el = (42 + 8 * Math.sin(Math.PI * progress)) * deg;
+      size = 0.1;
+      this.sunColor.set('#cfe3ff');
+    } else {
+      el = (16 + 32 * Math.sin(Math.PI * progress)) * deg;
+      size = 0.24;
+      this.sunColor.set('#fff2c4').lerp(this.tmp.set('#ffd08a'), Math.max(0, 1 - el / (30 * deg)) * 0.7); // warmer when low
+    }
+    this.sun.position.set(Math.sin(az) * Math.cos(el) * R * 0.85, Math.sin(el) * R * 0.85, -Math.cos(az) * Math.cos(el) * R * 0.85);
+    this.sun.scale.setScalar(R * size);
+    const sunMaterial = this.sun.material as SpriteMaterial;
+    sunMaterial.color.copy(this.sunColor);
+    sunMaterial.opacity = (time === 'night' ? 0.6 : 0.95) * w.sun;
     this.sun.visible = w.sun > 0.01;
+    this.core.position.copy(this.sun.position);
+    this.core.scale.setScalar(R * size * (time === 'night' ? 0.34 : 0.16));
+    const coreMaterial = this.core.material as SpriteMaterial;
+    coreMaterial.color.copy(this.sunColor).lerp(this.tmp.set('#ffffff'), time === 'night' ? 0.4 : 0.65);
+    coreMaterial.opacity = Math.min(1, w.sun * 1.2);
+    this.core.visible = this.sun.visible;
     const flash = this.reduced ? 0 : w.flash;
     const mat = this.overcast.material;
     mat.color.set('#232830').lerp(this.tmp.set('#dfe8ff'), Math.min(1, flash * 1.4));

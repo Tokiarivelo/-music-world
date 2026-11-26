@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { EYE_HEIGHT_M, WALK_LOOK_RAD_PER_PX, WALK_MARGIN_M, WALK_PITCH_LIMIT_RAD } from '../constants';
+import { EYE_HEIGHT_M, IMMERSIVE_OBJECT_SCALE, WALK_LOOK_RAD_PER_PX, WALK_MARGIN_M, WALK_PITCH_LIMIT_RAD } from '../constants';
 import type { FlyKeys } from './orbit-camera';
 import { WALKER_RADIUS_M, clampToBounds, look, obstaclesAt, pushOut, startPose, walk, walkCamera, type Circle } from './walk-camera';
 
@@ -108,7 +108,7 @@ describe('walk camera', () => {
     const early = obstaclesAt(plan, 2, 10, { x: 0, z: -30 });
     expect(early).toHaveLength(1);
     expect(early[0]).toMatchObject({ x: 10, z: -10 });
-    expect(early[0]!.r).toBeCloseTo((0.24 / 2) * 10);
+    expect(early[0]!.r).toBeCloseTo((0.24 / 2) * 10 * IMMERSIVE_OBJECT_SCALE); // objects keep their calibrated size on the wide plate
     expect(obstaclesAt(plan, 10, 10, { x: 0, z: -30 })).toHaveLength(2);
   });
 });

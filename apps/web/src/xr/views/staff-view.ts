@@ -24,6 +24,8 @@ import {
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { isRecordShown } from '@/engine/layers';
 import type { SpawnPlan } from '@/engine/spawn-plan';
+import { hashSeed } from '@/engine/prng';
+import { auroraDescentPosition, rainbowHex, skyPath, skyPosition } from '@/engine/sky';
 import { staffNotePosition, staffPoint, type StaffPath } from '@/engine/staff';
 import { staffUOf as staffUOfMidi } from '@/engine/spawn-plan';
 import type { GlyphKind } from '@/engine/types';
@@ -42,8 +44,9 @@ import {
   STAFF_TUBE_RADIUS,
   STAFF_TUBE_SEGMENTS,
 } from '../constants';
+import { objectScale, scaleStore } from '../scale';
 import { skyStore } from '../sky-store';
-import { AURORA_GREENS, AURORA_TOPS, auroraColor } from './aurora-colors';
+import { AURORA_TOPS, auroraColor } from './aurora-colors';
 import { createAuroraCurtain, type AuroraCurtain } from './aurora-curtain';
 import { bravuraGeometry, noteGlyphGeometry } from '../glyphs/glyph-geometry';
 import { radialAlphaTexture } from '../glyphs/halo-texture';
@@ -118,13 +121,16 @@ function hexOf(r: { colorHex: string | null; stem: Stem | null }): string | null
 }
 
 /** Height of each line ribbon of the northern-lights mode, in line gaps. */
-const LINE_CURTAIN_GAPS = 4;
+const LINE_CURTAIN_GAPS = 1.7; // short ribbons: five distinct lines of light, not one blob
 const AURORA_HALO = new Color('#3fd8ff');
 
 export class StaffView implements WorldView {
   readonly object = new Group();
   private readonly glyphMeshes = new Map<GlyphKind, InstancedMesh>();
   private readonly halos: InstancedMesh;
+  /** The staff path lifted into the aurora and the glyph size there (the sky line gap is roomier). */
+  private readonly skyStaff: StaffPath;
+  private readonly skyScale: number;
   private readonly disposables: Array<{ dispose(): void }> = [];
   private readonly m = new Matrix4();
   private readonly q = new Quaternion();
@@ -156,7 +162,7 @@ export class StaffView implements WorldView {
     this.object.name = 'staff';
     const mainLine = plan.lines.find((l) => l.id === 'main');
     const glow = new Color(mainLine?.color ?? palette.staff).multiplyScalar(staff.glow);
-    const material = new MeshBasicMaterial({ color: glow, side: DoubleSide });
+    const material = new MeshBasicMaterial({ color: glow, side: DoubleSide, fog: false });
     const staffGeometry = buildStaffGeometry(plan.staff, staff.clef === 'treble' && (mainLine?.clef ?? 'treble') === 'treble');
     const lines = new Mesh(staffGeometry, material);
     this.staffParts.push(lines);
@@ -172,6 +178,7 @@ export class StaffView implements WorldView {
       opacity: STAFF_HALO_OPACITY * staff.glow,
       blending: AdditiveBlending,
       depthWrite: false,
+      fog: false,
     });
     const haloGeometry = buildStaffGeometry(plan.staff, false, STAFF_HALO_RADIUS);
     const halo = new Mesh(haloGeometry, haloMaterial);
@@ -211,12 +218,14 @@ export class StaffView implements WorldView {
       // The ribbon starts one gap under the path it is given, so the path is raised to sit right on the line.
       const dy = (line + 1) * gap;
       const path = { ...plan.staff, start: lift(plan.staff.start, dy), control: lift(plan.staff.control, dy), end: lift(plan.staff.end, dy) };
+      // The ribbon of a line wears the aurora color of the notes that sit on it (low = green, high = violet).
+      const t = (line + 0.5) / 5;
       const colors = {
-        primary: AURORA_GREENS[line % AURORA_GREENS.length]!,
-        accent: AURORA_GREENS[(line + 1) % AURORA_GREENS.length]!,
+        primary: `#${auroraColor(t, this.auroraTint).getHexString()}`,
+        accent: `#${auroraColor(Math.min(1, t + 0.18), this.auroraTint).getHexString()}`,
         secondary: AURORA_TOPS[line % AURORA_TOPS.length]!,
       };
-      const ribbon = createAuroraCurtain(path, colors, (gap * LINE_CURTAIN_GAPS) / 0.22, 1.6, reducedMotion, true);
+      const ribbon = createAuroraCurtain(path, colors, (gap * LINE_CURTAIN_GAPS) / 0.22, 0.75, reducedMotion, true);
       ribbon.mesh.visible = false;
       ribbon.mesh.name = 'aurora-line';
       this.object.add(ribbon.mesh);
@@ -231,11 +240,13 @@ export class StaffView implements WorldView {
     this.tinted = true; // every note carries its layer color (or its own), see `hexOf`
     let glyphMaterial: MeshBasicMaterial = material;
     if (this.tinted) {
-      glyphMaterial = new MeshBasicMaterial({ color: 0xffffff, side: DoubleSide });
+      glyphMaterial = new MeshBasicMaterial({ color: 0xffffff, side: DoubleSide, fog: false });
       this.disposables.push(glyphMaterial);
     }
     const size = plan.staff.lineGap * GLYPH_SCALE;
     this.scale = new Vector3(size, size, size);
+    this.skyStaff = skyPath(plan);
+    this.skyScale = this.skyStaff.lineGap * GLYPH_SCALE;
     let capacity = 0;
     for (const kind of GLYPH_KINDS) {
       const total = plan.records.filter((r) => r.glyph === kind).length;
@@ -260,6 +271,7 @@ export class StaffView implements WorldView {
       blending: AdditiveBlending,
       depthWrite: false,
       side: DoubleSide,
+      fog: false,
     });
     const quad = new PlaneGeometry(HALO_SIZE.w, HALO_SIZE.h).translate(HALO_SIZE.x, HALO_SIZE.y, -0.01);
     this.halos = new InstancedMesh(quad, glyphHaloMaterial, Math.max(1, capacity) + MARK_CAPACITY);
@@ -290,16 +302,53 @@ export class StaffView implements WorldView {
     for (const part of this.staffParts) part.visible = staffOn && !sky;
     for (const part of this.classicParts) part.visible = staffOn && !sky;
     if (this.curtain) this.curtain.mesh.visible = staffOn && !sky;
-    for (const ribbon of this.lineCurtains) {
-      ribbon.mesh.visible = staffOn && sky;
-      if (sky) ribbon.update(state.t);
-    }
+    for (const ribbon of this.lineCurtains) ribbon.mesh.visible = false; // in the aurora the notes hang in the sky curtains
     this.haloMaterial.color.copy(sky ? AURORA_HALO : this.haloColor);
+    const noteHalo = this.halos.material as MeshBasicMaterial;
+    const base = (noteHalo.userData.base ??= noteHalo.opacity) as number;
+    noteHalo.opacity = sky ? base * 1.2 : base; // fluorescent radiant halo in aurora mode
     this.counts.clear();
     this.haloCount = 0;
-    for (const n of state.notesOnStaff) if (isRecordShown(this.plan, n.index, hidden)) this.place(n.glyph, n.position, n.u, this.noteHex(n.index));
-    for (const f of state.fallingNotes) {
-      if (isRecordShown(this.plan, f.index, hidden)) this.place(f.glyph, f.position, this.plan.staff.playheadU, this.noteHex(f.index));
+    if (sky) {
+      // Northern lights:
+      // 1. Upcoming notes float in a circular ring above the mountain horizon surrounding us.
+      for (const n of state.skyNotes) {
+        if (!isRecordShown(this.plan, n.index, hidden)) continue;
+        const r = this.plan.records[n.index]!;
+        // If note has reached onset, it descends in the falling notes phase below
+        if (state.t >= r.onset) continue;
+        const size = this.skyScale * objectScale(scaleStore.mode) * (1.15 + 0.45 * n.glow);
+        const heading = Math.atan2(n.position.x, n.position.z) + Math.PI;
+        this.placeAt(r.glyph, n.position, heading, this.noteHex(n.index), size);
+      }
+      // 2. Currently descending notes: as the music progresses, notes descend gradually
+      // from the mountain horizon down into the scene, radiant with multicolor rainbow hues like an arc-en-ciel,
+      // planting into the ground where 3D structures grow and come to life.
+      for (const f of state.fallingNotes) {
+        if (!isRecordShown(this.plan, f.index, hidden)) continue;
+        const r = this.plan.records[f.index]!;
+        const horizon = skyPosition(this.plan, r, r.onset).position;
+        const pos = auroraDescentPosition(
+          horizon,
+          r.target,
+          hashSeed(this.plan.seed, r.noteId),
+          f.progress,
+          this.plan.template.terrain.size,
+        );
+        const hex = rainbowHex(f.progress, state.t, r.midi, this.noteHex(f.index));
+        const size = this.skyScale * objectScale(scaleStore.mode) * (1.1 - 0.35 * f.progress);
+        const heading = Math.atan2(pos.x, pos.z) + Math.PI;
+        this.placeAt(r.glyph, pos, heading, hex, size);
+      }
+    } else {
+      for (const n of state.notesOnStaff) if (isRecordShown(this.plan, n.index, hidden)) this.place(n.glyph, n.position, n.u, this.noteHex(n.index));
+      for (const f of state.fallingNotes) {
+        if (!isRecordShown(this.plan, f.index, hidden)) continue;
+        const r = this.plan.records[f.index]!;
+        // A rainbow note (I38) already shows its colours while it falls, so the object it will touch is no surprise.
+        const hex = r.rainbow ? rainbowHex(f.progress, state.t, r.midi, this.noteHex(f.index)) : this.noteHex(f.index);
+        this.place(f.glyph, f.position, this.plan.staff.playheadU, hex);
+      }
     }
     this.placeEditMarks(state);
     for (const [kind, mesh] of this.glyphMeshes) {
@@ -315,14 +364,26 @@ export class StaffView implements WorldView {
   private placeEditMarks(state: WorldState): void {
     const edit = editStore.state;
     if (!edit.enabled) return;
-    const mark = (noteId: string, midi: number | null, scale: number): void => {
+    const mark = (noteId: string, midi: number | null, scale: number, dt = 0): void => {
       const index = this.indexOf.get(noteId);
       const r = index === undefined ? undefined : this.plan.records[index];
       if (!r) return;
+      if (skyStore.enabled) {
+        // In the aurora a mark is a bigger halo around the note, where it hangs in its curtain.
+        const sn = midi === null ? state.skyNotes.find((x) => x.index === r.index) : undefined;
+        if (!sn) return;
+        const heading = Math.atan2(sn.position.x, sn.position.z) + Math.PI;
+        this.q.setFromAxisAngle(this.up, heading);
+        this.m.compose(this.pos.set(sn.position.x, sn.position.y, sn.position.z), this.q, this.markScale.setScalar(this.skyScale * objectScale(scaleStore.mode) * scale));
+        if (this.haloCount < this.halos.instanceMatrix.count) this.halos.setMatrixAt(this.haloCount++, this.m);
+        return;
+      }
       const n = state.notesOnStaff.find((x) => x.index === r.index);
       const f = state.fallingNotes.find((x) => x.index === r.index);
       if (!n && !f) return;
-      const u = n ? n.u : this.plan.staff.playheadU;
+      const { playheadU } = this.plan.staff;
+      const shifted = (n ? n.u : playheadU) + (dt / this.plan.lookahead) * (1 - playheadU); // dragged along the staff
+      const u = Math.min(1, Math.max(playheadU, shifted));
       const staffU = midi === null ? r.staffU : staffUOfMidi(midi);
       const position = staffNotePosition(this.plan.staff, u, staffU, r.lineY);
       this.q.setFromAxisAngle(this.up, staffHeading(this.plan.staff, u));
@@ -340,31 +401,62 @@ export class StaffView implements WorldView {
     };
     const marked = edit.selection.length > 0 ? edit.selection : edit.hover ? [edit.hover] : [];
     for (const id of marked) mark(id, null, 1.35);
-    if (edit.ghost) mark(edit.ghost.noteId, edit.ghost.midi, 1);
+    if (edit.ghost) mark(edit.ghost.noteId, edit.ghost.midi, 1.2, edit.ghost.dt);
   }
 
-  private place(glyph: GlyphKind, position: { x: number; y: number; z: number }, u: number, hex: string | null = null): void {
+  private placeAt(
+    glyph: GlyphKind,
+    position: { x: number; y: number; z: number },
+    heading: number,
+    hex: string | null = null,
+    size = 0,
+  ): void {
     const mesh = this.glyphMeshes.get(glyph);
     const n = this.counts.get(glyph) ?? 0;
     if (!mesh || n >= mesh.instanceMatrix.count) return;
-    this.q.setFromAxisAngle(this.up, staffHeading(this.plan.staff, u));
-    this.m.compose(this.pos.set(position.x, position.y, position.z), this.q, this.scale);
+    this.q.setFromAxisAngle(this.up, heading);
+    this.m.compose(this.pos.set(position.x, position.y, position.z), this.q, size > 0 ? this.markScale.setScalar(size) : this.scale);
     mesh.setMatrixAt(n, this.m);
     if (this.tinted) mesh.setColorAt(n, this.colorOf(hex));
     this.counts.set(glyph, n + 1);
     if (this.haloCount < this.halos.instanceMatrix.count) this.halos.setMatrixAt(this.haloCount++, this.m);
   }
 
-  /** Hex of a note's glyph: its own color, or in the northern-lights mode a color of the aurora following its pitch. */
-  private noteHex(index: number): string | null {
-    const r = this.plan.records[index]!;
-    if (!skyStore.enabled) return hexOf(r);
-    return `#${auroraColor((r.midi - 36) / 60, this.auroraTint).getHexString()}`;
+  private place(
+    glyph: GlyphKind,
+    position: { x: number; y: number; z: number },
+    u: number,
+    hex: string | null = null,
+    path: StaffPath = this.plan.staff,
+    size = 0,
+  ): void {
+    this.placeAt(glyph, position, staffHeading(path, u), hex, size);
   }
 
-  /** Glyph color: the note's own color times the staff glow, else the shared glow color. */
+  /** Hex of a note's glyph: harmonized with the initial note analyzed by the AI. */
+  private noteHex(index: number): string | null {
+    const r = this.plan.records[index]!;
+    const analyzed = hexOf(r);
+    if (!skyStore.enabled) return analyzed;
+
+    // Harmonized with the initial note analyzed by the AI:
+    // Preserves the AI-analyzed instrument/stem layer color, blended with harmonic pitch tint
+    if (analyzed) {
+      const pitch01 = Math.min(1, Math.max(0, (r.midi - 48) / 36));
+      const harmonic = auroraColor(pitch01, this.auroraTint);
+      // Harmonize: 75% analyzed stem color from AI, 25% harmonic aurora tint
+      const col = new Color(analyzed).lerp(harmonic, 0.25);
+      return `#${col.getHexString()}`;
+    }
+    return `#${auroraColor(Math.min(1, Math.max(0, (r.midi - 48) / 36)), this.auroraTint).getHexString()}`;
+  }
+
+  /** Glyph color: the note's own color times the staff glow, else the shared glow color. Fluorescent boost in aurora mode. */
   private colorOf(hex: string | null): Color {
-    return hex ? this.tint.set(hex).multiplyScalar(this.plan.template.staff.glow) : this.tint.copy(this.glow);
+    const boost = skyStore.enabled ? 1.5 : 1.0;
+    return hex
+      ? this.tint.set(hex).multiplyScalar(this.plan.template.staff.glow * boost)
+      : this.tint.copy(this.glow).multiplyScalar(boost);
   }
 
   visibleHalos(): number {

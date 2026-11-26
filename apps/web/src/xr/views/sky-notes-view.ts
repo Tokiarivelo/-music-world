@@ -6,12 +6,13 @@
  */
 import { Group } from 'three';
 import type { SpawnPlan } from '@/engine/spawn-plan';
-import { SKY_CURTAINS, SKY_CURTAIN_SPACING_GAPS, SKY_HEIGHT_GAPS, skyPath } from '@/engine/sky';
+import { SKY_CURTAINS, SKY_CURTAIN_SPACING_GAPS, SKY_HEIGHT_GAPS, skyHeightFraction, skyPath, skyU } from '@/engine/sky';
 import { staffPoint } from '@/engine/staff';
 import type { WorldState } from '@/engine/world-state';
+import { objectScale, scaleStore } from '../scale';
 import { skyStore } from '../sky-store';
 import { AURORA_COLORS, AURORA_GREENS, AURORA_TOPS } from './aurora-colors';
-import { createAuroraCurtain, type AuroraCurtain } from './aurora-curtain';
+import { buildRingGeometry, createAuroraCurtain, NOTE_LIGHTS, type AuroraCurtain } from './aurora-curtain';
 import type { WorldView } from './world-view';
 
 export { AURORA_COLORS } from './aurora-colors';
@@ -19,10 +20,12 @@ export { AURORA_COLORS } from './aurora-colors';
 export class SkyNotesView implements WorldView {
   readonly object = new Group();
   private readonly curtains: AuroraCurtain[] = [];
+  private readonly rings: AuroraCurtain[] = [];
+  private readonly offScale: () => void;
   private readonly unsubscribe: () => void;
   private lastT = Number.NaN;
 
-  constructor(plan: SpawnPlan) {
+  constructor(private readonly plan: SpawnPlan) {
     const path = skyPath(plan);
     const gap = path.lineGap;
     const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -35,12 +38,34 @@ export class SkyNotesView implements WorldView {
     const nz = (b.x - a.x) / len;
     for (let i = 0; i < SKY_CURTAINS; i += 1) {
       const next = AURORA_COLORS[(i + 1) % AURORA_COLORS.length]!;
-      const curtain = createAuroraCurtain(path, { primary: AURORA_GREENS[i % AURORA_GREENS.length]!, accent: next, secondary: AURORA_TOPS[i % AURORA_TOPS.length]! }, gap * SKY_HEIGHT_GAPS / 0.22, 1.5, reduced, true);
+      const curtain = createAuroraCurtain(path, { primary: AURORA_GREENS[i % AURORA_GREENS.length]!, accent: next, secondary: AURORA_TOPS[i % AURORA_TOPS.length]! }, gap * SKY_HEIGHT_GAPS / 0.22, 0.55, reduced, true);
       const side = (i - (SKY_CURTAINS - 1) / 2) * SKY_CURTAIN_SPACING_GAPS * gap;
       curtain.mesh.position.set(nx * side, 0, nz * side);
       this.curtains.push(curtain);
       this.object.add(curtain.mesh);
     }
+    // The real thing fills the sky: three curtains all the way round the horizon, at different distances and heights,
+    // with drifting patches of light between dark gaps. Plate units: the landscape reaches about 55 of them.
+    const size = plan.template.terrain.size;
+    const rings = [
+      { radius: size * 2.1, bottom: size * 0.22, height: size * 0.55, bands: 4 },
+      { radius: size * 3.8, bottom: size * 0.4, height: size * 1.2, bands: 3 },
+      { radius: size * 5.4, bottom: size * 0.5, height: size * 1.5, bands: 4 },
+      { radius: size * 7.0, bottom: size * 0.8, height: size * 2.0, bands: 5 },
+    ];
+    rings.forEach((r, i) => {
+      const colors = { primary: AURORA_GREENS[i % AURORA_GREENS.length]!, accent: AURORA_COLORS[(i + 1) % AURORA_COLORS.length]!, secondary: AURORA_TOPS[i % AURORA_TOPS.length]! };
+      const ring = createAuroraCurtain(path, colors, r.height / 0.22, 0.5, reduced, true, { geometry: buildRingGeometry(r.radius, r.bottom, r.height), bands: r.bands });
+      this.curtains.push(ring);
+      this.rings.push(ring);
+      this.object.add(ring.mesh);
+    });
+    const fit = (): void => {
+      // The rings are calibrated on an 80 m plate: keep their size in the wide immersive plate.
+      for (const r of this.rings) r.mesh.scale.setScalar(objectScale(scaleStore.mode));
+    };
+    fit();
+    this.offScale = scaleStore.subscribe(fit);
     this.unsubscribe = skyStore.subscribe(() => {
       this.lastT = Number.NaN;
     });
@@ -53,10 +78,23 @@ export class SkyNotesView implements WorldView {
     if (!on || state.t === this.lastT) return;
     this.lastT = state.t;
     for (const c of this.curtains) c.update(state.t);
+    // The notes hang in the three curtains: each curtain glows around the notes that sit on it, at their own height.
+    for (let i = 0; i < SKY_CURTAINS; i += 1) {
+      const lights = state.skyNotes
+        .filter((n) => n.curtain === i)
+        .map((n) => {
+          const r = this.plan.records[n.index]!;
+          return { x: skyU(this.plan, r, state.t), y: skyHeightFraction(r.midi), strength: n.sounding ? 1 : n.glow * 0.7 };
+        })
+        .sort((a, b) => b.strength - a.strength)
+        .slice(0, NOTE_LIGHTS);
+      this.curtains[i]!.setNotes(lights);
+    }
   }
 
   dispose(): void {
     this.unsubscribe();
+    this.offScale();
     for (const c of this.curtains) c.dispose();
     this.object.removeFromParent();
   }

@@ -1,0 +1,342 @@
+{
+  "schema": "music-world.template.v1",
+  "id": "enchanted-realm",
+  "name": "Enchanted Realm",
+  "license": "CC-BY-4.0",
+  "palette": {
+    "background": "#120a2e",
+    "terrain": "#6b57c4",
+    "primary": "#b36bff",
+    "accent": "#ff6fd0",
+    "secondary": "#4cf0e0",
+    "staff": "#fff4ff"
+  },
+  "terrain": {
+    "style": "smooth_plate",
+    "mountains": "edges",
+    "size": 14
+  },
+  "staff": {
+    "style": "aurora",
+    "path": "diagonal_curve",
+    "clef": "treble",
+    "glow": 1.4,
+    "lookahead": 4.5,
+    "fallDuration": 1.5
+  },
+  "mappings": [
+    {
+      "when": {
+        "stem": "drums"
+      },
+      "spawn": "recipe:crystal_cluster",
+      "colorRole": "secondary",
+      "heightFrom": "velocity"
+    },
+    {
+      "when": {
+        "chord": true
+      },
+      "spawn": "recipe:glow_flower",
+      "colorRole": "accent",
+      "heightFrom": "velocity"
+    },
+    {
+      "when": {
+        "pitch": "<40"
+      },
+      "spawn": "recipe:giant_mushroom",
+      "colorRole": "primary",
+      "heightFrom": "velocity"
+    },
+    {
+      "when": {
+        "pitch": "40-52"
+      },
+      "spawn": "recipe:magic_tree",
+      "colorRole": "secondary",
+      "heightFrom": "duration"
+    },
+    {
+      "when": {
+        "pitch": "53-60"
+      },
+      "spawn": "recipe:mushroom_house",
+      "colorRole": "accent",
+      "heightFrom": "velocity"
+    },
+    {
+      "when": {
+        "pitch": "61-69"
+      },
+      "spawn": "recipe:wizard_tower",
+      "colorRole": "primary",
+      "heightFrom": "velocity"
+    },
+    {
+      "when": {
+        "pitch": "70-79"
+      },
+      "spawn": "recipe:crystal_cluster",
+      "colorRole": "accent",
+      "heightFrom": "velocity"
+    },
+    {
+      "when": {
+        "pitch": ">79"
+      },
+      "spawn": "recipe:glow_flower",
+      "colorRole": "secondary",
+      "heightFrom": "velocity"
+    },
+    {
+      "when": {},
+      "spawn": "recipe:magic_tree",
+      "colorRole": "primary"
+    }
+  ],
+  "zones": [],
+  "scenery": [
+    {
+      "kind": "recipe:castle",
+      "count": 1
+    },
+    {
+      "kind": "recipe:dragon",
+      "count": 2
+    },
+    {
+      "kind": "recipe:wizard_tower",
+      "count": 4
+    },
+    {
+      "kind": "recipe:mushroom_house",
+      "count": 8
+    },
+    {
+      "kind": "recipe:giant_mushroom",
+      "count": 10
+    },
+    {
+      "kind": "recipe:magic_tree",
+      "count": 14
+    },
+    {
+      "kind": "recipe:crystal_cluster",
+      "count": 10
+    },
+    {
+      "kind": "recipe:glow_flower",
+      "count": 16
+    },
+    {
+      "kind": "cloud",
+      "count": 3
+    }
+  ],
+  "recipes": [
+    {
+      "name": "castle",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 0.9,
+          "height": 0.8,
+          "y": 0,
+          "sides": 8,
+          "taper": 0.6
+        },
+        {
+          "op": "spike",
+          "width": 0.5,
+          "height": 0.5,
+          "y": 0.7
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 1.5,
+      "heightScale": 2.0
+    },
+    {
+      "name": "wizard_tower",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 0.9,
+          "height": 0.8,
+          "y": 0,
+          "sides": 8,
+          "taper": 0.6
+        },
+        {
+          "op": "spike",
+          "width": 0.5,
+          "height": 0.5,
+          "y": 0.7
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.55,
+      "heightScale": 1.8
+    },
+    {
+      "name": "mushroom_house",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 0.9,
+          "height": 0.8,
+          "y": 0,
+          "sides": 8,
+          "taper": 0.6
+        },
+        {
+          "op": "spike",
+          "width": 0.5,
+          "height": 0.5,
+          "y": 0.7
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.6,
+      "heightScale": 0.9
+    },
+    {
+      "name": "giant_mushroom",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 0.9,
+          "height": 0.8,
+          "y": 0,
+          "sides": 8,
+          "taper": 0.6
+        },
+        {
+          "op": "spike",
+          "width": 0.5,
+          "height": 0.5,
+          "y": 0.7
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.7,
+      "heightScale": 1.1
+    },
+    {
+      "name": "crystal_cluster",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 0.9,
+          "height": 0.8,
+          "y": 0,
+          "sides": 8,
+          "taper": 0.6
+        },
+        {
+          "op": "spike",
+          "width": 0.5,
+          "height": 0.5,
+          "y": 0.7
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.5,
+      "heightScale": 1.0
+    },
+    {
+      "name": "magic_tree",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 0.9,
+          "height": 0.8,
+          "y": 0,
+          "sides": 8,
+          "taper": 0.6
+        },
+        {
+          "op": "spike",
+          "width": 0.5,
+          "height": 0.5,
+          "y": 0.7
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.9,
+      "heightScale": 1.5
+    },
+    {
+      "name": "dragon",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 0.9,
+          "height": 0.8,
+          "y": 0,
+          "sides": 8,
+          "taper": 0.6
+        },
+        {
+          "op": "spike",
+          "width": 0.5,
+          "height": 0.5,
+          "y": 0.7
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 1.1,
+      "heightScale": 1.0
+    },
+    {
+      "name": "glow_flower",
+      "parts": [
+        {
+          "op": "prism",
+          "width": 0.9,
+          "height": 0.8,
+          "y": 0,
+          "sides": 8,
+          "taper": 0.6
+        },
+        {
+          "op": "spike",
+          "width": 0.5,
+          "height": 0.5,
+          "y": 0.7
+        }
+      ],
+      "budget": {
+        "maxTriangles": 600
+      },
+      "footprint": 0.4,
+      "heightScale": 0.8
+    }
+  ],
+  "budget": {
+    "instancesPerKind": 40
+  },
+  "fx": {
+    "particles": "dust",
+    "bloom": 1.0,
+    "beatPulse": true,
+    "chordLinks": "light_arc",
+    "environment": "land",
+    "material": "polished"
+  }
+}

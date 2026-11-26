@@ -4,6 +4,7 @@
  * been (the world stays a function of `(plan, t)`). Distances are plate metres; angles radians.
  */
 import { hashSeed, mulberry32, uniform } from './prng';
+import { swimAt } from './swim';
 
 export interface Vec3 {
   readonly x: number;
@@ -14,6 +15,12 @@ export interface Vec3 {
 export interface Pose extends Vec3 {
   /** Heading around the up axis (0 = +x), so a car or a plane faces where it goes. */
   readonly yaw: number;
+  /** Nose up (+) or down (-), radians; only swimming animals have it. */
+  readonly pitch?: number;
+  /** Bank around the heading, + = right side down, radians; only swimming animals have it. */
+  readonly roll?: number;
+  /** The record has left the scene (its kind shows only its most recent ones): draw nothing. */
+  readonly hidden?: boolean;
 }
 
 export interface Bounds {
@@ -39,7 +46,7 @@ export function driftAt(seed: number, objectId: string, t: number, area: Bounds,
   const x0 = uniform(rng, -area.halfWidth, area.halfWidth);
   const z0 = uniform(rng, -area.halfDepth, area.halfDepth);
   const heading = uniform(rng, 0, Math.PI * 2);
-  const speed = uniform(rng, 0.05, 0.25);
+  const speed = uniform(rng, 0.03, 0.12); // slow: a few metres a second at the big scale
   const height = uniform(rng, heightRange[0], heightRange[1]);
   const bobPhase = uniform(rng, 0, Math.PI * 2);
   const width = area.halfWidth * 2;
@@ -65,12 +72,17 @@ export function loopAt(seed: number, objectId: string, t: number, path: LoopPath
   const speed = uniform(rng, 1, 4);
   const direction = rng() < 0.5 ? 1 : -1;
   // Angular speed from the mean radius, so a longer ring takes longer.
-  const omega = (direction * speed) / ((path.rx + path.rz) / 2);
+  // Lanes: each direction keeps to its own side of the road (the two ways never share a line) and every car has a small
+  // lane offset of its own, so two cars that meet pass each other instead of colliding.
+  const lane = 1 + direction * 0.07 + uniform(rng, -0.025, 0.025);
+  const rx = path.rx * lane;
+  const rz = path.rz * lane;
+  const omega = (direction * speed) / ((rx + rz) / 2);
   const a = phase0 + omega * t;
-  const x = path.cx + Math.cos(a) * path.rx;
-  const z = path.cz + Math.sin(a) * path.rz;
-  const dx = -Math.sin(a) * path.rx * direction;
-  const dz = Math.cos(a) * path.rz * direction;
+  const x = path.cx + Math.cos(a) * rx;
+  const z = path.cz + Math.sin(a) * rz;
+  const dx = -Math.sin(a) * rx * direction;
+  const dz = Math.cos(a) * rz * direction;
   return { x, y: path.y, z, yaw: Math.atan2(dz, dx) };
 }
 
@@ -80,14 +92,21 @@ export interface FlightLane {
   readonly halfWidth: number; // lanes are spread across z
 }
 
-/** A plane crossing the area at constant speed (6–14 m/s) along x, in its own lane and altitude, restarting at the edge. */
-export function flightAt(seed: number, objectId: string, t: number, lane: FlightLane): Pose {
+/**
+ * A plane crossing the area at a calm constant speed (2–4.5 m/s) along x, restarting at the edge. With `slot` (its place
+ * among the planes) it gets its own altitude and lane from the golden ratio, so planes never share a level or a line.
+ */
+export function flightAt(seed: number, objectId: string, t: number, lane: FlightLane, slot?: number): Pose {
   const rng = stream(seed, objectId);
   const offset = uniform(rng, 0, lane.halfLength * 2);
-  const speed = uniform(rng, 6, 14);
+  const speed = uniform(rng, 2.2, 4.5);
   const direction = rng() < 0.5 ? 1 : -1;
-  const z = uniform(rng, -lane.halfWidth, lane.halfWidth);
-  const y = uniform(rng, lane.altitude[0], lane.altitude[1]);
+  let z = uniform(rng, -lane.halfWidth, lane.halfWidth);
+  let y = uniform(rng, lane.altitude[0], lane.altitude[1]);
+  if (slot !== undefined) {
+    z = (((slot * 0.382 + 0.1) % 1) * 2 - 1) * lane.halfWidth;
+    y = lane.altitude[0] + ((slot * 0.618) % 1) * (lane.altitude[1] - lane.altitude[0]);
+  }
   const along = wrap(offset + speed * t, lane.halfLength * 2) - lane.halfLength;
   return { x: along * direction, y, z, yaw: direction === 1 ? 0 : Math.PI };
 }
@@ -104,14 +123,14 @@ export function objectPoseAt(kind: string, seed: number, index: number, t: numbe
   const half = size / 2;
   switch (kind) {
     case 'cloud':
-      return driftAt(seed, id, t, { halfWidth: half, halfDepth: half }, [2, 3.2]);
+      return driftAt(seed, id, t, { halfWidth: half * 3.6, halfDepth: half * 3.6 }, [6, 11]);
     case 'airplane':
-      return flightAt(seed, id, t, { halfLength: half * 1.2, halfWidth: half * 0.8, altitude: [3.2, 4.6] });
+      return flightAt(seed, id, t, { halfLength: half * 3.8, halfWidth: half * 2.6, altitude: [14, 19] }, index);
     case 'car':
       return loopAt(seed, id, t, { cx: 0, cz: 0, rx: half * 0.7, rz: half * 0.5, y: 0 });
     case 'bicycle':
       return loopAt(seed, id, t, { cx: 0, cz: 0, rx: half * 0.45, rz: half * 0.3, y: 0 });
     default:
-      return null;
+      return swimAt(kind, seed, id, t, size);
   }
 }

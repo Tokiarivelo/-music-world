@@ -31,5 +31,8 @@
   "errors.SEPARATION_FAILED": "Tsy nahomby ny fanadihadiana tamin'ny fanasarahana ny zavamaneno.",
   "errors.TRANSCRIPTION_FAILED": "Tsy nahomby ny fanadihadiana tamin'ny fitadiavana ny nota.",
   "errors.NETWORK": "Tsy azo tratra ny serivera. Andramo indray.",
-  "errors.UNKNOWN": "Nisy olana. Andramo indray."
+  "errors.UNKNOWN": "Nisy olana. Andramo indray.",
+  "templateLabel": "Môdely tontolo",
+  "templateDefault": "Neon Nocturne (mahazatra)",
+  "templateHint": "Ny tontolo hananganana ny hira. Azonao ovaina mandritra ny fihainoana."
 }

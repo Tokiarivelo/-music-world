@@ -19,7 +19,7 @@ export function makeTemplate(overrides: Record<string, unknown> = {}): WorldTemp
     name: 'Test',
     license: 'MIT',
     palette: TEST_PALETTE,
-    mappings: [{ when: {}, spawn: 'building' }],
+    mappings: [{ when: {}, spawn: 'crystal' }],
     ...overrides,
   });
 }

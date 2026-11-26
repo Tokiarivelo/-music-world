@@ -13,14 +13,16 @@ export const DESKTOP_CAMERA_DISTANCE_M = 2.5;
 export const DESKTOP_CAMERA_FOV_DEG = 20;
 /** Lens of the `horizon` view preset: wide enough to show the plate, the horizon and the sky together. */
 export const HORIZON_FOV_DEG = 58;
+/** Lens of the walk mode: a natural field of view, as in a headset, so the sky and the horizon are all in the frame. */
+export const WALK_FOV_DEG = 72;
 /** Aspect ratio the framing above is tuned for (16:9): wider keeps it, narrower moves the camera back (I2). */
 export const DESKTOP_REFERENCE_ASPECT = 16 / 9;
 /** Point the desktop camera looks at, relative to the diorama centre (metres): slightly toward the city. */
 export const DESKTOP_CAMERA_TARGET_OFFSET = { x: 0.0, y: 0.09, z: 0.0 } as const;
 
 /** Environment (I2): sky dome and ground radii, fog range, hill rings and columns, star share of sky cells (metres). */
-export const ENV_SKY_RADIUS_M = 120;
-export const ENV_GROUND_RADIUS_M = 60;
+export const ENV_SKY_RADIUS_M = 240;
+export const ENV_GROUND_RADIUS_M = 200;
 export const ENV_FOG_NEAR_M = 14;
 export const ENV_FOG_FAR_M = 58;
 export const ENV_HILL_RINGS = 5;
@@ -30,11 +32,16 @@ export const ENV_STAR_DENSITY = 0.012;
  * Immersive scale (I7): plate width in metres, how far the viewer starts from the plate centre (inside its near edge),
  * eye height, environment scale (ground, hills, fog), far plane, and the margin the viewer may walk past the plate.
  */
-export const IMMERSIVE_PLATE_M = 80;
-export const IMMERSIVE_START_Z_M = 30;
+export const IMMERSIVE_PLATE_M = 140;
+export const IMMERSIVE_START_Z_M = 35;
+/**
+ * Objects maintain their full calibrated size so they fill the landscape with presence and architectural volume,
+ * rather than shrinking into miniatures.
+ */
+export const IMMERSIVE_OBJECT_SCALE = 1;
 export const EYE_HEIGHT_M = 1.6;
 export const IMMERSIVE_ENV_SCALE = 3;
-export const IMMERSIVE_CAMERA_FAR_M = 700;
+export const IMMERSIVE_CAMERA_FAR_M = 1600;
 export const WALK_MARGIN_M = 25;
 /** Walk speed (m/s), Shift multiplier, mouse look (rad per px), glide and snap turn in VR. */
 export const WALK_SPEED_MPS = 3;
@@ -107,13 +114,13 @@ export const KIND_FOOTPRINT: Readonly<Record<string, number>> = {
   spike: 0.8,
   crystal: 0.2,
   cluster: 0.22,
-  cloud: 0.8,
-  tree: 0.22,
-  conifer: 0.2,
-  bush: 0.2,
-  car: 0.3,
-  bicycle: 0.2,
-  airplane: 0.5,
+  cloud: 2,
+  tree: 0.48,
+  conifer: 0.44,
+  bush: 0.36,
+  car: 0.75,
+  bicycle: 0.3,
+  airplane: 1.25,
 };
 export const RECIPE_FOOTPRINT = 0.25;
 
@@ -177,6 +184,8 @@ export const NAV_PITCH_MIN_DEG = 5;
 export const NAV_PITCH_MAX_DEG = 85;
 export const NAV_DISTANCE_MIN_M = 0.35;
 export const NAV_DISTANCE_MAX_M = 9;
+/** In the big world the explore camera stops inside the sky dome: 73 x 3.8 = 277 m from the target. */
+export const NAV_DISTANCE_MAX_WORLD_M = 3.8;
 /** The orbit target stays within this horizontal distance of the plate centre (per axis). */
 export const NAV_TARGET_RADIUS_M = 0.9;
 /** The orbit target stays between the plate top and this height above it. */

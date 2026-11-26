@@ -26,7 +26,7 @@ function ribbons(view: StaffView): Object3D[] {
 }
 
 describe('StaffView in the northern-lights mode (I30)', () => {
-  it('turns the five lines into aurora ribbons and keeps the note glyphs, one color per pitch', () => {
+  it('hangs the notes in the sky curtains instead of the staff, one aurora color per pitch', () => {
     const state = worldStateAt(plan, 2.8);
     const view = new StaffView(plan);
     view.update(state);
@@ -36,9 +36,9 @@ describe('StaffView in the northern-lights mode (I30)', () => {
 
     skyStore.set(true);
     view.update({ ...state, t: state.t + 0.001 });
-    expect(view.visibleGlyphs()).toBe(classic); // the notes are still drawn on the staff
-    const visible = ribbons(view).filter((r) => r.visible);
-    expect(visible).toHaveLength(5);
+    expect(view.visibleGlyphs()).toBe(state.skyNotes.length); // every note of the sky window is drawn, in the aurora
+    expect(state.skyNotes.length).toBeGreaterThan(0);
+    expect(ribbons(view).filter((r) => r.visible)).toHaveLength(0); // the plate staff is gone: the sky curtains carry the notes
 
     const colors = new Set<string>();
     view.object.traverse((o) => {
@@ -47,7 +47,7 @@ describe('StaffView in the northern-lights mode (I30)', () => {
       }
     });
     expect(colors.size).toBeGreaterThan(1); // low and high notes get different aurora colors
-    // The classic tube lines are hidden: the ribbons are the lines now.
+    // The classic tube lines are hidden too.
     const tubes = view.object.children.filter((c): c is Mesh => c instanceof Mesh && c.name !== 'aurora-line' && !(c instanceof InstancedMesh));
     expect(tubes.every((t) => !t.visible)).toBe(true);
     view.dispose();

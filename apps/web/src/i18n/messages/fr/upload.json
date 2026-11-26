@@ -31,5 +31,8 @@
   "errors.SEPARATION_FAILED": "L'analyse a échoué pendant la séparation des instruments.",
   "errors.TRANSCRIPTION_FAILED": "L'analyse a échoué pendant la détection des notes.",
   "errors.NETWORK": "Le serveur est injoignable. Réessayez.",
-  "errors.UNKNOWN": "Une erreur est survenue. Réessayez."
+  "errors.UNKNOWN": "Une erreur est survenue. Réessayez.",
+  "templateLabel": "Modèle de monde",
+  "templateDefault": "Neon Nocturne (par défaut)",
+  "templateHint": "Le monde dans lequel votre morceau est construit. Vous pourrez le changer pendant la lecture."
 }

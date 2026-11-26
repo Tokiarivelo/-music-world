@@ -15,17 +15,18 @@ describe('nemo-reef store template', () => {
   it('validates against music-world.template.v1 (zod)', () => {
     expect(NEMO.id).toBe('nemo-reef');
     expect(NEMO.license).toBe('CC-BY-4.0');
-    expect(NEMO.recipes).toHaveLength(16);
+    expect(NEMO.recipes).toHaveLength(26);
+    expect(NEMO.fx.environment).toBe('underwater');
   });
 
-  it('builds a geometry for each of its 16 recipes', () => {
+  it('builds a geometry for each of its 26 recipes', () => {
     for (const recipe of NEMO.recipes) expect(buildRecipeGeometry(recipe), recipe.name).not.toBeNull();
   });
 
-  it('stands all 21 kinds of ocean objects on the plate before the first note', () => {
+  it('stands all 31 kinds of ocean objects on the plate before the first note', () => {
     const plan = buildSpawnPlan(demo, NEMO, 1);
     const kinds = new Set(worldStateAt(plan, 0).structures.map((s) => s.kind));
-    expect(kinds.size).toBe(21);
+    expect(kinds.size).toBe(31);
     expect(plan.sceneryCount).toBe(NEMO.scenery.reduce((sum, s) => sum + s.count, 0));
   });
 

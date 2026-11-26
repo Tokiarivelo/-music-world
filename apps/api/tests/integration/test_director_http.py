@@ -2,10 +2,12 @@
 
 import hashlib
 import json
+from pathlib import Path
 from typing import Any
 
 from httpx import ASGITransport, AsyncClient
 
+from music_world.director.infrastructure.default_template import default_template
 from music_world.main import create_app
 from music_world.schemas.analysis import AnalysisResult
 from music_world.shared.container import Container
@@ -96,3 +98,37 @@ async def test_rate_limit_answers_429() -> None:
         codes = [(await c.post("/api/director/demo", json=_demo_body())).status_code for _ in range(3)]
         last = await c.post("/api/director/demo", json=_demo_body())
     assert codes == [200, 200, 429] and last.json()["error"]["code"] == "RATE_LIMITED"
+
+
+async def test_layout_route_writes_a_layout_for_the_chosen_template() -> None:
+    analyses = InMemoryAnalysisRepository()
+    audio = wav_bytes()
+    await analyses.save(
+        AnalysisResult.model_validate({**_base(), "audioHash": "sha256:" + hashlib.sha256(audio).hexdigest()})
+    )
+    realm = json.loads(
+        (Path(__file__).parents[2] / "music_world/templates/infrastructure/featured/enchanted-realm.json").read_text()
+    )
+    c = _client(analyses, Settings(app_env="test"))
+    async with c, LifespanManager(c):
+        created = (await c.post("/api/projects", files={"audio": ("a.wav", audio, "audio/wav")})).json()
+        response = await c.post(f"/api/projects/{created['projectId']}/layout", json={"template": realm})
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["provider"] == "mock"
+    assert body["layout"]["patches"][0]["theme"] == "keep"
+    assert any(step["kind"] == "recipe:magic_tree" for step in body["layout"]["sequence"])
+
+
+async def test_demo_layout_route_writes_a_city_mix_and_rejects_another_song() -> None:
+    c = _client(InMemoryAnalysisRepository(), Settings(app_env="test"))
+    body = {**_demo_body(), "template": default_template()}
+    async with c, LifespanManager(c):
+        ok = await c.post("/api/director/layout/demo", json=body)
+        other = _demo_body()
+        other["analysis"]["audioHash"] = "sha256:" + "0" * 64
+        bad = await c.post("/api/director/layout/demo", json={**other, "template": default_template()})
+    assert ok.status_code == 200, ok.text
+    layout = ok.json()["layout"]
+    assert layout["patches"] == [] and {s["kind"] for s in layout["sequence"]} >= {"building"}
+    assert bad.status_code in (400, 409, 422)

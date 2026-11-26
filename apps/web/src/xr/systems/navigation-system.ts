@@ -4,7 +4,8 @@
  * It never reads the audio clock or the spawn plan, and does nothing while an immersive session runs.
  */
 import { createSystem, type World } from '@iwsdk/core';
-import { NAV_MAX_STEP_SEC } from '../constants';
+import { ENV_FOG_FAR_M, IMMERSIVE_ENV_SCALE, NAV_MAX_STEP_SEC } from '../constants';
+import { VIEW_SCALE, scaleStore, viewToWorld } from '../scale';
 import { NavigationController } from '../navigation/navigation-controller';
 import { poseToCamera, type OrbitPose } from '../navigation/orbit-camera';
 import { isImmersive } from './xr-systems';
@@ -26,7 +27,9 @@ let binding: NavigationBinding | null = null;
 
 export class NavigationSystem extends createSystem({}) {
   private readonly eye = { x: 0, y: 0, z: 0 };
+  private readonly at = { x: 0, y: 0, z: 0 };
   private written: OrbitPose | null = null;
+  private writtenMode = scaleStore.mode;
 
   update(delta: number): void {
     const b = binding;
@@ -42,11 +45,18 @@ export class NavigationSystem extends createSystem({}) {
       }
       return;
     }
-    if (this.written === pose) return;
+    const mode = scaleStore.mode;
+    if (this.written === pose && this.writtenMode === mode) return;
     this.written = pose;
+    this.writtenMode = mode;
     poseToCamera(pose, this.eye);
+    viewToWorld(this.eye, mode, this.eye);
+    viewToWorld(pose.target, mode, this.at);
     b.camera.position.set(this.eye.x, this.eye.y, this.eye.z);
-    b.camera.lookAt(pose.target.x, pose.target.y, pose.target.z);
+    b.camera.lookAt(this.at.x, this.at.y, this.at.z);
+    // From high above the plate the fog must still let the whole world through.
+    const reach = pose.distance * (mode === 'immersive' ? VIEW_SCALE : 1) * 2.4;
+    scaleStore.setFogBoost(reach / (ENV_FOG_FAR_M * (mode === 'immersive' ? IMMERSIVE_ENV_SCALE : 1)));
   }
 }
 

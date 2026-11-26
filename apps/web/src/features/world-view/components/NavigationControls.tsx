@@ -63,11 +63,12 @@ export function NavigationControls({
               className="flex flex-wrap justify-end gap-2"
               role="group"
             >
-              {VIEW_PRESET_IDS.map((id) => (
+              {VIEW_PRESET_IDS.map((id, i) => (
                 <button
                   aria-pressed={state.preset === id}
                   className={`${BUTTON} ${state.preset === id ? ACTIVE : IDLE}`}
                   key={id}
+                  title={`${i + 1}`}
                   onClick={() => commands.selectPreset(id)}
                   type="button"
                 >

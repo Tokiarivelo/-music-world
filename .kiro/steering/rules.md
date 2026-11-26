@@ -41,6 +41,7 @@ for the area they touch.
 | `analysis-stage` | Adding or changing a music analysis stage |
 | `llm-provider` | Adding or changing an LLM provider, prompts or the fallback chain |
 | `shape-kind` | Adding a 3D shape kind or a ShapeRecipe op end to end |
+| `blender-3d-models` | Modelling, previewing, budgeting and wiring an authored 3D model (animal, plant, prop) with headless Blender; motion and natural colours |
 | `world-template` | Creating or checking a world template (incl. default look fidelity) |
 | `xr-verify` | Verifying any XR change in IWER and on a Quest, perf budget |
 | `deploy-ovh` | Deploying to the OVHcloud instance |

@@ -45,11 +45,11 @@ export interface OrbitPose {
 }
 
 export type ViewPresetId = 'overview' | 'horizon' | 'staff' | 'city' | 'top';
-export const VIEW_PRESET_IDS: readonly ViewPresetId[] = ['overview', 'horizon', 'staff', 'city', 'top'];
+export const VIEW_PRESET_IDS: readonly ViewPresetId[] = ['overview', 'staff', 'city', 'top', 'horizon'];
 
 /** Keyboard axes held this frame: each in {−1, 0, 1}. */
 export interface FlyKeys {
-  /** Walk mode only: arrow Up / Down tilt the head (+1 up). Absent in the explore mode. */
+  /** Arrow Up / Down: tilt the head in the walk mode, raise / lower the camera around the target in the explore mode (+1 up). */
   tilt?: number;
   /** +1 forward (W), −1 backward (S). */
   forward: number;
@@ -132,14 +132,22 @@ export function cinematicPose(aspect: number = DESKTOP_REFERENCE_ASPECT): OrbitP
   );
 }
 
+/**
+ * Global view of the explore mode: the cinematic framing seen from higher and slightly further, so the whole scene
+ * (city, staff, scenery, notes, sky) is in the frame and fills the view nicely.
+ */
+export function overviewPose(aspect: number = DESKTOP_REFERENCE_ASPECT): OrbitPose {
+  return presetPose({ x: 0, y: 0.05, z: 0 }, DESKTOP_CAMERA_AZIMUTH_DEG, 36, cinematicDistance(aspect) * 1.15);
+}
+
 /** View presets (requirement 4.1, `design.md` § Camera pose). The city of `neon-nocturne` lies on the −x side. */
 export const VIEW_PRESETS: Readonly<Record<ViewPresetId, OrbitPose>> = {
-  overview: cinematicPose(),
-  // Low and far: the plate sits in the lower third, the horizon and the sky fill the rest (the infinite dome).
-  horizon: presetPose({ x: 0, y: 0.8, z: 0 }, 32, 5, 1.7),
-  staff: presetPose({ x: 0, y: 0.1, z: 0 }, 27, 20, 1.1),
-  city: presetPose({ x: -0.38, y: 0.12, z: -0.2 }, -40, 24, 1.2),
-  top: presetPose({ x: 0, y: 0, z: 0 }, 0, 85, 3.2),
+  overview: overviewPose(),
+  staff: presetPose({ x: 0, y: 0.05, z: 0 }, 27, 34, 1.8),
+  city: presetPose({ x: -0.25, y: 0.05, z: -0.1 }, -35, 34, 1.6),
+  top: presetPose({ x: 0, y: 0, z: 0 }, 0, 82, 3.8),
+  // Wide lens (see HORIZON_FOV_DEG): the plate in the lower half, the horizon and the sky above it.
+  horizon: presetPose({ x: 0, y: 0.15, z: 0 }, 32, 16, 1.5),
 };
 
 /** Drag orbit: right drag turns the view around the target, down drag raises the camera. */
@@ -173,7 +181,8 @@ export function zoom(pose: OrbitPose, factor: number): OrbitPose {
 /** Keyboard fly (requirement 3.1): ground move relative to the view, turn and zoom; `dtSec` capped. */
 export function fly(pose: OrbitPose, keys: FlyKeys, dtSec: number): OrbitPose {
   const dt = clamp(dtSec, 0, NAV_MAX_STEP_SEC);
-  if (dt === 0 || (keys.forward === 0 && keys.right === 0 && keys.turn === 0 && keys.zoom === 0)) return pose;
+  const tilt = keys.tilt ?? 0;
+  if (dt === 0 || (keys.forward === 0 && keys.right === 0 && keys.turn === 0 && keys.zoom === 0 && tilt === 0)) return pose;
   const speed = NAV_FLY_SPEED * pose.distance * (keys.fast ? NAV_FAST_FACTOR : 1) * dt;
   const sin = Math.sin(pose.yaw);
   const cos = Math.cos(pose.yaw);
@@ -182,7 +191,7 @@ export function fly(pose: OrbitPose, keys: FlyKeys, dtSec: number): OrbitPose {
   return clampPose({
     target: { x: pose.target.x + r * cos - f * sin, y: pose.target.y, z: pose.target.z - r * sin - f * cos },
     yaw: pose.yaw + keys.turn * NAV_TURN_SPEED_RAD * dt,
-    pitch: pose.pitch,
+    pitch: pose.pitch + tilt * NAV_TURN_SPEED_RAD * 0.6 * dt,
     distance: pose.distance * Math.exp(-keys.zoom * NAV_KEY_ZOOM_RATE * dt),
   });
 }

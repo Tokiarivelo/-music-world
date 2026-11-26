@@ -26,7 +26,7 @@ export interface Landscape {
 
 export const LANDSCAPES: Readonly<Record<LandscapeId, Landscape>> = {
   template: { id: 'template', texture: null, tileM: 8, gain: 1, haze: '#000000', hillsNear: '#000000', hillsFar: '#000000', hillAmp: 1, hillJag: 0.3 },
-  meadow: { id: 'meadow', texture: 'meadow', tileM: 6, gain: 0.85, haze: '#b9cfdc', hillsNear: '#3e6b3a', hillsFar: '#7f9fb0', hillAmp: 1, hillJag: 0.2 },
+  meadow: { id: 'meadow', texture: 'meadow', tileM: 6, gain: 1.12, haze: '#b5d5e5', hillsNear: '#489632', hillsFar: '#6a9eb8', hillAmp: 1.25, hillJag: 0.25 },
   desert: { id: 'desert', texture: 'desert', tileM: 9, gain: 0.95, haze: '#e6c9a0', hillsNear: '#b98b55', hillsFar: '#d8b98e', hillAmp: 0.55, hillJag: 0 },
   snow: { id: 'snow', texture: 'snow', tileM: 7, gain: 0.95, haze: '#dfe6ee', hillsNear: '#c4ceda', hillsFar: '#e3e9f1', hillAmp: 1.5, hillJag: 0.6 },
   rocky: { id: 'rocky', texture: 'rocky', tileM: 6, gain: 0.85, haze: '#b9a99a', hillsNear: '#6d5f55', hillsFar: '#a89a8d', hillAmp: 1.8, hillJag: 1 },

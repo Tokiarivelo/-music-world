@@ -16,13 +16,15 @@ OBJECT_KINDS = {"cloud", "tree", "conifer", "bush", "car", "bicycle", "airplane"
 def test_nemo_has_every_ocean_object_standing_before_the_first_note() -> None:
     [nemo] = [t for t in FileFeaturedCatalog().all() if t.id == NEMO_STORE_ID]
     template = WorldTemplate.model_validate(nemo.document)
-    assert len(template.recipes) == 16 and all(r.triangle_count() <= r.budget.max_triangles for r in template.recipes)
+    assert len(template.recipes) == 26 and all(r.triangle_count() <= r.budget.max_triangles for r in template.recipes)
     standing = {item.kind for item in template.scenery}
     assert standing == (BUILTIN_KINDS - OBJECT_KINDS) | {
         f"recipe:{r.name}" for r in template.recipes
-    }  # all 21 kinds are on the plate
+    }  # all 31 kinds are on the plate
     assert {rule.spawn for rule in template.mappings} <= standing  # notes spawn more of the same kinds
     assert sum(item.count for item in template.scenery) <= 400
+    assert template.fx.environment == "underwater"
+    assert {"recipe:kelp", "recipe:seagrass", "recipe:staghorn_coral", "recipe:brain_coral"} <= standing  # flora
 
 
 def test_nemo_template_is_featured_valid_and_ocean_coloured() -> None:
