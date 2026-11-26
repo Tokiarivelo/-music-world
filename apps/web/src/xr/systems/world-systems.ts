@@ -10,6 +10,7 @@
  * `createSystem(queries)`, `Types.Object`, `world.registerComponent`, `world.registerSystem(cls, { priority })`
  * (lower priority runs first), `entity.addComponent / getValue / setValue`, `system.cleanupFuncs`.
  */
+import { cachedComponent } from '../component-cache';
 import { createComponent, createSystem, Types, type Entity, type World } from '@iwsdk/core';
 import { AmbientLight, Color, DirectionalLight, Group } from 'three';
 import type { SpawnPlan } from '@/engine/spawn-plan';
@@ -37,7 +38,8 @@ export interface WorldClock {
   onFrame?(): void;
 }
 
-export const ClockComponent = createComponent(
+export const ClockComponent = cachedComponent('mw-clock', () =>
+  createComponent(
   'mw-clock',
   {
     clock: { type: Types.Object, default: null },
@@ -46,7 +48,7 @@ export const ClockComponent = createComponent(
     root: { type: Types.Object, default: null },
   },
   'Music World audio clock, spawn plan, current world state and diorama root',
-);
+));
 
 const CLOCK_PRIORITY = -100;
 const PERF_LOG_INTERVAL_SEC = 1;
