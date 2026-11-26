@@ -7,9 +7,11 @@ import {
   DESKTOP_REFERENCE_ASPECT,
   NAV_DISTANCE_MAX_M,
   NAV_EASE_MAX_SEC,
+  WALK_MARGIN_M,
 } from "../constants";
 import {
   startPose,
+  DOME_WALK_RATIO,
   look,
   walk,
   walkCamera,
@@ -46,6 +48,17 @@ export interface NavigationState {
   mode: CameraMode;
   /** Preset the camera is on (or moving to); null once the user moves the camera by hand. */
   preset: ViewPresetId | null;
+}
+
+export interface WalkMapBase {
+  cx: number;
+  cz: number;
+  /** Half side (square) or radius (round) of the walkable area, metres. */
+  limit: number;
+  round: boolean;
+  /** Where the walker stands, or where it last stood; null before the first walk. */
+  pose: WalkPose | null;
+  obstacles: readonly Circle[];
 }
 
 export class NavigationController {
@@ -101,6 +114,8 @@ export class NavigationController {
   private obstaclesOf: () => readonly Circle[] = () => [];
   private walkPoseValue: WalkPose | null = null;
   private walkDirty = false;
+  /** Where the walker was when the walk mode was left (a click on Walk resumes there). */
+  private lastWalkPose: WalkPose | null = null;
   /** Seconds since the walker started to land (`LANDING_SEC` or more: on the ground). */
   private landingElapsed = LANDING_SEC;
 
@@ -108,6 +123,7 @@ export class NavigationController {
   setDome(on: boolean): void {
     if (this.walkBounds) this.walkBounds = { ...this.walkBounds, dome: on };
     if (on) {
+      this.lastWalkPose = null;
       this.walkPoseValue = this.walkBounds ? startPose(this.walkBounds) : null;
       this.walkDirty = true;
       this.setMode("walk");
@@ -118,6 +134,7 @@ export class NavigationController {
   configureWalk(bounds: WalkBounds, obstacles: () => readonly Circle[]): void {
     this.walkBounds = bounds;
     this.obstaclesOf = obstacles;
+    this.lastWalkPose = null;
     if (this.modeValue === "walk") {
       this.walkPoseValue = startPose(bounds);
       this.walkDirty = true;
@@ -147,6 +164,21 @@ export class NavigationController {
     this.walkPoseValue = { x: ok.x, z: ok.z, yaw, pitch: 0 };
     this.landingElapsed = this.reducedMotion ? LANDING_SEC : 0;
     this.walkDirty = true;
+  }
+
+  /** Area, walker and structures for the map (any mode: the map also shows while the pegman is dragged). */
+  walkMapBase(): WalkMapBase | null {
+    const b = this.walkBounds;
+    if (!b) return null;
+    const limit = b.dome ? b.half * DOME_WALK_RATIO : b.half + WALK_MARGIN_M;
+    return {
+      cx: b.cx,
+      cz: b.cz,
+      limit,
+      round: !!b.dome,
+      pose: this.walkPoseValue ?? this.lastWalkPose,
+      obstacles: this.obstaclesOf(),
+    };
   }
 
   get walkPose(): WalkPose | null {
@@ -183,11 +215,15 @@ export class NavigationController {
 
   setMode(mode: CameraMode): void {
     if (mode === this.modeValue) return;
+    if (this.modeValue === "walk" && this.walkPoseValue)
+      this.lastWalkPose = this.walkPoseValue;
     this.modeValue = mode;
     this.input.clear();
     if (mode === "walk") {
       this.presetValue = null;
-      this.walkPoseValue = this.walkBounds ? startPose(this.walkBounds) : null;
+      this.walkPoseValue =
+        this.lastWalkPose ??
+        (this.walkBounds ? startPose(this.walkBounds) : null);
       this.landingElapsed = LANDING_SEC;
       this.walkDirty = true;
     } else if (mode === "cinematic") {

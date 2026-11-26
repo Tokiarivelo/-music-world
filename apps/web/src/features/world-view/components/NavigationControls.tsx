@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/i18n";
 import type { WorldHandle } from "@/xr/world-host";
+import { WALK_MAP_ID, WalkMap, mapPoint } from "./WalkMap";
 import { ExploreIcon, PegmanIcon, ResetIcon } from "./NavIcons";
 import type { NavigationState } from "@/xr/navigation/navigation-controller";
 import { VIEW_PRESET_IDS } from "@/xr/navigation/orbit-camera";
@@ -64,7 +65,10 @@ export function NavigationControls({
     const up = (e: PointerEvent): void => {
       // Dropped on the 3D view (not on a button or a panel): land there and start the walk mode.
       const over = document.elementFromPoint(e.clientX, e.clientY);
-      if (over instanceof HTMLCanvasElement)
+      if (over instanceof HTMLCanvasElement && over.id === WALK_MAP_ID) {
+        const p = mapPoint(handle, over, e.clientX, e.clientY);
+        if (p) handle.landAtMap(p.x, p.z);
+      } else if (over instanceof HTMLCanvasElement)
         handle.landAt(e.clientX, e.clientY);
       setDrag(null);
     };
@@ -80,6 +84,9 @@ export function NavigationControls({
 
   return (
     <>
+      {(walking || drag) && handle && (
+        <WalkMap dragging={drag !== null} handle={handle} />
+      )}
       {drag && (
         <div
           className="pointer-events-none fixed z-30 -translate-x-1/2 -translate-y-full text-[var(--mw-accent)] drop-shadow-lg"

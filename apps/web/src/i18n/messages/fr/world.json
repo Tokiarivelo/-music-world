@@ -145,5 +145,7 @@
   "view.landscape.snow": "Neige",
   "view.landscape.rocky": "Rocailleux",
   "view.landscape.city": "Ville",
-  "nav.pegmanHint": "Glissez-moi sur le monde et lâchez-moi : j'atterris là et vous marchez"
+  "nav.pegmanHint": "Glissez-moi sur le monde et lâchez-moi : j'atterris là et vous marchez",
+  "nav.mapLabel": "Carte",
+  "nav.mapHint": "Cliquez sur la carte pour atterrir là"
 }

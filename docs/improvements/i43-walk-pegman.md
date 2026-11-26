@@ -10,3 +10,9 @@ Problem: in walk mode the viewer could end up inside a building with no idea whe
   A release over the sky does nothing.
 - Icons on the Explore, Walk and reset buttons (`NavIcons.tsx`).
 - Code: `NavigationController.landAt()`, `WorldHandle.landAt()`, `walk-camera.ts` `landingCamera`.
+
+## Memory and map
+
+- A click on Walk resumes where the walker was left (`lastWalkPose`); "Back to start", a new world or the dome reset it.
+- A map (`WalkMap.tsx`, bottom left) shows while walking and while the pegman is dragged: streets (city grid) or roads,
+  lakes, structures and the walker with its view cone (`walk-map.ts`). Drop the pegman on it, or click it, to land there.

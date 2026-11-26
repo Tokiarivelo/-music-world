@@ -145,5 +145,7 @@
   "view.landscape.snow": "Oram-panala",
   "view.landscape.rocky": "Vatolampy",
   "view.landscape.city": "Tanàna",
-  "nav.pegmanHint": "Tarihy eo amin'ny tontolo aho ary avelao: hipetraka any aho ary hanomboka handeha ianao"
+  "nav.pegmanHint": "Tarihy eo amin'ny tontolo aho ary avelao: hipetraka any aho ary hanomboka handeha ianao",
+  "nav.mapLabel": "Sarintany",
+  "nav.mapHint": "Tsindrio ny sarintany mba hipetraka any"
 }

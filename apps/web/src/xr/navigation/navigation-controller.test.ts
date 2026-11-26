@@ -146,3 +146,18 @@ describe("Superman landing", () => {
     expect(Math.hypot(p.x - 10, p.z - 10)).toBeGreaterThanOrEqual(5.4 - 1e-6);
   });
 });
+
+describe("walk memory", () => {
+  it("resumes where the walker was left", () => {
+    const c = new NavigationController();
+    c.configureWalk({ cx: 0, cz: 0, half: 100 }, () => []);
+    c.setMode("walk");
+    c.landAt(20, -15);
+    c.setMode("cinematic");
+    expect(c.walkMapBase()?.pose).toMatchObject({ x: 20, z: -15 });
+    c.setMode("walk");
+    expect(c.walkPose).toMatchObject({ x: 20, z: -15 });
+    c.reset();
+    expect(c.walkPose).toMatchObject({ x: 0, z: 30 });
+  });
+});

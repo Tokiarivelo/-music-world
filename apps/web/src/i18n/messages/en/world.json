@@ -145,5 +145,7 @@
   "view.landscape.snow": "Snow",
   "view.landscape.rocky": "Rocky",
   "view.landscape.city": "City",
-  "nav.pegmanHint": "Drag me over the world and drop me: I land there and you start walking"
+  "nav.pegmanHint": "Drag me over the world and drop me: I land there and you start walking",
+  "nav.mapLabel": "Map",
+  "nav.mapHint": "Click the map to land there"
 }
