@@ -168,5 +168,22 @@
   "staff.style": "Fomba",
   "opt.glowing_lines": "Tsipika mazava",
   "opt.aurora": "Aorora any an-danitra",
-  "opt.current": "Onja ao amin'ny ranomasina"
+  "opt.current": "Onja ao amin'ny ranomasina",
+  "inventory.title": "Zavatra",
+  "inventory.count": "zavatra {count} ao amin'ity maodely ity",
+  "inventory.usage": "lalàna {mappings} · haingo {scenery} · faritra {zones}",
+  "inventory.authored": "maodely 3D",
+  "inventory.origin.recipe": "fomba",
+  "inventory.origin.builtin": "efa misy",
+  "inventory.role.building": "trano",
+  "inventory.role.flora": "zavamaniry",
+  "inventory.role.vehicle": "fiara",
+  "inventory.role.sky": "lanitra",
+  "inventory.role.landmark": "famantarana",
+  "inventory.role.terrain": "tendrombohitra",
+  "inventory.role.benthic": "fanambanin-dranomasina",
+  "inventory.role.swimmer": "mpilomano",
+  "inventory.role.giant": "goavam-be",
+  "inventory.role.effect": "fiantraikany",
+  "inventory.role.other": "hafa"
 }

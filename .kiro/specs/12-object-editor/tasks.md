@@ -21,7 +21,7 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
 ## Phase 2 — Inventory, part tree panel, inspector (`phase-I46-object-inventory`)
 
 - [x] 2.1 Pure `inventoryOf` extension: objects of a template with count and usage (scenery, mappings, recipes, city kinds, models)
-- [ ] 2.2 Inventory panel with thumbnails (small canvas renderer) and selection
+- [x] 2.2 Inventory panel with thumbnails (small canvas renderer) and selection
 - [ ] 2.3 Part tree panel: select, rename, hide, duplicate, delete, add primitive (pure edit model + tests)
 - [ ] 2.4 Inspector: numeric position, rotation, size, primitive swap
 - [ ] 2.5 Object viewport (orbit, selection highlight) and i18n en/fr/mg

@@ -168,5 +168,22 @@
   "staff.style": "Style",
   "opt.glowing_lines": "Glowing lines",
   "opt.aurora": "Aurora in the sky",
-  "opt.current": "Ocean currents"
+  "opt.current": "Ocean currents",
+  "inventory.title": "Objects",
+  "inventory.count": "{count} objects in this template",
+  "inventory.usage": "{mappings} rules · {scenery} scenery · {zones} zones",
+  "inventory.authored": "3D model",
+  "inventory.origin.recipe": "recipe",
+  "inventory.origin.builtin": "builtin",
+  "inventory.role.building": "building",
+  "inventory.role.flora": "plant",
+  "inventory.role.vehicle": "vehicle",
+  "inventory.role.sky": "sky",
+  "inventory.role.landmark": "landmark",
+  "inventory.role.terrain": "terrain",
+  "inventory.role.benthic": "seabed",
+  "inventory.role.swimmer": "swimmer",
+  "inventory.role.giant": "giant",
+  "inventory.role.effect": "effect",
+  "inventory.role.other": "other"
 }

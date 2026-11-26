@@ -168,5 +168,22 @@
   "staff.style": "Style",
   "opt.glowing_lines": "Lignes lumineuses",
   "opt.aurora": "Aurore dans le ciel",
-  "opt.current": "Courants marins"
+  "opt.current": "Courants marins",
+  "inventory.title": "Objets",
+  "inventory.count": "{count} objets dans ce modèle",
+  "inventory.usage": "{mappings} règles · {scenery} décors · {zones} zones",
+  "inventory.authored": "modèle 3D",
+  "inventory.origin.recipe": "recette",
+  "inventory.origin.builtin": "intégré",
+  "inventory.role.building": "bâtiment",
+  "inventory.role.flora": "plante",
+  "inventory.role.vehicle": "véhicule",
+  "inventory.role.sky": "ciel",
+  "inventory.role.landmark": "repère",
+  "inventory.role.terrain": "relief",
+  "inventory.role.benthic": "fond marin",
+  "inventory.role.swimmer": "nageur",
+  "inventory.role.giant": "géant",
+  "inventory.role.effect": "effet",
+  "inventory.role.other": "autre"
 }

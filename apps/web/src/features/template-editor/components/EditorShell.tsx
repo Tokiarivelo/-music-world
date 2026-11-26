@@ -12,6 +12,7 @@ import { useTemplateDraft } from '../hooks/use-template-draft';
 import { createDraftStore, type DraftStore } from '../store/template-draft.store';
 import { EditorActions } from './EditorActions';
 import { EditorForm } from './EditorForm';
+import { InventoryPanel } from './InventoryPanel';
 import { WorldPreview } from './WorldPreview';
 
 function createStore(source: Template): DraftStore {
@@ -24,6 +25,7 @@ function createStore(source: Template): DraftStore {
 function Editor({ source, projectId }: { source: Template; projectId: string | null }) {
   const t = useT('editor');
   const [store] = useState(() => createStore(source));
+  const [selected, setSelected] = useState<string | null>(null);
   const state = useTemplateDraft(store);
   const session = useSession();
   const saver = useSaveTemplate(store);
@@ -36,6 +38,7 @@ function Editor({ source, projectId }: { source: Template; projectId: string | n
         <h1 className="text-xl font-semibold">{t('title')}</h1>
         <p className="text-sm opacity-80">{t('source', { name: state.source.name })}</p>
         <EditorActions state={state} signedIn={session.user !== null} saver={saver} onReset={store.reset} />
+        <InventoryPanel draft={state.draft} selected={selected} onSelect={setSelected} />
         <EditorForm draft={state.draft} errors={state.errors} update={store.update} />
       </section>
       <section className="relative h-[70dvh] min-h-80 flex-1 [contain:layout_paint] lg:h-auto" aria-label={t('previewLabel')}>
