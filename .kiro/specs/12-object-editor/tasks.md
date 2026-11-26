@@ -9,7 +9,7 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
   - _Requirements: 1–12_
 - [x] 1.2 Schema: `PartNode` tree in `ShapeRecipe` (pydantic, tri-count mirror, limits), `make schemas`, tests
   - _Requirements: 2, 6_
-- [ ] 1.3 Web: pure `buildNodeGeometry` (primitives box, cylinder, cone, sphere, prism, gable; transform; hidden),
+- [x] 1.3 Web: pure `buildNodeGeometry` (primitives box, cylinder, cone, sphere, prism, gable; transform; hidden),
   parity test with the Python triangle count
   - _Requirements: 2, 3, 6_
 - [ ] 1.4 Migration of legacy `parts` ops to nodes (`recipeToNodes`), builder uses nodes when present; tests

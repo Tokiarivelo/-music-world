@@ -12,6 +12,7 @@
 import { BoxGeometry, BufferGeometry, ConeGeometry, CylinderGeometry } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '@/engine/prng';
+import { buildNodeGeometries } from './node-builder';
 import type { Template } from '@/templates/generated';
 
 export type ShapeRecipe = NonNullable<Template['recipes']>[number];
@@ -119,7 +120,7 @@ function partGeometries(part: Part): BufferGeometry[] {
 
 /** Builds the recipe's geometry, or null when it is empty or over its own triangle budget. */
 export function buildRecipeGeometry(recipe: ShapeRecipe): BufferGeometry | null {
-  const pieces = recipe.parts.flatMap(partGeometries);
+  const pieces = [...(recipe.parts ?? []).flatMap(partGeometries), ...buildNodeGeometries(recipe.nodes ?? [])];
   const merged = pieces.length > 0 ? mergeGeometries(pieces) : null;
   if (!merged) return null;
   const triangles = merged.getAttribute('position').count / 3;
