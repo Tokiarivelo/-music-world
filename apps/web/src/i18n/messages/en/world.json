@@ -144,5 +144,9 @@
   "view.landscape.desert": "Desert",
   "view.landscape.snow": "Snow",
   "view.landscape.rocky": "Rocky",
-  "view.landscape.city": "City"
+  "view.landscape.city": "City",
+  "nav.mapLabel": "Walk map",
+  "nav.mapHint": "Click or drag on the map to stand anywhere",
+  "nav.pegman": "Drag the little person onto the map",
+  "nav.pegmanHint": "Drag me onto the map to stand there"
 }

@@ -144,5 +144,9 @@
   "view.landscape.desert": "Efitra",
   "view.landscape.snow": "Oram-panala",
   "view.landscape.rocky": "Vatolampy",
-  "view.landscape.city": "Tanàna"
+  "view.landscape.city": "Tanàna",
+  "nav.mapLabel": "Sarintany fandehanana",
+  "nav.mapHint": "Tsindrio na zarao eo amin'ny sarintany mba hijoro any",
+  "nav.pegman": "Hisintona ilay olona kely any amin'ny sarintany",
+  "nav.pegmanHint": "Tarihy any amin'ny sarintany aho mba hijoro any"
 }

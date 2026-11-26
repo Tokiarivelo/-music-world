@@ -41,7 +41,7 @@ import { ScorePlayer, type ScoreNote } from './audio/score-player';
 import { worldSpan } from '@/engine/city';
 import { anchorPlacement, plateWidthM, rootScale, setWorldSpan, worldWidthM } from './scale';
 import { bindNavigationInput } from './navigation/navigation-input';
-import type { CameraMode, NavigationController, NavigationState } from './navigation/navigation-controller';
+import type { CameraMode, NavigationController, NavigationState, WalkMapView } from './navigation/navigation-controller';
 import type { ViewPresetId } from './navigation/orbit-camera';
 import type { MusicScene, WorldClock } from './systems/world-systems';
 import type { WorldControls } from './systems/xr-systems';
@@ -126,6 +126,10 @@ export interface WorldHandle {
   setCameraMode(mode: CameraMode): void;
   setViewPreset(id: ViewPresetId): void;
   resetView(): void;
+  /** Walk mode: area, walker and obstacles for the minimap (null outside the walk mode). */
+  walkMap(): WalkMapView | null;
+  /** Walk mode: drops the walker at a world position (pegman). */
+  placeWalker(x: number, z: number): void;
   /** Calls `listener(state)` now and whenever the camera mode or selected preset changes. */
   onNavigationChange(listener: (state: NavigationState) => void): () => void;
   /** Calls `listener(immersive)` now and whenever an XR session starts or ends; returns an unsubscribe function. */
@@ -535,6 +539,10 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     },
     resetView() {
       if (!disposed) nav.reset();
+    },
+    walkMap: () => (disposed ? null : nav.walkMap()),
+    placeWalker(x, z) {
+      if (!disposed) nav.placeWalker(x, z);
     },
     onNavigationChange: (listener) => nav.subscribe(listener),
     enterVR: () => world.launchXR(),

@@ -125,3 +125,20 @@ describe('walk mode (I7)', () => {
     expect(nav.step(0.1, false, 800, 20)).not.toBeNull();
   });
 });
+
+describe('pegman drop', () => {
+  it('places the walker, pushes it out of structures and keeps it in bounds', () => {
+    const c = new NavigationController();
+    c.configureWalk({ cx: 0, cz: 0, half: 100 }, () => [{ x: 10, z: 10, r: 5 }]);
+    expect(c.walkMap()).toBeNull();
+    c.setMode('walk');
+    c.placeWalker(30, -20);
+    expect(c.walkPose).toMatchObject({ x: 30, z: -20 });
+    c.placeWalker(10, 10);
+    const p = c.walkPose!;
+    expect(Math.hypot(p.x - 10, p.z - 10)).toBeGreaterThanOrEqual(5.4 - 1e-6);
+    c.placeWalker(1e6, 0);
+    expect(c.walkPose!.x).toBeLessThan(200);
+    expect(c.walkMap()?.round).toBe(false);
+  });
+});

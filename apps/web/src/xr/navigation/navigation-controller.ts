@@ -3,8 +3,8 @@
  * Framework-free so it is tested without IWSDK; `NavigationSystem` calls {@link NavigationController.step} once per
  * frame and copies the pose to `world.camera`. Never reads the audio clock or the spawn plan (requirement 6.1).
  */
-import { DESKTOP_REFERENCE_ASPECT, NAV_DISTANCE_MAX_M, NAV_EASE_MAX_SEC } from '../constants';
-import { startPose, look, walk, walkCamera, type Circle, type WalkBounds, type WalkPose } from './walk-camera';
+import { DESKTOP_REFERENCE_ASPECT, NAV_DISTANCE_MAX_M, NAV_EASE_MAX_SEC, WALK_MARGIN_M } from '../constants';
+import { startPose, look, walk, walkCamera, clampToBounds, pushOut, DOME_WALK_RATIO, WALKER_RADIUS_M, type Circle, type WalkBounds, type WalkPose } from './walk-camera';
 import { NavigationInput, emptyDelta, type NavigationDelta } from './navigation-input';
 import {
   VIEW_PRESETS,
@@ -25,6 +25,16 @@ export interface NavigationState {
   mode: CameraMode;
   /** Preset the camera is on (or moving to); null once the user moves the camera by hand. */
   preset: ViewPresetId | null;
+}
+
+export interface WalkMapView {
+  cx: number;
+  cz: number;
+  /** Half side (square) or radius (round) of the walkable area, metres. */
+  limit: number;
+  round: boolean;
+  pose: WalkPose;
+  obstacles: readonly Circle[];
 }
 
 export class NavigationController {
@@ -97,6 +107,26 @@ export class NavigationController {
       this.walkPoseValue = startPose(bounds);
       this.walkDirty = true;
     }
+  }
+
+  /** Map of the walk area for the pegman minimap: plate, walker and obstacles (null outside the walk mode). */
+  walkMap(): WalkMapView | null {
+    const bounds = this.walkBounds;
+    const pose = this.walkPoseValue;
+    if (this.modeValue !== 'walk' || !bounds || !pose) return null;
+    const limit = bounds.dome ? bounds.half * DOME_WALK_RATIO : bounds.half + WALK_MARGIN_M;
+    return { cx: bounds.cx, cz: bounds.cz, limit, round: !!bounds.dome, pose, obstacles: this.obstaclesOf() };
+  }
+
+  /** Drops the walker at a world position (pegman drop): clamped to the area and pushed out of structures. */
+  placeWalker(x: number, z: number): void {
+    const bounds = this.walkBounds;
+    if (!bounds || this.modeValue !== 'walk' || !this.walkPoseValue) return;
+    const inside = clampToBounds(x, z, bounds);
+    const free = pushOut(inside.x, inside.z, WALKER_RADIUS_M, this.obstaclesOf());
+    const ok = clampToBounds(free.x, free.z, bounds);
+    this.walkPoseValue = { ...this.walkPoseValue, x: ok.x, z: ok.z };
+    this.walkDirty = true;
   }
 
   get walkPose(): WalkPose | null {

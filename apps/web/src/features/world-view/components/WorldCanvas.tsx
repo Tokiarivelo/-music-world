@@ -135,7 +135,7 @@ export default function WorldCanvas({ scene, controls, editsKey, editsRemote, on
         <p className="absolute inset-x-0 top-6 text-center">{t("loadError")}</p>
       )}
       {commands && !immersive && (
-        <NavigationControls commands={commands} state={navigation} />
+        <NavigationControls commands={commands} handle={handle} state={navigation} />
       )}
       {paletteStore && scene && !immersive && (
         <ColorsPopover

@@ -144,5 +144,9 @@
   "view.landscape.desert": "Désert",
   "view.landscape.snow": "Neige",
   "view.landscape.rocky": "Rocailleux",
-  "view.landscape.city": "Ville"
+  "view.landscape.city": "Ville",
+  "nav.mapLabel": "Carte de marche",
+  "nav.mapHint": "Cliquez ou glissez sur la carte pour vous placer où vous voulez",
+  "nav.pegman": "Glisser le bonhomme sur la carte",
+  "nav.pegmanHint": "Glissez-moi sur la carte pour me poser là"
 }
