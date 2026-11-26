@@ -6,10 +6,10 @@
  * (stops systems + render loop and runs system cleanups, which dispose the views; does not dispose the renderer, so
  * we do it here), `visibilityState` (signal, `'non-immersive'` outside XR), `xr.features.handTracking`.
  */
-import type * as IWSDK from '@iwsdk/core';
-import { EMPTY_EDITS, type LayoutEdits } from '@/engine/edits';
-import { buildSpawnPlan, type SpawnPlan } from '@/engine/spawn-plan';
-import type { EngineAnalysis, Vec3, WorldTemplate } from '@/engine/types';
+import type * as IWSDK from "@iwsdk/core";
+import { EMPTY_EDITS, type LayoutEdits } from "@/engine/edits";
+import { buildSpawnPlan, type SpawnPlan } from "@/engine/spawn-plan";
+import type { EngineAnalysis, Vec3, WorldTemplate } from "@/engine/types";
 import {
   DESKTOP_CAMERA_AZIMUTH_DEG,
   DESKTOP_CAMERA_ELEVATION_DEG,
@@ -22,31 +22,49 @@ import {
   DESKTOP_REFERENCE_ASPECT,
   DIORAMA_POSITION,
   NAV_WHEEL_ZOOM,
-} from './constants';
-import { applyPaletteOverride, type PaletteOverride } from './palette-override';
-import { cinematicDistance } from './navigation/orbit-camera';
-import { obstaclesAt, type Circle } from './navigation/walk-camera';
-import { activityAt, type Activity, type HiddenLayers } from '@/engine/layers';
-import { DEFAULT_LAYOUT, type LayoutMode } from '@/engine/layout';
-import { skyStore } from './sky-store';
-import { domeStore } from './dome-store';
-import type { LandscapeId } from '@/engine/landscapes';
-import { weatherStore } from './weather-store';
-import type { TimeMode, WeatherMode } from '@/engine/weather';
-import { layerStore } from './layer-store';
-import { EditController, type NoteEditEvent } from './interaction/edit-controller';
-import { NoteSynth } from './audio/note-synth';
-import { keyboardPad } from './keyboard-pad';
-import { ScorePlayer, type ScoreNote } from './audio/score-player';
-import { worldSpan } from '@/engine/city';
-import { anchorPlacement, plateWidthM, rootScale, setWorldSpan, worldWidthM } from './scale';
-import { bindNavigationInput } from './navigation/navigation-input';
-import type { CameraMode, NavigationController, NavigationState } from './navigation/navigation-controller';
-import type { ViewPresetId } from './navigation/orbit-camera';
-import type { MusicScene, WorldClock } from './systems/world-systems';
-import type { WorldControls } from './systems/xr-systems';
+} from "./constants";
+import { applyPaletteOverride, type PaletteOverride } from "./palette-override";
+import { cinematicDistance } from "./navigation/orbit-camera";
+import { obstaclesAt, type Circle } from "./navigation/walk-camera";
+import { activityAt, type Activity, type HiddenLayers } from "@/engine/layers";
+import { DEFAULT_LAYOUT, type LayoutMode } from "@/engine/layout";
+import { skyStore } from "./sky-store";
+import { domeStore } from "./dome-store";
+import type { LandscapeId } from "@/engine/landscapes";
+import { weatherStore } from "./weather-store";
+import type { TimeMode, WeatherMode } from "@/engine/weather";
+import { layerStore } from "./layer-store";
+import {
+  EditController,
+  type NoteEditEvent,
+} from "./interaction/edit-controller";
+import { NoteSynth } from "./audio/note-synth";
+import { keyboardPad } from "./keyboard-pad";
+import { ScorePlayer, type ScoreNote } from "./audio/score-player";
+import { worldSpan } from "@/engine/city";
+import {
+  anchorPlacement,
+  plateWidthM,
+  rootScale,
+  setWorldSpan,
+  viewToWorld,
+  VIEW_SCALE,
+  worldWidthM,
+} from "./scale";
+import { setWaterTime, setWaterWalker } from "./water-store";
+import { mapFeaturesOf, type WalkMapFeatures } from "./navigation/walk-map";
+import { bindNavigationInput } from "./navigation/navigation-input";
+import type {
+  CameraMode,
+  NavigationController,
+  NavigationState,
+  WalkMapBase,
+} from "./navigation/navigation-controller";
+import type { ViewPresetId } from "./navigation/orbit-camera";
+import type { MusicScene, WorldClock } from "./systems/world-systems";
+import type { WorldControls } from "./systems/xr-systems";
 
-export type { TemplateChoice, WorldControls } from './systems/xr-systems';
+export type { TemplateChoice, WorldControls } from "./systems/xr-systems";
 
 /** What the world shows: built once into a spawn plan, then rendered from `clock.now()` every frame. */
 export interface WorldScene {
@@ -57,12 +75,32 @@ export interface WorldScene {
 }
 
 /** What the host needs from the installed systems. */
-export interface InstalledScene extends Pick<MusicScene, 'setScene' | 'setLightLevel' | 'setScaleMode'> {
+/** Data of the walk map. */
+export type WalkMapView = WalkMapBase & WalkMapFeatures;
+
+export interface InstalledScene extends Pick<
+  MusicScene,
+  "setScene" | "setLightLevel" | "setScaleMode"
+> {
   setControls(controls: WorldControls | null): void;
   /** Right controller ray and trigger drive the note editor (I9 task 8); null turns it off. */
-  setEditRay?(target: { rayDown(r: { origin: Vec3; dir: Vec3 }): boolean; rayMove(r: { origin: Vec3; dir: Vec3 }): void; rayUp(): void } | null): void;
+  setEditRay?(
+    target: {
+      rayDown(r: { origin: Vec3; dir: Vec3 }): boolean;
+      rayMove(r: { origin: Vec3; dir: Vec3 }): void;
+      rayUp(): void;
+    } | null,
+  ): void;
   /** Projects a point of the plan (plate metres) to canvas pixels; null behind the camera (I9 picking). */
   project?(p: Vec3): { x: number; y: number } | null;
+  /** Ground point under a client pixel at height `groundY` (world metres); null above the horizon. */
+  groundAt?(
+    clientX: number,
+    clientY: number,
+    groundY: number,
+  ): { x: number; z: number } | null;
+  /** Translucent disc on the ground at a world point (where the pegman would land); `null` hides it. */
+  setLandingMarker?(at: { x: number; y: number; z: number; radius: number } | null): void;
   /** Desktop camera navigation (08-navigation-mode); the host binds its input to the canvas. */
   navigation: NavigationController;
   /** Called on dispose, after the input is unbound. */
@@ -70,10 +108,10 @@ export interface InstalledScene extends Pick<MusicScene, 'setScene' | 'setLightL
 }
 
 export type EditCommand =
-  | { type: 'select'; direction: 1 | -1 }
-  | { type: 'nudge'; steps: number }
-  | { type: 'play' }
-  | { type: 'cancel' };
+  | { type: "select"; direction: 1 | -1 }
+  | { type: "nudge"; steps: number }
+  | { type: "play" }
+  | { type: "cancel" };
 
 export interface WorldHandle {
   /** Replaces the song, template, seed or clock (typed command API, frontend.md). */
@@ -126,6 +164,17 @@ export interface WorldHandle {
   setCameraMode(mode: CameraMode): void;
   setViewPreset(id: ViewPresetId): void;
   resetView(): void;
+  /**
+   * Pegman drop: the walker lands (Superman style) on the ground under the canvas point; the view does not change
+   * before. False when the point is not on the ground (sky).
+   */
+  landAt(clientX: number, clientY: number): boolean;
+  /** Shows the landing circle under a client pixel while the pegman is dragged; `null` hides it. */
+  showLanding(point: { x: number; y: number } | null): void;
+  /** Map of the walk area (streets, roads, lakes, structures, walker); null before a world is loaded. */
+  walkMap(): WalkMapView | null;
+  /** Pegman dropped on the map: lands at this world position and starts the walk mode. */
+  landAtMap(x: number, z: number): void;
   /** Calls `listener(state)` now and whenever the camera mode or selected preset changes. */
   onNavigationChange(listener: (state: NavigationState) => void): () => void;
   /** Calls `listener(immersive)` now and whenever an XR session starts or ends; returns an unsubscribe function. */
@@ -134,14 +183,20 @@ export interface WorldHandle {
   dispose(): void;
 }
 
-type WorldLike = Pick<IWSDK.World, 'launchXR' | 'exitXR' | 'destroy'> & {
-  camera: Pick<IWSDK.World['camera'], 'position' | 'lookAt' | 'fov' | 'aspect' | 'updateProjectionMatrix'>;
+type WorldLike = Pick<IWSDK.World, "launchXR" | "exitXR" | "destroy"> & {
+  camera: Pick<
+    IWSDK.World["camera"],
+    "position" | "lookAt" | "fov" | "aspect" | "updateProjectionMatrix"
+  >;
   renderer: Pick<
-    IWSDK.World['renderer'],
-    'dispose' | 'forceContextLoss' | 'domElement' | 'setPixelRatio' | 'setSize'
+    IWSDK.World["renderer"],
+    "dispose" | "forceContextLoss" | "domElement" | "setPixelRatio" | "setSize"
   >;
   session: XRSession | undefined;
-  visibilityState: { readonly value: string; subscribe(fn: (value: string) => void): () => void };
+  visibilityState: {
+    readonly value: string;
+    subscribe(fn: (value: string) => void): () => void;
+  };
 };
 
 export interface WorldHostDeps {
@@ -149,7 +204,7 @@ export interface WorldHostDeps {
   createWorld(container: HTMLElement): Promise<WorldLike>;
   /** Registers the music systems on the world (`installMusicSystems`). */
   installScene(world: WorldLike): Promise<InstalledScene>;
-  xr(): Pick<XRSystem, 'isSessionSupported'> | undefined;
+  xr(): Pick<XRSystem, "isSessionSupported"> | undefined;
 }
 
 let emulatorInstalled = false;
@@ -159,12 +214,14 @@ let creationQueue: Promise<unknown> = Promise.resolve();
 
 const defaultDeps: WorldHostDeps = {
   async installEmulator() {
-    if (process.env.NODE_ENV !== 'development' || emulatorInstalled) return;
+    if (process.env.NODE_ENV !== "development" || emulatorInstalled) return;
     // Desktop Chrome exposes a native navigator.xr without a headset: replace it with the emulator.
     // A real headset (Quest Browser) keeps its native runtime.
-    const nativeVR = await navigator.xr?.isSessionSupported('immersive-vr').catch(() => false);
+    const nativeVR = await navigator.xr
+      ?.isSessionSupported("immersive-vr")
+      .catch(() => false);
     if (nativeVR) return;
-    const { XRDevice, metaQuest3 } = await import('iwer');
+    const { XRDevice, metaQuest3 } = await import("iwer");
     const device = new XRDevice(metaQuest3);
     device.installRuntime({ forceInstall: true }); // before World.create; once per page
     // Development only: lets the IWER check script (07-xr-mode) drive the emulated controllers and hands.
@@ -172,28 +229,50 @@ const defaultDeps: WorldHostDeps = {
     emulatorInstalled = true;
   },
   async createWorld(container) {
-    const { World, SessionMode, ReferenceSpaceType } = await import('@iwsdk/core');
+    const { World, SessionMode, ReferenceSpaceType } =
+      await import("@iwsdk/core");
     return World.create(container, {
       xr: {
         sessionMode: SessionMode.ImmersiveVR,
         referenceSpace: ReferenceSpaceType.LocalFloor,
-        offer: 'none',
+        offer: "none",
         // Optional: controllers keep working when the runtime has no hand tracking (07-xr-mode requirement 1.2).
         features: { handTracking: true },
       },
     });
   },
   async installScene(world) {
-    const { installMusicSystems } = await import('./systems/world-systems');
-    const { installXRSystems } = await import('./systems/xr-systems');
-    const { installXRPanel } = await import('./systems/xr-panel-system');
-    const { installNavigation, disposeNavigation } = await import('./systems/navigation-system');
+    const { installMusicSystems } = await import("./systems/world-systems");
+    const { installXRSystems } = await import("./systems/xr-systems");
+    const { installXRPanel } = await import("./systems/xr-panel-system");
+    const { installNavigation, disposeNavigation } =
+      await import("./systems/navigation-system");
     // `?perf=1` logs draw calls and triangles once per second (04-default-template requirement 7.3).
-    const perfLog = typeof location !== 'undefined' && new URLSearchParams(location.search).get('perf') === '1';
-    const { Vector3 } = await import('three');
+    const perfLog =
+      typeof location !== "undefined" &&
+      new URLSearchParams(location.search).get("perf") === "1";
+    const { Vector3 } = await import("three");
     const tmp = new Vector3();
+    // Landing marker: a flat translucent disc with a brighter rim, drawn over the ground.
+    const { Mesh, Group, CircleGeometry, RingGeometry, MeshBasicMaterial, DoubleSide } = await import("three");
+    const marker = new Group();
+    const discMaterial = new MeshBasicMaterial({ color: 0xffb000, transparent: true, opacity: 0.35, depthWrite: false, side: DoubleSide });
+    const rimMaterial = new MeshBasicMaterial({ color: 0xffd060, transparent: true, opacity: 0.85, depthWrite: false, side: DoubleSide });
+    const disc = new Mesh(new CircleGeometry(1, 48), discMaterial);
+    const rim = new Mesh(new RingGeometry(0.9, 1, 48), rimMaterial);
+    for (const m of [disc, rim]) {
+      m.rotation.x = -Math.PI / 2;
+      m.renderOrder = 50;
+      marker.add(m);
+    }
+    marker.visible = false;
+    (world as IWSDK.World).scene.add(marker);
     const scene = installMusicSystems(world as IWSDK.World, { perfLog });
-    const rig = installXRSystems(world as IWSDK.World, scene.anchorEntity, scene.anchor);
+    const rig = installXRSystems(
+      world as IWSDK.World,
+      scene.anchorEntity,
+      scene.anchor,
+    );
     installXRPanel(world as IWSDK.World, scene.anchorEntity, rig);
     const navigation = installNavigation(
       world as IWSDK.World,
@@ -202,7 +281,14 @@ const defaultDeps: WorldHostDeps = {
     );
     return {
       navigation,
-      disposeNavigation: () => disposeNavigation(navigation),
+      disposeNavigation: () => {
+        disposeNavigation(navigation);
+        (world as IWSDK.World).scene.remove(marker);
+        for (const m of [disc, rim]) {
+          m.geometry.dispose();
+          (m.material as { dispose(): void }).dispose();
+        }
+      },
       setScene: (plan, clock) => scene.setScene(plan, clock),
       setLightLevel: (level) => scene.setLightLevel(level),
       setScaleMode: (mode) => scene.setScaleMode(mode),
@@ -215,10 +301,21 @@ const defaultDeps: WorldHostDeps = {
         const toPlan = (ray: { origin: Vec3; dir: Vec3 }) => {
           const root = scene.root;
           root.updateWorldMatrix(true, false);
-          const o = root.worldToLocal(new Vector3(ray.origin.x, ray.origin.y, ray.origin.z));
-          const tip = root.worldToLocal(new Vector3(ray.origin.x + ray.dir.x, ray.origin.y + ray.dir.y, ray.origin.z + ray.dir.z));
+          const o = root.worldToLocal(
+            new Vector3(ray.origin.x, ray.origin.y, ray.origin.z),
+          );
+          const tip = root.worldToLocal(
+            new Vector3(
+              ray.origin.x + ray.dir.x,
+              ray.origin.y + ray.dir.y,
+              ray.origin.z + ray.dir.z,
+            ),
+          );
           const d = tip.sub(o).normalize();
-          return { origin: { x: o.x, y: o.y, z: o.z }, dir: { x: d.x, y: d.y, z: d.z } };
+          return {
+            origin: { x: o.x, y: o.y, z: o.z },
+            dir: { x: d.x, y: d.y, z: d.z },
+          };
         };
         rig.editRay = {
           rayDown: (ray) => target.rayDown(toPlan(ray)),
@@ -229,17 +326,55 @@ const defaultDeps: WorldHostDeps = {
       setControls: (controls) => {
         rig.controls = controls;
       },
+      setLandingMarker: (at) => {
+        if (!at) {
+          marker.visible = false;
+          return;
+        }
+        marker.position.set(at.x, at.y + at.radius * 0.02, at.z);
+        marker.scale.setScalar(at.radius);
+        marker.visible = true;
+      },
+      groundAt: (clientX, clientY, groundY) => {
+        const cam = (world as IWSDK.World).camera;
+        const el = world.renderer.domElement;
+        const r = el.getBoundingClientRect();
+        if (r.width < 1 || r.height < 1) return null;
+        cam.updateMatrixWorld();
+        tmp
+          .set(
+            ((clientX - r.left) / r.width) * 2 - 1,
+            1 - ((clientY - r.top) / r.height) * 2,
+            0.5,
+          )
+          .unproject(cam);
+        const dy = tmp.y - cam.position.y;
+        if (dy > -1e-6) return null;
+        const k = (groundY - cam.position.y) / dy;
+        return k > 0
+          ? {
+              x: cam.position.x + (tmp.x - cam.position.x) * k,
+              z: cam.position.z + (tmp.z - cam.position.z) * k,
+            }
+          : null;
+      },
       project: (p) => {
         const root = scene.root;
         root.updateWorldMatrix(true, false);
-        tmp.set(p.x, p.y, p.z).applyMatrix4(root.matrixWorld).project((world as IWSDK.World).camera);
+        tmp
+          .set(p.x, p.y, p.z)
+          .applyMatrix4(root.matrixWorld)
+          .project((world as IWSDK.World).camera);
         if (tmp.z > 1 || tmp.z < -1) return null;
         const el = world.renderer.domElement;
-        return { x: ((tmp.x + 1) / 2) * el.clientWidth, y: ((1 - tmp.y) / 2) * el.clientHeight };
+        return {
+          x: ((tmp.x + 1) / 2) * el.clientWidth,
+          y: ((1 - tmp.y) / 2) * el.clientHeight,
+        };
       },
     };
   },
-  xr: () => (typeof navigator === 'undefined' ? undefined : navigator.xr),
+  xr: () => (typeof navigator === "undefined" ? undefined : navigator.xr),
 };
 
 /** Development-only globals read by the IWER check script (`scripts/xr-check.mjs`). */
@@ -248,20 +383,26 @@ function devHooks(): { __mwWorld?: unknown; __mwXRDevice?: unknown } {
 }
 
 /** `VisibilityState.NonImmersive` of IWSDK (kept as a literal so this module does not load IWSDK eagerly). */
-const NON_IMMERSIVE = 'non-immersive';
+const NON_IMMERSIVE = "non-immersive";
 
 /** Device pixel ratio cap (I2 requirement 1): beyond 2 the fill cost grows with no visible gain. */
 export const MAX_PIXEL_RATIO = 2;
 
 /** Pixel ratio actually used for a device ratio. */
 export function cappedPixelRatio(devicePixelRatio: number): number {
-  return Math.min(MAX_PIXEL_RATIO, Math.max(1, Number.isFinite(devicePixelRatio) ? devicePixelRatio : 1));
+  return Math.min(
+    MAX_PIXEL_RATIO,
+    Math.max(1, Number.isFinite(devicePixelRatio) ? devicePixelRatio : 1),
+  );
 }
 
 type Point = { x: number; y: number; z: number };
 
 /** Desktop isometric pose (04-default-template requirement 1): azimuth / elevation around the diorama centre. */
-export function desktopCameraPose(aspect: number = DESKTOP_REFERENCE_ASPECT): { position: Point; target: Point } {
+export function desktopCameraPose(aspect: number = DESKTOP_REFERENCE_ASPECT): {
+  position: Point;
+  target: Point;
+} {
   const az = (DESKTOP_CAMERA_AZIMUTH_DEG * Math.PI) / 180;
   const el = (DESKTOP_CAMERA_ELEVATION_DEG * Math.PI) / 180;
   const target = {
@@ -280,20 +421,28 @@ export function desktopCameraPose(aspect: number = DESKTOP_REFERENCE_ASPECT): { 
   };
 }
 
-export function createMusicWorld(container: HTMLDivElement, deps: WorldHostDeps = defaultDeps): Promise<WorldHandle> {
+export function createMusicWorld(
+  container: HTMLDivElement,
+  deps: WorldHostDeps = defaultDeps,
+): Promise<WorldHandle> {
   const run = creationQueue.then(() => buildWorld(container, deps));
   creationQueue = run.catch(() => undefined);
   return run;
 }
 
-async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promise<WorldHandle> {
+async function buildWorld(
+  container: HTMLDivElement,
+  deps: WorldHostDeps,
+): Promise<WorldHandle> {
   await deps.installEmulator();
   const world = await deps.createWorld(container);
   const scene = await deps.installScene(world);
-  if (process.env.NODE_ENV === 'development') devHooks().__mwWorld = world; // read by scripts/xr-check.mjs
+  if (process.env.NODE_ENV === "development") devHooks().__mwWorld = world; // read by scripts/xr-check.mjs
   // Desktop isometric view of the diorama; in XR the headset pose drives the camera (restored on exit by IWSDK).
   const aspect = container.clientWidth / Math.max(1, container.clientHeight);
-  const { position, target } = desktopCameraPose(aspect > 0 ? aspect : undefined);
+  const { position, target } = desktopCameraPose(
+    aspect > 0 ? aspect : undefined,
+  );
   world.camera.fov = DESKTOP_CAMERA_FOV_DEG;
   world.camera.updateProjectionMatrix();
   world.camera.position.set(position.x, position.y, position.z);
@@ -305,14 +454,17 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     const width = container.clientWidth;
     const height = container.clientHeight;
     if (disposed || world.session || width < 1 || height < 1) return;
-    world.renderer.setPixelRatio(cappedPixelRatio(globalThis.devicePixelRatio ?? 1));
+    world.renderer.setPixelRatio(
+      cappedPixelRatio(globalThis.devicePixelRatio ?? 1),
+    );
     world.renderer.setSize(width, height);
     world.camera.aspect = width / height;
     world.camera.updateProjectionMatrix();
     nav.setAspect(width / height);
   };
   fit();
-  const resizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(fit) : null;
+  const resizeObserver =
+    typeof ResizeObserver === "function" ? new ResizeObserver(fit) : null;
   resizeObserver?.observe(container);
   // Scale (I7): the world around the viewer in VR and in the walk mode, the diorama otherwise.
   let inSession = false;
@@ -321,18 +473,20 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   const applyScale = (): void => {
     // The dome world is the big world in every mode: the orbit camera (explore, cinematic) is mapped to it by
     // `viewToWorld`, so the whole landscape around the plate is in the frame.
-    const big = inSession || nav.mode === 'walk' || domeStore.enabled;
-    scene.setScaleMode(big ? 'immersive' : 'diorama');
+    const big = inSession || nav.mode === "walk" || domeStore.enabled;
+    scene.setScaleMode(big ? "immersive" : "diorama");
     nav.maxDistance = big ? NAV_DISTANCE_MAX_WORLD_M : NAV_DISTANCE_MAX_M;
-    if (nav.state.preset === 'horizon') wide = true;
-    else if (nav.state.preset !== null || nav.mode === 'cinematic') wide = false;
-    const fov = nav.mode === 'walk'
-      ? WALK_FOV_DEG
-      : wide && !inSession
-        ? HORIZON_FOV_DEG
-        : !inSession && (nav.mode === 'explore' || domeStore.enabled)
-          ? 52
-          : DESKTOP_CAMERA_FOV_DEG;
+    if (nav.state.preset === "horizon") wide = true;
+    else if (nav.state.preset !== null || nav.mode === "cinematic")
+      wide = false;
+    const fov =
+      nav.mode === "walk"
+        ? WALK_FOV_DEG
+        : wide && !inSession
+          ? HORIZON_FOV_DEG
+          : !inSession && (nav.mode === "explore" || domeStore.enabled)
+            ? 52
+            : DESKTOP_CAMERA_FOV_DEG;
     if (!world.session && world.camera.fov !== fov) {
       world.camera.fov = fov;
       world.camera.updateProjectionMatrix();
@@ -345,8 +499,14 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
   });
   const offScale = nav.subscribe(applyScale);
   const canvas = world.renderer.domElement;
-  nav.reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let loaded: { analysis: EngineAnalysis; template: WorldTemplate; seed: number } | null = null;
+  nav.reducedMotion =
+    typeof matchMedia === "function" &&
+    matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let loaded: {
+    analysis: EngineAnalysis;
+    template: WorldTemplate;
+    seed: number;
+  } | null = null;
   let edits: LayoutEdits = EMPTY_EDITS;
   const noteListeners = new Set<(event: NoteEditEvent) => void>();
   const synth = new NoteSynth();
@@ -384,50 +544,70 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     editor.pointerUp();
   };
   const onKey = (e: KeyboardEvent): void => {
-    if (e.key === 'Escape') editor.cancel();
+    if (e.key === "Escape") editor.cancel();
   };
-  canvas.addEventListener('pointerdown', onDown, true);
-  canvas.addEventListener('pointermove', onMove, true);
-  canvas.addEventListener('pointerup', onUp, true);
-  canvas.addEventListener('pointercancel', onUp, true);
-  globalThis.addEventListener?.('keydown', onKey);
+  canvas.addEventListener("pointerdown", onDown, true);
+  canvas.addEventListener("pointermove", onMove, true);
+  canvas.addEventListener("pointerup", onUp, true);
+  canvas.addEventListener("pointercancel", onUp, true);
+  globalThis.addEventListener?.("keydown", onKey);
   const detachKeyboard = keyboardPad.attach(window, () => inSession);
-  const unbindNav = bindNavigationInput(canvas, nav.input, () => nav.acceptsInput, {
-    wheelPerPixel: NAV_WHEEL_ZOOM,
-    // Walk mode: hold the right button anytime, or the left one while the song plays (paused, it picks and drags notes).
-    lockLook: (button) => nav.mode === 'walk' && (button === 2 || (button === 0 && baseClock?.isPlaying?.() === true)),
-  });
+  const unbindNav = bindNavigationInput(
+    canvas,
+    nav.input,
+    () => nav.acceptsInput,
+    {
+      wheelPerPixel: NAV_WHEEL_ZOOM,
+      // Walk mode: hold the right button anytime, or the left one while the song plays (paused, it picks and drags notes).
+      lockLook: (button) =>
+        nav.mode === "walk" &&
+        (button === 2 || (button === 0 && baseClock?.isPlaying?.() === true)),
+    },
+  );
   const unbind = (): void => {
     unbindNav();
     detachKeyboard();
-    canvas.removeEventListener('pointerdown', onDown, true);
-    canvas.removeEventListener('pointermove', onMove, true);
-    canvas.removeEventListener('pointerup', onUp, true);
-    canvas.removeEventListener('pointercancel', onUp, true);
-    globalThis.removeEventListener?.('keydown', onKey);
+    canvas.removeEventListener("pointerdown", onDown, true);
+    canvas.removeEventListener("pointermove", onMove, true);
+    canvas.removeEventListener("pointerup", onUp, true);
+    canvas.removeEventListener("pointercancel", onUp, true);
+    globalThis.removeEventListener?.("keydown", onKey);
     editor.setEnabled(false);
     scorePlayer.stop();
     synth.dispose();
   };
   // `touch-action: none` only while exploring, so the cinematic page scrolls as before (requirement 2.4).
   const offTouch = nav.subscribe((state) => {
-    canvas.style.touchAction = state.mode !== 'cinematic' ? 'none' : '';
+    canvas.style.touchAction = state.mode !== "cinematic" ? "none" : "";
   });
 
   let basePlan: SpawnPlan | null = null;
   let baseClock: WorldClock | null = null;
   // Walk mode: the plate and the structures that have landed (recomputed twice a second at most).
-  const centre = anchorPlacement('immersive');
-  let cache: { plan: SpawnPlan; slot: number; circles: readonly Circle[] } | null = null;
-  const walkBounds = { cx: centre.x, cz: centre.z, half: plateWidthM('immersive') / 2 };
+  const centre = anchorPlacement("immersive");
+  let mapCache: { plan: SpawnPlan; features: WalkMapFeatures } | null = null;
+  let cache: {
+    plan: SpawnPlan;
+    slot: number;
+    circles: readonly Circle[];
+  } | null = null;
+  const walkBounds = {
+    cx: centre.x,
+    cz: centre.z,
+    half: plateWidthM("immersive") / 2,
+  };
   nav.configureWalk(walkBounds, () => {
     if (!basePlan || !baseClock) return [];
     setWorldSpan(worldSpan(basePlan.template));
-    walkBounds.half = worldWidthM('immersive') / 2;
-    const slot = Math.floor(baseClock.now() * 2);
+    walkBounds.half = worldWidthM("immersive") / 2;
+    const slot = Math.floor(baseClock.now() * 5); // cars and animals move: 5 Hz
     if (cache?.plan !== basePlan || cache.slot !== slot) {
-      const scale = rootScale('immersive', basePlan.template.terrain.size);
-      cache = { plan: basePlan, slot, circles: obstaclesAt(basePlan, baseClock.now(), scale, centre) };
+      const scale = rootScale("immersive", basePlan.template.terrain.size);
+      cache = {
+        plan: basePlan,
+        slot,
+        circles: obstaclesAt(basePlan, baseClock.now(), scale, centre),
+      };
     }
     return cache.circles;
   });
@@ -435,12 +615,25 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     now: () => c.now(),
     isPlaying: c.isPlaying ? () => c.isPlaying!() : undefined,
     rate: c.rate ? () => c.rate!() : undefined,
-    onFrame: () => scorePlayer.frame(),
+    onFrame: () => {
+      scorePlayer.frame();
+      // Ripples of the lakes: the shared water clock, and the walker's feet in plate units.
+      setWaterTime(performance.now() / 1000);
+      const w = nav.mode === "walk" ? nav.walkPose : null;
+      if (w && basePlan) {
+        const k = rootScale("immersive", basePlan.template.terrain.size);
+        setWaterWalker((w.x - centre.x) / k, (w.z - centre.z) / k, true);
+      } else setWaterWalker(0, 0, false);
+    },
   });
   let override: PaletteOverride | null = null;
   let layout: LayoutMode = DEFAULT_LAYOUT;
   const show = (): void => {
-    if (basePlan && baseClock) scene.setScene(applyPaletteOverride(basePlan, override), withFrameHook(baseClock));
+    if (basePlan && baseClock)
+      scene.setScene(
+        applyPaletteOverride(basePlan, override),
+        withFrameHook(baseClock),
+      );
   };
 
   return {
@@ -454,13 +647,25 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
       baseClock = clock;
       show();
       // A polished world with the photographic sky starts low and far, so the horizon and the dome are in the frame.
-      if (newWorld && template.fx.material === 'polished' && weatherStore.settings.realSky && nav.mode === 'cinematic') nav.setPreset('horizon');
+      if (
+        newWorld &&
+        template.fx.material === "polished" &&
+        weatherStore.settings.realSky &&
+        nav.mode === "cinematic"
+      )
+        nav.setPreset("horizon");
     },
     setEdits(next) {
       if (disposed) return;
       edits = next;
       if (!loaded) return;
-      basePlan = buildSpawnPlan(loaded.analysis, loaded.template, loaded.seed, edits, layout);
+      basePlan = buildSpawnPlan(
+        loaded.analysis,
+        loaded.template,
+        loaded.seed,
+        edits,
+        layout,
+      );
       show();
     },
     setScore(notes) {
@@ -483,29 +688,38 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     },
     editCommand(command) {
       if (disposed) return;
-      if (command.type === 'select') editor.selectRelative(command.direction);
-      else if (command.type === 'nudge') editor.nudge(command.steps);
-      else if (command.type === 'play') editor.playSelected();
+      if (command.type === "select") editor.selectRelative(command.direction);
+      else if (command.type === "nudge") editor.nudge(command.steps);
+      else if (command.type === "play") editor.playSelected();
       else editor.cancel();
     },
     setLightLevel(level) {
       if (!disposed) scene.setLightLevel(level);
     },
     activity() {
-      return basePlan && baseClock ? activityAt(basePlan, baseClock.now()) : null;
+      return basePlan && baseClock
+        ? activityAt(basePlan, baseClock.now())
+        : null;
     },
     setLayout(next) {
       if (disposed || next === layout) return;
       layout = next;
       if (!loaded) return;
-      basePlan = buildSpawnPlan(loaded.analysis, loaded.template, loaded.seed, edits, layout);
+      basePlan = buildSpawnPlan(
+        loaded.analysis,
+        loaded.template,
+        loaded.seed,
+        edits,
+        layout,
+      );
       show();
     },
     setWeather(mode) {
       if (!disposed) weatherStore.set(mode);
     },
     setSky(sky) {
-      if (!disposed) weatherStore.patch({ time: sky.time, realSky: sky.realSky });
+      if (!disposed)
+        weatherStore.patch({ time: sky.time, realSky: sky.realSky });
     },
     setDome(dome) {
       if (disposed) return;
@@ -536,16 +750,66 @@ async function buildWorld(container: HTMLDivElement, deps: WorldHostDeps): Promi
     resetView() {
       if (!disposed) nav.reset();
     },
+    walkMap() {
+      const base = disposed ? null : nav.walkMapBase();
+      if (!base || !basePlan) return null;
+      if (mapCache?.plan !== basePlan) {
+        const scale = rootScale("immersive", basePlan.template.terrain.size);
+        mapCache = {
+          plan: basePlan,
+          features: mapFeaturesOf(basePlan, scale, centre),
+        };
+      }
+      return { ...base, ...mapCache.features };
+    },
+    landAtMap(x, z) {
+      if (!disposed && !world.session) nav.landAt(x, z);
+    },
+    showLanding(point) {
+      if (disposed || world.session || !point) {
+        scene.setLandingMarker?.(null);
+        return;
+      }
+      const big = nav.mode === "walk" || domeStore.enabled;
+      const y = big ? 0 : DIORAMA_POSITION.y;
+      const ground = scene.groundAt?.(point.x, point.y, y);
+      if (!ground) {
+        scene.setLandingMarker?.(null);
+        return;
+      }
+      // About 2 m wide in the big world, in proportion on the table-top diorama.
+      scene.setLandingMarker?.({ x: ground.x, y, z: ground.z, radius: big ? 1.6 : 1.6 / VIEW_SCALE });
+    },
+    landAt(clientX, clientY) {
+      if (disposed || world.session) return false;
+      const ground = scene.groundAt?.(
+        clientX,
+        clientY,
+        nav.mode === "walk" || domeStore.enabled ? 0 : DIORAMA_POSITION.y,
+      );
+      if (!ground) return false;
+      // The explore view shows the diorama scale; the walk mode lives in the big world.
+      const big =
+        nav.mode === "walk" || domeStore.enabled
+          ? ground
+          : viewToWorld({ x: ground.x, y: 0, z: ground.z }, "immersive");
+      nav.landAt(big.x, big.z);
+      return true;
+    },
     onNavigationChange: (listener) => nav.subscribe(listener),
     enterVR: () => world.launchXR(),
     exitVR: () => world.exitXR(),
     onSessionChange(listener) {
       // `subscribe` calls the listener at once with the current value, then on every change.
-      return world.visibilityState.subscribe((state) => listener(state !== NON_IMMERSIVE));
+      return world.visibilityState.subscribe((state) =>
+        listener(state !== NON_IMMERSIVE),
+      );
     },
     async isVRSupported() {
       const xr = deps.xr();
-      return xr ? xr.isSessionSupported('immersive-vr').catch(() => false) : false;
+      return xr
+        ? xr.isSessionSupported("immersive-vr").catch(() => false)
+        : false;
     },
     dispose() {
       if (disposed) return;

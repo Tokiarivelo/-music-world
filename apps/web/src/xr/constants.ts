@@ -42,7 +42,7 @@ export const IMMERSIVE_OBJECT_SCALE = 1;
 export const EYE_HEIGHT_M = 1.6;
 export const IMMERSIVE_ENV_SCALE = 3;
 export const IMMERSIVE_CAMERA_FAR_M = 1600;
-export const WALK_MARGIN_M = 25;
+export const WALK_MARGIN_M = 60;
 /** Walk speed (m/s), Shift multiplier, mouse look (rad per px), glide and snap turn in VR. */
 export const WALK_SPEED_MPS = 3;
 export const WALK_FAST_FACTOR = 3;

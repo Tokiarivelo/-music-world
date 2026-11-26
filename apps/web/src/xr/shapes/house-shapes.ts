@@ -97,9 +97,50 @@ function skyscraper(): BufferGeometry {
     .build();
 }
 
+/** Villa: an L of two gabled wings with a chimney and a little tower. */
+function villa(): BufferGeometry {
+  return new Soup()
+    .box(-0.5, 0, -0.3, 0.5, 0.5, 0.3)
+    .gable(-0.56, 0.56, -0.38, 0.38, 0.5, 0.78)
+    .box(-0.5, 0, 0.3, -0.1, 0.5, 0.52)
+    .gable(-0.54, -0.06, 0.26, 0.56, 0.5, 0.74)
+    .box(0.28, 0.65, -0.2, 0.4, 0.95, -0.08) // chimney
+    .box(0.1, 0.5, -0.02, 0.3, 0.9, 0.18) // turret
+    .box(0.07, 0.9, -0.05, 0.33, 1, 0.21)
+    .build();
+}
+
+/** Warehouse: a long low hall with a sawtooth roof and loading docks. */
+function warehouse(): BufferGeometry {
+  const s = new Soup().box(-0.5, 0, -0.45, 0.5, 0.6, 0.45);
+  for (let k = 0; k < 4; k += 1) s.gable(-0.5 + k * 0.25, -0.25 + k * 0.25, -0.45, 0.45, 0.6, 0.82);
+  return s.box(-0.4, 0, 0.45, -0.2, 0.28, 0.54).box(0.2, 0, 0.45, 0.4, 0.28, 0.54).box(0.3, 0.8, -0.3, 0.38, 1, -0.22).build();
+}
+
+/** Twin tower: two slim towers joined by a sky bridge. */
+function twin(): BufferGeometry {
+  return new Soup()
+    .box(-0.5, 0, -0.3, -0.12, 1, 0.3)
+    .box(0.12, 0, -0.3, 0.5, 0.92, 0.3)
+    .box(-0.12, 0.55, -0.12, 0.12, 0.65, 0.12) // sky bridge
+    .build();
+}
+
+/** Pagoda: stacked tiers, each with a flared roof, a spire on top. */
+function pagoda(): BufferGeometry {
+  const s = new Soup().box(-0.4, 0, -0.4, 0.4, 0.12, 0.4);
+  for (let k = 0; k < 3; k += 1) {
+    const y = 0.12 + k * 0.27;
+    const w = 0.34 - k * 0.07;
+    s.box(-w, y, -w, w, y + 0.15, w);
+    s.gable(-w - 0.12, w + 0.12, -w - 0.12, w + 0.12, y + 0.15, y + 0.27);
+  }
+  return s.box(-0.015, 0.93, -0.015, 0.015, 1, 0.015).build();
+}
+
 /** Geometry of each building variant, in the order of `BUILDING_VARIANTS` (`engine/city.ts`). */
 export function buildingVariantGeometries(): BufferGeometry[] {
-  return [tower(), house(), apartment(), shop(), skyscraper()];
+  return [tower(), house(), apartment(), shop(), skyscraper(), villa(), warehouse(), twin(), pagoda()];
 }
 
 /**

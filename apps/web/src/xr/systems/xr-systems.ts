@@ -12,6 +12,7 @@
  * `input.xr.isPrimary('hand', side)`, `input.xr.visualAdapters.hand.left.getPinchStrength()` (0 open at 5 cm,
  * 1 at IWSDK's 8 mm select distance), `Hovered` tag.
  */
+import { cachedComponent } from '../component-cache';
 import {
   createComponent,
   createSystem,
@@ -120,11 +121,12 @@ export interface XRRig {
   panelWorld: Vector3 | null;
 }
 
-export const XRRigComponent = createComponent(
+export const XRRigComponent = cachedComponent('mw-xr-rig', () =>
+  createComponent(
   'mw-xr-rig',
   { rig: { type: Types.Object, default: null } },
   'Music World XR rig: diorama anchor and placement state',
-);
+));
 
 export function readRig(entity: Entity): XRRig | null {
   return (entity.getValue(XRRigComponent, 'rig') as XRRig | null) ?? null;

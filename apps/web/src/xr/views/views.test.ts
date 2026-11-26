@@ -141,13 +141,13 @@ describe('recipe kinds (05-ai-world-director task 6.3)', () => {
   });
 });
 
-/** City ground, water, poles and lamps (4), the four extra building variants (4), scaffolding and cranes (2). */
-const CITY_DRAW_CALLS = 11; // plus the road mesh of the boulevards
+/** City ground, water, poles and lamps (4), the eight extra building variants (8), scaffolding and cranes (2). */
+const CITY_DRAW_CALLS = 15; // plus the road mesh of the boulevards
 
 describe('StructureView (task 4.3)', () => {
   it('uses one InstancedMesh per kind and matches the state after any seek', () => {
     const view = new StructureView(plan);
-    // one per kind, plus (city) ground, water, poles and lamps, the 4 extra building variants, scaffolding and cranes,
+    // one per kind, plus (city) ground, water, poles and lamps, the 8 extra building variants, scaffolding and cranes,
     // (no road mesh: a city drives on its streets) and one shared blob-shadow mesh when trees or cars exist
     const extra = templateHasCity(plan.template) ? CITY_DRAW_CALLS - 1 + (plan.tracks.some((t) => ['tree', 'conifer', 'bush', 'car'].includes(t.kind)) ? 1 : 0) : 0;
     expect(view.drawCalls()).toBe(plan.tracks.length + extra);

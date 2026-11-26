@@ -22,11 +22,11 @@ const CELLS = 4; // lots per block side
 /** Share of the cells of a district that hold a building. */
 const BUILT_SHARE: Readonly<Record<'core' | 'mid' | 'edge', number>> = { core: 0.7, mid: 0.4, edge: 0.2 };
 /** Houses, shops and so on, in the order of `BUILDING_VARIANT_*`. */
-export const BUILDING_VARIANTS = ['tower', 'house', 'apartment', 'shop', 'skyscraper'] as const;
+export const BUILDING_VARIANTS = ['tower', 'house', 'apartment', 'shop', 'skyscraper', 'villa', 'warehouse', 'twin', 'pagoda'] as const;
 export type BuildingVariant = (typeof BUILDING_VARIANTS)[number];
 /** Footprint (plate metres) and height factor (× the note height) of each variant. */
-export const BUILDING_VARIANT_FOOTPRINT: readonly number[] = [0.32, 0.38, 0.4, 0.4, 0.34];
-export const BUILDING_VARIANT_HEIGHT: readonly number[] = [1, 0.4, 0.7, 0.35, 1.5];
+export const BUILDING_VARIANT_FOOTPRINT: readonly number[] = [0.32, 0.38, 0.4, 0.4, 0.34, 0.42, 0.44, 0.4, 0.36];
+export const BUILDING_VARIANT_HEIGHT: readonly number[] = [1, 0.4, 0.7, 0.35, 1.5, 0.45, 0.25, 1.2, 0.8];
 /** A building takes at least this long to be built, however short the note (seconds). */
 export const CONSTRUCTION_SEC = 3;
 
@@ -306,9 +306,9 @@ export function buildCity(seed: number, size: number, rings = true): City {
 
 function pickVariant(district: District, u: number): number {
   const table: Readonly<Record<District, readonly [number, number][]>> = {
-    core: [[0, 0.45], [4, 0.8], [2, 1]],
-    mid: [[2, 0.35], [3, 0.6], [0, 0.7], [1, 1]],
-    edge: [[1, 0.65], [3, 0.85], [2, 1]],
+    core: [[0, 0.22], [4, 0.4], [7, 0.58], [2, 0.74], [8, 0.86], [3, 1]],
+    mid: [[2, 0.22], [3, 0.38], [0, 0.48], [7, 0.58], [8, 0.66], [6, 0.78], [5, 0.9], [1, 1]],
+    edge: [[1, 0.35], [5, 0.58], [3, 0.7], [6, 0.82], [2, 1]],
   };
   return table[district].find(([, upTo]) => u <= upTo)![0];
 }
@@ -348,6 +348,9 @@ export function signalColor(axis: 0 | 1, t: number, phase: number): 0 | 1 | 2 {
 }
 
 /** Footprints (plate metres) in a city, where a car must be smaller than a house and fit its lane. */
+/** Seconds over which the extra buildings of a note are built one after another. */
+export const COMPANION_SPREAD_SEC = 2.4;
+
 export const CITY_FOOTPRINT: Readonly<Record<string, number>> = { car: 0.17, bicycle: 0.1, tree: 0.3, conifer: 0.28, bush: 0.22 };
 
 /** Position `t` in beats from the sorted beat times (extrapolated at the ends; seconds when there is no grid). */

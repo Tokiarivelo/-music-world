@@ -20,6 +20,7 @@ import { cityFront, cityOf, signalColor, type City } from '@/engine/city';
 import type { SpawnPlan } from '@/engine/spawn-plan';
 import type { WorldState } from '@/engine/world-state';
 import { buildCityGeometry, buildWaterGeometry, type CityTone } from '../shapes/city-geometry';
+import { waterMaterial, syncWater } from '../shapes/water-material';
 import { revealMaterial, setReveal } from '../shapes/reveal-material';
 import type { WorldView } from './world-view';
 
@@ -56,14 +57,15 @@ export class CityView implements WorldView {
     this.city = cityOf(plan.template, plan.seed);
     this.object.name = 'city';
     const groundMaterial = revealMaterial({ vertexColors: true });
-    const waterMaterial = revealMaterial({ vertexColors: true });
+    const waterMat = waterMaterial({ vertexColors: true });
     const poleMaterial = revealMaterial({ color: 0x3a3d45 });
     const lampMaterial = revealMaterial({ color: 0xffffff });
-    this.materials = [groundMaterial, waterMaterial, poleMaterial, lampMaterial];
+    this.materials = [groundMaterial, waterMat, poleMaterial, lampMaterial];
     this.ground = new Mesh(buildCityGeometry(this.city, toneOf(plan)), groundMaterial);
     this.ground.name = 'city:ground';
-    this.water = new Mesh(buildWaterGeometry(this.city, toneOf(plan)), waterMaterial);
+    this.water = new Mesh(buildWaterGeometry(this.city, toneOf(plan)), waterMat);
     this.water.name = 'city:water';
+    this.water.onBeforeRender = () => syncWater(waterMat);
     const n = this.city.lights.length;
     this.poles = new InstancedMesh(poleGeometry(), poleMaterial, n);
     this.lamps = new InstancedMesh(new BoxGeometry(0.03, 0.03, 0.02).translate(0, POLE_HEIGHT - 0.04, 0.04), lampMaterial, n);

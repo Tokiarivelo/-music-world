@@ -4,7 +4,16 @@
  * `rootScale` and centred on `anchor`; the walker may go `WALK_MARGIN_M` past its edge, where the environment ground
  * continues, so the world is not a closed square.
  */
-import type { SpawnPlan } from '@/engine/spawn-plan';
+import {
+  BUILDING_VARIANT_FOOTPRINT,
+  CITY_FOOTPRINT,
+  COMPANION_SPREAD_SEC,
+  cityOf,
+  isCityKind,
+  templateHasCity,
+} from "@/engine/city";
+import { crowdItemsOf, crowdPosesAt, type CrowdItem } from "@/engine/crowd";
+import type { SpawnPlan } from "@/engine/spawn-plan";
 import {
   EYE_HEIGHT_M,
   IMMERSIVE_OBJECT_SCALE,
@@ -17,8 +26,8 @@ import {
   WALK_MARGIN_M,
   WALK_PITCH_LIMIT_RAD,
   WALK_SPEED_MPS,
-} from '../constants';
-import type { FlyKeys } from './orbit-camera';
+} from "../constants";
+import type { FlyKeys } from "./orbit-camera";
 
 export interface WalkPose {
   readonly x: number;
@@ -50,7 +59,10 @@ export const DOME_WALK_RATIO = 0.85;
 /** Radius of the walker's body (m). */
 export const WALKER_RADIUS_M = 0.4;
 
-export function startPose(bounds: WalkBounds, startZ = bounds.dome ? bounds.cz : bounds.cz + 30): WalkPose {
+export function startPose(
+  bounds: WalkBounds,
+  startZ = bounds.dome ? bounds.cz : bounds.cz + 30,
+): WalkPose {
   return { x: bounds.cx, z: startZ, yaw: 0, pitch: 0 };
 }
 
@@ -59,22 +71,36 @@ function clamp(v: number, min: number, max: number): number {
 }
 
 /** Keeps the walker on the plate plus the margin. Non-finite values fall back to the plate centre. */
-export function clampToBounds(x: number, z: number, b: WalkBounds): { x: number; z: number } {
+export function clampToBounds(
+  x: number,
+  z: number,
+  b: WalkBounds,
+): { x: number; z: number } {
   if (b.dome) {
     const px = Number.isFinite(x) ? x - b.cx : 0;
     const pz = Number.isFinite(z) ? z - b.cz : 0;
     const max = b.half * DOME_WALK_RATIO;
     const d = Math.hypot(px, pz);
-    return d <= max ? { x: b.cx + px, z: b.cz + pz } : { x: b.cx + (px / d) * max, z: b.cz + (pz / d) * max };
+    return d <= max
+      ? { x: b.cx + px, z: b.cz + pz }
+      : { x: b.cx + (px / d) * max, z: b.cz + (pz / d) * max };
   }
   const limit = b.half + WALK_MARGIN_M;
   const cx = Number.isFinite(x) ? x : b.cx;
   const cz = Number.isFinite(z) ? z : b.cz;
-  return { x: clamp(cx, b.cx - limit, b.cx + limit), z: clamp(cz, b.cz - limit, b.cz + limit) };
+  return {
+    x: clamp(cx, b.cx - limit, b.cx + limit),
+    z: clamp(cz, b.cz - limit, b.cz + limit),
+  };
 }
 
 /** Pushes a point out of every circle it overlaps (a few passes settle corners between neighbours). */
-export function pushOut(x: number, z: number, radius: number, circles: readonly Circle[]): { x: number; z: number } {
+export function pushOut(
+  x: number,
+  z: number,
+  radius: number,
+  circles: readonly Circle[],
+): { x: number; z: number } {
   let px = x;
   let pz = z;
   for (let pass = 0; pass < 3; pass += 1) {
@@ -102,7 +128,11 @@ export function look(pose: WalkPose, dxPx: number, dyPx: number): WalkPose {
   return {
     ...pose,
     yaw: pose.yaw - dxPx * WALK_LOOK_RAD_PER_PX,
-    pitch: clamp(pose.pitch - dyPx * WALK_LOOK_RAD_PER_PX, -WALK_PITCH_LIMIT_RAD, WALK_PITCH_LIMIT_RAD),
+    pitch: clamp(
+      pose.pitch - dyPx * WALK_LOOK_RAD_PER_PX,
+      -WALK_PITCH_LIMIT_RAD,
+      WALK_PITCH_LIMIT_RAD,
+    ),
   };
 }
 
@@ -117,9 +147,17 @@ export function walk(
 ): WalkPose {
   const dt = clamp(Number.isFinite(dtSec) ? dtSec : 0, 0, NAV_MAX_STEP_SEC);
   const tilt = keys.tilt ?? 0;
-  if (dt === 0 || (keys.forward === 0 && keys.right === 0 && keys.turn === 0 && tilt === 0)) return pose;
+  if (
+    dt === 0 ||
+    (keys.forward === 0 && keys.right === 0 && keys.turn === 0 && tilt === 0)
+  )
+    return pose;
   const yaw = pose.yaw - keys.turn * turnRate * dt;
-  const pitch = clamp(pose.pitch + tilt * WALK_KEY_LOOK_RAD_PER_SEC * dt, -WALK_PITCH_LIMIT_RAD, WALK_PITCH_LIMIT_RAD);
+  const pitch = clamp(
+    pose.pitch + tilt * WALK_KEY_LOOK_RAD_PER_SEC * dt,
+    -WALK_PITCH_LIMIT_RAD,
+    WALK_PITCH_LIMIT_RAD,
+  );
   const speed = WALK_SPEED_MPS * (keys.fast ? WALK_FAST_FACTOR : 1) * dt;
   const sin = Math.sin(yaw);
   const cos = Math.cos(yaw);
@@ -131,7 +169,10 @@ export function walk(
 }
 
 /** Camera position and the point it looks at, for `camera.position` and `camera.lookAt`. */
-export function walkCamera(pose: WalkPose): { eye: { x: number; y: number; z: number }; at: { x: number; y: number; z: number } } {
+export function walkCamera(pose: WalkPose): {
+  eye: { x: number; y: number; z: number };
+  at: { x: number; y: number; z: number };
+} {
   const cosP = Math.cos(pose.pitch);
   return {
     eye: { x: pose.x, y: EYE_HEIGHT_M, z: pose.z },
@@ -143,17 +184,142 @@ export function walkCamera(pose: WalkPose): { eye: { x: number; y: number; z: nu
   };
 }
 
+/** Duration of the Superman landing (s), height it starts from (m) and how far behind the target it starts (m). */
+export const LANDING_SEC = 1.8;
+const LANDING_HEIGHT_M = 70;
+const LANDING_BACK_M = 35;
+const LANDING_PITCH_RAD = -1.0;
+
+/** Camera of the landing at progress `k` in [0, 1]: a dive from above and behind that levels out at eye height. */
+export function landingCamera(
+  pose: WalkPose,
+  k: number,
+): ReturnType<typeof walkCamera> {
+  const e = 1 - (1 - clamp(k, 0, 1)) ** 3; // fast dive, soft arrival
+  const left = 1 - e;
+  const sin = Math.sin(pose.yaw);
+  const cos = Math.cos(pose.yaw);
+  const pitch = LANDING_PITCH_RAD * left + pose.pitch * e;
+  const back = LANDING_BACK_M * left;
+  const eye = {
+    x: pose.x + sin * back,
+    y: EYE_HEIGHT_M + LANDING_HEIGHT_M * left,
+    z: pose.z + cos * back,
+  };
+  const cosP = Math.cos(pitch);
+  return {
+    eye,
+    at: {
+      x: eye.x - sin * cosP,
+      y: eye.y + Math.sin(pitch),
+      z: eye.z - cos * cosP,
+    },
+  };
+}
+
 /**
- * Collision circles of the structures that have landed by `t`, in world metres. `scale` is the root scale and
- * `anchor` the plate centre. A shape's footprint is its half width in plate units, as the instance is scaled by it.
+ * Collision circles of everything solid that stands at `t`, in world metres. `scale` is the root scale and `anchor`
+ * the plate centre. A shape's footprint is its half width in plate units, as the instance is scaled by it. City
+ * buildings, trees and bushes own several spots of the city plan (the companions built after the first one), and cars,
+ * bicycles and animals on the ground are where they are at `t`, not where they landed.
  */
-export function obstaclesAt(plan: SpawnPlan, t: number, scale: number, anchor: { x: number; z: number }): Circle[] {
-  const recipeFootprint = new Map(plan.template.recipes.map((r) => [`recipe:${r.name}`, r.footprint]));
+export function obstaclesAt(
+  plan: SpawnPlan,
+  t: number,
+  scale: number,
+  anchor: { x: number; z: number },
+): Circle[] {
+  const recipeFootprint = new Map(
+    plan.template.recipes.map((r) => [`recipe:${r.name}`, r.footprint]),
+  );
+  const city = templateHasCity(plan.template)
+    ? cityOf(plan.template, plan.seed)
+    : null;
+  const moving = crowdOf(plan);
+  const poses =
+    moving.items.length > 0 ? crowdPosesAt(plan, moving.items, t) : null;
   const out: Circle[] = [];
+  const at = (x: number, z: number, radius: number): void => {
+    out.push({
+      x: anchor.x + x * scale,
+      z: anchor.z + z * scale,
+      r: radius * scale * IMMERSIVE_OBJECT_SCALE,
+    });
+  };
   for (const record of plan.records) {
     if (record.landAt > t) continue;
-    const footprint = KIND_FOOTPRINT[record.kind] ?? recipeFootprint.get(record.kind) ?? RECIPE_FOOTPRINT;
-    out.push({ x: anchor.x + record.target.x * scale, z: anchor.z + record.target.z * scale, r: (footprint / 2) * scale * IMMERSIVE_OBJECT_SCALE });
+    if (moving.indices.has(record.index)) {
+      const pose = poses?.get(record.index);
+      // Fliers, swimmers off the ground and objects that have left are not in the walker's way.
+      if (
+        pose &&
+        !pose.hidden &&
+        pose.y * scale < 2.5 &&
+        !AIR_KINDS.has(record.kind)
+      )
+        at(
+          pose.x,
+          pose.z,
+          ((city && CITY_FOOTPRINT[record.kind]) ||
+            KIND_FOOTPRINT[record.kind] ||
+            RECIPE_FOOTPRINT) / 2,
+        );
+      continue;
+    }
+    const cls = city ? isCityKind(record.kind) : null;
+    if (city && cls && record.siteTo - record.siteFrom >= 1) {
+      const pool =
+        cls === "building"
+          ? city.lots
+          : cls === "garden"
+            ? city.gardens
+            : city.monuments;
+      const span = record.siteTo - record.siteFrom;
+      for (let j = record.siteFrom; j < record.siteTo; j += 1) {
+        const spot = pool[j];
+        if (!spot) break;
+        if (
+          record.landAt +
+            ((j - record.siteFrom) / span) * COMPANION_SPREAD_SEC >
+          t
+        )
+          continue;
+        const half =
+          cls === "building"
+            ? (BUILDING_VARIANT_FOOTPRINT[
+                (spot as (typeof city.lots)[number]).variant
+              ] ?? 0.4) * 0.6
+            : (CITY_FOOTPRINT[record.kind] ??
+                KIND_FOOTPRINT[record.kind] ??
+                RECIPE_FOOTPRINT) / 2;
+        at(spot.x, spot.z, half);
+      }
+      continue;
+    }
+    const footprint =
+      KIND_FOOTPRINT[record.kind] ??
+      recipeFootprint.get(record.kind) ??
+      RECIPE_FOOTPRINT;
+    at(record.target.x, record.target.z, footprint / 2);
   }
   return out;
+}
+
+const AIR_KINDS: ReadonlySet<string> = new Set(["airplane", "cloud"]);
+const crowdCache = new WeakMap<
+  object,
+  { items: CrowdItem[]; indices: Set<number> }
+>();
+
+function crowdOf(plan: SpawnPlan): {
+  items: CrowdItem[];
+  indices: Set<number>;
+} {
+  let hit = crowdCache.get(plan);
+  if (!hit) {
+    const items = crowdItemsOf(plan, () => 0);
+    hit = { items, indices: new Set(items.map((i) => i.index)) };
+    crowdCache.set(plan, hit);
+  }
+  return hit;
 }

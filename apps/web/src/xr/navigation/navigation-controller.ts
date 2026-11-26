@@ -3,9 +3,32 @@
  * Framework-free so it is tested without IWSDK; `NavigationSystem` calls {@link NavigationController.step} once per
  * frame and copies the pose to `world.camera`. Never reads the audio clock or the spawn plan (requirement 6.1).
  */
-import { DESKTOP_REFERENCE_ASPECT, NAV_DISTANCE_MAX_M, NAV_EASE_MAX_SEC } from '../constants';
-import { startPose, look, walk, walkCamera, type Circle, type WalkBounds, type WalkPose } from './walk-camera';
-import { NavigationInput, emptyDelta, type NavigationDelta } from './navigation-input';
+import {
+  DESKTOP_REFERENCE_ASPECT,
+  NAV_DISTANCE_MAX_M,
+  NAV_EASE_MAX_SEC,
+  WALK_MARGIN_M,
+} from "../constants";
+import {
+  startPose,
+  DOME_WALK_RATIO,
+  look,
+  walk,
+  walkCamera,
+  landingCamera,
+  LANDING_SEC,
+  clampToBounds,
+  pushOut,
+  WALKER_RADIUS_M,
+  type Circle,
+  type WalkBounds,
+  type WalkPose,
+} from "./walk-camera";
+import {
+  NavigationInput,
+  emptyDelta,
+  type NavigationDelta,
+} from "./navigation-input";
 import {
   VIEW_PRESETS,
   approachPose,
@@ -17,14 +40,25 @@ import {
   zoom,
   type OrbitPose,
   type ViewPresetId,
-} from './orbit-camera';
+} from "./orbit-camera";
 
-export type CameraMode = 'cinematic' | 'explore' | 'walk';
+export type CameraMode = "cinematic" | "explore" | "walk";
 
 export interface NavigationState {
   mode: CameraMode;
   /** Preset the camera is on (or moving to); null once the user moves the camera by hand. */
   preset: ViewPresetId | null;
+}
+
+export interface WalkMapBase {
+  cx: number;
+  cz: number;
+  /** Half side (square) or radius (round) of the walkable area, metres. */
+  limit: number;
+  round: boolean;
+  /** Where the walker stands, or where it last stood; null before the first walk. */
+  pose: WalkPose | null;
+  obstacles: readonly Circle[];
 }
 
 export class NavigationController {
@@ -46,9 +80,11 @@ export class NavigationController {
   }
 
   private capped(pose: OrbitPose): OrbitPose {
-    return pose.distance > this.maxDistanceValue ? { ...pose, distance: this.maxDistanceValue } : pose;
+    return pose.distance > this.maxDistanceValue
+      ? { ...pose, distance: this.maxDistanceValue }
+      : pose;
   }
-  private modeValue: CameraMode = 'cinematic';
+  private modeValue: CameraMode = "cinematic";
   private presetValue: ViewPresetId | null = null;
   private poseValue: OrbitPose = cinematicPose();
   private goal: OrbitPose = this.poseValue;
@@ -71,32 +107,75 @@ export class NavigationController {
 
   /** Input is taken in the explore and walk modes, outside XR (the system tells the controller about XR). */
   get acceptsInput(): boolean {
-    return this.modeValue !== 'cinematic' && !this.immersive;
+    return this.modeValue !== "cinematic" && !this.immersive;
   }
 
   private walkBounds: WalkBounds | null = null;
   private obstaclesOf: () => readonly Circle[] = () => [];
   private walkPoseValue: WalkPose | null = null;
   private walkDirty = false;
+  /** Where the walker was when the walk mode was left (a click on Walk resumes there). */
+  private lastWalkPose: WalkPose | null = null;
+  /** Seconds since the walker started to land (`LANDING_SEC` or more: on the ground). */
+  private landingElapsed = LANDING_SEC;
 
   /** Dome world: the walker is confined to the dome and starts at its centre; switches to the walk mode (and back). */
   setDome(on: boolean): void {
     if (this.walkBounds) this.walkBounds = { ...this.walkBounds, dome: on };
     if (on) {
+      this.lastWalkPose = null;
       this.walkPoseValue = this.walkBounds ? startPose(this.walkBounds) : null;
       this.walkDirty = true;
-      this.setMode('walk');
-    } else if (this.modeValue === 'walk') this.setMode('cinematic');
+      this.setMode("walk");
+    } else if (this.modeValue === "walk") this.setMode("cinematic");
   }
 
   /** The plate the walker stands on and the circles it cannot enter (set by the host, which knows the scale). */
   configureWalk(bounds: WalkBounds, obstacles: () => readonly Circle[]): void {
     this.walkBounds = bounds;
     this.obstaclesOf = obstacles;
-    if (this.modeValue === 'walk') {
+    this.lastWalkPose = null;
+    if (this.modeValue === "walk") {
       this.walkPoseValue = startPose(bounds);
       this.walkDirty = true;
     }
+  }
+
+  /**
+   * Superman landing: switches to the walk mode and drops the walker from the sky onto (x, z), facing where the
+   * explore camera looked. Input is ignored until it has landed (the view does not change before this call).
+   */
+  landAt(x: number, z: number): void {
+    const bounds = this.walkBounds;
+    if (!bounds) return;
+    const circles = this.obstaclesOf(); // first: the host refreshes the size of the world there
+    const yaw =
+      this.modeValue === "walk" && this.walkPoseValue
+        ? this.walkPoseValue.yaw
+        : this.poseValue.yaw;
+    this.setMode("walk");
+    const inside = clampToBounds(x, z, bounds);
+    const free = pushOut(inside.x, inside.z, WALKER_RADIUS_M, circles);
+    const ok = clampToBounds(free.x, free.z, bounds);
+    this.walkPoseValue = { x: ok.x, z: ok.z, yaw, pitch: 0 };
+    this.landingElapsed = this.reducedMotion ? LANDING_SEC : 0;
+    this.walkDirty = true;
+  }
+
+  /** Area, walker and structures for the map (any mode: the map also shows while the pegman is dragged). */
+  walkMapBase(): WalkMapBase | null {
+    const b = this.walkBounds;
+    if (!b) return null;
+    const obstacles = this.obstaclesOf(); // first: the host refreshes the size of the world there
+    const limit = b.dome ? b.half * DOME_WALK_RATIO : b.half + WALK_MARGIN_M;
+    return {
+      cx: b.cx,
+      cz: b.cz,
+      limit,
+      round: !!b.dome,
+      pose: this.walkPoseValue ?? this.lastWalkPose,
+      obstacles,
+    };
   }
 
   get walkPose(): WalkPose | null {
@@ -105,9 +184,13 @@ export class NavigationController {
 
   /** Camera of the walk mode once per change (null when not walking or nothing moved). */
   consumeWalkCamera(): ReturnType<typeof walkCamera> | null {
-    if (this.modeValue !== 'walk' || !this.walkPoseValue || !this.walkDirty) return null;
-    this.walkDirty = false;
-    return walkCamera(this.walkPoseValue);
+    if (this.modeValue !== "walk" || !this.walkPoseValue || !this.walkDirty)
+      return null;
+    const landing = this.landingElapsed < LANDING_SEC;
+    this.walkDirty = landing;
+    return landing
+      ? landingCamera(this.walkPoseValue, this.landingElapsed / LANDING_SEC)
+      : walkCamera(this.walkPoseValue);
   }
 
   private immersive = false;
@@ -118,7 +201,8 @@ export class NavigationController {
    * once (a resize is not animated); any other pose is left alone.
    */
   setAspect(aspect: number): void {
-    if (!Number.isFinite(aspect) || aspect <= 0 || aspect === this.aspect) return;
+    if (!Number.isFinite(aspect) || aspect <= 0 || aspect === this.aspect)
+      return;
     const onOverview = this.goal === this.poseValue && this.isCinematicGoal();
     this.aspect = aspect;
     if (!onOverview) return;
@@ -128,20 +212,26 @@ export class NavigationController {
 
   setMode(mode: CameraMode): void {
     if (mode === this.modeValue) return;
+    if (this.modeValue === "walk" && this.walkPoseValue)
+      this.lastWalkPose = this.walkPoseValue;
     this.modeValue = mode;
     this.input.clear();
-    if (mode === 'walk') {
+    if (mode === "walk") {
       this.presetValue = null;
-      this.walkPoseValue = this.walkBounds ? startPose(this.walkBounds) : null;
+      this.walkPoseValue =
+        this.lastWalkPose ??
+        (this.walkBounds ? startPose(this.walkBounds) : null);
+      this.landingElapsed = LANDING_SEC;
       this.walkDirty = true;
-    } else if (mode === 'cinematic') {
+    } else if (mode === "cinematic") {
       this.presetValue = null;
       this.moveTo(cinematicPose(this.aspect));
     } else {
       // Explore starts from where the camera is (requirement 1.2), eased: from the cinematic framing it rises to the
       // global view, so the whole scene is in the frame.
-      const onOverview = this.goal === VIEW_PRESETS.overview || this.isCinematicGoal();
-      this.presetValue = onOverview ? 'overview' : null;
+      const onOverview =
+        this.goal === VIEW_PRESETS.overview || this.isCinematicGoal();
+      this.presetValue = onOverview ? "overview" : null;
       if (onOverview) this.moveTo(overviewPose(this.aspect));
     }
     this.emit();
@@ -149,21 +239,23 @@ export class NavigationController {
 
   /** Moves to a preset; switches to the explore mode if needed (requirement 4.2). */
   setPreset(id: ViewPresetId): void {
-    if (this.modeValue !== 'explore') {
-      this.modeValue = 'explore';
+    if (this.modeValue !== "explore") {
+      this.modeValue = "explore";
       this.input.clear();
     }
     this.presetValue = id;
-    this.moveTo(id === 'overview' ? overviewPose(this.aspect) : VIEW_PRESETS[id]);
+    this.moveTo(
+      id === "overview" ? overviewPose(this.aspect) : VIEW_PRESETS[id],
+    );
     this.emit();
   }
 
   /** Back to the overview pose (requirement 4.3), in the current mode; in the walk mode, back to the start. */
   reset(): void {
-    if (this.modeValue === 'walk') {
+    if (this.modeValue === "walk") {
       this.walkPoseValue = this.walkBounds ? startPose(this.walkBounds) : null;
       this.walkDirty = true;
-    } else if (this.modeValue === 'explore') this.setPreset('overview');
+    } else if (this.modeValue === "explore") this.setPreset("overview");
     else this.moveTo(cinematicPose(this.aspect));
   }
 
@@ -179,17 +271,25 @@ export class NavigationController {
    * One frame: applies the input (explore mode), eases toward the goal and returns the pose to show, or null while an
    * immersive session runs (the headset owns the camera, requirement 5.1).
    */
-  step(dtSec: number, immersive: boolean, viewportPx: number, fovDeg: number): OrbitPose | null {
+  step(
+    dtSec: number,
+    immersive: boolean,
+    viewportPx: number,
+    fovDeg: number,
+  ): OrbitPose | null {
     this.immersive = immersive;
     if (immersive) {
       this.input.clear();
       return null;
     }
     const d = this.input.drain(this.delta);
-    if (this.modeValue === 'walk') {
+    if (this.modeValue === "walk") {
       const bounds = this.walkBounds;
       let w = this.walkPoseValue;
-      if (bounds && w && d.moved) {
+      if (this.landingElapsed < LANDING_SEC) {
+        this.landingElapsed += Math.max(0, dtSec);
+        this.walkDirty = true;
+      } else if (bounds && w && d.moved) {
         if (d.orbitX !== 0 || d.orbitY !== 0) w = look(w, d.orbitX, d.orbitY);
         w = walk(w, d.keys, dtSec, bounds, this.obstaclesOf());
         this.walkPoseValue = w;
@@ -197,11 +297,12 @@ export class NavigationController {
       }
       return null; // the system reads `consumeWalkCamera()`
     }
-    if (this.modeValue === 'explore' && d.moved) {
+    if (this.modeValue === "explore" && d.moved) {
       // Direct manipulation from the shown pose: no lag behind the pointer, and any running ease stops.
       let p = this.poseValue;
       if (d.orbitX !== 0 || d.orbitY !== 0) p = orbit(p, d.orbitX, d.orbitY);
-      if (d.panX !== 0 || d.panY !== 0) p = pan(p, d.panX, d.panY, viewportPx, fovDeg);
+      if (d.panX !== 0 || d.panY !== 0)
+        p = pan(p, d.panX, d.panY, viewportPx, fovDeg);
       if (d.zoom !== 1) p = zoom(p, d.zoom);
       p = fly(p, d.keys, dtSec);
       p = this.capped(p);
@@ -233,7 +334,12 @@ export class NavigationController {
   private isCinematicGoal(): boolean {
     const c = cinematicPose(this.aspect);
     const g = this.goal;
-    return g.yaw === c.yaw && g.pitch === c.pitch && g.distance === c.distance && g.target.x === c.target.x;
+    return (
+      g.yaw === c.yaw &&
+      g.pitch === c.pitch &&
+      g.distance === c.distance &&
+      g.target.x === c.target.x
+    );
   }
 
   private emit(): void {
