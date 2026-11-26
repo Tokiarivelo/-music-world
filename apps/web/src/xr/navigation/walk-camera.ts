@@ -4,6 +4,15 @@
  * `rootScale` and centred on `anchor`; the walker may go `WALK_MARGIN_M` past its edge, where the environment ground
  * continues, so the world is not a closed square.
  */
+import {
+  BUILDING_VARIANT_FOOTPRINT,
+  CITY_FOOTPRINT,
+  COMPANION_SPREAD_SEC,
+  cityOf,
+  isCityKind,
+  templateHasCity,
+} from "@/engine/city";
+import { crowdItemsOf, crowdPosesAt, type CrowdItem } from "@/engine/crowd";
 import type { SpawnPlan } from "@/engine/spawn-plan";
 import {
   EYE_HEIGHT_M,
@@ -209,8 +218,10 @@ export function landingCamera(
 }
 
 /**
- * Collision circles of the structures that have landed by `t`, in world metres. `scale` is the root scale and
- * `anchor` the plate centre. A shape's footprint is its half width in plate units, as the instance is scaled by it.
+ * Collision circles of everything solid that stands at `t`, in world metres. `scale` is the root scale and `anchor`
+ * the plate centre. A shape's footprint is its half width in plate units, as the instance is scaled by it. City
+ * buildings, trees and bushes own several spots of the city plan (the companions built after the first one), and cars,
+ * bicycles and animals on the ground are where they are at `t`, not where they landed.
  */
 export function obstaclesAt(
   plan: SpawnPlan,
@@ -221,18 +232,94 @@ export function obstaclesAt(
   const recipeFootprint = new Map(
     plan.template.recipes.map((r) => [`recipe:${r.name}`, r.footprint]),
   );
+  const city = templateHasCity(plan.template)
+    ? cityOf(plan.template, plan.seed)
+    : null;
+  const moving = crowdOf(plan);
+  const poses =
+    moving.items.length > 0 ? crowdPosesAt(plan, moving.items, t) : null;
   const out: Circle[] = [];
+  const at = (x: number, z: number, radius: number): void => {
+    out.push({
+      x: anchor.x + x * scale,
+      z: anchor.z + z * scale,
+      r: radius * scale * IMMERSIVE_OBJECT_SCALE,
+    });
+  };
   for (const record of plan.records) {
     if (record.landAt > t) continue;
+    if (moving.indices.has(record.index)) {
+      const pose = poses?.get(record.index);
+      // Fliers, swimmers off the ground and objects that have left are not in the walker's way.
+      if (
+        pose &&
+        !pose.hidden &&
+        pose.y * scale < 2.5 &&
+        !AIR_KINDS.has(record.kind)
+      )
+        at(
+          pose.x,
+          pose.z,
+          ((city && CITY_FOOTPRINT[record.kind]) ||
+            KIND_FOOTPRINT[record.kind] ||
+            RECIPE_FOOTPRINT) / 2,
+        );
+      continue;
+    }
+    const cls = city ? isCityKind(record.kind) : null;
+    if (city && cls && record.siteTo - record.siteFrom >= 1) {
+      const pool =
+        cls === "building"
+          ? city.lots
+          : cls === "garden"
+            ? city.gardens
+            : city.monuments;
+      const span = record.siteTo - record.siteFrom;
+      for (let j = record.siteFrom; j < record.siteTo; j += 1) {
+        const spot = pool[j];
+        if (!spot) break;
+        if (
+          record.landAt +
+            ((j - record.siteFrom) / span) * COMPANION_SPREAD_SEC >
+          t
+        )
+          continue;
+        const half =
+          cls === "building"
+            ? (BUILDING_VARIANT_FOOTPRINT[
+                (spot as (typeof city.lots)[number]).variant
+              ] ?? 0.4) * 0.6
+            : (CITY_FOOTPRINT[record.kind] ??
+                KIND_FOOTPRINT[record.kind] ??
+                RECIPE_FOOTPRINT) / 2;
+        at(spot.x, spot.z, half);
+      }
+      continue;
+    }
     const footprint =
       KIND_FOOTPRINT[record.kind] ??
       recipeFootprint.get(record.kind) ??
       RECIPE_FOOTPRINT;
-    out.push({
-      x: anchor.x + record.target.x * scale,
-      z: anchor.z + record.target.z * scale,
-      r: (footprint / 2) * scale * IMMERSIVE_OBJECT_SCALE,
-    });
+    at(record.target.x, record.target.z, footprint / 2);
   }
   return out;
+}
+
+const AIR_KINDS: ReadonlySet<string> = new Set(["airplane", "cloud"]);
+const crowdCache = new WeakMap<
+  object,
+  { items: CrowdItem[]; indices: Set<number> }
+>();
+
+function crowdOf(plan: SpawnPlan): {
+  items: CrowdItem[];
+  indices: Set<number>;
+} {
+  let hit = crowdCache.get(plan);
+  if (!hit) {
+    const items = crowdItemsOf(plan, () => 0);
+    hit = { items, indices: new Set(items.map((i) => i.index)) };
+    crowdCache.set(plan, hit);
+  }
+  return hit;
 }

@@ -1,5 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
+import { WALK_MARGIN_M } from "../constants";
 import {
   DOME_WALK_RATIO,
   clampToBounds,
@@ -42,6 +43,6 @@ describe("dome walk", () => {
 
   it("keeps the plate behaviour without the dome flag", () => {
     const plate: WalkBounds = { cx: 0, cz: 0, half: 40 };
-    expect(clampToBounds(1000, 0, plate).x).toBe(40 + 25);
+    expect(clampToBounds(1000, 0, plate).x).toBe(40 + WALK_MARGIN_M);
   });
 });

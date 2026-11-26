@@ -16,3 +16,12 @@ Problem: in walk mode the viewer could end up inside a building with no idea whe
 - A click on Walk resumes where the walker was left (`lastWalkPose`); "Back to start", a new world or the dome reset it.
 - A map (`WalkMap.tsx`, bottom left) shows while walking and while the pegman is dragged: streets (city grid) or roads,
   lakes, structures and the walker with its view cone (`walk-map.ts`). Drop the pegman on it, or click it, to land there.
+
+## Whole world, solid objects
+
+- The walkable area was the plate only until the host refreshed the world size (stale on the first landing and on the
+  map): it is now refreshed first, and `WALK_MARGIN_M` is 60 m past the edge, over the city or the sea.
+- `obstaclesAt` now blocks every spot a city note owns (`siteFrom..siteTo`, built one after another, so the houses and
+  trees after the first were walkable), with the building variant footprint, and takes cars, bicycles and ground
+  animals at their position at `t` (`crowdPosesAt`, refreshed 5 times a second) instead of where they landed.
+  Fliers and objects that left are ignored. Lakes are not obstacles.

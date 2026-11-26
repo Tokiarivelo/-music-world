@@ -348,6 +348,9 @@ export function signalColor(axis: 0 | 1, t: number, phase: number): 0 | 1 | 2 {
 }
 
 /** Footprints (plate metres) in a city, where a car must be smaller than a house and fit its lane. */
+/** Seconds over which the extra buildings of a note are built one after another. */
+export const COMPANION_SPREAD_SEC = 2.4;
+
 export const CITY_FOOTPRINT: Readonly<Record<string, number>> = { car: 0.17, bicycle: 0.1, tree: 0.3, conifer: 0.28, bush: 0.22 };
 
 /** Position `t` in beats from the sorted beat times (extrapolated at the ends; seconds when there is no grid). */

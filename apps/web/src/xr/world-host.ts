@@ -564,7 +564,7 @@ async function buildWorld(
     if (!basePlan || !baseClock) return [];
     setWorldSpan(worldSpan(basePlan.template));
     walkBounds.half = worldWidthM("immersive") / 2;
-    const slot = Math.floor(baseClock.now() * 2);
+    const slot = Math.floor(baseClock.now() * 5); // cars and animals move: 5 Hz
     if (cache?.plan !== basePlan || cache.slot !== slot) {
       const scale = rootScale("immersive", basePlan.template.terrain.size);
       cache = {

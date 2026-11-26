@@ -21,7 +21,7 @@ import {
 import { isRecordShown } from '@/engine/layers';
 import { crowdItemsOf, crowdPosesAt, type CrowdItem } from '@/engine/crowd';
 import { buildRoads, templateHasRoads } from '@/engine/roads';
-import { BUILDING_VARIANT_FOOTPRINT, CITY_FOOTPRINT, BUILDING_VARIANT_HEIGHT, cityFront, cityOf, isCityKind, templateHasCity, worldSize, type City } from '@/engine/city';
+import { BUILDING_VARIANT_FOOTPRINT, CITY_FOOTPRINT, BUILDING_VARIANT_HEIGHT, cityFront, cityOf, isCityKind, templateHasCity, worldSize, type City, COMPANION_SPREAD_SEC } from '@/engine/city';
 import { buildRoadGeometry } from '../shapes/road-geometry';
 import { buildingVariantGeometries, craneGeometry, scaffoldGeometry } from '../shapes/house-shapes';
 import { revealMaterial, setReveal } from '../shapes/reveal-material';
@@ -84,7 +84,6 @@ const SCAFFOLD_END = 0.94;
 const FLOOR_HEIGHT = 0.14;
 const SITE_CAPACITY = 600;
 /** Spots owned by one note are built one after another over this many seconds. */
-const COMPANION_SPREAD_SEC = 2.4;
 const CONCRETE_TINT = new Color(0.62, 0.62, 0.6);
 const CRANE_SWING = 0.45; // rad/s
 const Y_UP = new Vector3(0, 1, 0);

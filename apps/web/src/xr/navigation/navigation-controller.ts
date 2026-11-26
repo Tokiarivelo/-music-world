@@ -148,18 +148,14 @@ export class NavigationController {
   landAt(x: number, z: number): void {
     const bounds = this.walkBounds;
     if (!bounds) return;
+    const circles = this.obstaclesOf(); // first: the host refreshes the size of the world there
     const yaw =
       this.modeValue === "walk" && this.walkPoseValue
         ? this.walkPoseValue.yaw
         : this.poseValue.yaw;
     this.setMode("walk");
     const inside = clampToBounds(x, z, bounds);
-    const free = pushOut(
-      inside.x,
-      inside.z,
-      WALKER_RADIUS_M,
-      this.obstaclesOf(),
-    );
+    const free = pushOut(inside.x, inside.z, WALKER_RADIUS_M, circles);
     const ok = clampToBounds(free.x, free.z, bounds);
     this.walkPoseValue = { x: ok.x, z: ok.z, yaw, pitch: 0 };
     this.landingElapsed = this.reducedMotion ? LANDING_SEC : 0;
@@ -170,6 +166,7 @@ export class NavigationController {
   walkMapBase(): WalkMapBase | null {
     const b = this.walkBounds;
     if (!b) return null;
+    const obstacles = this.obstaclesOf(); // first: the host refreshes the size of the world there
     const limit = b.dome ? b.half * DOME_WALK_RATIO : b.half + WALK_MARGIN_M;
     return {
       cx: b.cx,
@@ -177,7 +174,7 @@ export class NavigationController {
       limit,
       round: !!b.dome,
       pose: this.walkPoseValue ?? this.lastWalkPose,
-      obstacles: this.obstaclesOf(),
+      obstacles,
     };
   }
 

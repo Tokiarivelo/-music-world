@@ -1,5 +1,6 @@
 import fc from "fast-check";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import * as cityModule from "@/engine/city";
 import {
   EYE_HEIGHT_M,
   IMMERSIVE_OBJECT_SCALE,
@@ -154,10 +155,28 @@ describe("walk camera", () => {
 
   it("builds collision circles only from structures that have landed", () => {
     const plan = {
-      template: { recipes: [{ name: "fish", footprint: 0.5 }] },
+      template: {
+        recipes: [{ name: "fish", footprint: 0.5 }],
+        fx: { environment: "none" },
+        mappings: [],
+      },
       records: [
-        { kind: "building", landAt: 1, target: { x: 1, y: 0, z: 2 } },
-        { kind: "recipe:fish", landAt: 9, target: { x: 0, y: 0, z: 0 } },
+        {
+          index: 0,
+          kind: "building",
+          landAt: 1,
+          siteFrom: 0,
+          siteTo: 0,
+          target: { x: 1, y: 0, z: 2 },
+        },
+        {
+          index: 1,
+          kind: "recipe:fish",
+          landAt: 9,
+          siteFrom: 0,
+          siteTo: 0,
+          target: { x: 0, y: 0, z: 0 },
+        },
       ],
     } as never;
     const early = obstaclesAt(plan, 2, 10, { x: 0, z: -30 });
@@ -165,5 +184,43 @@ describe("walk camera", () => {
     expect(early[0]).toMatchObject({ x: 10, z: -10 });
     expect(early[0]!.r).toBeCloseTo((0.24 / 2) * 10 * IMMERSIVE_OBJECT_SCALE); // objects keep their calibrated size on the wide plate
     expect(obstaclesAt(plan, 10, 10, { x: 0, z: -30 })).toHaveLength(2);
+  });
+});
+
+describe("city obstacles", () => {
+  it("blocks every building spot a note owns once built, not only the first", () => {
+    const lots = [0, 1, 2].map((i) => ({
+      x: i,
+      z: 0,
+      yaw: 0,
+      district: "core",
+      variant: 0,
+      key: i,
+    }));
+    const city = { lots, gardens: [], monuments: [] };
+    const plan = {
+      seed: 1,
+      template: {
+        recipes: [],
+        fx: { environment: "none" },
+        mappings: [{ spawn: "building" }],
+        terrain: { size: 20 },
+      },
+      records: [
+        {
+          index: 0,
+          kind: "building",
+          landAt: 0,
+          siteFrom: 0,
+          siteTo: 3,
+          target: { x: 0, y: 0, z: 0 },
+        },
+      ],
+      _city: city,
+    } as never;
+    vi.spyOn(cityModule, "cityOf").mockReturnValue(city as never);
+    expect(obstaclesAt(plan, 0.1, 1, { x: 0, z: 0 })).toHaveLength(1);
+    expect(obstaclesAt(plan, 5, 1, { x: 0, z: 0 })).toHaveLength(3);
+    vi.restoreAllMocks();
   });
 });
