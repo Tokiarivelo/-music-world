@@ -13,3 +13,37 @@ body {
   background: var(--mw-bg);
   color: #e8ecff;
 }
+
+/* macOS / iOS scrollbars: thin, rounded, transparent at rest; `mw-scrolling` (lib/scrollbar-autohide.ts) shows them while
+   the element scrolls. Standard properties first, WebKit pseudo-elements for older engines. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.mw-scrolling {
+  scrollbar-color: rgb(255 255 255 / 0.45) transparent;
+}
+
+@supports not (scrollbar-color: auto) {
+  *::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+    transition: background-color 0.4s ease;
+  }
+
+  .mw-scrolling::-webkit-scrollbar-thumb {
+    background-color: rgb(255 255 255 / 0.45);
+  }
+}

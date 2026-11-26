@@ -49,6 +49,8 @@ describe('world plans', () => {
   it('follows the layout the director wrote: its patches, and the order of its sequence', () => {
     const realm = featured('enchanted-realm');
     const layout = {
+      placed: [],
+      seed: null,
       inventory: [],
       patches: [
         { id: 'grove', theme: 'forest' as const, x: 0.5, z: 0.4, radius: 0.2 },
@@ -77,12 +79,12 @@ describe('world plans', () => {
   });
 
   it('lets the director set the mix of a city, and orders grounded notes whatever their rule gave', () => {
-    const directed = { ...DEFAULT_TEMPLATE, layout: { inventory: [], patches: [], sequence: [{ kind: 'tree' as const, patch: null, weight: 1 }, { kind: 'car' as const, patch: null, weight: 1 }] } };
+    const directed = { ...DEFAULT_TEMPLATE, layout: { placed: [], seed: null, inventory: [], patches: [], sequence: [{ kind: 'tree' as const, patch: null, weight: 1 }, { kind: 'car' as const, patch: null, weight: 1 }] } };
     const kinds = new Set(buildSpawnPlan(demo, directed, 4).records.map((r) => r.kind));
     expect(kinds.has('tree') && kinds.has('car')).toBe(true);
     expect(kinds.has('bush') || kinds.has('conifer') || kinds.has('bicycle')).toBe(false); // the mix replaces the default one
     const realm = featured('enchanted-realm');
-    const only = { ...realm, layout: { inventory: [], patches: [{ id: 'a', theme: 'forest' as const, x: 0, z: 0.5, radius: 0.3 }], sequence: [{ kind: 'recipe:magic_tree' as const, patch: 'a', weight: 1 }] } };
+    const only = { ...realm, layout: { placed: [], seed: null, inventory: [], patches: [{ id: 'a', theme: 'forest' as const, x: 0, z: 0.5, radius: 0.3 }], sequence: [{ kind: 'recipe:magic_tree' as const, patch: 'a', weight: 1 }] } };
     const first = realm.scenery.reduce((n, i) => n + i.count, 0);
     const grounded = buildSpawnPlan(demo, only, 4).records.filter((r) => r.index >= first && r.kind.startsWith('recipe:') && !['recipe:dragon'].includes(r.kind));
     expect(new Set(grounded.map((r) => r.kind))).toEqual(new Set(['recipe:magic_tree']));
