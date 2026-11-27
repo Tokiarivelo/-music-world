@@ -74,3 +74,10 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
 - [x] 8.3 Inventory: "Edit as a recipe" / "Edit the recipe" on each building variant, badge on the recipe that replaces one
 - [x] 8.4 Box select by area: any face touching the rectangle (`rect-hit`), not the part centre; docs, handoff, PR merged
 
+## Phase 9 — Colours on city buildings, more engine shapes, visible-only box select (`phase-I53-city-colours`)
+
+- [x] 9.1 Part colours and textures show on city buildings (shared vertex-colour and texture attributes across the nine variants)
+- [x] 9.2 Construction scaffold, tower crane and traffic-light pole as recipes (`site_scaffold`, `site_crane`, `signal_pole`, `xr/shapes/site-recipes.ts`)
+- [x] 9.3 Inventory: every engine shape with a recipe has the edit button; streets, lakes, bridges and reef patches say which setting drives them
+- [x] 9.4 Box select in solid view picks only what is visible (id buffer); wire and x-ray keep the touching-face rule; docs, handoff, PR merged
+

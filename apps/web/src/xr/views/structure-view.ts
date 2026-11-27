@@ -24,6 +24,7 @@ import { buildRoads, templateHasRoads } from '@/engine/roads';
 import { BUILDING_VARIANT_FOOTPRINT, CITY_FOOTPRINT, BUILDING_VARIANT_HEIGHT, cityFront, cityOf, isCityKind, templateHasCity, worldSize, type City, COMPANION_SPREAD_SEC } from '@/engine/city';
 import { buildRoadGeometry } from '../shapes/road-geometry';
 import { resolveBuildingGeometries } from '../shapes/building-recipes';
+import { resolveCraneGeometry, resolveScaffoldGeometry } from '../shapes/site-recipes';
 import { craneGeometry, scaffoldGeometry } from '../shapes/house-shapes';
 import { revealMaterial, setReveal } from '../shapes/reveal-material';
 import { CityView } from './city-view';
@@ -325,6 +326,9 @@ export class StructureView implements WorldView {
     const base = this.meshes.get('building');
     if (base) {
       const [tower, ...others] = resolveBuildingGeometries(this.plan.template.recipes as Parameters<typeof resolveBuildingGeometries>[0], this.plan.template.palette);
+      const material = base.material as MeshBasicMaterial;
+      if (tower!.hasAttribute('color')) material.vertexColors = true; // part colours tint the building (the window shader derives walls, windows and roofs from it)
+      if (tower!.hasAttribute(TEXTURE_ATTRIBUTE)) addPartTextures(material);
       base.geometry.dispose();
       base.geometry = tower!;
       const list = others.map((geometry, i) => {
@@ -341,14 +345,15 @@ export class StructureView implements WorldView {
       });
       this.variantMeshes.set('building', list);
       const make = (geometry: ReturnType<typeof scaffoldGeometry>, color: number, name: string): InstancedMesh => {
-        const mesh = new InstancedMesh(geometry, new MeshBasicMaterial({ color }), SITE_CAPACITY);
+        const mesh = new InstancedMesh(geometry, new MeshBasicMaterial({ color, vertexColors: geometry.hasAttribute('color') }), SITE_CAPACITY);
         mesh.name = name;
         mesh.frustumCulled = false;
         mesh.count = 0;
         this.object.add(mesh);
         return mesh;
       };
-      this.site = { scaffold: make(scaffoldGeometry(), 0xe0b64f, 'structures:scaffold'), crane: make(craneGeometry(), 0xf08a24, 'structures:crane') };
+      const { recipes, palette } = this.plan.template as { recipes: Parameters<typeof resolveScaffoldGeometry>[0]; palette: Record<string, string> };
+      this.site = { scaffold: make(resolveScaffoldGeometry(recipes, scaffoldGeometry(), palette), 0xe0b64f, 'structures:scaffold'), crane: make(resolveCraneGeometry(recipes, craneGeometry(), palette), 0xf08a24, 'structures:crane') };
     }
   }
 

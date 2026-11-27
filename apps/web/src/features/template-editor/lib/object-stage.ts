@@ -14,6 +14,7 @@ import {
   LineSegments,
   Matrix4,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
   Object3D,
   OrthographicCamera,
@@ -25,6 +26,9 @@ import {
   Vector3,
   WebGLRenderer,
   Float32BufferAttribute,
+  LinearSRGBColorSpace,
+  Material,
+  WebGLRenderTarget,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
@@ -133,6 +137,8 @@ export class ObjectStage {
   private disposed = false;
   private down: { x: number; y: number } | null = null;
   private fitted = false;
+  private pickTarget: WebGLRenderTarget | null = null;
+  private readonly idMaterials = new Map<string, MeshBasicMaterial>();
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -263,6 +269,8 @@ export class ObjectStage {
     this.orbit.removeEventListener('change', this.invalidate);
     this.orbit.dispose();
     this.clearParts();
+    this.pickTarget?.dispose();
+    for (const m of this.idMaterials.values()) m.dispose();
     this.grid.geometry.dispose();
     (this.grid.material as { dispose(): void }).dispose();
     this.axes.traverse((o) => {
@@ -438,8 +446,75 @@ export class ObjectStage {
     return { x: Math.min(m.x, e.clientX) - rect.left, y: Math.min(m.y, e.clientY) - rect.top, w: Math.abs(e.clientX - m.x), h: Math.abs(e.clientY - m.y) };
   }
 
-  /** Parts with at least one face touching a canvas-pixel rectangle (faces behind the camera are ignored). */
+  /**
+   * Parts inside a canvas-pixel rectangle. In solid view only what is seen counts: the scene is drawn once with a flat
+   * colour per part into an off-screen buffer and the rectangle is read back. In wire and x-ray views every part with a
+   * face touching the rectangle counts, hidden or not.
+   */
   idsInRect(r: Rect): string[] {
+    return this.settings.shading === 'solid' ? this.visibleIdsInRect(r) : this.touchingIdsInRect(r);
+  }
+
+  /** Colour (r, g, b bytes) of the part number `n` (1-based) in the id buffer. */
+  private idColor(n: number): [number, number, number] {
+    return [n & 255, (n >> 8) & 255, (n >> 16) & 255];
+  }
+
+  private visibleIdsInRect(r: Rect): string[] {
+    const ratio = this.renderer.getPixelRatio();
+    const w = Math.max(1, Math.round(this.canvas.clientWidth * ratio));
+    const h = Math.max(1, Math.round(this.canvas.clientHeight * ratio));
+    if (!this.pickTarget || this.pickTarget.width !== w || this.pickTarget.height !== h) {
+      this.pickTarget?.dispose();
+      this.pickTarget = new WebGLRenderTarget(w, h, { colorSpace: LinearSRGBColorSpace });
+    }
+    const x = Math.max(0, Math.floor(r.x * ratio));
+    const y = Math.max(0, Math.floor(r.y * ratio));
+    const rw = Math.min(w - x, Math.max(1, Math.ceil(r.w * ratio)));
+    const rh = Math.min(h - y, Math.max(1, Math.ceil(r.h * ratio)));
+    if (rw <= 0 || rh <= 0) return [];
+    const order = [...this.parts.keys()];
+    const saved = new Map<Mesh, Material | Material[]>();
+    order.forEach((id, i) => {
+      const part = this.parts.get(id)!;
+      let material = this.idMaterials.get(id);
+      const [cr, cg, cb] = this.idColor(i + 1);
+      if (!material) {
+        material = new MeshBasicMaterial({ toneMapped: false });
+        this.idMaterials.set(id, material);
+      }
+      material.color.setRGB(cr / 255, cg / 255, cb / 255, LinearSRGBColorSpace);
+      saved.set(part.mesh, part.mesh.material);
+      part.mesh.material = material;
+      part.edges.visible = false;
+    });
+    const hidden = [this.grid, this.axes, this.gizmo.getHelper()].map((o) => [o, o.visible] as const);
+    for (const [o] of hidden) o.visible = false;
+    const clear = this.renderer.getClearColor(new Color());
+    const clearAlpha = this.renderer.getClearAlpha();
+    this.renderer.setRenderTarget(this.pickTarget);
+    this.renderer.setClearColor(0x000000, 0);
+    this.renderer.clear();
+    this.renderer.render(this.scene, this.camera);
+    const pixels = new Uint8Array(rw * rh * 4);
+    // Render targets are read from the bottom row up.
+    this.renderer.readRenderTargetPixels(this.pickTarget, x, h - y - rh, rw, rh, pixels);
+    this.renderer.setRenderTarget(null);
+    this.renderer.setClearColor(clear, clearAlpha);
+    for (const [o, v] of hidden) o.visible = v;
+    for (const [mesh, material] of saved) mesh.material = material;
+    this.refreshLook();
+    this.invalidate();
+    const found = new Set<number>();
+    for (let i = 0; i < pixels.length; i += 4) {
+      if (pixels[i + 3] === 0) continue; // nothing drawn here
+      found.add(pixels[i]! | (pixels[i + 1]! << 8) | (pixels[i + 2]! << 16));
+    }
+    return order.filter((_, i) => found.has(i + 1));
+  }
+
+  /** Parts with at least one face touching the rectangle (faces behind the camera are ignored). */
+  private touchingIdsInRect(r: Rect): string[] {
     const width = this.canvas.clientWidth || 1;
     const height = this.canvas.clientHeight || 1;
     this.camera.updateMatrixWorld(true);

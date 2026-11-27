@@ -22,16 +22,18 @@ import type { WorldState } from '@/engine/world-state';
 import { buildCityGeometry, buildWaterGeometry, type CityTone } from '../shapes/city-geometry';
 import { waterMaterial, syncWater } from '../shapes/water-material';
 import { revealMaterial, setReveal } from '../shapes/reveal-material';
+import { resolvePoleGeometry } from '../shapes/site-recipes';
 import type { WorldView } from './world-view';
 
 const POLE_HEIGHT = 0.34;
 const COLORS = [new Color('#ff3b30'), new Color('#ffc233'), new Color('#35e06b')] as const;
 const Y_AXIS = new Vector3(0, 1, 0);
 
-function poleGeometry(): BufferGeometry {
+function poleGeometry(plan: SpawnPlan): BufferGeometry {
   const pole = new BoxGeometry(0.018, POLE_HEIGHT, 0.018).translate(0, POLE_HEIGHT / 2, 0);
   const head = new BoxGeometry(0.055, 0.13, 0.04).translate(0, POLE_HEIGHT - 0.04, 0.012);
-  return mergeGeometries([pole.toNonIndexed(), head.toNonIndexed()]) ?? pole;
+  const builtin = mergeGeometries([pole.toNonIndexed(), head.toNonIndexed()]) ?? pole;
+  return resolvePoleGeometry(plan.template.recipes as Parameters<typeof resolvePoleGeometry>[0], builtin, plan.template.palette);
 }
 
 /** Night palettes get a darker ground that leans toward the template's terrain color. */
@@ -67,7 +69,7 @@ export class CityView implements WorldView {
     this.water.name = 'city:water';
     this.water.onBeforeRender = () => syncWater(waterMat);
     const n = this.city.lights.length;
-    this.poles = new InstancedMesh(poleGeometry(), poleMaterial, n);
+    this.poles = new InstancedMesh(poleGeometry(plan), poleMaterial, n);
     this.lamps = new InstancedMesh(new BoxGeometry(0.03, 0.03, 0.02).translate(0, POLE_HEIGHT - 0.04, 0.04), lampMaterial, n);
     const m = new Matrix4();
     const q = new Quaternion();

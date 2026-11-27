@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { useT } from '@/i18n';
 import type { Template } from '@/templates/generated';
 import { BUTTON, FOCUS } from '../consts/ui.consts';
-import { addBuildingRecipe, buildingRecipeKind } from '../lib/engine-recipe';
+import { addEngineRecipe, engineRecipeKind } from '../lib/engine-recipe';
 import { engineObjects, templateObjects } from '../lib/inventory-model';
 import { Section } from './fields/Section';
 import { EngineThumb } from './EngineThumb';
@@ -42,7 +42,7 @@ export function InventoryPanel({ draft, selected, onSelect, update }: InventoryP
                   {t(`inventory.role.${o.role}`)} · {t(`inventory.origin.${o.origin}`)}
                   {o.authored ? ` · ${t('inventory.authored')}` : ''}
                 </span>
-                {o.replaces && <span className="text-xs text-[var(--mw-accent)]">{t('inventory.engine.replaces', { name: t(`inventory.engine.item.building.${o.replaces}`) })}</span>}
+                {o.replaces && <span className="text-xs text-[var(--mw-accent)]">{t('inventory.engine.replaces', { name: t(`inventory.engine.item.${o.replaces}`) })}</span>}
                 <span className="text-xs opacity-70">
                   {t('inventory.usage', { mappings: o.usage.mappings, scenery: o.usage.scenery, zones: o.usage.zones })}
                 </span>
@@ -63,21 +63,21 @@ export function InventoryPanel({ draft, selected, onSelect, update }: InventoryP
                 <EngineThumb object={o} color={draft.palette.primary} name={name} />
                 <span className="flex min-w-0 flex-col text-sm">
                   <span className="truncate font-medium">{name}</span>
-                  <span className="text-xs opacity-70">{t(o.variant ? 'inventory.engine.badgeEditable' : 'inventory.engine.badge')}</span>
-                  {o.variant && (
+                  <span className="text-xs opacity-70">{t(o.recipe ? 'inventory.engine.badgeEditable' : o.control ? `inventory.engine.control.${o.control}` : 'inventory.engine.badge')}</span>
+                  {o.recipe && (
                     <button
                       type="button"
                       className={`${BUTTON} mt-1 self-start !py-0.5 text-xs`}
                       onClick={() => {
-                        const existing = buildingRecipeKind(draft, o.variant!);
+                        const existing = engineRecipeKind(draft, o.recipe!);
                         if (existing) return onSelect(existing);
-                        const made = addBuildingRecipe(draft, o.variant!);
+                        const made = addEngineRecipe(draft, o.recipe!);
                         if (!made) return;
                         update(() => made.template);
                         onSelect(made.kind);
                       }}
                     >
-                      {t(buildingRecipeKind(draft, o.variant) ? 'inventory.engine.editRecipe' : 'inventory.engine.makeRecipe')}
+                      {t(engineRecipeKind(draft, o.recipe) ? 'inventory.engine.editRecipe' : 'inventory.engine.makeRecipe')}
                     </button>
                   )}
                 </span>
