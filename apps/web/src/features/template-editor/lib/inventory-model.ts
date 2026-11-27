@@ -1,4 +1,4 @@
-import { BUILDING_VARIANTS, isCityKind, templateHasCity, type BuildingVariant } from '@/engine/city';
+import { BUILDING_VARIANTS, buildingVariantOfRecipe, isCityKind, templateHasCity, type BuildingVariant } from '@/engine/city';
 import { roleOf, worldPlanKind, type ObjectRole } from '@/engine/world-plan';
 import { hasModel } from '@/xr/shapes/model-catalog';
 import type { Template } from '@/templates/generated';
@@ -31,6 +31,8 @@ export interface InventoryObject {
   /** An authored 3D model replaces the procedural shape at runtime. */
   readonly authored: boolean;
   readonly usage: ObjectUsage;
+  /** The city building variant this recipe replaces (`building_<variant>`), if any. */
+  readonly replaces: BuildingVariant | null;
 }
 
 const NO_USAGE: ObjectUsage = { mappings: 0, scenery: 0, zones: 0 };
@@ -70,6 +72,7 @@ export function templateObjects(template: Template): InventoryObject[] {
       cityKind: isCityKind(kind),
       authored: hasModel(kind),
       usage: u,
+      replaces: name === null ? null : buildingVariantOfRecipe(name),
     };
   });
   return objects.sort((a, b) => Number(b.origin === 'recipe') - Number(a.origin === 'recipe') || a.name.localeCompare(b.name));
@@ -89,6 +92,8 @@ export interface EngineObject {
   readonly group: 'city' | 'reef';
   /** Index into `buildingVariantGeometries()` when the object has a shape to draw; `'scaffold'` for the construction site. */
   readonly shape: number | 'scaffold' | null;
+  /** The building variant, when the object can be edited as a recipe (`building_<variant>`). */
+  readonly variant: BuildingVariant | null;
 }
 
 /**
@@ -98,15 +103,15 @@ export interface EngineObject {
 export function engineObjects(template: Template): EngineObject[] {
   if (templateHasCity(template)) {
     return [
-      ...BUILDING_VARIANTS.map((v, i): EngineObject => ({ id: `building.${v}`, group: 'city', shape: i })),
-      { id: 'construction', group: 'city', shape: 'scaffold' },
-      { id: 'streets', group: 'city', shape: null },
-      { id: 'lakes', group: 'city', shape: null },
-      { id: 'bridges', group: 'city', shape: null },
-      { id: 'signals', group: 'city', shape: null },
+      ...BUILDING_VARIANTS.map((v, i): EngineObject => ({ id: `building.${v}`, group: 'city', shape: i, variant: v })),
+      { id: 'construction', group: 'city', shape: 'scaffold', variant: null },
+      { id: 'streets', group: 'city', shape: null, variant: null },
+      { id: 'lakes', group: 'city', shape: null, variant: null },
+      { id: 'bridges', group: 'city', shape: null, variant: null },
+      { id: 'signals', group: 'city', shape: null, variant: null },
     ];
   }
   const plan = worldPlanKind(template);
-  if (plan === 'reef' || plan === 'realm') return REEF_THEMES.map((theme): EngineObject => ({ id: `patch.${theme}`, group: 'reef', shape: null }));
+  if (plan === 'reef' || plan === 'realm') return REEF_THEMES.map((theme): EngineObject => ({ id: `patch.${theme}`, group: 'reef', shape: null, variant: null }));
   return [];
 }

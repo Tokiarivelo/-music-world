@@ -23,7 +23,8 @@ import { crowdItemsOf, crowdPosesAt, type CrowdItem } from '@/engine/crowd';
 import { buildRoads, templateHasRoads } from '@/engine/roads';
 import { BUILDING_VARIANT_FOOTPRINT, CITY_FOOTPRINT, BUILDING_VARIANT_HEIGHT, cityFront, cityOf, isCityKind, templateHasCity, worldSize, type City, COMPANION_SPREAD_SEC } from '@/engine/city';
 import { buildRoadGeometry } from '../shapes/road-geometry';
-import { buildingVariantGeometries, craneGeometry, scaffoldGeometry } from '../shapes/house-shapes';
+import { resolveBuildingGeometries } from '../shapes/building-recipes';
+import { craneGeometry, scaffoldGeometry } from '../shapes/house-shapes';
 import { revealMaterial, setReveal } from '../shapes/reveal-material';
 import { CityView } from './city-view';
 import { foliageTint } from './horizon-view';
@@ -323,7 +324,7 @@ export class StructureView implements WorldView {
     this.object.add(this.cityView.object);
     const base = this.meshes.get('building');
     if (base) {
-      const [tower, ...others] = buildingVariantGeometries();
+      const [tower, ...others] = resolveBuildingGeometries(this.plan.template.recipes as Parameters<typeof resolveBuildingGeometries>[0], this.plan.template.palette);
       base.geometry.dispose();
       base.geometry = tower!;
       const list = others.map((geometry, i) => {

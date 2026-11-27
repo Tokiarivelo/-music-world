@@ -443,5 +443,9 @@
   "inventory.engine.item.patch.kelp": "Faritra: Kelp",
   "inventory.engine.item.patch.coral": "Faritra: Korally",
   "inventory.engine.item.patch.sand": "Faritra: Fasika",
-  "inventory.engine.item.patch.wreck": "Faritra: Sambo rendrika"
+  "inventory.engine.item.patch.wreck": "Faritra: Sambo rendrika",
+  "inventory.engine.badgeEditable": "Naorin'ny tontolo. Ovay ho recette mba hanovana ny endriny.",
+  "inventory.engine.makeRecipe": "Ovay ho recette",
+  "inventory.engine.editRecipe": "Ovay ny recette",
+  "inventory.engine.replaces": "Mosolo ny {name} an'ny tanàna"
 }

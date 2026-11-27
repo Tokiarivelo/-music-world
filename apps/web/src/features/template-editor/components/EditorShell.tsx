@@ -66,7 +66,7 @@ function Editor({ source, projectId }: { source: Template; projectId: string | n
         <h1 className="text-xl font-semibold">{t('title')}</h1>
         <p className="text-sm opacity-80">{t('source', { name: state.source.name })}</p>
         <EditorActions state={state} signedIn={session.user !== null} saver={saver} onReset={store.reset} />
-        <InventoryPanel draft={state.draft} selected={selected} onSelect={setSelected} />
+        <InventoryPanel draft={state.draft} selected={selected} onSelect={setSelected} update={store.update} />
         
         <EditorForm draft={state.draft} errors={state.errors} update={store.update} />
       </aside>

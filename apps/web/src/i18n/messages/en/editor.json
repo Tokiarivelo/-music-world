@@ -443,5 +443,9 @@
   "inventory.engine.item.patch.kelp": "Patch: Kelp",
   "inventory.engine.item.patch.coral": "Patch: Coral",
   "inventory.engine.item.patch.sand": "Patch: Sand",
-  "inventory.engine.item.patch.wreck": "Patch: Wreck"
+  "inventory.engine.item.patch.wreck": "Patch: Wreck",
+  "inventory.engine.badgeEditable": "Built by the world. Edit it as a recipe to restyle it.",
+  "inventory.engine.makeRecipe": "Edit as a recipe",
+  "inventory.engine.editRecipe": "Edit the recipe",
+  "inventory.engine.replaces": "Replaces the city's {name}"
 }

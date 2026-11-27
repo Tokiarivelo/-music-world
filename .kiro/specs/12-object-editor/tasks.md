@@ -67,3 +67,10 @@ One task = one commit (`12-object-editor: <n> <summary>`). One phase = one branc
 - [x] 7.3 The scale gizmo scales a part with what hangs from it (`scaleGroupBy`); group rotate and scale about the pivot (`applyGizmoDelta`)
 - [x] 7.4 Inventory lists what the engine adds to a template (city: 9 building variants, construction, streets, lakes, bridges, signals; reef and realm: patches) with real thumbnails; docs, handoff, PR merged
 
+## Phase 8 — Engine buildings as recipes, area box select (`phase-I52-engine-recipes`)
+
+- [x] 8.1 The nine city building variants as part-tree recipes (`building_<variant>`, `xr/shapes/building-recipes.ts`)
+- [x] 8.2 The city draws a template's `building_<variant>` recipe instead of the built-in shape (`resolveBuildingGeometries`); the world plan does not spawn it
+- [x] 8.3 Inventory: "Edit as a recipe" / "Edit the recipe" on each building variant, badge on the recipe that replaces one
+- [x] 8.4 Box select by area: any face touching the rectangle (`rect-hit`), not the part centre; docs, handoff, PR merged
+

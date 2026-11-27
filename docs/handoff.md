@@ -1,6 +1,6 @@
 # Handoff
 
-> **Date:** 2026-11-26 · **Last updated by:** Claude Code (workspace limits, phase I51)
+> **Date:** 2026-11-26 · **Last updated by:** Claude Code (engine recipes, phase I52)
 > **Format:** 6 fixed sections, **150 lines max**, rewritten at each handoff (see `.kiro/steering/handoff.md`).
 > Previous sessions: `docs/handoff-archive/<YYYY-MM>.md` (not read by default).
 
@@ -12,24 +12,25 @@ Read docs/handoff.md and continue with the next actions.
 
 ## 1. Repository state
 
-- Branch `phase-I51-workspace-limits` from `main`; merged at the end of the session. Push with gh credentials:
+- Branch `phase-I52-engine-recipes` from `main`; merged at the end of the session. Push with gh credentials:
   `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
-- Checks on 2026-11-26: web vitest 877 passed (155 files), tsc and eslint clean; API untouched this phase (last run: shape/template/schema 150 passed); `validate-architecture.sh`: 2 pre-existing violations in `engine/sky.ts` (imports `three`, a flagged word in a comment).
+- Checks on 2026-11-26: web vitest 897 passed (157 files), tsc and eslint clean; API untouched this phase (last run: shape/template/schema 150 passed); `validate-architecture.sh`: 2 pre-existing violations in `engine/sky.ts` (imports `three`, a flagged word in a comment).
 - No server left running. A Compose stack (old images) and another project's containers may run; leave them alone.
 - **Nothing is deployed**: no OVHcloud instance, domain, bucket or `infra/.env` exists yet. The repo is public.
 
-## 2. Last session (2026-11-26, Claude Code, phase I51 `phase-I51-workspace-limits`)
+## 2. Last session (2026-11-27, Claude Code, phase I52 `phase-I52-engine-recipes`)
 
-- Lifted the three limits of the object workspace (phase I50, spec 12 phase 7):
-  multi-selection (shift / ctrl click, box select with shift + drag or the select tool, `A`), re-parenting (outliner drag and
-  drop, "Parent" list, world pose kept), and a scale gizmo that scales a part with its children (`scaleGroupBy`).
-- The inventory now has an "Added by the world" list (`engineObjects`): the nine city building variants (real thumbnails),
-  construction, streets, lakes, bridges, traffic lights; reef and realm patch themes. Read-only.
-- Pure maths in `lib/gizmo-math.ts` (`applyGizmoDelta`, `reparentNode`) and `lib/node-model.ts` (`effectiveRoots`,
-  `canReparent`, `scaleGroupBy`) with tests; `ThumbCanvas` shared by object and engine thumbnails. i18n en/fr/mg.
-- Checked in headless Chromium: shift + drag box select ("6 parts selected"), engine list with thumbnails, Parent list.
-- Limits: engine objects are not editable (code, not recipes); box select uses part centres; mirror / array act on the
-  primary part only. The gizmo drag itself was not scripted in the browser (covered by the pure tests).
+- Remaining limits of the object workspace lifted (spec 12 phase 8):
+  the nine city building variants are now editable recipes (`building_<variant>`, `xr/shapes/building-recipes.ts`), and the
+  city draws a template's recipe instead of the built-in shape (`resolveBuildingGeometries`, `structure-view.ts`).
+- Inventory "Added by the world": "Edit as a recipe" / "Edit the recipe" on each building, badge on the replacing recipe;
+  `inventoryOf` skips these recipes (not spawnable objects).
+- Box select by area: any face touching the rectangle (`lib/rect-hit.ts`, `ObjectStage.idsInRect`), not the part centre.
+- Checked in headless Chromium: a small rectangle crossing only a wall face selects "Walls"; "Edit as a recipe" opens the
+  workspace on `building_house` (4 parts, 44 triangles). The city view with an edited recipe was not screenshotted
+  (covered by `resolveBuildingGeometries` tests).
+- Limits: part colours and textures do not show on city buildings (the city material colours them); streets, lakes, bridges,
+  signals, construction and reef patches stay engine code; box select also picks parts hidden behind others.
 - Checks: see section 1.
 
 ## 2b. Earlier session (phases I39–I41)
@@ -107,7 +108,7 @@ Plan, priorities and dates: `docs/roadmap.md` (read only the current phase). Sub
 | I8 lighting (blob shadows, wind), IWER check | Claude Code | done | PR phase-I8c-object-lighting; 58 draw calls in IWER |
 | I19-I21 polished, textured and modelled objects (12 CC0 GLB in `public/models`) (lit PBR, sky reflections, CC0 detail textures, `fx.material`) | Claude Code | done | PR phase-I19-polished-objects; report `docs/improvements/i19-polished-objects.md` |
 | I39–I41 city, playlist, layouts, traffic | Claude Code | done | branch `phase-I39-living-city`, PR to open |
-| 12-object-editor phases 1–7 (1.1–7.4) | Claude Code | done | branches `phase-I45-part-tree` … `phase-I51-workspace-limits` |
+| 12-object-editor phases 1–8 (1.1–8.4) | Claude Code | done | branches `phase-I45-part-tree` … `phase-I52-engine-recipes` |
 | I8 GLB/LOD, Quest 3 check | — | blocked | human: GLB needs the sourcing decision (`docs/open-questions.md` 1–2, 12) |
 | I10 R2 bucket + seed | — | blocked | human: bucket, API token, `--only` seed |
 | I9 task 9, I16, I5–I7 Quest checks | — | blocked | human: Quest 3 |
@@ -144,5 +145,5 @@ The daily ones. The rest (API, web/XR, tooling): `docs/pitfalls.md`, read the gr
 | 08-navigation-mode | 1–6 done | — (human: try it on a phone) | design.md § As built |
 | 09-template-editor | 1–11 done | — (recipe editing done, phase A5) | design.md § As built |
 | 10-template-moderation | 6/7 done | 7 (human: review a real hidden template) | design.md § As built |
-| 12-object-editor | all phases done (1.1–7.4) | — (optional: restyle engine objects, variants for scenery) | design.md § As built (phases 1–7) |
+| 12-object-editor | all phases done (1.1–8.4) | — (optional: colours on city buildings, variants for scenery) | design.md § As built (phases 1–8) |
 | 11-editable-notes | 1–8, 10 done | 9 (Quest, human); VR panel line list | design.md § As built |

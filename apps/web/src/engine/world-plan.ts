@@ -10,7 +10,7 @@
  */
 import { noteStream, hashSeed, mulberry32 } from './prng';
 import { BENTHIC_THEME, type ReefTheme } from './benthic';
-import { templateHasCity } from './city';
+import { buildingVariantOfRecipe, templateHasCity } from './city';
 import { worldSize } from './city';
 import type { ShapeKind, Vec3, WorldTemplate } from './types';
 
@@ -48,7 +48,8 @@ export function inventoryOf(template: WorldTemplate): InventoryItem[] {
   const kinds = new Set<ShapeKind>();
   for (const m of template.mappings ?? []) kinds.add(m.spawn);
   for (const s of template.scenery ?? []) kinds.add(s.kind);
-  for (const r of template.recipes ?? []) kinds.add(`recipe:${r.name}`);
+  // A `building_<variant>` recipe restyles the city's own building variant: it is not an object to spawn.
+  for (const r of template.recipes ?? []) if (buildingVariantOfRecipe(r.name) === null) kinds.add(`recipe:${r.name}`);
   return [...kinds].map((kind) => ({ kind, role: roleOf(kind) }));
 }
 
