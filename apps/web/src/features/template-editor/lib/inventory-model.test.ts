@@ -46,11 +46,11 @@ describe('templateObjects', () => {
 });
 
 describe('engineObjects', () => {
-  it('lists what a city builds around the objects: nine building variants, construction, streets, lakes, bridges, signals', () => {
+  it('lists what a city builds around the objects: nine building variants, scaffold, crane, signals, streets, lakes, bridges', () => {
     const city = { ...base, mappings: [{ ...base.mappings[0]!, spawn: 'building' as const }] };
     const ids = engineObjects(city).map((o) => o.id);
     expect(ids.filter((id) => id.startsWith('building.'))).toHaveLength(9);
-    for (const id of ['construction', 'streets', 'lakes', 'bridges', 'signals']) expect(ids).toContain(id);
+    for (const id of ['scaffold', 'crane', 'signals', 'streets', 'lakes', 'bridges']) expect(ids).toContain(id);
   });
 
   it('lists the patches of a reef, and nothing for an open world', () => {
@@ -61,5 +61,12 @@ describe('engineObjects', () => {
   it('has a shape to draw for each building variant', () => {
     const city = { ...base, mappings: [{ ...base.mappings[0]!, spawn: 'building' as const }] };
     expect(engineObjects(city).filter((o) => o.id.startsWith('building.')).every((o) => typeof o.shape === 'number')).toBe(true);
+  });
+
+  it('says which objects can be edited as a recipe and which setting drives the others', () => {
+    const city = { ...base, mappings: [{ ...base.mappings[0]!, spawn: 'building' as const }] };
+    const list = engineObjects(city);
+    expect(list.filter((o) => o.recipe !== null)).toHaveLength(12);
+    expect(list.filter((o) => o.recipe === null).every((o) => o.control === 'terrain')).toBe(true);
   });
 });

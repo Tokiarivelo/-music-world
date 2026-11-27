@@ -422,7 +422,6 @@
   "inventory.engine.badge": "Construit par le monde, non modifiable ici",
   "inventory.engine.intro.city": "La ville construit ces éléments autour de vos objets pendant la musique. Ils sont listés pour montrer ce que contient le monde.",
   "inventory.engine.intro.reef": "Le monde fait pousser ces zones autour de vos objets, selon le plan. Elles sont listées pour montrer ce que contient le monde.",
-  "inventory.engine.item.construction": "Chantier",
   "inventory.engine.item.streets": "Rues et trottoirs",
   "inventory.engine.item.lakes": "Lacs",
   "inventory.engine.item.bridges": "Ponts",
@@ -447,5 +446,9 @@
   "inventory.engine.badgeEditable": "Construit par le monde. Modifiez-le comme recette pour le restyler.",
   "inventory.engine.makeRecipe": "Modifier comme recette",
   "inventory.engine.editRecipe": "Modifier la recette",
-  "inventory.engine.replaces": "Remplace {name} de la ville"
+  "inventory.engine.replaces": "Remplace {name} de la ville",
+  "inventory.engine.item.scaffold": "Échafaudage de chantier",
+  "inventory.engine.item.crane": "Grue à tour",
+  "inventory.engine.control.terrain": "Tracé par le plan de la ville et coloré par la palette du terrain : ce n'est pas une forme, donc modifiez-le dans la palette et le terrain du template.",
+  "inventory.engine.control.layout": "Placée par le plan du monde autour de vos objets : ce n'est pas une forme, donc modifiez-la via les objets ci-dessus et le plan."
 }

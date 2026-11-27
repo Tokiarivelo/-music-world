@@ -32,6 +32,16 @@ export function buildingVariantOfRecipe(name: string): BuildingVariant | null {
   return BUILDING_VARIANTS.find((v) => buildingRecipeName(v) === name) ?? null;
 }
 
+/** Recipes that restyle the rest of the city's shapes: construction scaffold, tower crane, traffic-light pole. */
+export const SITE_SCAFFOLD_RECIPE = 'site_scaffold';
+export const SITE_CRANE_RECIPE = 'site_crane';
+export const SIGNAL_POLE_RECIPE = 'signal_pole';
+
+/** True for a recipe that replaces a shape the city draws itself (these are not objects the notes spawn). */
+export function isEngineRecipeName(name: string): boolean {
+  return buildingVariantOfRecipe(name) !== null || name === SITE_SCAFFOLD_RECIPE || name === SITE_CRANE_RECIPE || name === SIGNAL_POLE_RECIPE;
+}
+
 /** Footprint (plate metres) and height factor (× the note height) of each variant. */
 export const BUILDING_VARIANT_FOOTPRINT: readonly number[] = [0.32, 0.38, 0.4, 0.4, 0.34, 0.42, 0.44, 0.4, 0.36];
 export const BUILDING_VARIANT_HEIGHT: readonly number[] = [1, 0.4, 0.7, 0.35, 1.5, 0.45, 0.25, 1.2, 0.8];

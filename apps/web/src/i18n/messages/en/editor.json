@@ -422,7 +422,6 @@
   "inventory.engine.badge": "Built by the world, not editable here",
   "inventory.engine.intro.city": "The city builds these around your objects as the notes play. They are listed so you know what the world contains.",
   "inventory.engine.intro.reef": "The world grows these patches around your objects, following the layout. They are listed so you know what the world contains.",
-  "inventory.engine.item.construction": "Construction site",
   "inventory.engine.item.streets": "Streets and sidewalks",
   "inventory.engine.item.lakes": "Lakes",
   "inventory.engine.item.bridges": "Bridges",
@@ -447,5 +446,9 @@
   "inventory.engine.badgeEditable": "Built by the world. Edit it as a recipe to restyle it.",
   "inventory.engine.makeRecipe": "Edit as a recipe",
   "inventory.engine.editRecipe": "Edit the recipe",
-  "inventory.engine.replaces": "Replaces the city's {name}"
+  "inventory.engine.replaces": "Replaces the city's {name}",
+  "inventory.engine.item.scaffold": "Construction scaffold",
+  "inventory.engine.item.crane": "Tower crane",
+  "inventory.engine.control.terrain": "Laid out by the city plan and coloured by the Terrain palette: not a shape, so change it in the template's palette and terrain settings.",
+  "inventory.engine.control.layout": "Placed by the world layout around your objects: not a shape, so change it through the objects above and the layout."
 }

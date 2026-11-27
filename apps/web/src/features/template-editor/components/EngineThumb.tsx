@@ -1,7 +1,10 @@
 'use client';
 
 import { useMemo } from 'react';
-import { buildingVariantGeometries, scaffoldGeometry } from '@/xr/shapes/house-shapes';
+import { buildingVariantGeometries, craneGeometry, scaffoldGeometry } from '@/xr/shapes/house-shapes';
+import { buildRecipeGeometry } from '@/xr/shapes/recipe-builder';
+import { engineRecipe } from '@/xr/shapes/site-recipes';
+import { SIGNAL_POLE_RECIPE } from '@/engine/city';
 import type { EngineObject } from '../lib/inventory-model';
 import { thumbnailFaces } from '../lib/thumbnail';
 import { ThumbCanvas } from './ThumbCanvas';
@@ -10,7 +13,12 @@ import { ThumbCanvas } from './ThumbCanvas';
 export function EngineThumb({ object, color, name }: { object: EngineObject; color: string; name: string }) {
   const faces = useMemo(() => {
     if (object.shape === null) return [];
-    const g = object.shape === 'scaffold' ? scaffoldGeometry() : buildingVariantGeometries()[object.shape];
+    const pole = object.shape === 'pole' ? engineRecipe(SIGNAL_POLE_RECIPE) : null;
+    const g =
+      object.shape === 'scaffold' ? scaffoldGeometry()
+      : object.shape === 'crane' ? craneGeometry()
+      : object.shape === 'pole' ? (pole ? buildRecipeGeometry(pole) : null)
+      : buildingVariantGeometries()[object.shape];
     if (!g) return [];
     const flat = g.index ? g.toNonIndexed() : g;
     const out = thumbnailFaces(flat.getAttribute('position').array);

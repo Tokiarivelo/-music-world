@@ -1,4 +1,4 @@
-import { BUILDING_VARIANTS, buildingVariantOfRecipe, isCityKind, templateHasCity, type BuildingVariant } from '@/engine/city';
+import { BUILDING_VARIANTS, SIGNAL_POLE_RECIPE, SITE_CRANE_RECIPE, SITE_SCAFFOLD_RECIPE, buildingRecipeName, buildingVariantOfRecipe, isCityKind, templateHasCity } from '@/engine/city';
 import { roleOf, worldPlanKind, type ObjectRole } from '@/engine/world-plan';
 import { hasModel } from '@/xr/shapes/model-catalog';
 import type { Template } from '@/templates/generated';
@@ -31,8 +31,8 @@ export interface InventoryObject {
   /** An authored 3D model replaces the procedural shape at runtime. */
   readonly authored: boolean;
   readonly usage: ObjectUsage;
-  /** The city building variant this recipe replaces (`building_<variant>`), if any. */
-  readonly replaces: BuildingVariant | null;
+  /** The engine object this recipe replaces (`building_<variant>`, `site_scaffold`, `site_crane`, `signal_pole`), if any. */
+  readonly replaces: EngineObjectId | null;
 }
 
 const NO_USAGE: ObjectUsage = { mappings: 0, scenery: 0, zones: 0 };
@@ -72,7 +72,7 @@ export function templateObjects(template: Template): InventoryObject[] {
       cityKind: isCityKind(kind),
       authored: hasModel(kind),
       usage: u,
-      replaces: name === null ? null : buildingVariantOfRecipe(name),
+      replaces: name === null ? null : engineIdOfRecipe(name),
     };
   });
   return objects.sort((a, b) => Number(b.origin === 'recipe') - Number(a.origin === 'recipe') || a.name.localeCompare(b.name));
@@ -84,16 +84,31 @@ export function totalUses(object: InventoryObject): number {
 
 /** Something the world adds to the template at run time: shown in the inventory, not edited as a recipe. */
 const REEF_THEMES = ['keep', 'village', 'forest', 'crystal', 'kelp', 'coral', 'sand', 'wreck'] as const;
-export type EngineObjectId = `building.${BuildingVariant}` | 'construction' | 'streets' | 'lakes' | 'bridges' | 'signals' | `patch.${(typeof REEF_THEMES)[number]}`;
+export type EngineObjectId =
+  | `building.${(typeof BUILDING_VARIANTS)[number]}`
+  | 'scaffold' | 'crane' | 'streets' | 'lakes' | 'bridges' | 'signals'
+  | `patch.${(typeof REEF_THEMES)[number]}`;
 
 export interface EngineObject {
   /** Stable id, also the i18n key suffix (`inventory.engine.item.<id>`). */
   readonly id: EngineObjectId;
   readonly group: 'city' | 'reef';
-  /** Index into `buildingVariantGeometries()` when the object has a shape to draw; `'scaffold'` for the construction site. */
-  readonly shape: number | 'scaffold' | null;
-  /** The building variant, when the object can be edited as a recipe (`building_<variant>`). */
-  readonly variant: BuildingVariant | null;
+  /** Index into `buildingVariantGeometries()` for a building; `'scaffold'`, `'crane'`, `'pole'` for the other shapes; none otherwise. */
+  readonly shape: number | 'scaffold' | 'crane' | 'pole' | null;
+  /** Name of the recipe that replaces it in this template's city, when it can be edited as a recipe. */
+  readonly recipe: string | null;
+  /** Where its look comes from when it is not a shape (the template setting to change), as an i18n key suffix. */
+  readonly control: 'terrain' | 'layout' | null;
+}
+
+/** Engine object id of a recipe that replaces one, or `null`. */
+export function engineIdOfRecipe(name: string): EngineObjectId | null {
+  const variant = buildingVariantOfRecipe(name);
+  if (variant) return `building.${variant}`;
+  if (name === SITE_SCAFFOLD_RECIPE) return 'scaffold';
+  if (name === SITE_CRANE_RECIPE) return 'crane';
+  if (name === SIGNAL_POLE_RECIPE) return 'signals';
+  return null;
 }
 
 /**
@@ -103,15 +118,16 @@ export interface EngineObject {
 export function engineObjects(template: Template): EngineObject[] {
   if (templateHasCity(template)) {
     return [
-      ...BUILDING_VARIANTS.map((v, i): EngineObject => ({ id: `building.${v}`, group: 'city', shape: i, variant: v })),
-      { id: 'construction', group: 'city', shape: 'scaffold', variant: null },
-      { id: 'streets', group: 'city', shape: null, variant: null },
-      { id: 'lakes', group: 'city', shape: null, variant: null },
-      { id: 'bridges', group: 'city', shape: null, variant: null },
-      { id: 'signals', group: 'city', shape: null, variant: null },
+      ...BUILDING_VARIANTS.map((v, i): EngineObject => ({ id: `building.${v}`, group: 'city', shape: i, recipe: buildingRecipeName(v), control: null })),
+      { id: 'scaffold', group: 'city', shape: 'scaffold', recipe: SITE_SCAFFOLD_RECIPE, control: null },
+      { id: 'crane', group: 'city', shape: 'crane', recipe: SITE_CRANE_RECIPE, control: null },
+      { id: 'signals', group: 'city', shape: 'pole', recipe: SIGNAL_POLE_RECIPE, control: null },
+      { id: 'streets', group: 'city', shape: null, recipe: null, control: 'terrain' },
+      { id: 'lakes', group: 'city', shape: null, recipe: null, control: 'terrain' },
+      { id: 'bridges', group: 'city', shape: null, recipe: null, control: 'terrain' },
     ];
   }
   const plan = worldPlanKind(template);
-  if (plan === 'reef' || plan === 'realm') return REEF_THEMES.map((theme): EngineObject => ({ id: `patch.${theme}`, group: 'reef', shape: null, variant: null }));
+  if (plan === 'reef' || plan === 'realm') return REEF_THEMES.map((theme): EngineObject => ({ id: `patch.${theme}`, group: 'reef', shape: null, recipe: null, control: 'layout' }));
   return [];
 }

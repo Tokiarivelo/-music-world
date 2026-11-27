@@ -9,17 +9,18 @@ import type { PartPalette } from './node-builder';
 import { buildingVariantGeometries } from './house-shapes';
 import { buildRecipeGeometry, type ShapeRecipe } from './recipe-builder';
 import { recipe, type Spec } from './stock-recipes';
-import type { BufferGeometry } from 'three';
+import { Float32BufferAttribute, type BufferGeometry } from 'three';
+import { TEXTURE_ATTRIBUTE } from './part-textures';
 
 const r3 = (v: number): number => Math.round(v * 1000) / 1000;
 
 /** An axis-aligned box from corner `(x0, y0, z0)` to `(x1, y1, z1)`, as a part. */
-function box(id: string, name: string, x0: number, y0: number, z0: number, x1: number, y1: number, z1: number): Spec {
+export function box(id: string, name: string, x0: number, y0: number, z0: number, x1: number, y1: number, z1: number): Spec {
   return { id, name, primitive: 'box', at: [r3((x0 + x1) / 2), y0, r3((z0 + z1) / 2)], size: [r3(x1 - x0), r3(y1 - y0), r3(z1 - z0)] };
 }
 
 /** A gabled roof with its ridge along x (the variants' convention): eaves at `eave`, ridge at `top`. */
-function gable(id: string, name: string, x0: number, x1: number, z0: number, z1: number, eave: number, top: number): Spec {
+export function gable(id: string, name: string, x0: number, x1: number, z0: number, z1: number, eave: number, top: number): Spec {
   return { id, name, primitive: 'gable', at: [r3((x0 + x1) / 2), eave, r3((z0 + z1) / 2)], rot: [0, 90, 0], size: [r3(z1 - z0), r3(top - eave), r3(x1 - x0)] };
 }
 
@@ -97,7 +98,7 @@ export function buildingRecipe(variant: BuildingVariant): ShapeRecipe {
  * `building_<variant>` recipe when it has one and it builds (flat shaded, like the built-in variants).
  */
 export function resolveBuildingGeometries(recipes: readonly ShapeRecipe[], palette?: PartPalette): BufferGeometry[] {
-  return buildingVariantGeometries().map((builtin, i) => {
+  const geometries = buildingVariantGeometries().map((builtin, i) => {
     const name = buildingRecipeName(BUILDING_VARIANTS[i]!);
     const found = recipes.find((r) => r.name === name);
     const custom = found ? buildRecipeGeometry(found, palette) : null;
@@ -106,4 +107,13 @@ export function resolveBuildingGeometries(recipes: readonly ShapeRecipe[], palet
     custom.computeVertexNormals(); // non-indexed: one normal per face
     return custom;
   });
+  // The variants share one material: it needs the same attributes everywhere (white = no tint, texture 0 = none).
+  const painted = geometries.some((g) => g.hasAttribute('color'));
+  const textured = geometries.some((g) => g.hasAttribute(TEXTURE_ATTRIBUTE));
+  for (const g of geometries) {
+    const count = g.getAttribute('position').count;
+    if (painted && !g.hasAttribute('color')) g.setAttribute('color', new Float32BufferAttribute(new Float32Array(count * 3).fill(1), 3));
+    if (textured && !g.hasAttribute(TEXTURE_ATTRIBUTE)) g.setAttribute(TEXTURE_ATTRIBUTE, new Float32BufferAttribute(new Float32Array(count), 1));
+  }
+  return geometries;
 }

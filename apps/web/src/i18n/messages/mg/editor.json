@@ -422,7 +422,6 @@
   "inventory.engine.badge": "Naorin'ny tontolo, tsy azo ovaina eto",
   "inventory.engine.intro.city": "Ny tanàna no manorina ireto manodidina ny zavatrao rehefa mitendry ny mozika. Lisitra izy ireo mba hahafantarana ny ao anatin'ny tontolo.",
   "inventory.engine.intro.reef": "Ny tontolo no mamboly ireto faritra ireto manodidina ny zavatrao, araka ny drafitra. Lisitra izy ireo mba hahafantarana ny ao anatin'ny tontolo.",
-  "inventory.engine.item.construction": "Toeram-panorenana",
   "inventory.engine.item.streets": "Arabe sy sisin-dalana",
   "inventory.engine.item.lakes": "Farihy",
   "inventory.engine.item.bridges": "Tetezana",
@@ -447,5 +446,9 @@
   "inventory.engine.badgeEditable": "Naorin'ny tontolo. Ovay ho recette mba hanovana ny endriny.",
   "inventory.engine.makeRecipe": "Ovay ho recette",
   "inventory.engine.editRecipe": "Ovay ny recette",
-  "inventory.engine.replaces": "Mosolo ny {name} an'ny tanàna"
+  "inventory.engine.replaces": "Mosolo ny {name} an'ny tanàna",
+  "inventory.engine.item.scaffold": "Fanamboarana tafo",
+  "inventory.engine.item.crane": "Grue avo",
+  "inventory.engine.control.terrain": "Voasoratry ny drafitry ny tanàna ary voaloko amin'ny palety an'ny tany : tsy endrika izany, ka ovay ao amin'ny palety sy ny tany an'ny template.",
+  "inventory.engine.control.layout": "Apetrak'ny drafitry ny tontolo manodidina ny zavatrao : tsy endrika izany, ka ovay amin'ny alalan'ny zavatra etsy ambony sy ny drafitra."
 }
