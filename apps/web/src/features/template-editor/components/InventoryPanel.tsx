@@ -3,7 +3,8 @@
 import { useMemo } from 'react';
 import { useT } from '@/i18n';
 import type { Template } from '@/templates/generated';
-import { FOCUS } from '../consts/ui.consts';
+import { BUTTON, FOCUS } from '../consts/ui.consts';
+import { addBuildingRecipe, buildingRecipeKind } from '../lib/engine-recipe';
 import { engineObjects, templateObjects } from '../lib/inventory-model';
 import { Section } from './fields/Section';
 import { EngineThumb } from './EngineThumb';
@@ -13,10 +14,11 @@ export interface InventoryPanelProps {
   draft: Template;
   selected: string | null;
   onSelect(kind: string): void;
+  update(change: (d: Template) => Template): void;
 }
 
 /** Every object the template uses, with a thumbnail, its role and where it is used. */
-export function InventoryPanel({ draft, selected, onSelect }: InventoryPanelProps) {
+export function InventoryPanel({ draft, selected, onSelect, update }: InventoryPanelProps) {
   const t = useT('editor');
   const objects = useMemo(() => templateObjects(draft), [draft]);
   const engine = useMemo(() => engineObjects(draft), [draft]);
@@ -40,6 +42,7 @@ export function InventoryPanel({ draft, selected, onSelect }: InventoryPanelProp
                   {t(`inventory.role.${o.role}`)} · {t(`inventory.origin.${o.origin}`)}
                   {o.authored ? ` · ${t('inventory.authored')}` : ''}
                 </span>
+                {o.replaces && <span className="text-xs text-[var(--mw-accent)]">{t('inventory.engine.replaces', { name: t(`inventory.engine.item.building.${o.replaces}`) })}</span>}
                 <span className="text-xs opacity-70">
                   {t('inventory.usage', { mappings: o.usage.mappings, scenery: o.usage.scenery, zones: o.usage.zones })}
                 </span>
@@ -60,7 +63,23 @@ export function InventoryPanel({ draft, selected, onSelect }: InventoryPanelProp
                 <EngineThumb object={o} color={draft.palette.primary} name={name} />
                 <span className="flex min-w-0 flex-col text-sm">
                   <span className="truncate font-medium">{name}</span>
-                  <span className="text-xs opacity-70">{t('inventory.engine.badge')}</span>
+                  <span className="text-xs opacity-70">{t(o.variant ? 'inventory.engine.badgeEditable' : 'inventory.engine.badge')}</span>
+                  {o.variant && (
+                    <button
+                      type="button"
+                      className={`${BUTTON} mt-1 self-start !py-0.5 text-xs`}
+                      onClick={() => {
+                        const existing = buildingRecipeKind(draft, o.variant!);
+                        if (existing) return onSelect(existing);
+                        const made = addBuildingRecipe(draft, o.variant!);
+                        if (!made) return;
+                        update(() => made.template);
+                        onSelect(made.kind);
+                      }}
+                    >
+                      {t(buildingRecipeKind(draft, o.variant) ? 'inventory.engine.editRecipe' : 'inventory.engine.makeRecipe')}
+                    </button>
+                  )}
                 </span>
               </li>
             );

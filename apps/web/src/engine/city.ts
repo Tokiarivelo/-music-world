@@ -24,6 +24,14 @@ const BUILT_SHARE: Readonly<Record<'core' | 'mid' | 'edge', number>> = { core: 0
 /** Houses, shops and so on, in the order of `BUILDING_VARIANT_*`. */
 export const BUILDING_VARIANTS = ['tower', 'house', 'apartment', 'shop', 'skyscraper', 'villa', 'warehouse', 'twin', 'pagoda'] as const;
 export type BuildingVariant = (typeof BUILDING_VARIANTS)[number];
+/** Recipe name that replaces a building variant in a city (the editor makes it; `structure-view.ts` draws it). */
+export const buildingRecipeName = (variant: BuildingVariant): string => `building_${variant}`;
+
+/** The variant a recipe name replaces, or `null` when it is not one of the nine. */
+export function buildingVariantOfRecipe(name: string): BuildingVariant | null {
+  return BUILDING_VARIANTS.find((v) => buildingRecipeName(v) === name) ?? null;
+}
+
 /** Footprint (plate metres) and height factor (× the note height) of each variant. */
 export const BUILDING_VARIANT_FOOTPRINT: readonly number[] = [0.32, 0.38, 0.4, 0.4, 0.34, 0.42, 0.44, 0.4, 0.36];
 export const BUILDING_VARIANT_HEIGHT: readonly number[] = [1, 0.4, 0.7, 0.35, 1.5, 0.45, 0.25, 1.2, 0.8];

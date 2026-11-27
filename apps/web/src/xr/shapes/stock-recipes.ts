@@ -7,7 +7,7 @@
 import { plainMaterial, type PartNode } from "./node-builder";
 import type { ShapeRecipe } from "./recipe-builder";
 
-type Spec = Pick<PartNode, "id" | "name" | "primitive"> &
+export type Spec = Pick<PartNode, "id" | "name" | "primitive"> &
   Partial<Pick<PartNode, "parent" | "sides" | "taper" | "hidden">> & {
     size: [number, number, number];
     at?: [number, number, number];
@@ -32,7 +32,7 @@ function node(s: Spec): PartNode {
   };
 }
 
-function recipe(
+export function recipe(
   name: string,
   nodes: Spec[],
   footprint: number,

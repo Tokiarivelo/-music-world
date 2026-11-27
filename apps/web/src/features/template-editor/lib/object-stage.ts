@@ -31,6 +31,7 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 import { buildNodePieces, type PartPalette } from '@/xr/shapes/node-builder';
 import { applyGizmoDelta, worldPoseOf, type GizmoPose } from './gizmo-math';
 import { effectiveRoots, subtreeIds, type PartNode } from './node-model';
+import { triangleTouchesRect, type Rect } from './rect-hit';
 
 /**
  * The 3D stage of the object workspace (spec 12, phase 6): a Blender-like viewport on the part tree. Framework free (no
@@ -437,20 +438,32 @@ export class ObjectStage {
     return { x: Math.min(m.x, e.clientX) - rect.left, y: Math.min(m.y, e.clientY) - rect.top, w: Math.abs(e.clientX - m.x), h: Math.abs(e.clientY - m.y) };
   }
 
-  /** Parts whose centre falls inside a canvas-pixel rectangle. */
-  idsInRect(r: { x: number; y: number; w: number; h: number }): string[] {
+  /** Parts with at least one face touching a canvas-pixel rectangle (faces behind the camera are ignored). */
+  idsInRect(r: Rect): string[] {
     const width = this.canvas.clientWidth || 1;
     const height = this.canvas.clientHeight || 1;
+    this.camera.updateMatrixWorld(true);
+    const view = this.camera.matrixWorldInverse;
     const ids: string[] = [];
-    const c = new Vector3();
+    const v = new Vector3();
+    const px = (i: number, pos: ArrayLike<number>): [number, number] | null => {
+      v.set(pos[i * 3]!, pos[i * 3 + 1]!, pos[i * 3 + 2]!).applyMatrix4(view);
+      if (v.z >= -0.01) return null; // behind the camera
+      v.applyMatrix4(this.camera.projectionMatrix);
+      return [((v.x + 1) / 2) * width, ((1 - v.y) / 2) * height];
+    };
     for (const [id, { mesh }] of this.parts) {
       if (!mesh.visible) continue;
-      mesh.geometry.computeBoundingBox();
-      mesh.geometry.boundingBox?.getCenter(c);
-      c.project(this.camera);
-      const px = ((c.x + 1) / 2) * width;
-      const py = ((1 - c.y) / 2) * height;
-      if (px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h) ids.push(id);
+      const pos = mesh.geometry.getAttribute('position').array;
+      for (let t = 0; t < pos.length / 9; t += 1) {
+        const a = px(t * 3, pos);
+        const b = px(t * 3 + 1, pos);
+        const c = px(t * 3 + 2, pos);
+        if (a && b && c && triangleTouchesRect(a, b, c, r)) {
+          ids.push(id);
+          break;
+        }
+      }
     }
     return ids;
   }

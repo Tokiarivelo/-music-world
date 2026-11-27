@@ -443,5 +443,9 @@
   "inventory.engine.item.patch.kelp": "Zone : Kelp",
   "inventory.engine.item.patch.coral": "Zone : Corail",
   "inventory.engine.item.patch.sand": "Zone : Sable",
-  "inventory.engine.item.patch.wreck": "Zone : Épave"
+  "inventory.engine.item.patch.wreck": "Zone : Épave",
+  "inventory.engine.badgeEditable": "Construit par le monde. Modifiez-le comme recette pour le restyler.",
+  "inventory.engine.makeRecipe": "Modifier comme recette",
+  "inventory.engine.editRecipe": "Modifier la recette",
+  "inventory.engine.replaces": "Remplace {name} de la ville"
 }
